@@ -71,6 +71,18 @@ export const HeaderNav: React.FC = () => {
 
         {/* 2. Drawer Body (Main Navigation & Categories) */}
         <div className="p-4 flex flex-col gap-6 flex-1 bg-surface">
+          {/* Search Button for Mobile */}
+          <button
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              setTimeout(() => setIsSearchOpen(true), 150);
+            }}
+            className="flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-sm text-on-surface bg-surface-variant/50 hover:bg-surface-variant hover:text-[#e74c3c] transition-all cursor-pointer w-full text-left"
+          >
+            <Search className="w-5 h-5 shrink-0 text-on-surface-variant" />
+            <span>Cari Berita...</span>
+          </button>
+
           {/* Main Navigation */}
           <div className="flex flex-col gap-1.5">
             <span className="text-[11px] font-extrabold uppercase text-[#e74c3c] tracking-widest px-3 mb-1">
@@ -168,16 +180,8 @@ export const HeaderNav: React.FC = () => {
     <>
       <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant transition-colors duration-300">
         <div className="flex justify-between items-center px-4 pr-4 md:px-margin-desktop h-16 md:h-20 max-w-container-max mx-auto w-full relative z-10 gap-2 md:gap-4">
-          {/* Mobile Hamburger & Brand Logo */}
+          {/* Brand Logo */}
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden text-on-surface hover:text-[#e74c3c] p-2 rounded-lg hover:bg-surface-variant transition-colors cursor-pointer"
-              aria-label="Buka Menu Sidebar"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-
             <Link href="/" className="flex items-center shrink-0">
               <Logo variant="light" size="md" />
             </Link>
@@ -226,13 +230,24 @@ export const HeaderNav: React.FC = () => {
           <div className="flex items-center gap-2 sm:gap-4 shrink-0 justify-end">
             <WeatherWidget />
             <div className="h-5 w-px bg-outline-variant/60 hidden sm:block" />
+            
+            {/* Search Button (Hidden on Mobile, now in Drawer) */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="text-on-surface hover:text-[#e74c3c] transition-colors p-1.5 sm:p-2 rounded-full hover:bg-surface-variant flex items-center justify-center cursor-pointer shrink-0"
+              className="hidden md:flex text-on-surface hover:text-[#e74c3c] transition-colors p-1.5 sm:p-2 rounded-full hover:bg-surface-variant items-center justify-center cursor-pointer shrink-0"
               title="Cari Berita"
               aria-label="Cari Berita"
             >
-              <Search className="w-5 h-5 md:w-6 md:h-6" />
+              <Search className="w-6 h-6" />
+            </button>
+
+            {/* Mobile Hamburger Menu (Moved to right) */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden text-on-surface hover:text-[#e74c3c] p-2 rounded-lg hover:bg-surface-variant transition-colors cursor-pointer"
+              aria-label="Buka Menu Sidebar"
+            >
+              <Menu className="w-6 h-6" />
             </button>
           </div>
         </div>
