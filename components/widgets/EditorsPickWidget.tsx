@@ -23,7 +23,7 @@ export const EditorsPickWidget: React.FC<EditorsPickWidgetProps> = ({ articles }
             href={`/artikel/${article.id}`}
             className="group cursor-pointer block"
           >
-            <p className="font-button text-on-surface group-hover:text-[#e74c3c] transition-colors line-clamp-2">
+            <p className="font-button text-on-surface group-hover:text-primary transition-colors line-clamp-2 text-sm font-medium">
               {article.title}
             </p>
           </Link>

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { PlayCircle, Play, Eye, MapPin } from 'lucide-react';
+import { Film, Play } from 'lucide-react';
 import { Reel } from '@/types';
 import { ReelsViewerModal } from '../widgets/ReelsViewerModal';
 
@@ -56,9 +56,7 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
           <div className="flex items-center justify-between mb-5">
             <div className="flex flex-col gap-1">
               <h2 className="font-headline-md text-on-surface text-xl md:text-2xl font-bold flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-[#e74c3c]">
-                  <PlayCircle className="w-5 h-5 fill-current" />
-                </span>
+                <Film className="w-6 h-6 text-primary shrink-0" />
                 <span>{title}</span>
               </h2>
               {subtitle && (
@@ -70,7 +68,7 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
             {!hideSeeAll && (
               <Link
                 href="/reels"
-                className="inline-flex items-center gap-1.5 text-[#e74c3c] font-button hover:text-[#c00015] hover:underline text-sm font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 text-primary font-button hover:text-primary-dark hover:underline text-sm font-semibold transition-colors"
               >
                 <span>Lihat Semua</span>
                 <span className="text-xs">→</span>
@@ -90,8 +88,8 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
                   onClick={() => setActiveCategory(cat)}
                   className={`px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
                     isActive
-                      ? 'bg-[#e74c3c] text-white shadow-md shadow-red-500/20 scale-105'
-                      : 'bg-surface-container-highest/60 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface border border-outline-variant/30'
+                      ? 'bg-primary text-white shadow-md shadow-primary/20 scale-105'
+                      : 'bg-surface-variant/60 text-on-surface-variant hover:bg-surface-variant hover:text-primary border border-outline-variant/30'
                   }`}
                 >
                   {cat}
@@ -107,7 +105,7 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
             <div
               key={reel.id}
               onClick={() => handleOpenViewer(idx)}
-              className="relative w-[210px] sm:w-[240px] md:w-auto shrink-0 snap-center md:shrink md:snap-align-none aspect-[9/16] rounded-2xl overflow-hidden group cursor-pointer bg-zinc-900 shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1.5 border border-outline-variant/30"
+              className="relative w-[190px] sm:w-[220px] md:w-auto shrink-0 snap-center md:shrink md:snap-align-none aspect-[9/16] rounded-2xl overflow-hidden group cursor-pointer bg-zinc-900 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               {/* Image Poster */}
               {/* eslint-disable-next-img-element */}
@@ -118,44 +116,25 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
               />
 
               {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10 flex flex-col justify-between p-3.5 md:p-4">
-                {/* Top Badges */}
-                <div className="flex items-center justify-between w-full z-10 gap-2">
-                  <span className="bg-black/50 backdrop-blur-md text-white border border-white/15 font-bold text-[11px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
-                    {reel.category || 'Vibes'}
-                  </span>
-                  {reel.viewsCount && (
-                    <span className="flex items-center gap-1 text-[11px] font-medium text-white/90 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/15">
-                      <Eye className="w-3 h-3 text-white/80" />
-                      <span>{reel.viewsCount}</span>
-                    </span>
-                  )}
-                </div>
-
-                {/* Center Hover Play Button */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white flex items-center justify-center group-hover:bg-[#e74c3c] group-hover:border-[#e74c3c] group-hover:scale-110 transition-all duration-300 shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col justify-end p-3.5 sm:p-4">
+                {/* Center Hover Play Indicator */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="w-11 h-11 rounded-full bg-black/50 backdrop-blur-xs text-white flex items-center justify-center scale-95 group-hover:scale-100 transition-transform">
                     <Play className="w-5 h-5 fill-current ml-0.5" />
                   </div>
                 </div>
 
-                {/* Bottom Metadata: Clean Vertical Stack */}
-                <div className="flex flex-col gap-1 z-10 pt-6">
-                  {reel.creator && (
-                    <span className="text-[11px] font-medium text-white/75 tracking-wide truncate">
-                      {reel.creator}
-                    </span>
-                  )}
-
-                  <p className="text-white font-bold text-sm md:text-base leading-snug line-clamp-2 drop-shadow-xs group-hover:text-red-300 transition-colors">
+                {/* Bottom Content: Title & Views */}
+                <div className="flex flex-col gap-1 z-10">
+                  <p className="text-white font-bold text-sm sm:text-base leading-snug line-clamp-2 drop-shadow-xs">
                     {reel.title}
                   </p>
 
-                  {reel.location && (
-                    <div className="flex items-center gap-1 text-[11px] text-white/85 font-medium pt-0.5 truncate">
-                      <MapPin className="w-3 h-3 text-red-400 shrink-0" />
-                      <span className="truncate">{reel.location}</span>
-                    </div>
+                  {reel.viewsCount && (
+                    <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium pt-0.5">
+                      <Play className="w-3 h-3 fill-current" />
+                      <span>{reel.viewsCount}</span>
+                    </span>
                   )}
                 </div>
               </div>

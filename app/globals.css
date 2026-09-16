@@ -25,8 +25,9 @@
   --color-surface-bright: #fbf9f9;
   --color-on-primary-container: #fffdff;
   --color-inverse-on-surface: #f2f0f0;
-  --color-primary: #bd0015;
-  --color-primary-container: #e61e25;
+  --color-primary: #c00015;
+  --color-primary-dark: #a00012;
+  --color-primary-container: #c00015;
   --color-secondary-container: #e5e2e1;
   --color-on-tertiary: #ffffff;
   --color-on-surface-variant: #5d3f3c;
@@ -79,10 +80,48 @@
 }
 
 .card-hover {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px -4px rgba(189, 0, 21, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -6px rgba(192, 0, 21, 0.16);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+[data-state="open"] {
+  animation-duration: 250ms;
+}
+
+[data-state="closed"] {
+  animation-duration: 200ms;
 }

@@ -5,49 +5,24 @@ import React from 'react';
 interface LogoProps {
   variant?: 'light' | 'dark' | 'footer';
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
-export const Logo: React.FC<LogoProps> = ({ variant = 'light', size = 'md' }) => {
-  const iconHeights = {
-    sm: 'h-8 md:h-9',
-    md: 'h-10 md:h-12',
-    lg: 'h-14 md:h-16'
+export const Logo: React.FC<LogoProps> = ({ size = 'md', className = '' }) => {
+  const heights = {
+    sm: 'h-10 sm:h-12',
+    md: 'h-12 sm:h-14 md:h-[68px]',
+    lg: 'h-16 sm:h-20'
   };
-
-  const titleSizes = {
-    sm: 'text-base md:text-lg',
-    md: 'text-xl md:text-2xl font-headline-lg font-bold',
-    lg: 'text-2xl md:text-3xl font-headline-lg font-bold'
-  };
-
-  const taglineSizes = {
-    sm: 'text-[9px]',
-    md: 'text-[10px] md:text-[11px]',
-    lg: 'text-[11px] md:text-xs'
-  };
-
-  const textColor = variant === 'footer' ? 'text-white' : 'text-[#1b1c1c]';
-  const taglineColor =
-    variant === 'footer'
-      ? 'text-gray-200 font-medium'
-      : 'text-[#bd0015] font-semibold opacity-90';
 
   return (
-    <div className="flex items-center gap-3 group shrink-0 min-w-max">
+    <div className={`flex items-center shrink-0 ${className}`}>
       {/* eslint-disable-next-img-element */}
       <img
-        src="/logo-icon.png"
-        alt="Jurnal Vibes Icon"
-        className={`${iconHeights[size]} w-auto object-contain transition-transform group-hover:scale-105 shrink-0`}
+        src="/logo.webp"
+        alt="Jurnal Vibes"
+        className={`${heights[size]} w-auto object-contain transition-transform duration-200 group-hover:scale-102 shrink-0`}
       />
-      <div className="flex flex-col justify-center leading-tight shrink-0 min-w-max">
-        <span className={`tracking-tight ${titleSizes[size]} ${textColor} whitespace-nowrap`}>
-          Jurnal <span className="text-[#bd0015]">Vibes</span>
-        </span>
-        <span className={`font-sans tracking-wide whitespace-nowrap ${taglineSizes[size]} ${taglineColor}`}>
-          Your daily dose of <span className="text-[#bd0015] font-bold">Sukabumi Vibes</span>
-        </span>
-      </div>
     </div>
   );
 };

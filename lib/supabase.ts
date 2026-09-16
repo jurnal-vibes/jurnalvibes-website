@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+import { formatIndoDateTime } from '@/lib/utils';
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://bqxinsqdgkjbudmpgurr.supabase.co';
@@ -36,7 +37,7 @@ export function mapSupabaseArticle(row: any): Article {
     badge: row.badge ?? undefined,
     isSaved: row.is_saved ?? row.isSaved ?? false,
     subCategory: row.sub_category ?? row.subCategory ?? undefined,
-    createdAt: row.created_at ?? row.createdAt ?? 'BARU SAJA',
+    createdAt: formatIndoDateTime(row.created_at ?? row.createdAt),
     publishedDate: row.published_date ?? row.publishedDate ?? '2026'
   };
 }

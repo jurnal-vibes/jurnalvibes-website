@@ -29,7 +29,7 @@ Anda akan bekerja sama dengan desainer UI/UX dan pengembang back-end untuk mengi
     ],
     applyEmail: 'hrd@technusa.solutions',
     isSaved: true,
-    createdAt: '2 HARI LALU'
+    createdAt: 'Minggu, 13 September 2026 - 14:05 WIB'
   },
   {
     id: '2',
@@ -51,7 +51,7 @@ Anda akan bekerja sama dengan desainer UI/UX dan pengembang back-end untuk mengi
       'Asuransi kesehatan.'
     ],
     applyEmail: 'career@kopisukabumiraya.id',
-    createdAt: '3 HARI LALU'
+    createdAt: 'Sabtu, 12 September 2026 - 10:30 WIB'
   },
   {
     id: '3',
@@ -72,7 +72,7 @@ Anda akan bekerja sama dengan desainer UI/UX dan pengembang back-end untuk mengi
       'Fee per project + bonus virality.'
     ],
     applyEmail: 'hello@creativepulse.agency',
-    createdAt: '4 HARI LALU'
+    createdAt: 'Jumat, 11 September 2026 - 16:45 WIB'
   },
   {
     id: '4',
@@ -93,6 +93,6 @@ Anda akan bekerja sama dengan desainer UI/UX dan pengembang back-end untuk mengi
       'BPJS Ketenagakerjaan & Kesehatan.'
     ],
     applyEmail: 'recruitment@boutiquenusantara.co.id',
-    createdAt: '5 HARI LALU'
+    createdAt: 'Kamis, 10 September 2026 - 09:20 WIB'
   }
 ];

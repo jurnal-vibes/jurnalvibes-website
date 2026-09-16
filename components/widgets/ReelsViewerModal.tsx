@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Play, Pause, Heart, MessageCircle, Share2, Volume2, VolumeX, ChevronUp, ChevronDown, Music } from 'lucide-react';
+import { X, Play, Heart, MessageCircle, Share2, Volume2, VolumeX, ChevronUp, ChevronDown, Music } from 'lucide-react';
 import { Reel } from '@/types';
 
 interface ReelsViewerModalProps {
@@ -27,18 +27,34 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
     'reel-2': 289,
     'reel-3': 195,
   });
-  const [mounted, setMounted] = useState<boolean>(false);
+  const emptySubscribe = React.useCallback(() => () => {}, []);
+  const mounted = React.useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    setMounted(true);
+  // Scroll to target index smoothly
+  const scrollToIndex = React.useCallback((index: number) => {
+    setCurrentIndex(index);
+    if (containerRef.current) {
+      const targetChild = containerRef.current.children[index] as HTMLElement;
+      if (targetChild) {
+        targetChild.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
   }, []);
 
+  const togglePlay = React.useCallback(() => {
+    setIsPlaying(prev => !prev);
+  }, []);
+
+  const toggleMute = React.useCallback(() => {
+    setIsMuted(prev => !prev);
+  }, []);
+
+  // Lock scroll
   useEffect(() => {
     if (isOpen) {
-      setCurrentIndex(initialIndex);
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -46,7 +62,7 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen, initialIndex]);
+  }, [isOpen]);
 
   // Handle Keyboard navigation
   useEffect(() => {
@@ -73,18 +89,7 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentIndex, reels.length]);
-
-  // Scroll to target index smoothly
-  const scrollToIndex = (index: number) => {
-    setCurrentIndex(index);
-    if (containerRef.current) {
-      const targetChild = containerRef.current.children[index] as HTMLElement;
-      if (targetChild) {
-        targetChild.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
+  }, [isOpen, currentIndex, reels.length, onClose, scrollToIndex, togglePlay]);
 
   // Play/Pause current video
   useEffect(() => {
@@ -100,14 +105,6 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
       }
     });
   }, [currentIndex, isPlaying, isOpen]);
-
-  const togglePlay = () => {
-    setIsPlaying(prev => !prev);
-  };
-
-  const toggleMute = () => {
-    setIsMuted(prev => !prev);
-  };
 
   const toggleLike = (id: string) => {
     setLikedMap(prev => {
@@ -148,7 +145,7 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
       {/* Top Bar Controls */}
       <div className="absolute top-0 inset-x-0 z-30 flex items-center justify-between px-4 py-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
         <div className="flex items-center gap-2">
-          <span className="bg-[#e74c3c] text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">
+          <span className="bg-primary text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">
             Reels ({currentIndex + 1}/{reels.length})
           </span>
         </div>
@@ -283,7 +280,7 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
                       {reel.category}
                     </span>
                   )}
-                  <span className="text-[10px] font-bold bg-[#e74c3c] text-white px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold bg-primary text-white px-2 py-0.5 rounded-full">
                     IKUTI
                   </span>
                 </div>

@@ -46,7 +46,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
       {/* Weather Info */}
       <div className="flex items-center gap-1.5 text-xs font-semibold text-on-surface">
-        <span className="text-xs font-semibold md:font-extrabold md:text-sm text-[#e74c3c] tracking-tight">{temp}</span>
+        <span className="text-xs font-semibold md:font-extrabold md:text-sm text-primary tracking-tight">{temp}</span>
         <span className="hidden md:inline text-[11px] text-on-surface-variant font-medium opacity-90">{location}</span>
       </div>
 
@@ -55,7 +55,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
       {/* Date Info */}
       <div className="hidden lg:flex items-center gap-1.5 text-[11px] font-medium text-on-surface-variant/90 shrink-0">
-        <Calendar className="w-3.5 h-3.5 opacity-60 text-[#e74c3c]" />
+        <Calendar className="w-3.5 h-3.5 opacity-60 text-primary" />
         <span>{date}</span>
       </div>
     </Link>
