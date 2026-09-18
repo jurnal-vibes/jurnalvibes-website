@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, X, Send, MessageCircle, ExternalLink } from 'lucide-react';
+import { X, Send, MessageCircle, ExternalLink } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -106,7 +106,6 @@ export const ChatbotButton: React.FC = () => {
         <div className="fixed bottom-20 sm:bottom-8 right-4 sm:right-8 z-50 w-[calc(100vw-2rem)] max-w-[390px] h-[480px] sm:h-[520px] bg-surface dark:bg-slate-900 rounded-2xl shadow-2xl border border-outline-variant dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           {/* 1. Header Chat */}
           <div className="bg-gradient-to-r from-[#c00015] via-[#d63031] to-[#e74c3c] text-white p-4 flex items-center justify-between shadow-md shrink-0">
-          <div className="bg-gradient-to-r from-primary-dark to-primary text-white p-4 flex items-center justify-between shadow-md shrink-0">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 overflow-hidden shadow-sm shrink-0">
@@ -176,7 +175,7 @@ export const ChatbotButton: React.FC = () => {
                   href="https://halo-jurnal-app.vercel.app/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 bg-[#e74c3c] hover:bg-[#c00015] text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                   onMouseEnter={() => {
                     if (typeof window !== 'undefined' && !document.head.querySelector('link[data-halo-prefetch="true"]')) {
                       const link = document.createElement('link');
@@ -186,7 +185,6 @@ export const ChatbotButton: React.FC = () => {
                       document.head.appendChild(link);
                     }
                   }}
-                  className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   <span>Hallo Jurnal</span>
@@ -254,7 +252,6 @@ export const ChatbotButton: React.FC = () => {
           aria-label="Tanya AI"
           onClick={() => setIsChatOpen(true)}
           className="relative transition-all duration-300 hover:scale-110 active:scale-95 group cursor-pointer focus:outline-none"
-          className="w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center cursor-pointer border border-white/20 hover:scale-105 active:scale-95 group"
           title="Tanya Jurnal Vibes AI"
         >
           <img
