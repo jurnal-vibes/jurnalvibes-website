@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Vote } from 'lucide-react';
 import { Poll } from '@/types';
+import { Button } from '@/components/ui/button';
 
 interface PollingWidgetProps {
   poll: Poll;
@@ -19,45 +20,53 @@ export const PollingWidget: React.FC<PollingWidgetProps> = ({ poll }) => {
   };
 
   return (
-    <section className="bg-surface-container-low rounded-xl p-stack-md md:p-gutter border border-outline-variant my-4 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <Vote className="w-5 h-5 text-[#e74c3c]" />
-        <h3 className="font-headline-md text-on-surface text-xl font-bold">Polling Lokal</h3>
+    <section className="bg-surface rounded-2xl p-6 border border-outline-variant/60 my-4 shadow-sm">
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="p-2 rounded-xl bg-primary/10 text-primary">
+          <Vote className="w-5 h-5" />
+        </div>
+        <h3 className="font-bold text-on-surface text-lg sm:text-xl">Polling Lokal</h3>
       </div>
-      <p className="font-body-lg text-on-surface mb-6">{poll.question}</p>
+      <p className="text-on-surface/90 text-sm sm:text-base font-medium mb-5">{poll.question}</p>
 
-      <div className="flex flex-col gap-3">
-        {poll.options.map(option => (
-          <label
-            key={option.id}
-            className={`flex items-center justify-between p-4 rounded-lg border border-outline-variant hover:border-[#e74c3c] cursor-pointer transition-colors bg-surface group ${
-              selectedOption === option.id ? 'border-[#e74c3c] bg-red-50/20' : ''
-            }`}
-          >
-            <span className="font-button text-on-surface group-hover:text-[#e74c3c]">
-              {option.text}
-            </span>
-            <input
-              type="radio"
-              name="poll"
-              checked={selectedOption === option.id}
-              onChange={() => setSelectedOption(option.id)}
-              className="text-[#e74c3c] focus:ring-[#e74c3c] w-5 h-5 border-outline-variant accent-[#e74c3c]"
-            />
-          </label>
-        ))}
+      <div className="flex flex-col gap-2.5">
+        {poll.options.map((option) => {
+          const isSelected = selectedOption === option.id;
+          return (
+            <label
+              key={option.id}
+              className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all duration-200 group ${
+                isSelected
+                  ? 'border-primary bg-primary/5 shadow-2xs'
+                  : 'border-outline-variant/60 bg-surface hover:border-primary/50 hover:bg-surface-variant/40'
+              }`}
+            >
+              <span className={`text-sm font-semibold transition-colors ${
+                isSelected ? 'text-primary' : 'text-on-surface group-hover:text-primary'
+              }`}>
+                {option.text}
+              </span>
+              <input
+                type="radio"
+                name="poll"
+                checked={isSelected}
+                onChange={() => setSelectedOption(option.id)}
+                className="w-4 h-4 accent-primary cursor-pointer"
+              />
+            </label>
+          );
+        })}
       </div>
 
-      <div className="mt-4 text-right">
-        <button
+      <div className="mt-5 text-right">
+        <Button
           onClick={handleVote}
           disabled={!selectedOption || hasVoted}
-          className={`bg-[#e74c3c] text-on-primary font-button px-6 py-2 rounded-full transition-transform ${
-            hasVoted ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02]'
-          }`}
+          variant="default"
+          className="rounded-full px-6"
         >
           {hasVoted ? 'Terima Kasih!' : 'Vote Sekarang'}
-        </button>
+        </Button>
       </div>
     </section>
   );

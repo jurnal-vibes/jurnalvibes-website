@@ -7,25 +7,6 @@ import { Home, Bookmark, Film, ExternalLink } from 'lucide-react';
 import { EditorsPickWidget } from '../widgets/EditorsPickWidget';
 import { Article } from '@/types';
 
-const HandWaveIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M18 11V6a2 2 0 0 0-4 0v5" />
-    <path d="M14 10V4a2 2 0 0 0-4 0v6" />
-    <path d="M10 10.5V5a2 2 0 0 0-4 0v9" />
-    <path d="M18 11a2 2 0 0 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.8-6-2.5L3 16" />
-    <path d="M22 6c-1.5-1-3.5-1-5 0" />
-    <path d="M20 3c-2-1.2-4.5-1.2-6.5 0" />
-  </svg>
-);
-
 interface LeftSidebarProps {
   articles: Article[];
 }
@@ -37,71 +18,76 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ articles }) => {
   const isBookmark = pathname === '/bookmark';
   const isReels = pathname === '/reels';
 
+  const navItems = [
+    { href: '/', label: 'For You', icon: Home, isActive: isHome },
+    { href: '/bookmark', label: 'Tersimpan', icon: Bookmark, isActive: isBookmark },
+    { href: '/reels', label: 'Vibes Reels', icon: Film, isActive: isReels },
+  ];
+
   return (
-    <aside className="hidden md:flex flex-col w-1/4 sticky overflow-y-auto pr-4 gap-stack-lg top-24 h-[calc(100vh-6rem)] no-scrollbar shrink-0 justify-between pb-8">
-      <div className="flex flex-col gap-stack-lg">
-        <nav className="flex flex-col gap-2">
-          <Link
-            href="/"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-button group transition-colors ${
-              isHome
-                ? 'bg-primary-fixed/20 text-[#e74c3c] hover:bg-primary-container hover:text-on-primary-container'
-                : 'text-secondary dark:text-slate-300 hover:bg-surface-variant dark:hover:bg-slate-800 hover:text-on-surface-variant dark:hover:text-white'
-            }`}
-          >
-            <Home className={`w-5 h-5 ${isHome ? 'fill-current' : ''}`} />
-            For You
-          </Link>
-
-          <Link
-            href="/bookmark"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-button group transition-colors ${
-              isBookmark
-                ? 'bg-primary-fixed/20 text-[#e74c3c] hover:bg-primary-container hover:text-on-primary-container'
-                : 'text-secondary dark:text-slate-300 hover:bg-surface-variant dark:hover:bg-slate-800 hover:text-on-surface-variant dark:hover:text-white'
-            }`}
-          >
-            <Bookmark className={`w-5 h-5 ${isBookmark ? 'fill-current' : ''}`} />
-            Tersimpan
-          </Link>
-
-          <Link
-            href="/reels"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-button group transition-colors ${
-              isReels
-                ? 'bg-primary-fixed/20 text-[#e74c3c] hover:bg-primary-container hover:text-on-primary-container'
-                : 'text-secondary dark:text-slate-300 hover:bg-surface-variant dark:hover:bg-slate-800 hover:text-on-surface-variant dark:hover:text-white'
-            }`}
-          >
-            <Film className={`w-5 h-5 ${isReels ? 'fill-current' : ''}`} />
-            Vibes Reels
-          </Link>
+    <aside className="hidden md:flex flex-col w-1/4 sticky top-28 self-start overflow-y-auto pr-4 gap-6 h-[calc(100vh-7.25rem)] no-scrollbar shrink-0 justify-between pb-0">
+      <div className="flex flex-col gap-6">
+        <nav className="flex flex-col gap-1.5">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                  item.isActive
+                    ? 'bg-primary/10 text-primary font-bold shadow-2xs'
+                    : 'text-on-surface-variant hover:bg-surface-variant/70 hover:text-primary'
+                }`}
+              >
+                <Icon className={`w-5 h-5 ${item.isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
 
         <EditorsPickWidget articles={articles} />
       </div>
 
-      {/* Hallo Jurnal Channel Link at bottom section */}
-      <div className="mt-4 pt-3 border-t border-outline-variant/40 dark:border-slate-800 shrink-0 mb-4">
-        <a
-          href="https://halo-jurnal-app.vercel.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          onMouseEnter={() => {
-            if (typeof window !== 'undefined' && !document.head.querySelector('link[data-halo-prefetch="true"]')) {
-              const link = document.createElement('link');
-              link.rel = 'prefetch';
-              link.href = 'https://halo-jurnal-app.vercel.app/';
-              link.setAttribute('data-halo-prefetch', 'true');
-              document.head.appendChild(link);
-            }
-          }}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-variant/50 dark:bg-slate-800/50 hover:bg-primary-container text-on-surface dark:text-white hover:text-on-primary-container font-button font-bold text-sm transition-all group border border-outline-variant/50 dark:border-slate-700 shadow-xs cursor-pointer"
-        >
-          <HandWaveIcon className="w-5 h-5 text-[#e74c3c] group-hover:rotate-12 transition-transform shrink-0" />
-          <span className="flex-1 font-bold">Hallo Jurnal</span>
-          <ExternalLink className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity shrink-0" />
-        </a>
+      {/* Hallo Jurnal Section: Tanpa Card & Tanpa Pembatas (Seamless & Bersih) */}
+      <div className="mt-auto pt-4 shrink-0 mb-1">
+        <div className="w-full flex items-center gap-2.5 py-1 group">
+          {/* Karakter 3D Presenter berdiri di sisi kiri tanpa card */}
+          <div className="w-20 h-32 shrink-0 -translate-y-3.5 flex items-end justify-center pointer-events-none">
+            {/* eslint-disable-next-img-element */}
+            <img
+              src="/hallo-jurnal-presenter.webp"
+              alt="Hallo Jurnal Presenter"
+              className="w-full h-full object-contain object-bottom drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+
+          {/* Konten teks & tombol langsung menyatu dengan sidebar */}
+          <div className="flex-1 flex flex-col items-start min-w-0">
+            <span className="text-xs font-extrabold text-on-surface tracking-wide">Hallo Jurnal</span>
+            <span className="text-[11px] text-secondary mt-0.5 leading-snug">Wadah laporan &amp; komunikasi online warga Sukabumi</span>
+
+            <a
+              href="https://halo-jurnal-app.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              onMouseEnter={() => {
+                if (typeof window !== 'undefined' && !document.head.querySelector('link[data-halo-prefetch="true"]')) {
+                  const link = document.createElement('link');
+                  link.rel = 'prefetch';
+                  link.href = 'https://halo-jurnal-app.vercel.app/';
+                  link.setAttribute('data-halo-prefetch', 'true');
+                  document.head.appendChild(link);
+                }
+              }}
+              className="mt-2.5 flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary hover:bg-primary-dark text-white font-extrabold text-xs transition-all shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
+            >
+              <span>Kirim Laporan</span>
+              <ExternalLink className="w-3 h-3 text-white/90 shrink-0" />
+            </a>
+          </div>
+        </div>
       </div>
     </aside>
   );

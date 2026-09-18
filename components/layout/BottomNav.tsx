@@ -7,47 +7,32 @@ import { Home, Compass, Film } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
   const pathname = usePathname();
-  const isHome = pathname === '/';
-  const isBerita = pathname === '/berita';
-  const isReels = pathname === '/reels';
+
+  const navItems = [
+    { href: '/', label: 'Home', icon: Home, isActive: pathname === '/' },
+    { href: '/berita', label: 'Explore', icon: Compass, isActive: pathname === '/berita' },
+    { href: '/reels', label: 'Vibes', icon: Film, isActive: pathname === '/reels' },
+  ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 md:hidden bg-surface/90 backdrop-blur-md dark:bg-slate-950/90 shadow-lg border-t border-outline-variant dark:border-slate-800">
-      <Link
-        href="/"
-        className={`flex flex-col items-center justify-center rounded-full px-4 py-1 transition-transform ${
-          isHome
-            ? 'bg-primary-container text-on-primary-container scale-95'
-            : 'text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-high dark:hover:bg-slate-800 dark:hover:text-white rounded-xl p-2'
-        }`}
-      >
-        <Home className="w-5 h-5 fill-current" />
-        <span className="text-xs font-bold mt-1">Home</span>
-      </Link>
-
-      <Link
-        href="/berita"
-        className={`flex flex-col items-center justify-center rounded-full px-4 py-1 transition-transform ${
-          isBerita
-            ? 'bg-primary-container text-on-primary-container scale-95'
-            : 'text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-high dark:hover:bg-slate-800 dark:hover:text-white rounded-xl p-2'
-        }`}
-      >
-        <Compass className="w-5 h-5" />
-        <span className="text-xs font-bold mt-1">Explore</span>
-      </Link>
-
-      <Link
-        href="/reels"
-        className={`flex flex-col items-center justify-center rounded-full px-4 py-1 transition-transform ${
-          isReels
-            ? 'bg-primary-container text-on-primary-container scale-95'
-            : 'text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-high dark:hover:bg-slate-800 dark:hover:text-white rounded-xl p-2'
-        }`}
-      >
-        <Film className="w-5 h-5" />
-        <span className="text-xs font-bold mt-1">Vibes</span>
-      </Link>
+    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 md:hidden bg-surface/90 backdrop-blur-md shadow-lg border-t border-outline-variant/60">
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex flex-col items-center justify-center rounded-2xl px-5 py-1.5 transition-all duration-200 active:scale-95 ${
+              item.isActive
+                ? 'bg-primary/10 text-primary font-bold shadow-2xs'
+                : 'text-on-surface-variant hover:text-primary hover:bg-surface-variant/60 font-medium'
+            }`}
+          >
+            <Icon className={`w-5 h-5 ${item.isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+            <span className="text-[11px] mt-0.5">{item.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 };

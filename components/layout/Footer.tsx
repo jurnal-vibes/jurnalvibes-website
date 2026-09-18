@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { Logo } from '../ui/Logo';
 
 export const Footer: React.FC = () => {
   const socialLinks = [
@@ -63,22 +61,15 @@ export const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="w-full bg-white dark:bg-slate-900 border-t border-zinc-200 dark:border-slate-800 mt-auto relative">
-      {/* Top Thin Red Accent Border */}
-      <div className="h-0.5 bg-[#e74c3c] w-full" />
-
+    <footer className="w-full bg-surface border-t border-outline-variant/60 mt-auto relative transition-colors duration-300">
       {/* Main Split Container */}
       <div className="max-w-container-max mx-auto pt-8 pb-32 md:pb-8 px-6 md:px-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           
-          {/* Sisi Kiri: Logo + Slogan + Medsos Bulat (Susunan Vertikal) */}
+          {/* Sisi Kiri: Medsos Bulat */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
-            <Link href="/" className="inline-block">
-              <Logo variant="light" size="sm" />
-            </Link>
-
             {/* Deretan Icon Medsos Bulat (Instagram, TikTok, WhatsApp, X, YouTube, Facebook) */}
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-2">
               {socialLinks.map((item, idx) => (
                 <a
                   key={idx}
@@ -86,7 +77,7 @@ export const Footer: React.FC = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   title={item.name}
-                  className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-slate-800 border border-zinc-200 dark:border-slate-700 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-[#e74c3c] hover:text-white dark:hover:bg-[#e74c3c] dark:hover:text-white hover:border-[#e74c3c] transition-all duration-200 shadow-2xs"
+                  className="w-8 h-8 rounded-full bg-surface-variant/70 border border-outline-variant/60 flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 shadow-2xs cursor-pointer active:scale-95"
                 >
                   {item.icon}
                 </a>
@@ -96,11 +87,11 @@ export const Footer: React.FC = () => {
 
           {/* Sisi Kanan (Rata Kanan di Desktop) */}
           <div className="text-center md:text-right md:pr-32">
-            <nav aria-label="Footer Navigation" className="flex flex-wrap justify-center md:justify-end gap-x-4 gap-y-2 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-              <a href="#" className="hover:text-[#e74c3c] transition-colors">Tentang Kami</a>
-              <a href="#" className="hover:text-[#e74c3c] transition-colors">Pedoman Media Siber</a>
-              <a href="#" className="hover:text-[#e74c3c] transition-colors">Hubungi Kami</a>
-              <a href="#" className="hover:text-[#e74c3c] transition-colors">Kebijakan Privasi</a>
+            <nav aria-label="Footer Navigation" className="flex flex-wrap justify-center md:justify-end gap-x-4 gap-y-2 text-xs text-on-surface-variant font-medium">
+              <a href="#" className="hover:text-primary transition-colors">Tentang Kami</a>
+              <a href="#" className="hover:text-primary transition-colors">Pedoman Media Siber</a>
+              <a href="#" className="hover:text-primary transition-colors">Hubungi Kami</a>
+              <a href="#" className="hover:text-primary transition-colors">Kebijakan Privasi</a>
             </nav>
 
             <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-3 text-center md:text-right">
