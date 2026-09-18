@@ -19,7 +19,7 @@ export const DUMMY_ARTICLES: Article[] = [
     readTime: '5 min read',
     isHero: true,
     badge: 'VIRAL',
-    createdAt: '2 JAM LALU',
+    createdAt: 'Selasa, 15 September 2026 - 13:36 WIB',
     publishedDate: '26 Okt 2024'
   },
 
@@ -45,7 +45,7 @@ export const DUMMY_ARTICLES: Article[] = [
     isEditorsPick: true,
     badge: 'HOT',
     isSaved: true,
-    createdAt: '5 JAM LALU',
+    createdAt: 'Selasa, 15 September 2026 - 10:15 WIB',
     publishedDate: '26 Okt 2024'
   },
 
@@ -69,7 +69,7 @@ export const DUMMY_ARTICLES: Article[] = [
     isEditorsPick: true,
     badge: 'LATEST',
     isSaved: true,
-    createdAt: 'KEMARIN',
+    createdAt: 'Senin, 14 September 2026 - 18:45 WIB',
     publishedDate: '25 Okt 2024'
   },
 
@@ -90,7 +90,7 @@ export const DUMMY_ARTICLES: Article[] = [
     author: 'Tim Redaksi',
     readTime: '4 min read',
     badge: 'EVENT',
-    createdAt: 'KEMARIN',
+    createdAt: 'Senin, 14 September 2026 - 15:20 WIB',
     publishedDate: '24 Okt 2024'
   },
 
@@ -110,7 +110,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Tim Startup Teknologi Sukabumi Berdiskusi di Kantor',
     author: 'Tim Redaksi',
     readTime: '4 min read',
-    createdAt: '2 HARI LALU',
+    createdAt: 'Minggu, 13 September 2026 - 20:10 WIB',
     publishedDate: '23 Okt 2024'
   },
 
@@ -130,7 +130,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Deretan Mobil Klasik Touring di Jalanan Sukabumi',
     author: 'Tim Redaksi',
     readTime: '3 min read',
-    createdAt: '3 HARI LALU',
+    createdAt: 'Minggu, 13 September 2026 - 14:05 WIB',
     publishedDate: '22 Okt 2024'
   },
 
@@ -153,7 +153,7 @@ export const DUMMY_ARTICLES: Article[] = [
     author: 'Tim Redaksi',
     readTime: '4 min read',
     badge: 'KAMPUS',
-    createdAt: '2 JAM LALU',
+    createdAt: 'Sabtu, 12 September 2026 - 16:30 WIB',
     publishedDate: '26 Okt 2024'
   },
 
@@ -175,7 +175,7 @@ export const DUMMY_ARTICLES: Article[] = [
     readTime: '5 min read',
     isEditorsPick: true,
     isSaved: true,
-    createdAt: '22 Okt 2024',
+    createdAt: 'Sabtu, 12 September 2026 - 09:15 WIB',
     publishedDate: '22 Okt 2024'
   },
 
@@ -196,7 +196,7 @@ export const DUMMY_ARTICLES: Article[] = [
     author: 'Tim Redaksi',
     readTime: '5 min read',
     badge: 'PRESTASI',
-    createdAt: '4 JAM LALU',
+    createdAt: 'Jumat, 11 September 2026 - 17:50 WIB',
     publishedDate: '26 Okt 2024'
   },
 
@@ -216,7 +216,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Mahasiswa Kampus IPB Sukabumi Berdiskusi di Taman Kampus',
     author: 'Tim Redaksi',
     readTime: '3 min read',
-    createdAt: 'KEMARIN',
+    createdAt: 'Jumat, 11 September 2026 - 11:25 WIB',
     publishedDate: '25 Okt 2024'
   },
 
@@ -237,7 +237,7 @@ export const DUMMY_ARTICLES: Article[] = [
     author: 'Tim Redaksi',
     readTime: '4 min read',
     badge: 'PRESTASI',
-    createdAt: '3 JAM LALU',
+    createdAt: 'Kamis, 10 September 2026 - 19:40 WIB',
     publishedDate: '26 Okt 2024'
   },
 
@@ -257,7 +257,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Mobil Listrik Vibes-EV Dirakit Siswa SMKN 1 Sukabumi',
     author: 'Tim Redaksi',
     readTime: '4 min read',
-    createdAt: 'KEMARIN',
+    createdAt: 'Kamis, 10 September 2026 - 13:10 WIB',
     publishedDate: '25 Okt 2024'
   },
 
@@ -277,7 +277,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Kegiatan Belajar Mengajar Siswa Sekolah di Sukabumi',
     author: 'Tim Redaksi',
     readTime: '3 min read',
-    createdAt: '3 HARI LALU',
+    createdAt: 'Rabu, 9 September 2026 - 16:20 WIB',
     publishedDate: '23 Okt 2024'
   },
 
@@ -298,7 +298,7 @@ export const DUMMY_ARTICLES: Article[] = [
     author: 'Tim Redaksi',
     readTime: '4 min read',
     badge: 'KOMUNITAS',
-    createdAt: '1 JAM LALU',
+    createdAt: 'Rabu, 9 September 2026 - 08:30 WIB',
     publishedDate: '26 Okt 2024'
   },
 
@@ -318,7 +318,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Komunitas Motor Vespa Sukabumi Touring Baksos',
     author: 'Tim Redaksi',
     readTime: '5 min read',
-    createdAt: 'KEMARIN',
+    createdAt: 'Selasa, 8 September 2026 - 14:45 WIB',
     publishedDate: '25 Okt 2024'
   },
 
@@ -336,7 +336,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Relawan Komunitas Lingkungan Sukabumi Menanam Pohon',
     author: 'Tim Redaksi',
     readTime: '4 min read',
-    createdAt: '3 HARI LALU',
+    createdAt: 'Senin, 7 September 2026 - 10:00 WIB',
     publishedDate: '23 Okt 2024'
   },
 
@@ -354,7 +354,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Peserta Lomba Lari Malam Sukabumi Night Run 2024',
     author: 'Tim Redaksi',
     readTime: '4 min read',
-    createdAt: '2 HARI LALU',
+    createdAt: 'Minggu, 6 September 2026 - 19:15 WIB',
     publishedDate: '24 Okt 2024'
   },
 
@@ -374,7 +374,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Pentas Tari Budaya dalam Gelar Karya P5 SMAN 3 Sukabumi',
     author: 'Tim Redaksi',
     readTime: '4 min read',
-    createdAt: '2 HARI LALU',
+    createdAt: 'Sabtu, 5 September 2026 - 15:30 WIB',
     publishedDate: '24 Okt 2024'
   },
 
@@ -392,7 +392,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Gerai Pameran UMKM Kerajinan dan Kuliner Sukabumi',
     author: 'Tim Redaksi',
     readTime: '4 min read',
-    createdAt: '3 HARI LALU',
+    createdAt: 'Jumat, 4 September 2026 - 16:45 WIB',
     publishedDate: '23 Okt 2024'
   },
 
@@ -412,7 +412,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Pameran Busana Streetwear dan Fashion Anak Muda Sukabumi',
     author: 'Tim Redaksi',
     readTime: '4 min read',
-    createdAt: '1 HARI LALU',
+    createdAt: 'Kamis, 3 September 2026 - 11:20 WIB',
     publishedDate: '25 Okt 2024'
   },
 
@@ -430,7 +430,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Penampilan Musik Akustik Komunitas Lokal Sukabumi',
     author: 'Tim Redaksi',
     readTime: '3 min read',
-    createdAt: '2 HARI LALU',
+    createdAt: 'Rabu, 2 September 2026 - 14:10 WIB',
     publishedDate: '24 Okt 2024'
   },
 
@@ -451,7 +451,7 @@ export const DUMMY_ARTICLES: Article[] = [
     author: 'Tim Redaksi',
     readTime: '5 min read',
     badge: 'SAINS',
-    createdAt: '1 HARI LALU',
+    createdAt: 'Selasa, 1 September 2026 - 09:30 WIB',
     publishedDate: '25 Okt 2024'
   },
 
@@ -471,7 +471,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Struktur Gua Karst Geopark Ciletuh Sukabumi',
     author: 'Tim Redaksi',
     readTime: '4 min read',
-    createdAt: '3 HARI LALU',
+    createdAt: 'Senin, 31 Agustus 2026 - 17:15 WIB',
     publishedDate: '23 Okt 2024'
   },
 
@@ -492,7 +492,7 @@ export const DUMMY_ARTICLES: Article[] = [
     author: 'Tim Redaksi',
     readTime: '4 min read',
     badge: 'KESEHATAN',
-    createdAt: '2 JAM LALU',
+    createdAt: 'Minggu, 30 Agustus 2026 - 13:40 WIB',
     publishedDate: '26 Okt 2024'
   },
 
@@ -512,7 +512,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Makanan Sehat Nutrisi Seimbang Kebugaran Tubuh',
     author: 'Tim Redaksi',
     readTime: '3 min read',
-    createdAt: '1 HARI LALU',
+    createdAt: 'Sabtu, 29 Agustus 2026 - 10:50 WIB',
     publishedDate: '25 Okt 2024'
   },
 
@@ -533,7 +533,7 @@ export const DUMMY_ARTICLES: Article[] = [
     author: 'Tim Redaksi',
     readTime: '4 min read',
     badge: 'TEKNOLOGI',
-    createdAt: '5 JAM LALU',
+    createdAt: 'Jumat, 28 Agustus 2026 - 16:05 WIB',
     publishedDate: '26 Okt 2024'
   },
 
@@ -553,7 +553,7 @@ export const DUMMY_ARTICLES: Article[] = [
     imageAlt: 'Sepeda Motor Custom Modifikasi Karya Builder Sukabumi',
     author: 'Tim Redaksi',
     readTime: '4 min read',
-    createdAt: '2 HARI LALU',
+    createdAt: 'Kamis, 27 Agustus 2026 - 14:25 WIB',
     publishedDate: '24 Okt 2024'
   }
 ];

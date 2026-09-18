@@ -237,7 +237,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
             <ShareButtons title={article.title} />
             <button
               onClick={() => setIsSaved(!isSaved)}
-              className="flex items-center justify-center gap-2 bg-[#c00015] hover:bg-[#a00012] text-white px-6 py-3 rounded-full font-button font-bold text-sm hover:scale-105 transition-transform cursor-pointer shadow-md"
+              className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-full font-button font-bold text-sm hover:scale-105 transition-transform cursor-pointer shadow-md"
             >
               <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
               {isSaved ? 'Tersimpan' : 'Simpan Artikel'}

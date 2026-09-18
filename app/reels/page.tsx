@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Film } from 'lucide-react';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { ReelsSection } from '@/components/cards/ReelsSection';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
@@ -14,7 +15,8 @@ export default function ReelsPage() {
       <main className="w-full md:w-3/4 flex flex-col gap-stack-md pr-0 md:pr-12">
         <header className="flex flex-col gap-3 mb-2">
           <div className="inline-flex">
-            <span className="bg-red-50 text-[#e74c3c] font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wider">
+            <span className="bg-primary/10 text-primary font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+              <Film className="w-3.5 h-3.5" />
               VIBES REELS
             </span>
           </div>

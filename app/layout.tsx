@@ -34,7 +34,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://halo-jurnal-app.vercel.app" />
         <link rel="dns-prefetch" href="https://halo-jurnal-app.vercel.app" />
       </head>
-      <body className="bg-surface text-on-surface min-h-screen flex flex-col font-body-md antialiased relative overflow-x-hidden">
+      <body className="bg-surface text-on-surface min-h-screen flex flex-col font-body-md antialiased relative overflow-x-clip">
         <HeaderNav />
         {children}
         <Footer />

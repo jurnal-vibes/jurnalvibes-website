@@ -11,7 +11,7 @@ interface FilterChipsProps {
 export const FilterChips: React.FC<FilterChipsProps> = ({
   categories,
   activeCategory,
-  onSelectCategory
+  onSelectCategory,
 }) => {
   return (
     <div className="relative w-full mb-6">
@@ -22,10 +22,10 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
             <button
               key={idx}
               onClick={() => onSelectCategory(cat)}
-              className={`px-4 py-1.5 rounded-full font-label-caps text-xs whitespace-nowrap transition-all snap-start ${
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 snap-start cursor-pointer active:scale-95 ${
                 isActive
-                  ? 'bg-primary text-on-primary font-bold shadow-sm scale-[1.02]'
-                  : 'bg-surface-container-high text-on-surface hover:bg-primary-fixed-dim hover:text-on-primary-fixed'
+                  ? 'bg-primary text-white font-bold shadow-xs scale-[1.02]'
+                  : 'bg-surface-variant/60 text-on-surface-variant hover:bg-surface-variant hover:text-primary border border-outline-variant/40'
               }`}
             >
               {cat}
