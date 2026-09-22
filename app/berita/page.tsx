@@ -10,8 +10,8 @@ import { fetchArticlesFromSupabase } from '@/lib/supabase';
 
 export default function BeritaPage() {
   const [articles, setArticles] = useState<Article[]>(DUMMY_ARTICLES);
-  const [activeFilter, setActiveFilter] = useState<string>('Semua Berita');
-  const filters = ['Semua Berita', 'Kampus', 'Sekolah', 'Komunitas', 'Event Lokal'];
+  const [activeFilter, setActiveFilter] = useState<string>('Semua');
+  const filters = ['Semua', 'Kampus', 'Sekolah', 'Komunitas', 'Event Lokal'];
 
   useEffect(() => {
     async function loadArticles() {
@@ -27,8 +27,16 @@ export default function BeritaPage() {
     loadArticles();
   }, []);
 
+  const ITEMS_PER_PAGE = 6;
+  const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
+
+  const handleSelectCategory = (cat: string) => {
+    setActiveFilter(cat);
+    setVisibleCount(ITEMS_PER_PAGE);
+  };
+
   const filteredArticles = articles.filter(article => {
-    if (activeFilter === 'Semua Berita') return true;
+    if (activeFilter === 'Semua' || activeFilter === 'Semua Berita') return true;
     if (activeFilter === 'Kampus') {
       return article.subCategory === 'KAMPUS' || article.categoryLabel === 'KAMPUS';
     }
@@ -48,32 +56,50 @@ export default function BeritaPage() {
     return true;
   });
 
+  const visibleArticles = filteredArticles.slice(0, visibleCount);
+  const hasMore = filteredArticles.length > visibleCount;
+
   return (
     <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop gap-gutter py-stack-lg">
       <LeftSidebar articles={articles} />
 
-      <main className="w-full md:w-3/4 flex flex-col gap-stack-lg min-w-0 pb-32">
-        <header className="mb-4">
-          <h1 className="font-headline-xl text-3xl md:text-5xl text-on-surface font-bold tracking-tight mb-2">
+      <main className="w-full md:w-3/4 flex flex-col min-w-0 pr-0 md:pr-12 pb-24 md:pb-stack-lg">
+        <header className="flex flex-col gap-3 mb-6">
+          <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
             Berita Terkini
           </h1>
-          <p className="font-body-md text-on-surface-variant text-base md:text-lg">
-            Temukan informasi dan kabar terbaru seputar Sukabumi
+          <p className="text-sm md:text-base text-on-surface-variant font-body-lg">
+            Informasi terhangat seputar Sukabumi dan sekitarnya
           </p>
         </header>
 
         <FilterChips
           categories={filters}
           activeCategory={activeFilter}
-          onSelectCategory={setActiveFilter}
+          onSelectCategory={handleSelectCategory}
         />
 
-        {filteredArticles.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-            {filteredArticles.map(article => (
-              <NewsCard key={article.id} article={article} variant="grid" />
-            ))}
-          </div>
+        {visibleArticles.length > 0 ? (
+          <>
+            <div className="flex flex-col gap-6 mb-8">
+              {visibleArticles.map(article => (
+                <NewsCard key={article.id} article={article} variant="row" />
+              ))}
+            </div>
+
+            {/* Load More Button - Hanya muncul jika berita melebihi kuota tampil */}
+            {hasMore && (
+              <div className="flex justify-center pb-12">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
+                  className="border border-outline-variant/80 hover:border-primary text-on-surface hover:text-primary font-semibold px-6 py-2 rounded-full text-xs transition-all cursor-pointer"
+                >
+                  Muat Lebih Banyak
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-12 bg-surface-container rounded-2xl border border-outline-variant">
             <p className="text-on-surface-variant font-medium">
@@ -81,13 +107,6 @@ export default function BeritaPage() {
             </p>
           </div>
         )}
-
-        {/* Load More Button */}
-        <div className="flex justify-center mt-8">
-          <button className="bg-surface-container-high text-on-surface font-button text-sm font-semibold px-8 py-3 rounded-full hover:bg-surface-container-highest transition-colors flex items-center gap-2 group cursor-pointer">
-            Muat Berita Lainnya
-          </button>
-        </div>
       </main>
     </div>
   );

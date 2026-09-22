@@ -22,6 +22,10 @@ export interface Article {
   imageUrl: string;
   imageAlt?: string;
   author: string;
+  reporter?: string;
+  redaktur?: string;
+  editor?: string;
+  tags?: string[];
   readTime?: string;
   isHero?: boolean;
   isEditorsPick?: boolean;

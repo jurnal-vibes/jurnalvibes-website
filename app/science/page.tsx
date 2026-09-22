@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { LeftSidebar } from '@/components/layout/LeftSidebar';
-import { NewsCard } from '@/components/cards/NewsCard';
+import { CategoryTemplate } from '@/components/layout/CategoryTemplate';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 
 export default function SciencePage() {
@@ -14,33 +13,12 @@ export default function SciencePage() {
   );
 
   return (
-    <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop gap-gutter py-stack-lg">
-      <LeftSidebar articles={DUMMY_ARTICLES} />
-
-      <main className="w-full md:w-3/4 flex flex-col gap-stack-lg min-w-0 pb-32">
-        <header className="mb-4">
-          <h1 className="font-headline-xl text-3xl md:text-5xl text-on-surface font-bold tracking-tight mb-2">
-            Science & Environment
-          </h1>
-          <p className="font-body-md text-on-surface-variant text-base md:text-lg">
-            Riset ilmiah, sains populer, dan isu lingkungan terkini seputar Sukabumi
-          </p>
-        </header>
-
-        {scienceArticles.length > 0 ? (
-          <div className="flex flex-col gap-6">
-            {scienceArticles.map(article => (
-              <NewsCard key={article.id} article={article} variant="row" />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-surface-container rounded-2xl border border-outline-variant">
-            <p className="text-on-surface-variant font-medium">
-              Belum ada artikel untuk kategori <span className="font-bold text-primary">Science</span>.
-            </p>
-          </div>
-        )}
-      </main>
-    </div>
+    <CategoryTemplate
+      title="Science & Environment"
+      description="Riset ilmiah, sains populer, dan isu lingkungan terkini seputar Sukabumi"
+      articles={scienceArticles}
+      categoryName="Science"
+      allArticles={DUMMY_ARTICLES}
+    />
   );
 }

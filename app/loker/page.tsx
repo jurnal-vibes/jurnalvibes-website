@@ -11,6 +11,9 @@ export default function LokerPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeType, setActiveType] = useState<string>('Semua');
 
+  const JOBS_PER_PAGE = 4;
+  const [visibleCount, setVisibleCount] = useState<number>(JOBS_PER_PAGE);
+
   const types = ['Semua', 'Full-Time', 'Part-Time', 'Freelance', 'Remote', 'Magang'];
 
   const filteredJobs = DUMMY_JOBS.filter(job => {
@@ -22,6 +25,9 @@ export default function LokerPage() {
       job.location.toLowerCase().includes(searchQuery.toLowerCase());
     return matchType && matchSearch;
   });
+
+  const visibleJobs = filteredJobs.slice(0, visibleCount);
+  const hasMore = filteredJobs.length > visibleCount;
 
   return (
     <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop gap-gutter py-stack-lg">
@@ -46,14 +52,20 @@ export default function LokerPage() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setVisibleCount(JOBS_PER_PAGE);
+              }}
               placeholder="Cari posisi kerja, perusahaan, atau wilayah Sukabumi..."
               className="w-full h-11 pl-10 pr-10 rounded-xl text-sm bg-surface border border-outline-variant/60 focus:border-primary focus:ring-2 focus:ring-primary/10 text-on-surface placeholder:text-on-surface-variant/50 transition-all outline-none"
             />
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={() => {
+                  setSearchQuery('');
+                  setVisibleCount(JOBS_PER_PAGE);
+                }}
                 aria-label="Hapus pencarian"
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-surface-variant hover:bg-outline-variant/60 flex items-center justify-center text-on-surface-variant/70 hover:text-on-surface transition-colors cursor-pointer"
               >
@@ -67,7 +79,10 @@ export default function LokerPage() {
             {types.map((type, idx) => (
               <button
                 key={idx}
-                onClick={() => setActiveType(type)}
+                onClick={() => {
+                  setActiveType(type);
+                  setVisibleCount(JOBS_PER_PAGE);
+                }}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
                   activeType === type
                     ? 'bg-primary text-on-primary shadow-2xs'
@@ -81,20 +96,26 @@ export default function LokerPage() {
         </div>
 
         {/* Job Cards Grid or Empty State */}
-        {filteredJobs.length > 0 ? (
+        {visibleJobs.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              {filteredJobs.map(job => (
+              {visibleJobs.map(job => (
                 <JobCard key={job.id} job={job} />
               ))}
             </div>
 
-            {/* Load More Button */}
-            <div className="flex justify-center pb-12">
-              <button className="border border-outline-variant/80 hover:border-primary text-on-surface hover:text-primary font-semibold px-6 py-2 rounded-full text-xs transition-all cursor-pointer">
-                Muat Lebih Banyak
-              </button>
-            </div>
+            {/* Load More Button - Hanya muncul jika lowongan melebihi kuota tampil */}
+            {hasMore && (
+              <div className="flex justify-center pb-12">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount(c => c + JOBS_PER_PAGE)}
+                  className="border border-outline-variant/80 hover:border-primary text-on-surface hover:text-primary font-semibold px-6 py-2 rounded-full text-xs transition-all cursor-pointer"
+                >
+                  Muat Lebih Banyak
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div className="flex flex-col items-center justify-center p-12 text-center bg-surface border border-outline-variant/50 rounded-2xl my-4">
@@ -105,15 +126,6 @@ export default function LokerPage() {
             <p className="text-xs text-on-surface-variant/70 mt-1 max-w-sm">
               Coba gunakan kata kunci pencarian lain atau pilih kategori pekerjaan lainnya.
             </p>
-            <button
-              onClick={() => {
-                setActiveType('Semua');
-                setSearchQuery('');
-              }}
-              className="mt-4 px-4 py-1.5 rounded-full text-xs font-bold bg-primary text-white hover:bg-primary-dark transition-colors cursor-pointer"
-            >
-              Reset Filter
-            </button>
           </div>
         )}
       </main>

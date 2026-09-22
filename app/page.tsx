@@ -43,10 +43,10 @@ export default function HomePage() {
 
         {/* Section Heading: Berita Terkini */}
         <div className="flex flex-col gap-1 pt-2">
-          <h2 className="text-base sm:text-lg font-bold text-on-surface tracking-wider uppercase">
+          <h2 className="text-sm sm:text-base font-bold text-on-surface tracking-wider uppercase">
             BERITA TERKINI
           </h2>
-          <div className="w-14 h-[2.5px] bg-primary" />
+          <div className="w-10 h-[2.5px] bg-primary rounded-full mt-0.5" />
         </div>
 
         {/* Feed Articles (First 2) */}
