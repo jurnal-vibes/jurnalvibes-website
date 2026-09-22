@@ -21,11 +21,11 @@ export default function CuacaPage() {
       <LeftSidebar articles={DUMMY_ARTICLES} />
 
       <main className="w-full md:w-3/4 flex flex-col gap-6 pr-0 md:pr-12">
-        <header className="flex flex-col gap-3">
-          <h1 className="font-headline-xl text-3xl md:text-4xl font-bold text-on-surface">
+        <header className="flex flex-col gap-3 mb-6">
+          <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
             Cuaca Sukabumi Hari Ini
           </h1>
-          <p className="text-on-surface-variant text-sm md:text-base">
+          <p className="text-sm md:text-base text-on-surface-variant font-body-lg">
             Prakiraan cuaca terkini dan estimasi 7 hari ke depan di wilayah Sukabumi.
           </p>
         </header>

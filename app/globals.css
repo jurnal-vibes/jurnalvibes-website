@@ -65,10 +65,10 @@
   --font-body-md: Inter, sans-serif;
   --font-body-lg: Inter, sans-serif;
   --font-label-caps: Inter, sans-serif;
-  --font-headline-lg-mobile: Literata, serif;
-  --font-headline-lg: Literata, serif;
-  --font-headline-xl: Literata, serif;
-  --font-headline-md: Literata, serif;
+  --font-headline-lg-mobile: var(--font-montserrat), Montserrat, sans-serif;
+  --font-headline-lg: var(--font-montserrat), Montserrat, sans-serif;
+  --font-headline-xl: var(--font-montserrat), Montserrat, sans-serif;
+  --font-headline-md: var(--font-montserrat), Montserrat, sans-serif;
 }
 
 .no-scrollbar::-webkit-scrollbar {

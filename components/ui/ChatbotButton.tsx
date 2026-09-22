@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, MessageCircle, ExternalLink } from 'lucide-react';
+import { X, Send, ExternalLink } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
   sender: 'ai' | 'user';
   text: string;
-  time: string;
 }
 
 export const ChatbotButton: React.FC = () => {
@@ -17,8 +16,7 @@ export const ChatbotButton: React.FC = () => {
     {
       id: '1',
       sender: 'ai',
-      text: 'Halo! 👋 Selamat datang di Jurnal Vibes AI. Ada berita, rekomendasi kuliner Cikole, atau informasi seputar Sukabumi yang ingin kamu tanyakan?',
-      time: 'Just now'
+      text: 'Halo! 👋 Selamat datang di Jurnal Vibes AI. Ada berita, rekomendasi kuliner Cikole, atau informasi seputar Sukabumi yang ingin kamu tanyakan?'
     }
   ]);
 
@@ -47,11 +45,6 @@ export const ChatbotButton: React.FC = () => {
     }
   }, [messages, isChatOpen]);
 
-  const getTimeString = () => {
-    const now = new Date();
-    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
   const handleSendMessage = (textToSend?: string) => {
     const query = (textToSend || inputText).trim();
     if (!query) return;
@@ -59,8 +52,7 @@ export const ChatbotButton: React.FC = () => {
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       sender: 'user',
-      text: query,
-      time: getTimeString()
+      text: query
     };
 
     setMessages(prev => [...prev, userMsg]);
@@ -91,8 +83,7 @@ export const ChatbotButton: React.FC = () => {
       const aiMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        text: replyText,
-        time: getTimeString()
+        text: replyText
       };
 
       setMessages(prev => [...prev, aiMsg]);
@@ -104,8 +95,7 @@ export const ChatbotButton: React.FC = () => {
       {
         id: '1',
         sender: 'ai',
-        text: 'Halo! 👋 Selamat datang di Jurnal Vibes AI. Ada berita, rekomendasi kuliner Cikole, atau informasi seputar Sukabumi yang ingin kamu tanyakan?',
-        time: 'Just now'
+        text: 'Halo! 👋 Selamat datang di Jurnal Vibes AI. Ada berita, rekomendasi kuliner Cikole, atau informasi seputar Sukabumi yang ingin kamu tanyakan?'
       }
     ]);
     setInputText('');
@@ -123,7 +113,7 @@ export const ChatbotButton: React.FC = () => {
           />
           <div className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[400px] md:w-[430px] h-screen bg-surface dark:bg-slate-900 shadow-2xl border-l border-outline-variant/60 dark:border-slate-800 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
             {/* 1. Header Chat */}
-            <div className="bg-gradient-to-r from-[#c00015] via-[#d63031] to-[#e74c3c] text-white p-4 flex items-center justify-between shadow-md shrink-0">
+            <div className="bg-primary text-white p-4 flex items-center justify-between shadow-md shrink-0">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center shrink-0">
                   <img
@@ -136,9 +126,12 @@ export const ChatbotButton: React.FC = () => {
                   <h3 className="font-button text-sm font-bold leading-tight flex items-center gap-1.5">
                     Jurnal Vibes AI
                   </h3>
-                  <span className="text-[11px] text-white/90 font-medium">
-                    Online &amp; Siap Membantu
-                  </span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-emerald-400/30 animate-pulse shrink-0" />
+                    <span className="text-[11px] text-white/90 font-medium">
+                      Online &amp; Siap Membantu
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
@@ -178,9 +171,6 @@ export const ChatbotButton: React.FC = () => {
                   >
                     {msg.text}
                   </div>
-                  <span className="text-[10px] text-on-surface-variant/70 mt-1 px-1">
-                    {msg.time}
-                  </span>
                 </div>
               ))}
               <div ref={chatBottomRef} />
@@ -192,7 +182,7 @@ export const ChatbotButton: React.FC = () => {
                 href="https://halo-jurnal-app.vercel.app/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors shrink-0 whitespace-nowrap cursor-pointer"
+                className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors shrink-0 whitespace-nowrap cursor-pointer"
                 onMouseEnter={() => {
                   if (typeof window !== 'undefined' && !document.head.querySelector('link[data-halo-prefetch="true"]')) {
                     const link = document.createElement('link');
@@ -203,7 +193,6 @@ export const ChatbotButton: React.FC = () => {
                   }
                 }}
               >
-                <MessageCircle className="w-3.5 h-3.5" />
                 <span>Hallo Jurnal</span>
                 <ExternalLink className="w-3 h-3 opacity-70 ml-0.5" />
               </a>
