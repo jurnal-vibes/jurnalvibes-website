@@ -39,7 +39,18 @@ export interface Job {
   location: string;
   salaryRange: string;
   type: 'Full-Time' | 'Part-Time' | 'Freelance' | 'Remote' | 'Magang';
-  region: 'Sukabumi Kota' | 'Cikole' | 'Cibadak' | 'Pelabuhanratu' | 'Lainnya';
+  region:
+    | 'Kota Sukabumi'
+    | 'Sukabumi Kota'
+    | 'Cikole'
+    | 'Cisaat'
+    | 'Cibadak'
+    | 'Cicurug'
+    | 'Parungkuda'
+    | 'Sukaraja'
+    | 'Palabuhanratu'
+  education?: string;
+  updatedAt?: string;
   description: string;
   requirements: string[];
   benefits: string[];

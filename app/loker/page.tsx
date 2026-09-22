@@ -1,107 +1,121 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { Search, Briefcase, X } from 'lucide-react';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { JobCard } from '@/components/cards/JobCard';
 import { DUMMY_JOBS } from '@/data/dummyJobs';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 
 export default function LokerPage() {
-  const [activeType, setActiveType] = useState<string>('Semua Loker');
-  const [selectedRegion, setSelectedRegion] = useState<string>('Semua Wilayah');
-  const [isRegionOpen, setIsRegionOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeType, setActiveType] = useState<string>('Semua');
 
-  const types = ['Semua Loker', 'Full-Time', 'Part-Time', 'Freelance', 'Remote', 'Magang'];
-  const regions = ['Semua Wilayah', 'Sukabumi Kota', 'Cikole', 'Cibadak', 'Pelabuhanratu'];
+  const types = ['Semua', 'Full-Time', 'Part-Time', 'Freelance', 'Remote', 'Magang'];
 
   const filteredJobs = DUMMY_JOBS.filter(job => {
-    const matchType = activeType === 'Semua Loker' || job.type === activeType;
-    const matchRegion = selectedRegion === 'Semua Wilayah' || job.region === selectedRegion;
-    return matchType && matchRegion;
+    const matchType = activeType === 'Semua' || job.type === activeType;
+    const matchSearch =
+      searchQuery.trim() === '' ||
+      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.location.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchType && matchSearch;
   });
 
   return (
     <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop gap-gutter py-stack-lg">
       <LeftSidebar articles={DUMMY_ARTICLES} />
 
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="mb-stack-lg">
-          <h1 className="text-headline-xl text-3xl md:text-5xl font-headline-xl text-on-background font-bold mb-2">
+      <main className="flex-1 flex flex-col min-w-0 pr-0 md:pr-4">
+        {/* Header */}
+        <header className="flex flex-col gap-3 mb-6">
+          <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
             Lowongan Kerja Sukabumi
           </h1>
-          <p className="text-body-lg font-body-lg text-on-surface-variant text-base md:text-lg">
-            Temukan peluang karir terbaik di Sukabumi dan sekitarnya.
+          <p className="text-sm md:text-base text-on-surface-variant font-body-lg">
+            Temukan peluang karir dan pekerjaan terkini di Kota &amp; Kabupaten Sukabumi.
           </p>
         </header>
 
-        {/* Filter Chips & Region Dropdown */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-stack-lg w-full">
-          <div className="flex flex-wrap gap-2">
+        {/* Search Bar & Type Filters */}
+        <div className="flex flex-col gap-3 mb-6">
+          {/* Search Input */}
+          <div className="relative w-full">
+            <Search className="w-4 h-4 text-on-surface-variant/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari posisi kerja, perusahaan, atau wilayah Sukabumi..."
+              className="w-full h-11 pl-10 pr-10 rounded-xl text-sm bg-surface border border-outline-variant/60 focus:border-primary focus:ring-2 focus:ring-primary/10 text-on-surface placeholder:text-on-surface-variant/50 transition-all outline-none"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Hapus pencarian"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-surface-variant hover:bg-outline-variant/60 flex items-center justify-center text-on-surface-variant/70 hover:text-on-surface transition-colors cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Type Filter Chips (Horizontal Scroll di Layar HP) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             {types.map((type, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveType(type)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
                   activeType === type
-                    ? 'bg-primary text-on-primary shadow-sm hover:scale-[1.02]'
-                    : 'bg-surface-container-high text-on-surface hover:bg-surface-variant border border-outline-variant'
+                    ? 'bg-primary text-on-primary shadow-2xs'
+                    : 'bg-surface-variant/60 text-on-surface hover:bg-surface-variant border border-outline-variant/40'
                 }`}
               >
                 {type}
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Region Dropdown */}
-          <div className="relative min-w-[180px] w-full md:w-auto">
+        {/* Job Cards Grid or Empty State */}
+        {filteredJobs.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              {filteredJobs.map(job => (
+                <JobCard key={job.id} job={job} />
+              ))}
+            </div>
+
+            {/* Load More Button */}
+            <div className="flex justify-center pb-12">
+              <button className="border border-outline-variant/80 hover:border-primary text-on-surface hover:text-primary font-semibold px-6 py-2 rounded-full text-xs transition-all cursor-pointer">
+                Muat Lebih Banyak
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center p-12 text-center bg-surface border border-outline-variant/50 rounded-2xl my-4">
+            <div className="w-12 h-12 rounded-full bg-surface-variant/60 flex items-center justify-center text-on-surface-variant/60 mb-3">
+              <Briefcase className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-sm text-on-surface">Tidak ada lowongan ditemukan</h3>
+            <p className="text-xs text-on-surface-variant/70 mt-1 max-w-sm">
+              Coba gunakan kata kunci pencarian lain atau pilih kategori pekerjaan lainnya.
+            </p>
             <button
-              type="button"
-              onClick={() => setIsRegionOpen(!isRegionOpen)}
-              className="w-full flex items-center justify-between bg-surface border border-outline-variant rounded-lg px-4 py-2 text-sm font-bold text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer transition-all duration-200 hover:border-primary"
+              onClick={() => {
+                setActiveType('Semua');
+                setSearchQuery('');
+              }}
+              className="mt-4 px-4 py-1.5 rounded-full text-xs font-bold bg-primary text-white hover:bg-primary-dark transition-colors cursor-pointer"
             >
-              <span>{selectedRegion}</span>
-              <ChevronDown
-                className={`w-5 h-5 text-on-surface-variant transition-transform duration-300 ${
-                  isRegionOpen ? 'rotate-180' : ''
-                }`}
-              />
+              Reset Filter
             </button>
-
-            {isRegionOpen && (
-              <div className="absolute z-20 w-full mt-2 bg-surface border border-outline-variant rounded-lg shadow-lg origin-top-right transform transition-all duration-200">
-                <ul className="py-2">
-                  {regions.map((reg, idx) => (
-                    <li
-                      key={idx}
-                      onClick={() => {
-                        setSelectedRegion(reg);
-                        setIsRegionOpen(false);
-                      }}
-                      className="px-4 py-2 text-sm font-bold text-on-surface hover:bg-surface-variant hover:text-primary cursor-pointer transition-colors"
-                    >
-                      {reg}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
-        </div>
-
-        {/* Job Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-stack-lg">
-          {filteredJobs.map(job => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
-
-        {/* Load More Button */}
-        <div className="flex justify-center mt-4 pb-12">
-          <button className="bg-transparent border-[1.5px] border-primary text-primary hover:bg-primary hover:text-on-primary px-8 py-3 rounded-full text-sm font-semibold transition-all duration-200 hover:scale-[1.02] cursor-pointer">
-            Muat Lebih Banyak
-          </button>
-        </div>
+        )}
       </main>
     </div>
   );

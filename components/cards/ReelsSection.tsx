@@ -11,6 +11,7 @@ interface ReelsSectionProps {
   hideSeeAll?: boolean;
   hideHeader?: boolean;
   showCategoryFilter?: boolean;
+  isGalleryPage?: boolean;
   title?: string;
   subtitle?: string;
   limit?: number;
@@ -23,6 +24,7 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
   hideSeeAll = false,
   hideHeader = false,
   showCategoryFilter = false,
+  isGalleryPage = false,
   title = 'Vibes Reels',
   subtitle,
   limit
@@ -79,17 +81,17 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
 
         {/* Category Filter Pills (if enabled) */}
         {showCategoryFilter && (
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 mb-5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 mb-5">
             {CATEGORIES.map(cat => {
               const isActive = activeCategory === cat;
               return (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-primary text-white shadow-md shadow-primary/20 scale-105'
-                      : 'bg-surface-variant/60 text-on-surface-variant hover:bg-surface-variant hover:text-primary border border-outline-variant/30'
+                      ? 'bg-primary text-on-primary shadow-2xs'
+                      : 'bg-surface-variant/60 text-on-surface hover:bg-surface-variant border border-outline-variant/40'
                   }`}
                 >
                   {cat}
@@ -99,34 +101,44 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
           </div>
         )}
 
-        {/* Responsive Layout: Swipe/Carousel on Mobile, Grid 3-4 cols on Tablet/Desktop */}
-        <div className="flex md:grid md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 overflow-x-auto md:overflow-visible no-scrollbar snap-x snap-mandatory pb-4 md:pb-0">
+        {/* Responsive Layout: 2-col Grid on Mobile if isGalleryPage, else Horizontal Carousel */}
+        <div
+          className={
+            isGalleryPage
+              ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5'
+              : 'flex md:grid md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 overflow-x-auto md:overflow-visible no-scrollbar snap-x snap-mandatory pb-4 md:pb-0'
+          }
+        >
           {filteredReels.map((reel, idx) => (
             <div
               key={reel.id}
               onClick={() => handleOpenViewer(idx)}
-              className="relative w-[190px] sm:w-[220px] md:w-auto shrink-0 snap-center md:shrink md:snap-align-none aspect-[9/16] rounded-2xl overflow-hidden group cursor-pointer bg-zinc-900 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              className={`relative ${
+                isGalleryPage
+                  ? 'w-full'
+                  : 'w-[190px] sm:w-[220px] md:w-auto shrink-0 snap-center md:shrink md:snap-align-none'
+              } aspect-[9/16] rounded-2xl overflow-hidden group cursor-pointer bg-zinc-900 shadow-2xs hover:shadow-md transition-all duration-200`}
             >
               {/* Image Poster */}
               {/* eslint-disable-next-img-element */}
               <img
                 src={reel.thumbnailUrl}
                 alt={reel.imageAlt || reel.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
               />
 
               {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col justify-end p-3.5 sm:p-4">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent flex flex-col justify-end p-3 sm:p-4">
                 {/* Center Hover Play Indicator */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className="w-11 h-11 rounded-full bg-black/50 backdrop-blur-xs text-white flex items-center justify-center scale-95 group-hover:scale-100 transition-transform">
+                  <div className="w-11 h-11 rounded-full bg-black/60 backdrop-blur-xs text-white flex items-center justify-center scale-95 group-hover:scale-100 transition-transform">
                     <Play className="w-5 h-5 fill-current ml-0.5" />
                   </div>
                 </div>
 
                 {/* Bottom Content: Title & Views */}
                 <div className="flex flex-col gap-1 z-10">
-                  <p className="text-white font-bold text-sm sm:text-base leading-snug line-clamp-2 drop-shadow-xs">
+                  <p className="text-white font-bold text-xs sm:text-sm leading-snug line-clamp-2 drop-shadow-xs">
                     {reel.title}
                   </p>
 
