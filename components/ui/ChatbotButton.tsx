@@ -212,19 +212,19 @@ export const ChatbotButton: React.FC = () => {
                 onClick={() => handleSendMessage('Rekomendasi kuliner Cikole')}
                 className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer"
               >
-                ☕ Kuliner Cikole
+                Kuliner Cikole
               </button>
               <button
                 onClick={() => handleSendMessage('Berita terbaru Sukabumi')}
                 className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer"
               >
-                📰 Berita Terbaru
+                Berita Terbaru
               </button>
               <button
                 onClick={() => handleSendMessage('Info lowongan kerja')}
                 className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer"
               >
-                💼 Info Loker
+                Info Loker
               </button>
             </div>
 

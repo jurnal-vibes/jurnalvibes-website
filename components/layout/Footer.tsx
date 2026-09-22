@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
 export const Footer: React.FC = () => {
   const socialLinks = [
@@ -88,10 +89,10 @@ export const Footer: React.FC = () => {
           {/* Sisi Kanan (Rata Kanan di Desktop) */}
           <div className="text-center md:text-right md:pr-32">
             <nav aria-label="Footer Navigation" className="flex flex-wrap justify-center md:justify-end gap-x-4 gap-y-2 text-xs text-on-surface-variant font-medium">
-              <a href="#" className="hover:text-primary transition-colors">Tentang Kami</a>
-              <a href="#" className="hover:text-primary transition-colors">Pedoman Media Siber</a>
-              <a href="#" className="hover:text-primary transition-colors">Hubungi Kami</a>
-              <a href="#" className="hover:text-primary transition-colors">Kebijakan Privasi</a>
+              <Link href="/tentang-kami" className="hover:text-primary transition-colors">Tentang Kami</Link>
+              <Link href="/pedoman-media-siber" className="hover:text-primary transition-colors">Pedoman Media Siber</Link>
+              <Link href="/hubungi-kami" className="hover:text-primary transition-colors">Hubungi Kami</Link>
+              <Link href="/kebijakan-privasi" className="hover:text-primary transition-colors">Kebijakan Privasi</Link>
             </nav>
 
             <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-3 text-center md:text-right">
