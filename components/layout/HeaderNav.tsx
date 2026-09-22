@@ -42,7 +42,7 @@ export const HeaderNav: React.FC = () => {
       <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant/60 transition-colors duration-300">
         <div className="flex justify-between items-center px-3 sm:px-4 md:px-6 h-16 md:h-20 max-w-container-max mx-auto w-full relative z-10 gap-2 md:gap-4">
           {/* Brand Logo */}
-          <div className="flex items-center shrink-0 -ml-1 md:-ml-2">
+          <div className="flex items-center shrink-0">
             <Link href="/" className="flex items-center shrink-0">
               <Logo variant="light" size="md" />
             </Link>
