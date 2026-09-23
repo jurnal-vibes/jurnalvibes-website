@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Bookmark, Film, ExternalLink } from 'lucide-react';
+import { Home, Briefcase, Bookmark, Film, ExternalLink } from 'lucide-react';
 import { EditorsPickWidget } from '../widgets/EditorsPickWidget';
 import { Article } from '@/types';
 
@@ -15,13 +15,15 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ articles }) => {
   const pathname = usePathname();
 
   const isHome = pathname === '/';
+  const isLoker = pathname.startsWith('/loker');
   const isBookmark = pathname === '/bookmark';
   const isReels = pathname === '/reels';
 
   const navItems = [
     { href: '/', label: 'For You', icon: Home, isActive: isHome },
-    { href: '/bookmark', label: 'Tersimpan', icon: Bookmark, isActive: isBookmark },
+    { href: '/loker', label: 'Loker', icon: Briefcase, isActive: isLoker },
     { href: '/reels', label: 'Vibes Reels', icon: Film, isActive: isReels },
+    { href: '/bookmark', label: 'Tersimpan', icon: Bookmark, isActive: isBookmark },
   ];
 
   return (

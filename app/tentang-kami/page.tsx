@@ -1,10 +1,17 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+
+export const metadata: Metadata = {
+  title: 'Tentang Kami',
+  description: 'Profil media, susunan redaksi, dan legalitas badan hukum PT Media Jurnal Sukabumi.',
+  openGraph: {
+    title: 'Tentang Kami | Jurnal Vibes',
+    description: 'Profil media, susunan redaksi, dan legalitas badan hukum PT Media Jurnal Sukabumi.',
+  },
+};
 
 export default function TentangKamiPage() {
   const redaksi = [

@@ -1,8 +1,15 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next';
 import { CategoryTemplate } from '@/components/layout/CategoryTemplate';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+
+export const metadata: Metadata = {
+  title: 'Otomotif',
+  description: 'Ulasan kendaraan, modifikasi, touring, dan berita dunia otomotif Sukabumi.',
+  openGraph: {
+    title: 'Otomotif | Jurnal Vibes',
+    description: 'Ulasan kendaraan, modifikasi, touring, dan berita dunia otomotif Sukabumi.',
+  },
+};
 
 export default function OtomotifPage() {
   const otoArticles = DUMMY_ARTICLES.filter(

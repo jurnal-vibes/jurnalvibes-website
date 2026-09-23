@@ -33,7 +33,6 @@ export const metadata: Metadata = {
     template: '%s | Jurnal Vibes',
   },
   description: 'Portal berita, lifestyle, loker, otomotif, tech, dan informasi harian Sukabumi.',
-  keywords: ['Jurnal Vibes', 'Berita Sukabumi', 'Loker Sukabumi', 'Portal Berita', 'Lifestyle', 'Teknologi'],
   authors: [{ name: 'Redaksi Jurnal Vibes' }],
   creator: 'Jurnal Vibes',
   publisher: 'Jurnal Vibes Media',

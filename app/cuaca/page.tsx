@@ -1,26 +1,33 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next';
 import { CloudSun, Sun, CloudRain, CloudSunRain } from 'lucide-react';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 
-export default function CuacaPage() {
-  const forecast7Days = [
-    { day: 'Sen', icon: Sun, temp: '28° / 22°' },
-    { day: 'Sel', icon: CloudSun, temp: '26° / 21°' },
-    { day: 'Rab', icon: CloudRain, temp: '24° / 20°' },
-    { day: 'Kam', icon: CloudSun, temp: '24° / 21°' },
-    { day: 'Jum', icon: CloudRain, temp: '23° / 20°' },
-    { day: 'Sab', icon: CloudSunRain, temp: '25° / 21°' },
-    { day: 'Min', icon: Sun, temp: '27° / 22°' }
-  ];
+export const metadata: Metadata = {
+  title: 'Cuaca Sukabumi',
+  description: 'Prakiraan cuaca terkini dan estimasi 7 hari ke depan di wilayah Sukabumi.',
+  openGraph: {
+    title: 'Cuaca Sukabumi Hari Ini | Jurnal Vibes',
+    description: 'Prakiraan cuaca terkini dan estimasi 7 hari ke depan di wilayah Sukabumi.',
+  },
+};
 
+const forecast7Days = [
+  { day: 'Sen', icon: Sun, temp: '28° / 22°' },
+  { day: 'Sel', icon: CloudSun, temp: '26° / 21°' },
+  { day: 'Rab', icon: CloudRain, temp: '24° / 20°' },
+  { day: 'Kam', icon: CloudSun, temp: '24° / 21°' },
+  { day: 'Jum', icon: CloudRain, temp: '23° / 20°' },
+  { day: 'Sab', icon: CloudSunRain, temp: '25° / 21°' },
+  { day: 'Min', icon: Sun, temp: '27° / 22°' },
+];
+
+export default function CuacaPage() {
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter pt-stack-lg pb-24 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
+    <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-6 lg:px-gutter pt-stack-lg pb-10 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
       <LeftSidebar articles={DUMMY_ARTICLES} />
 
-      <main className="w-full md:w-3/4 flex flex-col gap-6 pr-0 md:pr-12">
+      <main className="w-full md:w-3/4 flex flex-col gap-6 pr-0 md:pr-6 lg:pr-12">
         <header className="flex flex-col gap-3 mb-6">
           <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
             Cuaca Sukabumi Hari Ini

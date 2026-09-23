@@ -31,7 +31,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
   if (!heroArticles.length) return null;
 
   return (
-    <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-[2/1] rounded-2xl overflow-hidden mb-4 group shadow-md border border-outline-variant/40">
+    <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:aspect-[2/1] min-h-[250px] sm:min-h-0 rounded-2xl overflow-hidden mb-4 group shadow-md border border-outline-variant/40">
       {/* Carousel Track */}
       <div
         className="flex h-full w-full transition-transform duration-500 ease-in-out"
@@ -70,7 +70,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
             </button>
 
             {/* Slide Content */}
-            <div className="absolute bottom-7 md:bottom-8 left-4 right-4 md:left-6 md:right-6 z-10 flex flex-col gap-1.5 sm:gap-2">
+            <div className="absolute bottom-8 sm:bottom-7 md:bottom-8 left-4 right-4 md:left-6 md:right-6 z-10 flex flex-col gap-1.5 sm:gap-2">
               <div className="flex items-center">
                 <Badge className="bg-primary text-white font-bold text-[10px] uppercase tracking-wider">
                   {article.categoryLabel}

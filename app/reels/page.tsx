@@ -1,10 +1,17 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { ReelsSection } from '@/components/cards/ReelsSection';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 import { DUMMY_REELS } from '@/data/dummyPolls';
+
+export const metadata: Metadata = {
+  title: 'Vibes Reels Sukabumi',
+  description: 'Kumpulan video pendek seputar kuliner, wisata, dan sudut menarik Kota & Kabupaten Sukabumi.',
+  openGraph: {
+    title: 'Vibes Reels Sukabumi | Jurnal Vibes',
+    description: 'Kumpulan video pendek seputar kuliner, wisata, dan sudut menarik Kota & Kabupaten Sukabumi.',
+  },
+};
 
 export default function ReelsPage() {
   return (

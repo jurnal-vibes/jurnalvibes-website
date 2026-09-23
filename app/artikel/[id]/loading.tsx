@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function ArticleLoading() {
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter pt-stack-lg pb-24 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative animate-pulse">
+    <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-6 lg:px-gutter pt-stack-lg pb-24 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative animate-pulse">
       {/* Sidebar Skeleton */}
       <aside className="hidden md:flex flex-col w-1/4 sticky top-28 self-start overflow-y-auto pr-4 gap-6 h-[calc(100vh-7.25rem)] no-scrollbar shrink-0">
         <div className="flex flex-col gap-2">
@@ -25,7 +25,7 @@ export default function ArticleLoading() {
       </aside>
 
       {/* Main Content Article Skeleton */}
-      <main className="w-full md:w-3/4 flex flex-col gap-6 pr-0 md:pr-12">
+      <main className="w-full md:w-3/4 flex flex-col gap-6 pr-0 md:pr-6 lg:pr-12">
         {/* Breadcrumb Skeleton */}
         <div className="flex items-center gap-2 mb-2">
           <div className="h-3 w-12 bg-surface-variant/60 dark:bg-neutral-800 rounded" />

@@ -1,8 +1,15 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next';
 import { CategoryTemplate } from '@/components/layout/CategoryTemplate';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+
+export const metadata: Metadata = {
+  title: 'Health & Wellness',
+  description: 'Tips kesehatan harian, medis, pola hidup seimbang, dan kebugaran.',
+  openGraph: {
+    title: 'Health & Wellness | Jurnal Vibes',
+    description: 'Tips kesehatan harian, medis, pola hidup seimbang, dan kebugaran.',
+  },
+};
 
 export default function HealthPage() {
   const healthArticles = DUMMY_ARTICLES.filter(

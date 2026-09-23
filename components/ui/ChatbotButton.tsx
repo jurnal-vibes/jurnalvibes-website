@@ -22,6 +22,18 @@ export const ChatbotButton: React.FC = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const [hasActiveAudio, setHasActiveAudio] = useState<boolean>(false);
+
+  // Monitor active audio player to avoid overlapping controls
+  useEffect(() => {
+    const checkAudio = () => {
+      setHasActiveAudio(document.body.getAttribute('data-audio-player') === 'active');
+    };
+    checkAudio();
+    const observer = new MutationObserver(checkAudio);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['data-audio-player'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Close chat when clicking outside
   useEffect(() => {
@@ -253,7 +265,11 @@ export const ChatbotButton: React.FC = () => {
 
       {/* Main Floating Action Button (Full Illustration Image) */}
       {!isChatOpen && (
-        <div className="fixed bottom-20 sm:bottom-8 right-4 sm:right-8 z-50 flex flex-col items-end">
+        <div
+          className={`fixed right-4 sm:right-8 z-40 flex flex-col items-end transition-all duration-300 ${
+            hasActiveAudio ? 'bottom-36 sm:bottom-24' : 'bottom-20 sm:bottom-8'
+          }`}
+        >
           <button
             aria-label="Tanya AI"
             onClick={() => setIsChatOpen(true)}
