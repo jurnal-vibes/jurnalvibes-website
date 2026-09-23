@@ -69,6 +69,7 @@
   --font-headline-lg: var(--font-montserrat), Montserrat, sans-serif;
   --font-headline-xl: var(--font-montserrat), Montserrat, sans-serif;
   --font-headline-md: var(--font-montserrat), Montserrat, sans-serif;
+  --font-heading: var(--font-montserrat), Montserrat, sans-serif;
 }
 
 .no-scrollbar::-webkit-scrollbar {

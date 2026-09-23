@@ -1,10 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Literata, Montserrat } from 'next/font/google';
 import './globals.css';
-import { HeaderNav } from '@/components/layout/HeaderNav';
-import { Footer } from '@/components/layout/Footer';
-import { BottomNav } from '@/components/layout/BottomNav';
-import { ChatbotButton } from '@/components/ui/ChatbotButton';
+import { AppShell } from '@/components/layout/AppShell';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -72,15 +69,11 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${inter.variable} ${literata.variable} ${montserrat.variable} light`}>
       <head>
-        <link rel="preconnect" href="https://halo-jurnal-app.vercel.app" />
-        <link rel="dns-prefetch" href="https://halo-jurnal-app.vercel.app" />
+        <link rel="preconnect" href="https://tile.openstreetmap.org" />
+        <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
       </head>
       <body className="bg-surface text-on-surface min-h-screen flex flex-col font-body-md antialiased relative overflow-x-clip">
-        <HeaderNav />
-        {children}
-        <Footer />
-        <BottomNav />
-        <ChatbotButton />
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

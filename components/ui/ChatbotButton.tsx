@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { X, Send, ExternalLink } from 'lucide-react';
 
 interface ChatMessage {
@@ -190,24 +191,13 @@ export const ChatbotButton: React.FC = () => {
 
             {/* Quick Action Chips (Berjejer ke Samping di Bawah) */}
             <div className="px-3 pt-2.5 pb-1.5 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0 bg-surface dark:bg-slate-900 border-t border-outline-variant/30 dark:border-slate-800">
-              <a
-                href="https://halo-jurnal-app.vercel.app/"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/halo-jurnal"
+                onClick={() => setIsChatOpen(false)}
                 className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors shrink-0 whitespace-nowrap cursor-pointer"
-                onMouseEnter={() => {
-                  if (typeof window !== 'undefined' && !document.head.querySelector('link[data-halo-prefetch="true"]')) {
-                    const link = document.createElement('link');
-                    link.rel = 'prefetch';
-                    link.href = 'https://halo-jurnal-app.vercel.app/';
-                    link.setAttribute('data-halo-prefetch', 'true');
-                    document.head.appendChild(link);
-                  }
-                }}
               >
                 <span>Hallo Jurnal</span>
-                <ExternalLink className="w-3 h-3 opacity-70 ml-0.5" />
-              </a>
+              </Link>
 
               <button
                 onClick={() => handleSendMessage('Rekomendasi kuliner Cikole')}

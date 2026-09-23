@@ -38,10 +38,8 @@ export const BottomNav: React.FC = () => {
         </Link>
 
         {/* 3. Hallo Jurnal (Tombol Tengah Menonjol) */}
-        <a
-          href="https://halo-jurnal-app.vercel.app/"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/halo-jurnal"
           className="flex flex-col items-center justify-center -mt-5 group transition-transform active:scale-95"
           title="Salurkan Laporan & Aduan Warga Sukabumi di Hallo Jurnal"
         >
@@ -51,7 +49,7 @@ export const BottomNav: React.FC = () => {
           <span className="text-[10px] font-extrabold text-primary tracking-tight mt-1">
             Hallo Jurnal
           </span>
-        </a>
+        </Link>
 
         {/* 4. Vibes Reels */}
         <Link

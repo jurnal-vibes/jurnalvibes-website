@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 export const HalloJurnalBanner: React.FC = () => {
@@ -34,15 +35,13 @@ export const HalloJurnalBanner: React.FC = () => {
             Wadah laporan dan aspirasi online warga Sukabumi. Sampaikan aduan fasilitas publik secara langsung, cepat, dan transparan.
           </p>
 
-          <a
-            href="https://halo-jurnal-app.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/halo-jurnal"
             className="inline-flex items-center justify-center gap-1.5 sm:gap-2.5 bg-primary hover:bg-primary-dark text-white font-extrabold text-xs sm:text-sm px-3.5 py-1.5 sm:px-6 sm:py-2.5 md:px-7 md:py-3 rounded-full shadow-xs hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer group"
           >
             <span>Kirim Laporan</span>
             <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white group-hover:translate-x-1 transition-transform" />
-          </a>
+          </Link>
         </div>
       </div>
     </section>

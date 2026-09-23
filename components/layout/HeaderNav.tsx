@@ -112,7 +112,7 @@ export const HeaderNav: React.FC = () => {
 
             {/* Navigation Links (Desktop Only) */}
             <nav className="hidden md:flex flex-1 items-center justify-center min-w-0">
-              <div className="flex items-center gap-6 text-sm font-semibold text-on-surface">
+              <div className="flex items-center gap-6 text-sm font-medium text-on-surface">
                 {navLinks.map((link, idx) => {
                   const isActive = pathname === link.href;
                   return (
@@ -121,7 +121,7 @@ export const HeaderNav: React.FC = () => {
                       href={link.href}
                       className={`hover:text-primary transition-colors py-1 ${
                         isActive
-                          ? 'text-primary font-bold border-b-2 border-primary'
+                          ? 'text-primary border-b-2 border-primary'
                           : 'text-on-surface'
                       }`}
                     >
@@ -332,16 +332,14 @@ export const HeaderNav: React.FC = () => {
                   </span>
                 </div>
 
-                <a
-                  href="https://halo-jurnal-app.vercel.app/"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/halo-jurnal"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="px-3.5 py-2 rounded-full bg-primary hover:bg-primary-dark text-white font-extrabold text-xs shrink-0 shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
                 >
                   <span>Lapor</span>
                   <ExternalLink className="w-3.5 h-3.5 text-white/90" />
-                </a>
+                </Link>
               </div>
 
               {/* Kategori Berita (Grid 2 Kolom, Berita Full Width) */}
