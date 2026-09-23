@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react';
 
 export const HalloJurnalBanner: React.FC = () => {
   return (
-    <section className="relative w-full rounded-3xl bg-surface text-on-surface my-12 shadow-xs border border-outline-variant/70 hover:shadow-md transition-all duration-300 overflow-hidden">
+    <section className="relative w-full rounded-3xl bg-surface text-on-surface my-2 shadow-xs border border-outline-variant/70 hover:shadow-md transition-all duration-300 overflow-hidden">
       {/* Subtle Background Glows */}
       <div className="absolute -left-10 -top-10 w-72 h-72 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
       <div className="absolute right-10 bottom-0 w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
