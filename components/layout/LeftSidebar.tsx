@@ -67,27 +67,21 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ articles }) => {
 
           {/* Konten teks & tombol langsung menyatu dengan sidebar */}
           <div className="flex-1 flex flex-col items-start min-w-0">
-            <span className="text-xs font-extrabold text-on-surface tracking-wide">Hallo Jurnal</span>
+            <Link
+              href="/halo-jurnal"
+              className="text-xs font-extrabold text-on-surface hover:text-primary transition-colors tracking-wide"
+            >
+              Hallo Jurnal
+            </Link>
             <span className="text-[11px] text-secondary mt-0.5 leading-snug">Wadah laporan &amp; komunikasi online warga Sukabumi</span>
 
-            <a
-              href="https://halo-jurnal-app.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              onMouseEnter={() => {
-                if (typeof window !== 'undefined' && !document.head.querySelector('link[data-halo-prefetch="true"]')) {
-                  const link = document.createElement('link');
-                  link.rel = 'prefetch';
-                  link.href = 'https://halo-jurnal-app.vercel.app/';
-                  link.setAttribute('data-halo-prefetch', 'true');
-                  document.head.appendChild(link);
-                }
-              }}
+            <Link
+              href="/halo-jurnal"
               className="mt-2.5 flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary hover:bg-primary-dark text-white font-extrabold text-xs transition-all shadow-xs hover:shadow-md active:scale-95 cursor-pointer"
             >
               <span>Kirim Laporan</span>
               <ExternalLink className="w-3 h-3 text-white/90 shrink-0" />
-            </a>
+            </Link>
           </div>
         </div>
       </div>
