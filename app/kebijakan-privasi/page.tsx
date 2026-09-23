@@ -1,10 +1,19 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+
+export const metadata: Metadata = {
+  title: 'Kebijakan Privasi',
+  description: 'Kebijakan privasi Jurnal Vibes — informasi pengumpulan data, cookie, dan perlindungan privasi pengunjung.',
+  openGraph: {
+    title: 'Kebijakan Privasi | Jurnal Vibes',
+    description: 'Kebijakan privasi Jurnal Vibes — informasi pengumpulan data, cookie, dan perlindungan privasi pengunjung.',
+  },
+};
+
+
 
 export default function KebijakanPrivasiPage() {
   return (

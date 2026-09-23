@@ -52,17 +52,17 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
 
   return (
     <>
-      <section className={hideHeader ? 'my-2' : 'border-t border-outline-variant/60 pt-stack-lg mt-2 mb-6'}>
+      <section className={hideHeader ? 'my-2' : 'border-t border-outline-variant/60 pt-4 sm:pt-stack-lg mt-2 mb-4 sm:mb-6'}>
         {/* Optional Header */}
         {!hideHeader && (
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex flex-col gap-1">
-              <h2 className="font-headline-md text-on-surface text-xl md:text-2xl font-bold flex items-center gap-2.5">
-                <Film className="w-6 h-6 text-primary shrink-0" />
+          <div className="flex items-center justify-between mb-3.5 sm:mb-5">
+            <div className="flex flex-col gap-0.5 sm:gap-1">
+              <h2 className="font-headline-md text-on-surface text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2 sm:gap-2.5">
+                <Film className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
                 <span>{title}</span>
               </h2>
               {subtitle && (
-                <p className="text-on-surface-variant text-sm font-body-md">
+                <p className="text-on-surface-variant text-xs sm:text-sm font-body-md">
                   {subtitle}
                 </p>
               )}
@@ -70,7 +70,7 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
             {!hideSeeAll && (
               <Link
                 href="/reels"
-                className="inline-flex items-center gap-1.5 text-primary font-button hover:text-primary-dark hover:underline text-sm font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 text-primary font-button hover:text-primary-dark hover:underline text-xs sm:text-sm font-semibold transition-colors"
               >
                 <span>Lihat Semua</span>
                 <span className="text-xs">→</span>
@@ -81,14 +81,14 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
 
         {/* Category Filter Pills (if enabled) */}
         {showCategoryFilter && (
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 mb-5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 mb-4 sm:mb-5">
             {CATEGORIES.map(cat => {
               const isActive = activeCategory === cat;
               return (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                     isActive
                       ? 'bg-primary text-on-primary shadow-2xs'
                       : 'bg-surface-variant/60 text-on-surface hover:bg-surface-variant border border-outline-variant/40'
@@ -105,8 +105,8 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
         <div
           className={
             isGalleryPage
-              ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5'
-              : 'flex md:grid md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 overflow-x-auto md:overflow-visible no-scrollbar snap-x snap-mandatory pb-4 md:pb-0'
+              ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5'
+              : 'flex md:grid md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5 overflow-x-auto md:overflow-visible no-scrollbar snap-x snap-mandatory pb-2 md:pb-0'
           }
         >
           {filteredReels.map((reel, idx) => (
@@ -116,8 +116,8 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
               className={`relative ${
                 isGalleryPage
                   ? 'w-full'
-                  : 'w-[190px] sm:w-[220px] md:w-auto shrink-0 snap-center md:shrink md:snap-align-none'
-              } aspect-[9/16] rounded-2xl overflow-hidden group cursor-pointer bg-zinc-900 shadow-2xs hover:shadow-md transition-all duration-200`}
+                  : 'w-[135px] sm:w-[170px] md:w-auto shrink-0 snap-start md:shrink md:snap-align-none'
+              } aspect-[9/16] rounded-xl sm:rounded-2xl overflow-hidden group cursor-pointer bg-zinc-900 shadow-2xs hover:shadow-md transition-all duration-200`}
             >
               {/* Image Poster */}
               {/* eslint-disable-next-img-element */}
@@ -128,23 +128,23 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
               />
 
               {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent flex flex-col justify-end p-3 sm:p-4">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent flex flex-col justify-end p-2.5 sm:p-4">
                 {/* Center Hover Play Indicator */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className="w-11 h-11 rounded-full bg-black/60 backdrop-blur-xs text-white flex items-center justify-center scale-95 group-hover:scale-100 transition-transform">
-                    <Play className="w-5 h-5 fill-current ml-0.5" />
+                  <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-black/60 backdrop-blur-xs text-white flex items-center justify-center scale-95 group-hover:scale-100 transition-transform">
+                    <Play className="w-3.5 h-3.5 sm:w-5 sm:h-5 fill-current ml-0.5" />
                   </div>
                 </div>
 
                 {/* Bottom Content: Title & Views */}
-                <div className="flex flex-col gap-1 z-10">
-                  <p className="text-white font-bold text-xs sm:text-sm leading-snug line-clamp-2 drop-shadow-xs">
+                <div className="flex flex-col gap-0.5 sm:gap-1 z-10">
+                  <p className="text-white font-bold text-[11px] sm:text-xs md:text-sm leading-snug line-clamp-2 drop-shadow-xs">
                     {reel.title}
                   </p>
 
                   {reel.viewsCount && (
-                    <span className="flex items-center gap-1 text-[11px] text-white/80 font-medium pt-0.5">
-                      <Play className="w-3 h-3 fill-current" />
+                    <span className="flex items-center gap-1 text-[10px] sm:text-[11px] text-white/80 font-medium pt-0.5">
+                      <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
                       <span>{reel.viewsCount}</span>
                     </span>
                   )}

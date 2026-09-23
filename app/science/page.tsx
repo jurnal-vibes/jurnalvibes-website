@@ -1,8 +1,15 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next';
 import { CategoryTemplate } from '@/components/layout/CategoryTemplate';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+
+export const metadata: Metadata = {
+  title: 'Science & Environment',
+  description: 'Riset ilmiah, sains populer, dan isu lingkungan terkini seputar Sukabumi.',
+  openGraph: {
+    title: 'Science & Environment | Jurnal Vibes',
+    description: 'Riset ilmiah, sains populer, dan isu lingkungan terkini seputar Sukabumi.',
+  },
+};
 
 export default function SciencePage() {
   const scienceArticles = DUMMY_ARTICLES.filter(

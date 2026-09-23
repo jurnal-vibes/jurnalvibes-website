@@ -22,10 +22,10 @@ export const CategoryTemplate: React.FC<CategoryTemplateProps> = ({
   allArticles = DUMMY_ARTICLES
 }) => {
   return (
-    <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop gap-gutter py-stack-lg">
+    <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-6 lg:px-margin-desktop gap-gutter pt-stack-lg pb-10 md:pb-stack-lg">
       <LeftSidebar articles={allArticles} />
 
-      <main className="w-full md:w-3/4 flex flex-col min-w-0 pr-0 md:pr-12 pb-24 md:pb-stack-lg">
+      <main className="w-full md:w-3/4 flex flex-col min-w-0 pr-0 md:pr-6 lg:pr-12">
         <header className="flex flex-col gap-3 mb-6">
           <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
             {title}

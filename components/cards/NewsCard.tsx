@@ -39,10 +39,10 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
   }
 
   return (
-    <article className="flex flex-col sm:flex-row gap-4 sm:gap-6 group cursor-pointer border-t border-outline-variant/60 pt-4 sm:pt-6 w-full items-start sm:items-center">
+    <article className="flex flex-row gap-3.5 sm:gap-6 group cursor-pointer border-t border-outline-variant/60 pt-3.5 sm:pt-6 w-full items-center">
       <Link
         href={`/artikel/${article.id}`}
-        className="relative w-full sm:w-48 md:w-52 aspect-video rounded-xl overflow-hidden shrink-0 block"
+        className="relative w-28 sm:w-48 md:w-52 aspect-[4/3] sm:aspect-video rounded-xl sm:rounded-2xl overflow-hidden shrink-0 block"
       >
         {/* eslint-disable-next-img-element */}
         <img
@@ -51,16 +51,16 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
       </Link>
-      <div className="flex flex-col gap-1.5 justify-center flex-1 min-w-0">
-        <span className="text-primary font-bold text-xs uppercase tracking-wider">
+      <div className="flex flex-col gap-1 sm:gap-1.5 justify-center flex-1 min-w-0">
+        <span className="text-primary font-bold text-[11px] sm:text-xs uppercase tracking-wider">
           {article.categoryLabel || article.category}
         </span>
         <Link href={`/artikel/${article.id}`}>
-          <h3 className="text-base sm:text-lg md:text-xl font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+          <h3 className="text-sm sm:text-lg md:text-xl font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">
             {article.title}
           </h3>
         </Link>
-        <span className="text-on-surface-variant/70 text-xs font-normal">
+        <span className="text-on-surface-variant/70 text-[11px] sm:text-xs font-normal">
           {article.createdAt}
         </span>
       </div>

@@ -64,7 +64,7 @@ export const Footer: React.FC = () => {
   return (
     <footer className="w-full bg-surface border-t border-outline-variant/60 mt-auto relative transition-colors duration-300">
       {/* Main Split Container */}
-      <div className="max-w-container-max mx-auto pt-8 pb-32 md:pb-8 px-6 md:px-12">
+      <div className="max-w-container-max mx-auto pt-5 sm:pt-8 pb-24 md:pb-8 px-4 sm:px-6 md:px-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           
           {/* Sisi Kiri: Medsos Bulat */}

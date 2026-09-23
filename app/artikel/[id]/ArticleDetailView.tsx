@@ -16,6 +16,7 @@ import {
 import { FaFacebookF, FaXTwitter, FaWhatsapp } from 'react-icons/fa6';
 import { FaTelegramPlane } from 'react-icons/fa';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
+import { NewsCard } from '@/components/cards/NewsCard';
 import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 import { fetchArticlesFromSupabase, fetchArticleByIdFromSupabase } from '@/lib/supabase';
@@ -114,6 +115,18 @@ export function ArticleDetailView({ id }: { id: string }) {
       }
     };
   }, []);
+
+  // Sync active audio state to document body so floating buttons (like Chatbot) don't obstruct the player
+  useEffect(() => {
+    if (isAudioActive) {
+      document.body.setAttribute('data-audio-player', 'active');
+    } else {
+      document.body.removeAttribute('data-audio-player');
+    }
+    return () => {
+      document.body.removeAttribute('data-audio-player');
+    };
+  }, [isAudioActive]);
 
   const handlePlayToggle = () => {
     if (!isAudioActive) {
@@ -276,10 +289,10 @@ export function ArticleDetailView({ id }: { id: string }) {
   const relatedArticles = allArticles.filter(a => a.id !== article.id).slice(0, 3);
 
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter pt-stack-lg pb-24 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
+    <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-6 lg:px-gutter pt-stack-lg pb-6 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
       <LeftSidebar articles={allArticles} />
 
-      <main className="w-full md:w-3/4 flex flex-col gap-stack-lg pr-0 md:pr-12">
+      <main className="w-full md:w-3/4 flex flex-col gap-stack-lg pr-0 md:pr-6 lg:pr-12">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-[11px] text-on-surface-variant/70 mb-2">
           <Link href="/" className="hover:text-primary transition-colors">
@@ -324,7 +337,7 @@ export function ArticleDetailView({ id }: { id: string }) {
                 onClick={handleShareFacebook}
                 title="Bagikan ke Facebook"
                 aria-label="Bagikan ke Facebook"
-                className="w-8 h-8 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               >
                 <FaFacebookF className="w-3.5 h-3.5" />
               </button>
@@ -335,7 +348,7 @@ export function ArticleDetailView({ id }: { id: string }) {
                 onClick={handleShareTwitter}
                 title="Bagikan ke X (Twitter)"
                 aria-label="Bagikan ke X"
-                className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-black text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               >
                 <FaXTwitter className="w-3.5 h-3.5" />
               </button>
@@ -346,7 +359,7 @@ export function ArticleDetailView({ id }: { id: string }) {
                 onClick={handleShareWhatsApp}
                 title="Bagikan ke WhatsApp"
                 aria-label="Bagikan ke WhatsApp"
-                className="w-8 h-8 rounded-full bg-[#25D366] text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#25D366] text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               >
                 <FaWhatsapp className="w-4 h-4" />
               </button>
@@ -357,7 +370,7 @@ export function ArticleDetailView({ id }: { id: string }) {
                 onClick={handleShareTelegram}
                 title="Bagikan ke Telegram"
                 aria-label="Bagikan ke Telegram"
-                className="w-8 h-8 rounded-full bg-[#229ED9] text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#229ED9] text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               >
                 <FaTelegramPlane className="w-3.5 h-3.5 mr-0.5" />
               </button>
@@ -368,7 +381,7 @@ export function ArticleDetailView({ id }: { id: string }) {
                 onClick={handleHeaderShare}
                 title={headerCopied ? 'Link Tersalin!' : 'Salin Link Artikel'}
                 aria-label="Salin Link Artikel"
-                className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer relative"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-black text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer relative"
               >
                 {headerCopied ? (
                   <Check className="w-4 h-4 text-emerald-400" />
@@ -383,7 +396,7 @@ export function ArticleDetailView({ id }: { id: string }) {
                 onClick={() => setIsSaved(!isSaved)}
                 title={isSaved ? 'Tersimpan (Klik untuk batal)' : 'Simpan Artikel'}
                 aria-label="Simpan Artikel"
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90 ${
+                className={`w-9 h-9 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90 ${
                   isSaved
                     ? 'bg-primary text-white shadow-xs'
                     : 'bg-surface-variant/80 text-on-surface hover:bg-surface-variant hover:text-primary border border-outline-variant/60'
@@ -612,38 +625,24 @@ export function ArticleDetailView({ id }: { id: string }) {
         </div>
 
         {/* Related Articles */}
-        <section className="mt-14 pb-12">
-          <div className="flex flex-col gap-1 mb-6">
+        <section className="mt-10 sm:mt-14 pb-4 sm:pb-8">
+          <div className="flex flex-col gap-1 mb-4 sm:mb-6">
             <h3 className="text-sm sm:text-base font-bold text-on-surface dark:text-white tracking-wider uppercase">
               BERITA TERKAIT
             </h3>
             <div className="w-10 h-[2.5px] bg-primary rounded-full mt-0.5" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-2 sm:gap-4">
             {relatedArticles.map(rel => (
-              <article key={rel.id} className="group cursor-pointer">
-                <div className="aspect-video rounded-lg overflow-hidden mb-3">
-                  {/* eslint-disable-next-img-element */}
-                  <img
-                    src={rel.imageUrl}
-                    alt={rel.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <Link href={`/artikel/${rel.id}`}>
-                  <h4 className="font-button text-on-surface dark:text-white group-hover:text-primary transition-colors line-clamp-2 font-bold text-xs sm:text-sm leading-snug">
-                    {rel.title}
-                  </h4>
-                </Link>
-              </article>
+              <NewsCard key={rel.id} article={rel} variant="row" />
             ))}
           </div>
         </section>
       </main>
 
-      {/* Floating Bottom Mini Player (Simple Capsule - No Text) */}
+      {/* Floating Bottom Mini Player (Simple Capsule - Positioned above BottomNav on mobile) */}
       {isAudioActive && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full shadow-2xl border border-outline-variant/80 dark:border-slate-800 px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full shadow-2xl border border-outline-variant/80 dark:border-slate-800 px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
           {/* Play/Pause Button */}
           <button
             type="button"
@@ -701,9 +700,9 @@ export function ArticleDetailView({ id }: { id: string }) {
               onClick={handleCloseAudio}
               title="Tutup Player"
               aria-label="Tutup Player"
-              className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-variant/80 text-on-surface-variant hover:text-on-surface dark:text-gray-400 dark:hover:text-white cursor-pointer transition-colors"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-surface-variant/50 hover:bg-surface-variant text-on-surface-variant hover:text-primary dark:text-gray-300 dark:hover:text-white cursor-pointer transition-all shrink-0 active:scale-90"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </button>
           </div>
         </div>

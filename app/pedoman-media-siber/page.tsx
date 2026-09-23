@@ -1,10 +1,17 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+
+export const metadata: Metadata = {
+  title: 'Pedoman Media Siber',
+  description: 'Pedoman pemberitaan media siber Jurnal Vibes sesuai Kode Etik Jurnalistik dan UU Pers.',
+  openGraph: {
+    title: 'Pedoman Media Siber | Jurnal Vibes',
+    description: 'Pedoman pemberitaan media siber Jurnal Vibes sesuai Kode Etik Jurnalistik dan UU Pers.',
+  },
+};
 
 export default function PedomanMediaSiberPage() {
   return (

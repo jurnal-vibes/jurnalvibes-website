@@ -1,24 +1,70 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Search, X, TrendingUp, ChevronRight } from 'lucide-react';
+import { Search, TrendingUp, ChevronRight } from 'lucide-react';
+import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+import { fetchArticlesFromSupabase } from '@/lib/supabase';
 
 interface SearchOverlayProps {
   isOpen: boolean;
   onClose: () => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
-export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose }) => {
-  const [searchQuery, setSearchQuery] = useState<string>('');
+export const SearchOverlay: React.FC<SearchOverlayProps> = ({
+  isOpen,
+  onClose,
+  searchQuery,
+  setSearchQuery
+}) => {
+  const [articles, setArticles] = useState<Article[]>(DUMMY_ARTICLES);
+
+  // Fetch latest articles for live search index
+  useEffect(() => {
+    async function loadArticles() {
+      try {
+        const data = await fetchArticlesFromSupabase();
+        if (data && data.length > 0) {
+          setArticles(data);
+        }
+      } catch (err) {
+        console.error('Error fetching articles in SearchOverlay:', err);
+      }
+    }
+    loadArticles();
+  }, []);
+
+  // Handle ESC key press & body scroll locking
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
 
   const trendingTags = [
-    { label: '#SukabumiUpdate', query: 'Sukabumi' },
+    { label: '#Sukabumi', query: 'Sukabumi' },
     { label: '#KulinerCikole', query: 'Cikole' },
     { label: '#WisataAlam', query: 'Wisata' },
     { label: '#LokerSMI', query: 'Loker' },
-    { label: '#FestivalKuliner', query: 'Festival' }
+    { label: '#FestivalKuliner', query: 'Festival' },
+    { label: '#Kampus', query: 'Kampus' }
   ];
 
   // Perform instant live filtering
@@ -26,138 +72,128 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
     const query = searchQuery.trim().toLowerCase();
     if (!query) return [];
 
-    return DUMMY_ARTICLES.filter(
+    return articles.filter(
       article =>
         article.title.toLowerCase().includes(query) ||
         article.excerpt.toLowerCase().includes(query) ||
         article.categoryLabel.toLowerCase().includes(query) ||
         (article.subCategory && article.subCategory.toLowerCase().includes(query)) ||
-        article.content.toLowerCase().includes(query)
+        article.content.toLowerCase().includes(query) ||
+        (article.tags && article.tags.some(t => t.toLowerCase().includes(query)))
     );
-  }, [searchQuery]);
+  }, [searchQuery, articles]);
 
-  const handleClear = () => {
-    setSearchQuery('');
-  };
-
-  const handleClose = () => {
-    setSearchQuery('');
-    onClose();
-  };
+  if (!isOpen) return null;
 
   return (
     <>
-      <div
-        className={`absolute top-0 left-0 w-full bg-surface shadow-2xl transform transition-all duration-300 ease-in-out z-50 pt-20 pb-8 px-4 border-b border-outline-variant max-h-[85vh] overflow-y-auto ${
-          isOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
-        }`}
-      >
-        <div className="max-w-4xl mx-auto flex flex-col gap-6">
-          {/* Search Input Bar */}
-          <div className="relative flex items-center">
-            <Search className="w-7 h-7 absolute left-3 text-primary" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Cari berita, tempat, atau topik seputar Sukabumi..."
-              autoFocus={isOpen}
-              className="w-full bg-surface-container border-b-2 border-outline-variant focus:border-primary text-xl md:text-2xl font-bold text-on-surface placeholder:text-on-surface-variant/40 py-4 pl-14 pr-16 outline-none transition-colors"
-            />
-            {searchQuery ? (
-              <button
-                onClick={handleClear}
-                className="absolute right-12 text-on-surface-variant hover:text-primary p-2 transition-colors cursor-pointer"
-                title="Hapus teks"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            ) : null}
-            <button
-              onClick={handleClose}
-              className="absolute right-2 text-on-surface-variant hover:text-primary p-2 transition-colors cursor-pointer"
-              title="Tutup pencarian"
-            >
-              <X className="w-7 h-7" />
-            </button>
-          </div>
-
-          {/* Trending Tags (If query is empty) */}
-          {!searchQuery.trim() && (
+      {/* Dropdown Panel - Mounts directly beneath the Header */}
+      <div className="absolute top-full left-0 w-full bg-surface dark:bg-slate-900 border-b border-outline-variant/60 dark:border-slate-800 shadow-2xl z-40 max-h-[75vh] overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className="max-w-container-max mx-auto px-4 md:px-6 lg:px-margin-desktop py-4 sm:py-5 flex flex-col gap-4">
+          {/* Default State: Trending Tags only */}
+          {!searchQuery.trim() ? (
             <div>
-              <h4 className="font-headline-md text-primary font-bold text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Trending Sekarang
-              </h4>
-              <div className="flex flex-wrap gap-2.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary mb-2.5">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Trending Sekarang</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {trendingTags.map((tag, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => setSearchQuery(tag.query)}
-                    className="px-4 py-2 bg-surface-container-high hover:bg-primary hover:text-white text-on-surface font-button rounded-full transition-all text-xs font-semibold cursor-pointer border border-outline-variant"
+                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-variant/50 hover:bg-primary/10 hover:text-primary hover:border-primary/40 border border-outline-variant/50 dark:border-slate-800 text-on-surface dark:text-gray-200 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
                   >
-                    {tag.label}
+                    <span className="text-primary font-bold">#</span>
+                    <span>{tag.label.replace(/^#/, '')}</span>
                   </button>
                 ))}
               </div>
             </div>
-          )}
+          ) : null}
 
-          {/* Live Search Results */}
+          {/* Active Search Results */}
           {searchQuery.trim() ? (
-            <div className="mt-2">
-              <div className="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
-                <h4 className="font-headline-md text-on-surface font-bold text-base">
-                  Hasil Pencarian untuk &quot;<span className="text-primary">{searchQuery}</span>&quot;
-                </h4>
-                <span className="text-xs font-medium text-on-surface-variant">
+            <div className="flex flex-col gap-3">
+              {/* Results Summary Header */}
+              <div className="flex items-center justify-between text-xs font-medium text-on-surface-variant/80 border-b border-outline-variant/40 dark:border-slate-800 pb-2">
+                <span>
+                  Hasil untuk <strong className="text-on-surface dark:text-white font-bold">&quot;{searchQuery}&quot;</strong>
+                </span>
+                <span className="text-primary font-bold">
                   {searchResults.length} artikel ditemukan
                 </span>
               </div>
 
+              {/* Result Items */}
               {searchResults.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-1">
+                <div className="flex flex-col gap-1.5 max-h-[55vh] overflow-y-auto pr-1">
                   {searchResults.map(article => (
                     <Link
                       key={article.id}
                       href={`/artikel/${article.id}`}
-                      onClick={handleClose}
-                      className="flex gap-4 p-3 rounded-xl bg-surface-container border border-outline-variant hover:border-primary hover:shadow-md transition-all group"
+                      onClick={onClose}
+                      className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 rounded-2xl hover:bg-surface-variant/50 dark:hover:bg-slate-800/60 border border-transparent hover:border-outline-variant/40 transition-all group cursor-pointer"
                     >
-                      <div className="w-24 h-20 rounded-lg overflow-hidden shrink-0 aspect-video">
+                      {/* Left Thumbnail */}
+                      <div className="relative w-20 sm:w-24 aspect-[4/3] rounded-xl overflow-hidden shrink-0 bg-surface-variant border border-outline-variant/40">
                         {/* eslint-disable-next-img-element */}
                         <img
                           src={article.imageUrl}
-                          alt={article.title}
+                          alt={article.imageAlt || article.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
-                      <div className="flex flex-col justify-between min-w-0 flex-1">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full inline-block mb-1">
-                            {article.categoryLabel}
+
+                      {/* Right Details */}
+                      <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0 flex-1 justify-center">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-primary">
+                            {article.categoryLabel || article.category}
                           </span>
-                          <h5 className="font-button text-sm font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-                            {article.title}
-                          </h5>
+                          <span className="text-[10px] text-on-surface-variant/60 font-normal hidden sm:inline">
+                            • {article.createdAt || article.publishedDate}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1 text-[11px] font-semibold text-primary mt-1">
-                          <span>Baca Selengkapnya</span>
-                          <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                        </div>
+                        <h4 className="text-xs sm:text-sm font-bold text-on-surface dark:text-gray-100 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                          {article.title}
+                        </h4>
+                        <span className="text-[10px] text-on-surface-variant/60 font-normal sm:hidden">
+                          {article.createdAt || article.publishedDate}
+                        </span>
                       </div>
+
+                      {/* Arrow Indicator */}
+                      <ChevronRight className="w-4 h-4 text-on-surface-variant/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
                     </Link>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 bg-surface-container rounded-xl border border-outline-variant">
-                  <p className="text-on-surface-variant font-medium text-sm">
-                    Tidak ada artikel yang cocok dengan kata kunci &quot;
-                    <span className="font-bold text-primary">{searchQuery}</span>&quot;.
+                /* Empty Results State */
+                <div className="text-center py-8 px-4 flex flex-col items-center justify-center">
+                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2.5">
+                    <Search className="w-5 h-5" />
+                  </div>
+                  <p className="text-sm font-bold text-on-surface dark:text-white mb-1">
+                    Tidak ada artikel ditemukan
                   </p>
-                  <p className="text-xs text-on-surface-variant/70 mt-1">
-                    Coba kata kunci lain seperti <span className="underline cursor-pointer" onClick={() => setSearchQuery('Kuliner')}>Kuliner</span>, <span className="underline cursor-pointer" onClick={() => setSearchQuery('SMAN')}>SMAN</span>, atau <span className="underline cursor-pointer" onClick={() => setSearchQuery('Sukabumi')}>Sukabumi</span>.
+                  <p className="text-xs text-on-surface-variant/70 max-w-xs mb-3">
+                    Tidak ditemukan artikel yang cocok dengan kata kunci &quot;<span className="text-primary font-semibold">{searchQuery}</span>&quot;.
                   </p>
+                  <div className="flex flex-wrap justify-center gap-1.5">
+                    <span className="text-xs text-on-surface-variant/60 self-center mr-1">Coba cari:</span>
+                    {['Kuliner', 'Wisata', 'Sukabumi', 'Loker'].map((s, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setSearchQuery(s)}
+                        className="text-xs font-semibold px-2.5 py-1 rounded-full bg-surface-variant/70 hover:bg-primary hover:text-white text-on-surface transition-colors cursor-pointer"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -165,12 +201,11 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose })
         </div>
       </div>
 
-      {/* Backdrop overlay */}
+      {/* Dimmed Backdrop Overlay (Starts below header height) */}
       <div
-        onClick={handleClose}
-        className={`fixed inset-0 bg-black/60 backdrop-blur-xs z-40 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
+        onClick={onClose}
+        className="fixed inset-0 top-16 md:top-20 bg-black/50 backdrop-blur-xs z-30 transition-opacity animate-in fade-in duration-200"
+        aria-hidden="true"
       />
     </>
   );
