@@ -52,7 +52,7 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
 
   return (
     <>
-      <section className={hideHeader ? 'my-2' : 'border-t border-outline-variant/60 pt-stack-lg my-6'}>
+      <section className={hideHeader ? 'my-2' : 'border-t border-outline-variant/60 pt-stack-lg mt-2 mb-6'}>
         {/* Optional Header */}
         {!hideHeader && (
           <div className="flex items-center justify-between mb-5">

@@ -76,7 +76,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
     <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop gap-gutter py-stack-lg">
       <LeftSidebar articles={DUMMY_ARTICLES} />
 
-      <main className="flex-1 flex flex-col min-w-0 pr-0 md:pr-4">
+      <main className="flex-1 flex flex-col min-w-0 pr-0 md:pr-4 pb-24 md:pb-stack-lg">
         {/* Back Link */}
         <div className="mb-4">
           <Link
