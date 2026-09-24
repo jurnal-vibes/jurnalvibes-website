@@ -28,6 +28,43 @@ export interface DummyReport {
 
 export const DUMMY_REPORTS: DummyReport[] = [
   {
+    id: 'JS-20260728-5266',
+    nomor_tiket: 'JS-20260728-5266',
+    judul: 'data anggaran kebersihan 2025',
+    deskripsi: 'minta data rincian anggara kebersihan',
+    jenis: 'informasi',
+    kategori: 'ANGGARAN',
+    lokasi: 'Balai Disabilitas Phala Martha, Jalan Perintis Kemerdekaan, Sekarwangi, Sukabumi, Jawa Barat, 43351, Indonesia',
+    latitude: -6.9012,
+    longitude: 106.8712,
+    status: 'selesai',
+    is_public: true,
+    dukungan_count: 0,
+    komentar_count: 0,
+    created_at: '2026-07-28T10:30:00Z',
+    laporan_lampiran: [],
+    status_log: [
+      {
+        id: 'log-anggaran-001',
+        status: 'selesai',
+        catatan: 'Status diubah menjadi selesai oleh Admin Jurnal Sukabumi.',
+        created_at: '2026-09-04T15:31:00Z',
+      },
+      {
+        id: 'log-anggaran-002',
+        status: 'ditindaklanjuti',
+        catatan: 'Status diubah menjadi ditindaklanjuti oleh Admin Jurnal Sukabumi.',
+        created_at: '2026-08-09T19:55:00Z',
+      },
+      {
+        id: 'log-anggaran-003',
+        status: 'diterima',
+        catatan: 'Laporan baru diterima',
+        created_at: '2026-07-28T10:30:00Z',
+      },
+    ],
+  },
+  {
     id: 'lap-sukabumi-001',
     nomor_tiket: 'TKT-202609-001',
     judul: 'Jalan Rusak & Berlubang Parah di Jalur Utama Cisaat - Cibadak',
