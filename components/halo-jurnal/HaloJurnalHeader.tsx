@@ -64,8 +64,8 @@ export default function HaloJurnalHeader() {
       label: 'Laporan Saya',
     },
     {
-      href: '/halo-jurnal/tentang',
-      label: 'Tentang',
+      href: '/halo-jurnal/profil',
+      label: 'Profil',
     },
   ]
 

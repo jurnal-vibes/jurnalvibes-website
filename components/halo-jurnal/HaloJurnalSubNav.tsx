@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Megaphone, PlusCircle, Compass, ListChecks, Info, User, LogIn } from 'lucide-react'
+import { Megaphone, PlusCircle, Compass, ListChecks, User, LogIn } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import UserAvatar from './UserAvatar'
 import LogoutButton from './LogoutButton'
@@ -63,9 +63,9 @@ export default function HaloJurnalSubNav() {
       icon: ListChecks,
     },
     {
-      href: '/halo-jurnal/tentang',
-      label: 'Tentang',
-      icon: Info,
+      href: '/halo-jurnal/profil',
+      label: 'Profil',
+      icon: User,
     },
   ]
 
