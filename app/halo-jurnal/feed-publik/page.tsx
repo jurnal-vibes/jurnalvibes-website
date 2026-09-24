@@ -597,8 +597,8 @@ function FeedPublikContent() {
                       {/* Content Section: Title & Description di kiri, Image di kanan */}
                       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                          <Link href={`/halo-jurnal/laporan/${report.id}`}>
-                            <h3 className="font-heading font-bold text-base sm:text-lg text-primary hover:underline transition-colors leading-snug mb-1.5">
+                          <Link href={`/halo-jurnal/laporan/${report.id}`} className="group/title block">
+                            <h3 className="font-heading font-bold text-base sm:text-lg text-on-surface group-hover/title:text-primary transition-colors leading-snug mb-1.5">
                               {report.judul}
                             </h3>
                           </Link>
