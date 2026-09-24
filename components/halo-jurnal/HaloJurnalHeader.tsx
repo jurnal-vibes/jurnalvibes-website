@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  Megaphone,
   ArrowLeft,
   LogIn,
   Menu,
@@ -87,8 +86,12 @@ export default function HaloJurnalHeader() {
             className="flex items-center gap-2.5 group"
             title="Halo Jurnal - Layanan Aspirasi & Pengaduan Warga"
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-primary to-rose-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200">
-              <Megaphone className="w-5 h-5 fill-current" />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform duration-200 overflow-hidden shrink-0">
+              <img
+                src="/halo-jurnal-icon.webp"
+                alt="Halo Jurnal Logo"
+                className="w-full h-full object-contain drop-shadow-xs"
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-bold text-lg sm:text-xl leading-none text-on-surface tracking-tight group-hover:text-primary transition-colors">

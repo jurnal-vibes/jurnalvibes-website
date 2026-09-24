@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { Megaphone, ExternalLink, ArrowRight } from 'lucide-react'
+import { ExternalLink, ArrowRight } from 'lucide-react'
 
 export default function HaloJurnalFooter() {
   return (
@@ -9,9 +9,13 @@ export default function HaloJurnalFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-outline-variant/60">
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-rose-500 text-white flex items-center justify-center">
-                <Megaphone className="w-4 h-4 fill-current" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                <img
+                  src="/halo-jurnal-icon.webp"
+                  alt="Halo Jurnal Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="font-heading font-black text-lg text-on-surface">Halo Jurnal</span>
             </div>
