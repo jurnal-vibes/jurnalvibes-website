@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Eye, EyeOff, Loader2, Lock, Mail, ArrowLeft, Megaphone } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Lock, Mail, ArrowLeft } from 'lucide-react'
 
 function LoginPageContent() {
   const router = useRouter()
@@ -70,8 +70,12 @@ function LoginPageContent() {
         {/* Brand Card */}
         <div className="bg-surface border border-outline-variant/80 rounded-3xl p-6 sm:p-8 shadow-md">
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-rose-500 text-white flex items-center justify-center shadow-md mb-3">
-              <Megaphone className="w-6 h-6 fill-current" />
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xs mb-3 overflow-hidden">
+              <img
+                src="/halo-jurnal-icon.webp"
+                alt="Halo Jurnal Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <h1 className="font-heading font-extrabold text-2xl text-on-surface tracking-tight">
               Masuk ke Halo Jurnal

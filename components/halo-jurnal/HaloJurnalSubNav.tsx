@@ -86,8 +86,12 @@ export default function HaloJurnalSubNav() {
             className="flex items-center gap-2 group shrink-0"
             title="Halo Jurnal - Aspirasi & Pengaduan Warga"
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-rose-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-              <Megaphone className="w-4 h-4 fill-current" />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform overflow-hidden shrink-0">
+              <img
+                src="/halo-jurnal-icon.webp"
+                alt="Halo Jurnal Logo"
+                className="w-full h-full object-contain drop-shadow-xs"
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-extrabold text-sm sm:text-base leading-none text-on-surface tracking-tight group-hover:text-primary transition-colors">
