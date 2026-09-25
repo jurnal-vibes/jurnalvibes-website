@@ -20,7 +20,7 @@ export default function HaloJurnalLayout({
   return (
     <div className="min-h-screen flex flex-col w-full bg-surface-container-lowest text-on-surface">
       <HaloJurnalHeader />
-      <div className="flex-1 pb-16 lg:pb-0">{children}</div>
+      <div className="flex-1 pb-16 md:pb-0">{children}</div>
       <HaloJurnalFooter />
       <HaloJurnalBottomNav />
     </div>

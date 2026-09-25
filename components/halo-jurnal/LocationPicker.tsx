@@ -119,7 +119,7 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
         mapInstanceRef.current = null
       }
 
-      // Custom Pin Marker Jurnal Vibes
+      // Custom Pin Marker Jurnal Wave
       const customIcon = L.divIcon({
         className: 'custom-pin-marker',
         html: `

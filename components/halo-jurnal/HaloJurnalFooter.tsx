@@ -27,7 +27,7 @@ export default function HaloJurnalFooter() {
                 href="/"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"
               >
-                <span>Kunjungi Portal Berita Jurnal Vibes</span>
+                <span>Kunjungi Portal Berita Jurnal Wave</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -94,7 +94,7 @@ export default function HaloJurnalFooter() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-secondary gap-2 text-center sm:text-left">
           <p>© 2026 PT Media Jurnal Sukabumi. Seluruh hak cipta dilindungi undang-undang.</p>
-          <p className="text-[11px]">Terintegrasi dalam ekosistem digital Jurnal Vibes</p>
+          <p className="text-[11px]">Terintegrasi dalam ekosistem digital Jurnal Wave</p>
         </div>
       </div>
     </footer>

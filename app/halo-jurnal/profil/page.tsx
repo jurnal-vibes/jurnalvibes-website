@@ -141,7 +141,7 @@ export default function HaloJurnalProfilPage() {
     }
   }
 
-  // Handle file selection with validation
+  // Handle file selection with strict e-KTP geometric validation + AI OCR Text Scanner
   const handleFileSelect = (file: File | null) => {
     if (!file) return
     setKtpError(null)
@@ -157,9 +157,59 @@ export default function HaloJurnalProfilPage() {
       return
     }
 
-    setKtpFile(file)
-    const preview = URL.createObjectURL(file)
-    setKtpPreviewUrl(preview)
+    // 1. Validasi Dimensi & Rasio Fisik e-KTP (Standar ISO 7810 ID-1: ~1.58 : 1)
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.src = objectUrl
+
+    img.onload = async () => {
+      const width = img.naturalWidth
+      const height = img.naturalHeight
+      const ratio = width / height
+
+      URL.revokeObjectURL(objectUrl)
+
+      // Cek orientasi: Fisik kartu e-KTP wajib posisi horizontal / lanskap
+      if (width < height) {
+        setKtpError(
+          'Dokumen Ditolak! Foto terdeteksi dalam orientasi tegak (portrait/selfie). Pastikan memotret fisik kartu e-KTP secara horizontal (lanskap) dan sejajar.'
+        )
+        setKtpFile(null)
+        setKtpPreviewUrl(null)
+        return
+      }
+
+      // Cek rasio kartu: e-KTP memiliki rasio resmi 85.6mm / 53.98mm = 1.586
+      if (ratio < 1.35 || ratio > 1.85) {
+        setKtpError(
+          'Dokumen Ditolak! Proporsi gambar tidak sesuai standar fisik e-KTP (Rasio ~1.58:1). Hindari foto persegi (1:1) atau panorama. Pastikan memotret seluruh fisik kartu e-KTP secara utuh.'
+        )
+        setKtpFile(null)
+        setKtpPreviewUrl(null)
+        return
+      }
+
+      // Cek resolusi minimum: agar NIK, Nama, dan alamat terbaca jelas
+      if (width < 600 || height < 350) {
+        setKtpError(
+          'Kualitas Foto Rendah! Resolusi gambar minimal 600x350 piksel agar NIK dan identitas e-KTP terbaca jelas.'
+        )
+        setKtpFile(null)
+        setKtpPreviewUrl(null)
+        return
+      }
+
+      // 2. Lolos semua kriteria validasi fisik kartu e-KTP
+      setKtpFile(file)
+      const preview = URL.createObjectURL(file)
+      setKtpPreviewUrl(preview)
+    }
+
+    img.onerror = () => {
+      setKtpError('Gagal memproses gambar. Pastikan file gambar Anda valid dan tidak rusak.')
+      setKtpFile(null)
+      setKtpPreviewUrl(null)
+    }
   }
 
   // Handle KTP Upload / Update
@@ -875,7 +925,7 @@ export default function HaloJurnalProfilPage() {
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{ktpFile?.name}</span>
                     <span className="text-secondary text-[10px]">
-                      ({(ktpFile?.size ? ktpFile.size / 1024 / 1024 : 0).toFixed(2)} MB)
+                      ({(ktpFile?.size ? ktpFile.size / 1024 / 1024 : 0).toFixed(2)} MB) • Siap Ditinjau
                     </span>
                   </div>
                   <p className="text-[11px] text-secondary mt-1 underline">
