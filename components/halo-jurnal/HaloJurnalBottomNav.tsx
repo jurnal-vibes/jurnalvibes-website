@@ -9,10 +9,10 @@ export default function HaloJurnalBottomNav() {
   const pathname = usePathname()
 
   const isBeranda = pathname === '/halo-jurnal' || pathname === '/halo-jurnal/beranda'
-  const isFeed = pathname.startsWith('/halo-jurnal/feed-publik')
-  const isLapor = pathname.startsWith('/halo-jurnal/lapor')
-  const isLaporanSaya = pathname.startsWith('/halo-jurnal/laporan-saya')
-  const isProfil = pathname.startsWith('/halo-jurnal/profil')
+  const isFeed = pathname === '/halo-jurnal/feed-publik' || pathname.startsWith('/halo-jurnal/feed-publik/')
+  const isLapor = pathname === '/halo-jurnal/lapor' || pathname.startsWith('/halo-jurnal/lapor/')
+  const isLaporanSaya = pathname === '/halo-jurnal/laporan-saya' || pathname.startsWith('/halo-jurnal/laporan-saya/')
+  const isProfil = pathname === '/halo-jurnal/profil' || pathname.startsWith('/halo-jurnal/profil/')
 
   return (
     <nav className="fixed bottom-0 left-0 w-full z-50 lg:hidden bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-outline-variant/60 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 pt-1.5 pb-2 transition-colors">
