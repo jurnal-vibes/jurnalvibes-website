@@ -236,9 +236,9 @@ function LaporForm() {
     e.preventDefault()
     if (!user) return
 
-    // Upload foto/video wajib
-    if (!file) {
-      alert('Foto/Video bukti pendukung wajib dilampirkan.')
+    // Upload foto/video hanya wajib untuk jenis Pengaduan
+    if (reportType === 'pengaduan' && !file) {
+      alert('Foto/Video bukti pendukung wajib dilampirkan khusus untuk laporan Pengaduan.')
       return
     }
 
@@ -556,10 +556,15 @@ function LaporForm() {
               <LocationPicker value={locationData} onChange={setLocationData} />
             </div>
 
-            {/* File Upload (Wajib) */}
+            {/* File Upload (Dinamis: Wajib untuk Pengaduan, Opsional untuk lainnya) */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                Lampiran Bukti Foto/Video <span className="text-rose-500">* (Wajib)</span>
+                Lampiran Bukti Foto/Video{' '}
+                {reportType === 'pengaduan' ? (
+                  <span className="text-rose-500">* (Wajib)</span>
+                ) : (
+                  <span className="text-secondary font-normal lowercase">(opsional)</span>
+                )}
               </label>
               <div
                 onDragOver={(e) => {
@@ -644,7 +649,7 @@ function LaporForm() {
           </form>
         </div>
 
-        {/* Sidebar Column: Pratinjau Bersih Bergaya Jurnal Vibes */}
+        {/* Sidebar Column: Pratinjau Bersih Bergaya Jurnal Wave */}
         <div className="space-y-5 lg:sticky lg:top-24 self-start">
           <div className="bg-surface border border-outline-variant/80 rounded-3xl p-5 sm:p-6 shadow-xs">
             {/* Header Pratinjau */}
@@ -672,7 +677,7 @@ function LaporForm() {
               )}
             </div>
 
-            {/* Konten Laporan Bergaya Jurnal Vibes */}
+            {/* Konten Laporan Bergaya Jurnal Wave */}
             <div className="space-y-2.5">
               {/* Kategori & Tipe */}
               <div className="flex items-center gap-1.5 flex-wrap">
