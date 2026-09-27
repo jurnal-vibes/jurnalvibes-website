@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
-import HaloJurnalHeader from '@/components/halo-jurnal/HaloJurnalHeader'
-import HaloJurnalFooter from '@/components/halo-jurnal/HaloJurnalFooter'
-import HaloJurnalBottomNav from '@/components/halo-jurnal/HaloJurnalBottomNav'
+import HaloJurnalShell from '@/components/halo-jurnal/HaloJurnalShell'
 
 export const metadata: Metadata = {
   title: {
@@ -17,12 +15,5 @@ export default function HaloJurnalLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <div className="min-h-screen flex flex-col w-full bg-surface-container-lowest text-on-surface">
-      <HaloJurnalHeader />
-      <div className="flex-1 pb-16 md:pb-0">{children}</div>
-      <HaloJurnalFooter />
-      <HaloJurnalBottomNav />
-    </div>
-  )
+  return <HaloJurnalShell>{children}</HaloJurnalShell>
 }

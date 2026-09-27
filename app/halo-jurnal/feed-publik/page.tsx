@@ -98,6 +98,17 @@ function FeedPublikContent() {
       }
     }
     checkUser()
+
+    // Sinkronisasi otomatis saat beralih tab dari Admin
+    const handleSync = () => {
+      fetchReports()
+    }
+    window.addEventListener('storage', handleSync)
+    window.addEventListener('focus', handleSync)
+    return () => {
+      window.removeEventListener('storage', handleSync)
+      window.removeEventListener('focus', handleSync)
+    }
   }, [])
 
   useEffect(() => {
@@ -164,10 +175,54 @@ function FeedPublikContent() {
     try {
       const { data, error } = await query
       if (!error && data && data.length > 0) {
-        setReports(data)
+        let merged = data
+        if (typeof window !== 'undefined') {
+          try {
+            const overrides = JSON.parse(
+              localStorage.getItem('halo_jurnal_status_overrides') || '{}'
+            )
+            merged = merged.map((r: any) => {
+              const saved = overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
+              if (saved) {
+                return {
+                  ...r,
+                  status: saved.status || r.status,
+                  is_public: saved.is_public !== undefined ? saved.is_public : r.is_public,
+                  status_log: saved.status_log || r.status_log,
+                }
+              }
+              return r
+            })
+          } catch {}
+        }
+        setReports(merged.filter((r: any) => r.is_public !== false))
       } else {
-        // Fallback ke DUMMY_REPORTS dengan filter client-side
+        // Fallback ke DUMMY_REPORTS dengan filter client-side & sinkronisasi admin
         let filtered = [...DUMMY_REPORTS]
+        if (typeof window !== 'undefined') {
+          try {
+            const overrides = JSON.parse(
+              localStorage.getItem('halo_jurnal_status_overrides') || '{}'
+            )
+            filtered = filtered.map((r) => {
+              const saved =
+                overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
+              if (saved) {
+                return {
+                  ...r,
+                  status: saved.status || r.status,
+                  is_public:
+                    saved.is_public !== undefined ? saved.is_public : r.is_public,
+                  status_log: saved.status_log || r.status_log,
+                }
+              }
+              return r
+            })
+          } catch {}
+        }
+
+        // HANYA tampilkan laporan yang status visibilitasnya publik (is_public: true)
+        filtered = filtered.filter((r) => r.is_public !== false)
         if (selectedCategories.length > 0) {
           filtered = filtered.filter((r) => selectedCategories.includes(r.kategori))
         }

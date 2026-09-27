@@ -15,10 +15,37 @@ import { DUMMY_POLL, DUMMY_REELS } from '@/data/dummyPolls';
 import { fetchArticlesFromSupabase } from '@/lib/supabase';
 
 export function HomeClient() {
-  const [articles, setArticles] = useState<Article[]>(DUMMY_ARTICLES);
+  const [articles, setArticles] = useState<Article[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('jurnal_wave_articles');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
+    return DUMMY_ARTICLES;
+  });
 
   useEffect(() => {
     async function loadArticles() {
+      // 1. Sync from localStorage if present
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_articles');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setArticles(parsed);
+            }
+          }
+        } catch {}
+      }
+
+      // 2. Fetch from Supabase if online
       try {
         const data = await fetchArticlesFromSupabase();
         if (data && data.length > 0) {
@@ -28,7 +55,29 @@ export function HomeClient() {
         console.error('Error fetching articles from Supabase:', err);
       }
     }
+
     loadArticles();
+
+    const handleSync = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_articles');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setArticles(parsed);
+            }
+          }
+        } catch {}
+      }
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('focus', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
   }, []);
 
   // Limit feed articles to 5 total on homepage
