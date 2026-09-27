@@ -50,7 +50,7 @@ export default async function HaloJurnalLandingPage() {
   return (
     <main className="w-full">
       {/* Hero Section */}
-      <section className="relative min-h-[580px] sm:min-h-[660px] md:min-h-[720px] flex items-center justify-center overflow-hidden pt-8 pb-32 sm:pt-10 sm:pb-40 md:pt-12 md:pb-44">
+      <section className="relative min-h-[520px] sm:min-h-[640px] md:min-h-[720px] flex items-center justify-center overflow-hidden pt-10 pb-24 sm:pt-10 sm:pb-36 md:pt-12 md:pb-44">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/40 z-10" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -62,11 +62,11 @@ export default async function HaloJurnalLandingPage() {
         </div>
 
         <div className="relative z-20 text-center px-4 sm:px-6 max-w-4xl mx-auto flex flex-col items-center">
-          <h1 className="font-heading font-extrabold text-3xl sm:text-4xl md:text-5xl text-white mb-3 md:mb-4 tracking-tight drop-shadow-md">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-4xl md:text-5xl text-white mb-3 md:mb-4 tracking-tight drop-shadow-md">
             Suara Anda, Wadah Kami
           </h1>
 
-          <p className="text-white/90 text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto drop-shadow-sm font-medium">
+          <p className="text-white/90 text-xs sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto drop-shadow-sm font-medium">
             Sampaikan aspirasi, aduan pelayanan publik, dan inspirasi Anda secara langsung dan transparan kepada redaksi Jurnal Sukabumi.
           </p>
 
@@ -81,14 +81,14 @@ export default async function HaloJurnalLandingPage() {
                 <Search className="w-5 h-5 text-secondary shrink-0" />
                 <input
                   name="search"
-                  className="flex-1 bg-transparent border-none outline-none px-3 py-2 text-on-surface placeholder:text-secondary text-sm sm:text-base min-w-0"
+                  className="flex-1 bg-transparent border-none outline-none px-3 py-2 text-on-surface placeholder:text-secondary text-xs sm:text-base min-w-0"
                   placeholder="Cari laporan publik, jalan rusak, fasilitas..."
                   type="text"
                 />
               </div>
               <button
                 type="submit"
-                className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-xl font-bold text-sm tracking-tight transition-all active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Cari Laporan</span>
               </button>
@@ -98,7 +98,7 @@ export default async function HaloJurnalLandingPage() {
       </section>
 
       {/* Category Cards Section */}
-      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 -mt-20 sm:-mt-28 md:-mt-36 relative z-30 pb-12 sm:pb-16">
+      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 -mt-10 sm:-mt-20 md:-mt-32 relative z-30 pb-12 sm:pb-16">
         <CategoryCards />
       </section>
 

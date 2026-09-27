@@ -174,86 +174,104 @@ function FeedPublikContent() {
 
     try {
       const { data, error } = await query
-      if (!error && data && data.length > 0) {
-        let merged = data
-        if (typeof window !== 'undefined') {
-          try {
-            const overrides = JSON.parse(
-              localStorage.getItem('halo_jurnal_status_overrides') || '{}'
-            )
-            merged = merged.map((r: any) => {
-              const saved = overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
-              if (saved) {
-                return {
-                  ...r,
-                  status: saved.status || r.status,
-                  is_public: saved.is_public !== undefined ? saved.is_public : r.is_public,
-                  status_log: saved.status_log || r.status_log,
-                }
-              }
-              return r
-            })
-          } catch {}
-        }
-        setReports(merged.filter((r: any) => r.is_public !== false))
-      } else {
-        // Fallback ke DUMMY_REPORTS dengan filter client-side & sinkronisasi admin
-        let filtered = [...DUMMY_REPORTS]
-        if (typeof window !== 'undefined') {
-          try {
-            const overrides = JSON.parse(
-              localStorage.getItem('halo_jurnal_status_overrides') || '{}'
-            )
-            filtered = filtered.map((r) => {
-              const saved =
-                overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
-              if (saved) {
-                return {
-                  ...r,
-                  status: saved.status || r.status,
-                  is_public:
-                    saved.is_public !== undefined ? saved.is_public : r.is_public,
-                  status_log: saved.status_log || r.status_log,
-                }
-              }
-              return r
-            })
-          } catch {}
-        }
+      let baseReports: any[] = []
 
-        // HANYA tampilkan laporan yang status visibilitasnya publik (is_public: true)
-        filtered = filtered.filter((r) => r.is_public !== false)
-        if (selectedCategories.length > 0) {
-          filtered = filtered.filter((r) => selectedCategories.includes(r.kategori))
-        }
-        if (selectedStatus && selectedStatus !== 'Semua Laporan') {
-          const statusMap: Record<string, string> = {
-            Diterima: 'diterima',
-            Diproses: 'diproses',
-            Selesai: 'selesai',
-          }
-          if (statusMap[selectedStatus]) {
-            filtered = filtered.filter((r) => r.status === statusMap[selectedStatus])
-          }
-        }
-        if (selectedJenis && selectedJenis !== 'Semua Jenis') {
-          filtered = filtered.filter((r) => r.jenis.toLowerCase() === selectedJenis.toLowerCase())
-        }
-        if (selectedWilayah && selectedWilayah !== 'Semua Wilayah Sukabumi') {
-          const cleanWilayah = selectedWilayah.replace(/^Kec\.\s*|^Kab\.\s*/i, '').trim().toLowerCase()
-          filtered = filtered.filter((r) => r.lokasi?.toLowerCase().includes(cleanWilayah))
-        }
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase()
-          filtered = filtered.filter(
-            (r) =>
-              r.judul.toLowerCase().includes(q) ||
-              r.deskripsi.toLowerCase().includes(q) ||
-              r.lokasi.toLowerCase().includes(q)
-          )
-        }
-        setReports(filtered)
+      if (!error && data && data.length > 0) {
+        baseReports = data
+      } else {
+        baseReports = [...DUMMY_REPORTS]
       }
+
+      // Gabungkan laporan warga dari localStorage (yang dibuat via Buat Laporan / Laporan Saya)
+      if (typeof window !== 'undefined') {
+        try {
+          const userReports = JSON.parse(
+            localStorage.getItem('halo_jurnal_user_reports') || '[]'
+          )
+          const overrides = JSON.parse(
+            localStorage.getItem('halo_jurnal_status_overrides') || '{}'
+          )
+
+          // Gabungkan semua sumber laporan dan cegah duplikasi
+          const combined = [...userReports, ...baseReports]
+          const uniqueMap = new Map<string, any>()
+          combined.forEach((item) => {
+            const key = item.id || item.nomor_tiket || item.ticket_number
+            if (key && !uniqueMap.has(key)) {
+              uniqueMap.set(key, item)
+            }
+          })
+
+          baseReports = Array.from(uniqueMap.values()).map((r: any) => {
+            const saved =
+              overrides[r.id] ||
+              (r.nomor_tiket ? overrides[r.nomor_tiket] : null) ||
+              (r.ticket_number ? overrides[r.ticket_number] : null)
+            if (saved) {
+              return {
+                ...r,
+                status: saved.status || r.status,
+                is_public:
+                  saved.is_public !== undefined ? saved.is_public : r.is_public,
+                status_log: saved.status_log || r.status_log,
+              }
+            }
+            return r
+          })
+        } catch (e) {
+          console.error('Error combining user reports in feed publik:', e)
+        }
+      }
+
+      // 1. Filter KETAT: Hanya laporan yang diizinkan tayang publik (is_public !== false)
+      let filtered = baseReports.filter((r) => r.is_public !== false)
+
+      // 2. Filter Kategori
+      if (selectedCategories.length > 0) {
+        filtered = filtered.filter((r) =>
+          selectedCategories.some(
+            (c) => c.toLowerCase() === r.kategori?.toLowerCase()
+          )
+        )
+      }
+
+      // 3. Filter Status
+      if (selectedStatus && selectedStatus !== 'Semua Laporan') {
+        const statusMap: Record<string, string> = {
+          Diterima: 'diterima',
+          Diproses: 'diproses',
+          Selesai: 'selesai',
+        }
+        if (statusMap[selectedStatus]) {
+          filtered = filtered.filter((r) => r.status === statusMap[selectedStatus])
+        }
+      }
+
+      // 4. Filter Jenis Laporan
+      if (selectedJenis && selectedJenis !== 'Semua Jenis') {
+        filtered = filtered.filter((r) => r.jenis?.toLowerCase() === selectedJenis.toLowerCase())
+      }
+
+      // 5. Filter Wilayah
+      if (selectedWilayah && selectedWilayah !== 'Semua Wilayah Sukabumi') {
+        const cleanWilayah = selectedWilayah.replace(/^Kec\.\s*|^Kab\.\s*/i, '').trim().toLowerCase()
+        filtered = filtered.filter((r) => r.lokasi?.toLowerCase().includes(cleanWilayah))
+      }
+
+      // 6. Filter Pencarian
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase()
+        filtered = filtered.filter(
+          (r) =>
+            r.judul?.toLowerCase().includes(q) ||
+            r.deskripsi?.toLowerCase().includes(q) ||
+            r.nomor_tiket?.toLowerCase().includes(q) ||
+            r.ticket_number?.toLowerCase().includes(q) ||
+            r.lokasi?.toLowerCase().includes(q)
+        )
+      }
+
+      setReports(filtered)
     } catch (err) {
       console.error('Error fetching reports:', err)
       setReports(DUMMY_REPORTS)
@@ -665,7 +683,7 @@ function FeedPublikContent() {
                         {imgUrl && (
                           <Link
                             href={`/halo-jurnal/laporan/${report.id}`}
-                            className="shrink-0 w-full sm:w-44 md:w-56 h-24 sm:h-28 rounded-xl overflow-hidden bg-surface-container-high border border-outline-variant/60 relative group block"
+                            className="shrink-0 w-full sm:w-44 md:w-56 h-40 sm:h-28 rounded-xl overflow-hidden bg-surface-container-high border border-outline-variant/60 relative group block"
                           >
                             <img
                               src={imgUrl}
@@ -677,11 +695,11 @@ function FeedPublikContent() {
                       </div>
 
                       {/* Bottom Action Bar */}
-                      <div className="pt-3.5 mt-4 border-t border-outline-variant/60 flex items-center justify-between gap-3 text-xs">
+                      <div className="pt-3.5 mt-4 border-t border-outline-variant/60 flex items-center justify-between gap-2.5 text-xs">
                         <button
                           type="button"
                           onClick={(e) => handleLike(report.id, e)}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0 ${
                             isLiked
                               ? 'bg-primary/10 border-primary text-primary'
                               : 'bg-surface border-outline-variant/80 hover:border-primary/50 text-on-surface hover:text-primary'
@@ -694,9 +712,10 @@ function FeedPublikContent() {
 
                         <Link
                           href={`/halo-jurnal/laporan/${report.id}`}
-                          className="inline-flex items-center gap-1 text-xs font-extrabold text-primary hover:underline group"
+                          className="inline-flex items-center gap-1 text-xs font-extrabold text-primary hover:underline group shrink-0"
                         >
-                          <span>Lihat Detail &amp; Chat Admin</span>
+                          <span className="hidden sm:inline">Lihat Detail &amp; Chat Admin</span>
+                          <span className="sm:hidden">Detail &amp; Chat</span>
                           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                         </Link>
                       </div>

@@ -21,7 +21,6 @@ import {
   Lock,
   CheckCircle2,
   AlertTriangle,
-  RefreshCw,
   FileCheck,
 } from 'lucide-react'
 
@@ -72,34 +71,68 @@ export default function HaloJurnalProfilPage() {
         data: { user: authUser },
       } = await supabase.auth.getUser()
 
-      if (!authUser) {
-        // Demo fallback
-        setUser({ id: 'demo-user-id', email: 'warga@sukabumi.com' })
-        setProfile({
-          full_name: 'Warga Sukabumi',
-          role: 'citizen',
-          phone_number: '081234567890',
-          ktp_verified: true,
-          ktp_photo_url: null,
-        })
-        setFullName('Warga Sukabumi')
-        setPhone('081234567890')
-        setLoading(false)
-        return
+      // Ambil session dari localStorage jika ada
+      let localUser: any = null
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('halo_jurnal_current_user')
+        if (stored) {
+          try {
+            localUser = JSON.parse(stored)
+          } catch {}
+        }
       }
 
-      setUser(authUser)
+      if (!authUser && !localUser) {
+        // Fallback warga demo resmi jika kosong sama sekali
+        localUser = {
+          id: 'demo-user-id',
+          email: 'warga@sukabumi.com',
+          full_name: 'Warga Sukabumi',
+          phone_number: '081234567890',
+          nik: '3202112409890003',
+          ktp_verified: true,
+          ktp_photo_url: null,
+        }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('halo_jurnal_current_user', JSON.stringify(localUser))
+          window.dispatchEvent(new Event('storage'))
+        }
+      }
 
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single()
+      const activeUser = authUser || localUser
+      setUser(activeUser)
 
-      if (prof) {
-        setProfile(prof)
-        setFullName(prof.full_name || authUser.user_metadata?.full_name || '')
-        setPhone(prof.phone_number || '')
+      if (authUser) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single()
+
+        if (prof) {
+          setProfile(prof)
+          setFullName(prof.full_name || authUser.user_metadata?.full_name || '')
+          setPhone(prof.phone_number || '')
+        } else {
+          setProfile({
+            full_name: authUser.user_metadata?.full_name || 'Warga Sukabumi',
+            phone_number: authUser.user_metadata?.phone || '',
+            nik: authUser.user_metadata?.nik || '3202112409890003',
+            ktp_verified: true,
+          })
+          setFullName(authUser.user_metadata?.full_name || 'Warga Sukabumi')
+          setPhone(authUser.user_metadata?.phone || '')
+        }
+      } else {
+        setProfile({
+          full_name: localUser.full_name || localUser.user_metadata?.full_name || 'Warga Sukabumi',
+          phone_number: localUser.phone_number || localUser.phone || localUser.user_metadata?.phone || '081234567890',
+          nik: localUser.nik || localUser.user_metadata?.nik || '3202112409890003',
+          ktp_verified: localUser.ktp_verified ?? true,
+          ktp_photo_url: localUser.ktp_photo_url || null,
+        })
+        setFullName(localUser.full_name || localUser.user_metadata?.full_name || 'Warga Sukabumi')
+        setPhone(localUser.phone_number || localUser.phone || localUser.user_metadata?.phone || '081234567890')
       }
     } catch (err) {
       console.error('Fetch profile error:', err)
@@ -293,6 +326,12 @@ export default function HaloJurnalProfilPage() {
     }
   }
 
+  const userNik = profile?.nik || user?.user_metadata?.nik || user?.nik || '3202112409890003'
+  const maskedNik =
+    userNik && userNik.length >= 10
+      ? `${userNik.substring(0, 6)}******${userNik.substring(userNik.length - 4)}`
+      : userNik || '320211******0003'
+
   if (loading) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center gap-2 text-secondary">
@@ -337,21 +376,21 @@ export default function HaloJurnalProfilPage() {
                 {profile?.full_name || 'Pengguna Halo Jurnal'}
               </h1>
               {profile?.ktp_verified ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-200/50">
-                  <ShieldCheck className="w-3 h-3" />
-                  KTP Terverifikasi
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  Warga Terverifikasi
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 text-[10px] font-extrabold uppercase tracking-wider border border-amber-200/50">
-                  <AlertCircle className="w-3 h-3" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-bold border border-amber-500/20">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
                   Menunggu Verifikasi KTP
                 </span>
               )}
             </div>
 
-            <p className="text-xs text-secondary mb-4">
-              Peran Akun:{' '}
-              <span className="font-semibold text-primary capitalize">{profile?.role || 'Warga'}</span>
+            <p className="text-xs text-secondary mb-4 flex items-center justify-center sm:justify-start gap-1.5">
+              <span>Wilayah Domisili:</span>
+              <span className="font-semibold text-on-surface">Kabupaten &amp; Kota Sukabumi</span>
             </p>
 
             <div className="flex items-center justify-center sm:justify-start gap-2">
@@ -452,7 +491,7 @@ export default function HaloJurnalProfilPage() {
                 onClick={() => setShowKtpModal(true)}
                 className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/60 flex items-start gap-3 cursor-pointer hover:border-primary/50 transition-colors group"
               >
-                <CreditCard className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold text-secondary uppercase tracking-wider">
@@ -468,14 +507,15 @@ export default function HaloJurnalProfilPage() {
                 </div>
               </div>
 
+              {/* Box 4: Nomor Induk Kependudukan (NIK) */}
               <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/60 flex items-start gap-3">
-                <User className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <CreditCard className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold text-secondary uppercase tracking-wider">
-                    ID Warga
+                    Nomor Induk Kependudukan (NIK)
                   </p>
-                  <p className="text-xs sm:text-sm text-on-surface font-mono font-semibold truncate mt-0.5">
-                    {user?.id ? `USR-${user.id.substring(0, 8)}` : '-'}
+                  <p className="text-xs sm:text-sm text-on-surface font-mono font-bold tracking-wide mt-0.5">
+                    {maskedNik}
                   </p>
                 </div>
               </div>
@@ -571,68 +611,78 @@ export default function HaloJurnalProfilPage() {
                     </div>
                   </div>
                 ) : (
-                  // Stylized e-KTP Mockup (Standard ISO 7810 ID-1)
-                  <div className="w-full h-full relative bg-gradient-to-br from-slate-900 via-sky-950 to-indigo-950 p-4 sm:p-5 text-white flex flex-col justify-between overflow-hidden select-none">
-                    {/* Decorative guilloche-like background circles */}
-                    <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-cyan-500/10 blur-xl pointer-events-none" />
-                    <div className="absolute -left-10 -top-10 w-44 h-44 rounded-full bg-blue-600/10 blur-xl pointer-events-none" />
+                  // Mockup e-KTP Resmi Kependudukan (Tanpa Chip Kartu Kredit Palsu)
+                  <div className="w-full h-full relative bg-gradient-to-br from-[#1a3a60] via-[#1f426d] to-[#163152] p-3.5 sm:p-4 text-white flex flex-col justify-between overflow-hidden select-none border border-sky-400/20">
+                    {/* Motif Wavy Security Guilloche Khas Dokumen Negara */}
+                    <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:14px_14px] opacity-10 pointer-events-none" />
 
-                    {/* Card Header */}
-                    <div>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-[10px] sm:text-[11px] font-black tracking-wider uppercase text-sky-200">
-                            Republik Indonesia
-                          </p>
-                          <p className="text-[9px] sm:text-[10px] tracking-wide text-slate-300 font-semibold">
-                            Provinsi Jawa Barat • Kota Sukabumi
-                          </p>
-                        </div>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-md text-[9px] font-bold text-sky-300 border border-white/15">
-                          <Lock className="w-2.5 h-2.5" />
-                          e-KTP Warga
+                    {/* Header e-KTP Republik Indonesia */}
+                    <div className="relative z-10 text-center border-b border-sky-300/20 pb-1.5">
+                      <p className="text-[10px] sm:text-[11px] font-black tracking-wider uppercase text-sky-100">
+                        REPUBLIK INDONESIA
+                      </p>
+                      <p className="text-[8px] sm:text-[9px] font-bold tracking-wide text-sky-200">
+                        PROVINSI JAWA BARAT • KABUPATEN / KOTA SUKABUMI
+                      </p>
+                    </div>
+
+                    {/* Data Kependudukan & Foto Box */}
+                    <div className="relative z-10 my-auto py-1">
+                      <div className="flex items-center justify-between mb-1 pb-1 border-b border-sky-300/10">
+                        <span className="text-[8px] font-bold text-sky-300 uppercase tracking-wider">
+                          NIK
+                        </span>
+                        <span className="font-mono font-extrabold text-xs sm:text-sm tracking-widest text-white">
+                          {maskedNik}
                         </span>
                       </div>
-                    </div>
 
-                    {/* Card Mid: Smart Chip & Masked NIK */}
-                    <div className="my-auto py-2">
-                      <div className="flex items-center gap-3 mb-2">
-                        {/* Simulated Gold Smart Chip */}
-                        <div className="w-8 h-6 rounded bg-gradient-to-tr from-amber-400 via-yellow-200 to-amber-500 border border-amber-600/40 shadow-xs flex items-center justify-center">
-                          <div className="w-5 h-4 border border-amber-700/30 rounded-xs" />
+                      <div className="grid grid-cols-12 gap-2 text-[8px] sm:text-[9px] text-sky-100/90 leading-tight items-center">
+                        <div className="col-span-8 space-y-0.5">
+                          <div className="flex">
+                            <span className="w-16 text-sky-300">Nama</span>
+                            <span className="font-bold text-white truncate">: {(profile?.full_name || 'WARGA SUKABUMI').toUpperCase()}</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-16 text-sky-300">Tempat/Tgl</span>
+                            <span>: SUKABUMI, -- -- ----</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-16 text-sky-300">Alamat</span>
+                            <span>: SUKABUMI, JAWA BARAT</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-16 text-sky-300">Kewarganegaraan</span>
+                            <span>: WNI</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-16 text-sky-300">Berlaku Hingga</span>
+                            <span className="font-semibold text-emerald-300">: SEUMUR HIDUP</span>
+                          </div>
                         </div>
-                        <div className="text-[9px] tracking-widest font-mono text-slate-400 uppercase">
-                          Contactless Chip
+
+                        {/* Kotak Foto Dokumen KTP */}
+                        <div className="col-span-4 flex flex-col items-center justify-center">
+                          <div className="w-14 h-18 sm:w-16 sm:h-20 rounded bg-sky-950/70 border border-sky-300/40 flex flex-col items-center justify-center p-1 text-center shadow-inner">
+                            <User className="w-6 h-6 text-sky-300/80 mb-0.5" />
+                            <span className="text-[7px] text-sky-200 font-semibold tracking-tight">FOTO e-KTP</span>
+                          </div>
                         </div>
                       </div>
-
-                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                        Nomor Induk Kependudukan (NIK)
-                      </p>
-                      <p className="font-mono font-extrabold text-sm sm:text-base tracking-widest text-sky-100">
-                        327202******0001
-                      </p>
                     </div>
 
-                    {/* Card Footer: Name & Verification */}
-                    <div className="flex items-end justify-between border-t border-white/10 pt-2">
-                      <div className="min-w-0 pr-2">
-                        <p className="text-[8px] font-bold uppercase text-slate-400">Nama Warga</p>
-                        <p className="font-heading font-extrabold text-xs sm:text-sm text-white truncate tracking-wide">
-                          {(profile?.full_name || 'Warga Sukabumi').toUpperCase()}
-                        </p>
-                      </div>
-
-                      <div className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-bold border border-emerald-400/30">
+                    {/* Footer e-KTP */}
+                    <div className="relative z-10 flex items-center justify-between border-t border-sky-300/20 pt-1.5 text-[8px] sm:text-[9px] text-sky-200">
+                      <span className="font-mono text-[8px] text-sky-300/70">KARTU TANDA PENDUDUK ELEKTRONIK</span>
+                      <span className="inline-flex items-center gap-1 font-bold text-emerald-300 bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-400/30 text-[8px]">
                         <Check className="w-2.5 h-2.5" />
-                        {profile?.ktp_verified ? 'Terverifikasi' : 'Menunggu'}
-                      </div>
+                        {profile?.ktp_verified ? 'TERVERIFIKASI' : 'MENUNGGU VERIFIKASI'}
+                      </span>
                     </div>
 
                     {/* Hover Hint */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white backdrop-blur-[2px]">
-                      <div className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full bg-white/20 border border-white/30">
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white backdrop-blur-[2px] z-20">
+                      <div className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-white/20 border border-white/30">
                         <Eye className="w-3.5 h-3.5" />
                         <span>Klik untuk melihat detail</span>
                       </div>
@@ -652,22 +702,22 @@ export default function HaloJurnalProfilPage() {
                   </h3>
                 </div>
 
-                <div className="space-y-2.5 text-xs text-secondary leading-relaxed">
-                  <div className="flex items-start gap-2">
+                <div className="space-y-3 text-xs text-secondary leading-relaxed">
+                  <div className="flex items-start gap-2.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
                     <span>
                       <strong className="text-on-surface font-semibold">Terenkripsi & Rahasia:</strong> Dokumen KTP Anda hanya dapat diakses oleh tim redaksi internal dan tidak pernah dibagikan ke pihak luar maupun feed publik.
                     </span>
                   </div>
 
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
                     <span>
                       <strong className="text-on-surface font-semibold">Integritas Pelaporan:</strong> Verifikasi KTP memastikan laporan yang Anda kirimkan memiliki kredibilitas resmi untuk ditindaklanjuti instansi berwenang.
                     </span>
                   </div>
 
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
                     <span>
                       <strong className="text-on-surface font-semibold">Pembaruan Dokumen:</strong> Anda dapat memperbarui foto KTP kapan saja jika ada perubahan dokumen atau kualitas foto sebelumnya kurang jelas.
@@ -676,24 +726,15 @@ export default function HaloJurnalProfilPage() {
                 </div>
               </div>
 
-              {/* Bottom Quick Action Banner */}
-              <div className="mt-4 pt-4 border-t border-outline-variant/40 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[11px] text-secondary">
-                  Butuh memperbarui foto KTP?
+              {/* Catatan Privasi Bawah */}
+              <div className="mt-4 pt-3.5 border-t border-outline-variant/40 flex items-center justify-between text-[11px] text-secondary">
+                <span className="flex items-center gap-1.5">
+                  <Lock className="w-3 h-3 text-emerald-600" />
+                  Data Kependudukan Terlindungi Enkripsi
                 </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setKtpFile(null)
-                    setKtpPreviewUrl(null)
-                    setKtpError(null)
-                    setShowUploadKtpModal(true)
-                  }}
-                  className="text-xs font-bold text-primary hover:text-primary-dark transition-colors inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Ganti Foto KTP Sekarang
-                </button>
+                <span className="text-[10px] font-semibold text-secondary/80">
+                  PT Media Jurnal Sukabumi
+                </span>
               </div>
             </div>
           </div>
@@ -745,32 +786,64 @@ export default function HaloJurnalProfilPage() {
                     className="w-full h-full object-contain"
                   />
                 ) : (
-                  <div className="w-full h-full p-6 text-white bg-gradient-to-br from-slate-900 via-sky-950 to-indigo-950 flex flex-col justify-between">
-                    <div>
-                      <p className="text-xs font-black tracking-wider uppercase text-sky-200">
-                        Republik Indonesia • e-KTP
+                  <div className="w-full h-full p-4 sm:p-6 text-white bg-gradient-to-br from-[#1a3a60] via-[#1f426d] to-[#163152] flex flex-col justify-between select-none border border-sky-400/20 relative">
+                    <div className="text-center border-b border-sky-300/20 pb-2">
+                      <p className="text-xs sm:text-sm font-black tracking-wider uppercase text-sky-100">
+                        REPUBLIK INDONESIA
                       </p>
-                      <p className="text-[11px] text-slate-300 font-semibold">
-                        Provinsi Jawa Barat • Kota Sukabumi
+                      <p className="text-[10px] sm:text-xs font-bold text-sky-200">
+                        PROVINSI JAWA BARAT • KABUPATEN / KOTA SUKABUMI
                       </p>
                     </div>
+
                     <div className="my-auto py-2">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Nomor Induk Kependudukan (NIK)
-                      </p>
-                      <p className="font-mono font-extrabold text-lg sm:text-xl tracking-widest text-sky-100">
-                        327202******0001
-                      </p>
-                      <p className="text-xs font-bold text-slate-300 mt-2">
-                        NAMA:{' '}
-                        <span className="text-white font-black">
-                          {(profile?.full_name || 'WARGA SUKABUMI').toUpperCase()}
+                      <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-sky-300/10">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300">
+                          NIK
                         </span>
-                      </p>
+                        <span className="font-mono font-extrabold text-sm sm:text-base tracking-widest text-white">
+                          {maskedNik}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-12 gap-3 text-[10px] sm:text-xs text-sky-100/90 items-center">
+                        <div className="col-span-8 space-y-1">
+                          <div className="flex">
+                            <span className="w-24 text-sky-300">Nama</span>
+                            <span className="font-bold text-white">: {(profile?.full_name || 'WARGA SUKABUMI').toUpperCase()}</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sky-300">Tempat/Tgl</span>
+                            <span>: SUKABUMI, -- -- ----</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sky-300">Alamat</span>
+                            <span>: SUKABUMI, JAWA BARAT</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sky-300">Kewarganegaraan</span>
+                            <span>: WNI</span>
+                          </div>
+                          <div className="flex">
+                            <span className="w-24 text-sky-300">Berlaku Hingga</span>
+                            <span className="font-semibold text-emerald-300">: SEUMUR HIDUP</span>
+                          </div>
+                        </div>
+
+                        <div className="col-span-4 flex flex-col items-center justify-center">
+                          <div className="w-20 h-24 rounded bg-sky-950/70 border border-sky-300/40 flex flex-col items-center justify-center p-2 text-center shadow-inner">
+                            <User className="w-8 h-8 text-sky-300/80 mb-1" />
+                            <span className="text-[9px] text-sky-200 font-semibold">FOTO e-KTP</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-300 border-t border-white/10 pt-2">
-                      <span>Status: {profile?.ktp_verified ? 'Terverifikasi Resmi' : 'Menunggu Verifikasi'}</span>
-                      <span className="font-mono">KOTA SUKABUMI</span>
+
+                    <div className="flex items-center justify-between text-[10px] sm:text-xs text-sky-200 border-t border-sky-300/20 pt-2">
+                      <span className="font-mono">KARTU TANDA PENDUDUK ELEKTRONIK</span>
+                      <span className="font-bold text-emerald-300 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-400/30">
+                        {profile?.ktp_verified ? 'TERVERIFIKASI RESMI' : 'MENUNGGU VERIFIKASI'}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -806,22 +879,22 @@ export default function HaloJurnalProfilPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-outline-variant/60">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-2 border-t border-outline-variant/60">
               <button
                 type="button"
                 onClick={() => {
                   setShowKtpModal(false)
                   setShowUploadKtpModal(true)
                 }}
-                className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant text-on-surface text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant text-on-surface text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <UploadCloud className="w-3.5 h-3.5 text-primary" />
                 <span>Ganti Dokumen KTP</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShowKtpModal(false)}
-                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-colors cursor-pointer text-center"
               >
                 Selesai
               </button>
@@ -958,12 +1031,12 @@ export default function HaloJurnalProfilPage() {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-2.5 pt-5 mt-4 border-t border-outline-variant/60">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-5 mt-4 border-t border-outline-variant/60">
               <button
                 type="button"
                 disabled={uploadingKtp}
                 onClick={() => setShowUploadKtpModal(false)}
-                className="px-4 py-2.5 rounded-xl bg-surface-container-high text-on-surface text-xs font-semibold hover:bg-surface-container-highest transition-colors cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-surface-container-high text-on-surface text-xs font-semibold hover:bg-surface-container-highest transition-colors cursor-pointer disabled:opacity-50 text-center"
               >
                 Batal
               </button>
@@ -971,7 +1044,7 @@ export default function HaloJurnalProfilPage() {
                 type="button"
                 disabled={uploadingKtp || !ktpFile}
                 onClick={handleUploadKtp}
-                className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 text-center"
               >
                 {uploadingKtp ? (
                   <>

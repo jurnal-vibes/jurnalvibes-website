@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Calendar, MapPin, CheckCircle2, Clock, ShieldCheck, AlertTriangle } from 'lucide-react'
+import { Calendar, MapPin, CheckCircle2, Clock, ShieldCheck, AlertTriangle, FileText } from 'lucide-react'
 import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
 
 interface RecentPublicReportsProps {
@@ -87,72 +87,108 @@ export default function RecentPublicReports({ initialReports = [] }: RecentPubli
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      {reports.map((report) => (
-        <Link
-          key={report.id}
-          href={`/halo-jurnal/laporan/${report.id}`}
-          className="group bg-surface border border-outline-variant/80 hover:border-primary/40 rounded-2xl overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col justify-between"
-        >
-          <div className="p-5 flex-1">
-            <div className="flex justify-between items-start gap-2 mb-3">
-              {report.status === 'selesai' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-200/50">
-                  <CheckCircle2 className="w-3 h-3" />
-                  {report.jenis === 'inspirasi' ? 'Tayang' : 'Selesai'}
-                </span>
-              )}
-              {report.status === 'diproses' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 text-[10px] font-extrabold uppercase tracking-wider border border-amber-200/50">
-                  <Clock className="w-3 h-3" />
-                  Diproses
-                </span>
-              )}
-              {report.status === 'diterima' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 text-[10px] font-extrabold uppercase tracking-wider border border-blue-200/50">
-                  <Clock className="w-3 h-3" />
-                  Diterima
-                </span>
-              )}
-              {report.status === 'ditindaklanjuti' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 text-[10px] font-extrabold uppercase tracking-wider border border-purple-200/50">
-                  <ShieldCheck className="w-3 h-3" />
-                  Ditindaklanjuti
-                </span>
-              )}
+      {reports.map((report) => {
+        const imageUrl =
+          report.laporan_lampiran &&
+          report.laporan_lampiran.length > 0 &&
+          report.laporan_lampiran[0].file_url
+            ? report.laporan_lampiran[0].file_url
+            : null
 
-              <span className="text-[11px] font-medium text-secondary flex items-center gap-1 shrink-0">
-                <Calendar className="w-3.5 h-3.5" />
-                {report.created_at ? new Date(report.created_at).toLocaleDateString('id-ID') : '-'}
-              </span>
-            </div>
+        const status = (report.status || 'diterima').toLowerCase()
+        const formattedDate = report.created_at
+          ? new Date(report.created_at).toLocaleDateString('id-ID', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })
+          : 'Baru saja'
 
-            <h3 className="font-heading font-bold text-base text-on-surface mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-              {report.judul}
-            </h3>
-            <p className="text-secondary text-xs sm:text-sm line-clamp-3 mb-4 leading-relaxed">
-              {report.deskripsi}
-            </p>
-
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{report.lokasi || 'Sukabumi'}</span>
-            </div>
-          </div>
-
-          {report.laporan_lampiran &&
-            report.laporan_lampiran.length > 0 &&
-            report.laporan_lampiran[0].file_url && (
-              <div className="h-44 relative overflow-hidden bg-surface-container-high">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+        return (
+          <Link
+            key={report.id}
+            href={`/halo-jurnal/laporan/${report.id}`}
+            className="group bg-surface border border-outline-variant/70 hover:border-primary/50 rounded-2xl overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col"
+          >
+            {/* Top Media Thumbnail */}
+            <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-surface-container-high shrink-0">
+              {imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  src={imageUrl}
                   alt={report.judul}
-                  src={report.laporan_lampiran[0].file_url}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low flex flex-col items-center justify-center p-3 text-center border-b border-outline-variant/40">
+                  <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider font-heading">
+                    {report.kategori || 'Pengaduan Publik'}
+                  </span>
+                </div>
+              )}
+
+              {/* Floating Status Badge (Top-Left) */}
+              <div className="absolute top-2.5 left-2.5 z-10">
+                {status === 'selesai' && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md text-emerald-700 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider shadow-xs border border-emerald-500/30">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    <span>{report.jenis === 'inspirasi' ? 'Tayang' : 'Selesai'}</span>
+                  </span>
+                )}
+                {status === 'diproses' && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider shadow-xs border border-amber-500/30">
+                    <Clock className="w-3 h-3 text-amber-600" />
+                    <span>Diproses</span>
+                  </span>
+                )}
+                {status === 'diterima' && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md text-blue-700 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider shadow-xs border border-blue-500/30">
+                    <Clock className="w-3 h-3 text-blue-600" />
+                    <span>Diterima</span>
+                  </span>
+                )}
+                {status === 'ditindaklanjuti' && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md text-purple-700 dark:text-purple-400 text-[10px] font-bold uppercase tracking-wider shadow-xs border border-purple-500/30">
+                    <ShieldCheck className="w-3 h-3 text-purple-600" />
+                    <span>Ditindaklanjuti</span>
+                  </span>
+                )}
               </div>
-            )}
-        </Link>
-      ))}
+
+              {/* Floating Date Badge (Top-Right) */}
+              <div className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-medium text-white flex items-center gap-1">
+                <Calendar className="w-2.5 h-2.5" />
+                <span>{formattedDate}</span>
+              </div>
+            </div>
+
+            {/* Card Content */}
+            <div className="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-1.5 line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+                  {report.judul}
+                </h3>
+                <p className="text-secondary text-xs line-clamp-2 leading-relaxed mb-3">
+                  {report.deskripsi}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-outline-variant/40 text-[11px] text-secondary mt-auto">
+                <div className="flex items-center gap-1 min-w-0">
+                  <MapPin className="w-3 h-3 text-primary shrink-0" />
+                  <span className="truncate">{report.lokasi || 'Sukabumi'}</span>
+                </div>
+                <span className="text-primary font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform text-[11px]">
+                  Detail &rarr;
+                </span>
+              </div>
+            </div>
+          </Link>
+        )
+      })}
     </div>
   )
 }

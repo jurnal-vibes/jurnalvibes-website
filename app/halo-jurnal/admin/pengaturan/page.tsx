@@ -260,12 +260,18 @@ export default function AdminPengaturanWebPage() {
               placeholder="Ketik teks pengumuman penting yang akan tampil di atas portal..."
               className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
             />
-            <p className="text-[11px] text-slate-500">
-              Status pita pengumuman:{' '}
-              <strong className={settings.isAnnouncementActive ? 'text-emerald-700' : 'text-slate-500'}>
-                {settings.isAnnouncementActive ? '🟢 Aktif Tayang' : '⚪ Dinonaktifkan'}
-              </strong>
-            </p>
+            <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+              <span>Status pita pengumuman:</span>
+              {settings.isAnnouncementActive ? (
+                <span className="font-semibold text-emerald-700">
+                  Aktif Tayang
+                </span>
+              ) : (
+                <span className="font-semibold text-slate-500">
+                  Dinonaktifkan
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

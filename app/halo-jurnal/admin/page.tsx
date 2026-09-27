@@ -4,14 +4,11 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   FileText,
-  Clock,
-  Search,
-  CheckCircle2,
-  AlertTriangle,
   ShieldCheck,
   ChevronRight,
   Eye,
   ArrowRight,
+  MapPin,
 } from 'lucide-react'
 import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
 
@@ -82,39 +79,20 @@ export default function AdminDashboardPage() {
     return item.status === filterStatus
   }).slice(0, 6)
 
+  // Status badge styling (Ghost Minimalist Linear-Style - No Capsule Cover)
   const getStatusBadge = (status: DummyReport['status']) => {
     switch (status) {
       case 'diterima':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
-            <Clock className="w-3 h-3 text-amber-600" />
-            Menunggu
-          </span>
-        )
+        return <span className="text-xs font-semibold text-amber-700">Diterima</span>
       case 'diproses':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-800 border border-blue-200">
-            <Search className="w-3 h-3 text-blue-600" />
-            Investigasi
-          </span>
-        )
+        return <span className="text-xs font-semibold text-blue-700">Diproses</span>
       case 'ditindaklanjuti':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-800 border border-purple-200">
-            <AlertTriangle className="w-3 h-3 text-purple-600" />
-            Dinas
-          </span>
-        )
+        return <span className="text-xs font-semibold text-purple-700">Ditindaklanjuti</span>
       case 'selesai':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-            Selesai
-          </span>
-        )
+        return <span className="text-xs font-semibold text-emerald-700">Selesai</span>
       default:
         return (
-          <span className="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">
+          <span className="text-xs font-medium text-slate-600">
             {status}
           </span>
         )
@@ -151,7 +129,6 @@ export default function AdminDashboardPage() {
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-medium">Total Aduan</span>
-            <FileText className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-bold font-heading text-slate-900">{totalLaporan}</p>
           <p className="text-[11px] text-slate-500">Semua laporan terdaftar</p>
@@ -161,7 +138,6 @@ export default function AdminDashboardPage() {
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-medium">Perlu Verifikasi</span>
-            <Clock className="w-4 h-4 text-amber-500" />
           </div>
           <p className="text-2xl font-bold font-heading text-slate-900">{laporanDiterima}</p>
           <p className="text-[11px] text-amber-700 font-medium">Menunggu respon awal</p>
@@ -171,7 +147,6 @@ export default function AdminDashboardPage() {
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-medium">Dalam Penanganan</span>
-            <Search className="w-4 h-4 text-blue-500" />
           </div>
           <p className="text-2xl font-bold font-heading text-slate-900">{laporanDiproses}</p>
           <p className="text-[11px] text-slate-500">Investigasi &amp; Dinas</p>
@@ -181,7 +156,6 @@ export default function AdminDashboardPage() {
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-medium">Dituntaskan</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <p className="text-2xl font-bold font-heading text-slate-900">{laporanSelesai}</p>
           <p className="text-[11px] text-emerald-700 font-medium">Selesai ditangani</p>
@@ -230,12 +204,12 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Filter Status Sederhana */}
-          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 text-xs font-medium">
+          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 text-xs font-medium max-w-full overflow-x-auto no-scrollbar shrink-0">
             {(['semua', 'diterima', 'diproses', 'selesai'] as const).map((st) => (
               <button
                 key={st}
                 onClick={() => setFilterStatus(st)}
-                className={`px-3 py-1 rounded-md capitalize text-xs transition ${
+                className={`px-3 py-1 rounded-md capitalize text-xs whitespace-nowrap transition cursor-pointer ${
                   filterStatus === st
                     ? 'bg-white text-slate-900 font-semibold shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -250,77 +224,77 @@ export default function AdminDashboardPage() {
         {/* Tabel Tabular */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 text-slate-500 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
               <tr>
-                <th className="py-3 px-4">No. Tiket</th>
-                <th className="py-3 px-4">Judul &amp; Uraian Masalah</th>
-                <th className="py-3 px-4">Kategori</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Feed</th>
-                <th className="py-3 px-4 text-right">Aksi</th>
+                <th className="py-3.5 px-4 whitespace-nowrap w-36">No. Tiket</th>
+                <th className="py-3.5 px-4 whitespace-nowrap min-w-[240px]">Judul &amp; Uraian Masalah</th>
+                <th className="py-3.5 px-4 whitespace-nowrap w-28">Kategori</th>
+                <th className="py-3.5 px-4 whitespace-nowrap w-36">Status</th>
+                <th className="py-3.5 px-4 whitespace-nowrap w-28">Feed</th>
+                <th className="py-3.5 px-4 whitespace-nowrap w-32 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredReports.map((report) => (
-                <tr key={report.id} className="hover:bg-slate-50/60 transition-colors">
+                <tr key={report.id} className="hover:bg-slate-50/70 transition-colors">
                   {/* No. Tiket */}
-                  <td className="py-3 px-4 whitespace-nowrap align-top">
-                    <span className="font-mono text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                  <td className="py-3.5 px-4 whitespace-nowrap align-middle">
+                    <span className="font-mono text-xs font-semibold text-slate-700">
                       {report.nomor_tiket}
                     </span>
-                    <p className="text-[10px] text-slate-400 mt-1">28 Jul 2026</p>
                   </td>
 
                   {/* Judul & Lokasi */}
-                  <td className="py-3 px-4 max-w-sm align-top">
+                  <td className="py-3.5 px-4 max-w-sm align-middle">
                     <p className="font-semibold text-slate-900 line-clamp-1">{report.judul}</p>
-                    <p className="text-slate-500 text-[11px] line-clamp-1 mt-0.5">
-                      📍 {report.lokasi}
+                    <p className="text-slate-500 text-[11px] line-clamp-1 mt-0.5 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span>{report.lokasi}</span>
                     </p>
                   </td>
 
-                  {/* Kategori */}
-                  <td className="py-3 px-4 whitespace-nowrap align-top">
-                    <span className="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                  {/* Kategori (Ghost Plain Text) */}
+                  <td className="py-3.5 px-4 whitespace-nowrap align-middle">
+                    <span className="text-xs font-medium text-slate-700">
                       {formatCategory(report.kategori)}
                     </span>
                   </td>
 
                   {/* Status */}
-                  <td className="py-3 px-4 whitespace-nowrap align-top">
+                  <td className="py-3.5 px-4 whitespace-nowrap align-middle">
                     {getStatusBadge(report.status)}
                   </td>
 
-                  {/* Feed Publik */}
-                  <td className="py-3 px-4 whitespace-nowrap align-top">
+                  {/* Feed Publik (Ghost Minimalist) */}
+                  <td className="py-3.5 px-4 whitespace-nowrap align-middle">
                     {report.is_public ? (
-                      <span className="text-[10px] font-semibold text-[#c00015] bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
+                      <span className="text-xs font-semibold text-emerald-700">
                         Publik
                       </span>
                     ) : (
-                      <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-medium text-slate-500">
                         Privat
                       </span>
                     )}
                   </td>
 
                   {/* Tombol Aksi */}
-                  <td className="py-3 px-4 whitespace-nowrap text-right align-top">
-                    <div className="inline-flex items-center gap-1.5">
+                  <td className="py-3.5 px-4 whitespace-nowrap text-center align-middle">
+                    <div className="inline-flex items-center justify-center gap-1.5">
                       <Link
                         href={`/halo-jurnal/laporan/${report.id}`}
                         target="_blank"
-                        className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition"
                         title="Tinjau Halaman Publik"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </Link>
                       <Link
                         href={`/halo-jurnal/admin/laporan/${report.id}`}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-semibold transition"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white hover:bg-[#c00015] hover:text-white hover:border-[#c00015] text-slate-700 border border-slate-200 text-xs font-semibold transition shadow-2xs cursor-pointer group"
                       >
                         <span>Tinjau</span>
-                        <ChevronRight className="w-3 h-3 text-slate-400" />
+                        <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-white transition-colors" />
                       </Link>
                     </div>
                   </td>

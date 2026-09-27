@@ -85,5 +85,7 @@ export interface Reel {
   creator?: string;
   location?: string;
   viewsCount?: string;
+  socialUrl?: string;
+  platform?: 'instagram' | 'tiktok' | 'youtube' | string;
 }
 

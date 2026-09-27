@@ -11,6 +11,10 @@ export default function LogoutButton({ className = '' }: { className?: string })
     if (loading) return
     setLoading(true)
     try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('halo_jurnal_current_user')
+        window.dispatchEvent(new Event('storage'))
+      }
       const supabase = createClient()
       await supabase.auth.signOut()
       window.location.href = '/halo-jurnal'

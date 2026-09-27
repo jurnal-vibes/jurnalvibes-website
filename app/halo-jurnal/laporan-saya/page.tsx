@@ -47,6 +47,16 @@ export default function HaloJurnalLaporanSayaPage() {
       }
     }
     checkUser()
+
+    const handleSync = () => {
+      fetchAllUserReports()
+    }
+    window.addEventListener('storage', handleSync)
+    window.addEventListener('focus', handleSync)
+    return () => {
+      window.removeEventListener('storage', handleSync)
+      window.removeEventListener('focus', handleSync)
+    }
   }, [])
 
   useEffect(() => {
@@ -81,8 +91,10 @@ export default function HaloJurnalLaporanSayaPage() {
       // Fallback silent
     }
 
+    let baseReports: any[] = []
+
     if (supabaseData && supabaseData.length > 0) {
-      setAllReports(supabaseData)
+      baseReports = supabaseData
     } else {
       let localUserReports: any[] = []
       try {
@@ -94,14 +106,38 @@ export default function HaloJurnalLaporanSayaPage() {
         }
       } catch {}
 
-      const baseReports =
+      baseReports =
         localUserReports.length > 0
           ? localUserReports
           : DUMMY_REPORTS.slice(0, 4)
-
-      setAllReports(baseReports)
     }
 
+    // Terapkan override dari admin secara realtime
+    if (typeof window !== 'undefined') {
+      try {
+        const overrides = JSON.parse(
+          localStorage.getItem('halo_jurnal_status_overrides') || '{}'
+        )
+        baseReports = baseReports.map((r: any) => {
+          const saved =
+            overrides[r.id] ||
+            (r.nomor_tiket ? overrides[r.nomor_tiket] : null) ||
+            (r.ticket_number ? overrides[r.ticket_number] : null)
+          if (saved) {
+            return {
+              ...r,
+              status: saved.status || r.status,
+              is_public:
+                saved.is_public !== undefined ? saved.is_public : r.is_public,
+              status_log: saved.status_log || r.status_log,
+            }
+          }
+          return r
+        })
+      } catch {}
+    }
+
+    setAllReports(baseReports)
     setLoading(false)
   }
 
@@ -539,7 +575,7 @@ export default function HaloJurnalLaporanSayaPage() {
                   {imgUrl && (
                     <Link
                       href={`/halo-jurnal/laporan/${report.id}`}
-                      className="shrink-0 w-full sm:w-36 h-24 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant/60 block"
+                      className="shrink-0 w-full sm:w-36 h-36 sm:h-24 rounded-xl sm:rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant/60 block"
                       title="Lihat lampiran"
                     >
                       <img
@@ -560,7 +596,7 @@ export default function HaloJurnalLaporanSayaPage() {
                     <MessageSquare className="w-3.5 h-3.5" />
                     <span>Ruang Chat &amp; Tanggapan</span>
                     {report.chat_messages && report.chat_messages[0]?.count > 0 && (
-                      <span className="px-1.5 py-0.2 bg-primary/10 text-primary rounded-full text-[10px] font-bold">
+                      <span className="px-1.5 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] font-bold">
                         {report.chat_messages[0].count}
                       </span>
                     )}

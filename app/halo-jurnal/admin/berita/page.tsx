@@ -329,7 +329,7 @@ export default function AdminBeritaPage() {
               onClick={() => setSelectedFilter('semua')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                 selectedFilter === 'semua'
-                  ? 'bg-slate-900 text-white shadow-2xs'
+                  ? 'bg-[#c00015] text-white shadow-2xs'
                   : 'bg-slate-100 text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -339,7 +339,7 @@ export default function AdminBeritaPage() {
               onClick={() => setSelectedFilter('hero')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                 selectedFilter === 'hero'
-                  ? 'bg-slate-900 text-white shadow-2xs'
+                  ? 'bg-[#c00015] text-white shadow-2xs'
                   : 'bg-slate-100 text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -349,7 +349,7 @@ export default function AdminBeritaPage() {
               onClick={() => setSelectedFilter('editors')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                 selectedFilter === 'editors'
-                  ? 'bg-slate-900 text-white shadow-2xs'
+                  ? 'bg-[#c00015] text-white shadow-2xs'
                   : 'bg-slate-100 text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -441,7 +441,7 @@ export default function AdminBeritaPage() {
 
                     {/* Kategori */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="text-[11px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded capitalize border border-slate-200">
+                      <span className="text-xs font-medium text-slate-700 capitalize">
                         {article.category}
                       </span>
                     </td>
@@ -458,28 +458,28 @@ export default function AdminBeritaPage() {
                         {/* Toggle Hero Button */}
                         <button
                           onClick={() => handleToggleHero(article.id)}
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border transition cursor-pointer ${
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer ${
                             article.isHero
-                              ? 'bg-red-50 text-[#c00015] border-red-300 font-bold shadow-2xs'
-                              : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-slate-700'
+                              ? 'bg-red-500/10 text-[#c00015]'
+                              : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                           }`}
                           title="Klik untuk jadikan atau batalkan status Headline Utama"
                         >
-                          <Flame className={`w-3 h-3 ${article.isHero ? 'text-[#c00015]' : 'text-slate-400'}`} />
+                          <Flame className={`w-3.5 h-3.5 ${article.isHero ? 'text-[#c00015]' : 'text-slate-400'}`} />
                           <span>Headline</span>
                         </button>
 
                         {/* Toggle Pilihan Redaksi */}
                         <button
                           onClick={() => handleToggleEditorsPick(article.id)}
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border transition cursor-pointer ${
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer ${
                             article.isEditorsPick
-                              ? 'bg-amber-50 text-amber-800 border-amber-300 font-bold shadow-2xs'
-                              : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-slate-700'
+                              ? 'bg-amber-500/10 text-amber-700'
+                              : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                           }`}
                           title="Klik untuk jadikan atau batalkan status Pilihan Redaksi"
                         >
-                          <Star className={`w-3 h-3 ${article.isEditorsPick ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} />
+                          <Star className={`w-3.5 h-3.5 ${article.isEditorsPick ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} />
                           <span>Pilihan</span>
                         </button>
                       </div>

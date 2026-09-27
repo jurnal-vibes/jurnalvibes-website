@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, Lightbulb, Info, Sparkles, ArrowRight } from 'lucide-react'
+import { AlertTriangle, Lightbulb, Info, HeartHandshake, ArrowRight } from 'lucide-react'
 
 interface CategoryCardsProps {
   isLoggedIn?: boolean
@@ -46,7 +46,7 @@ export default function CategoryCards({ isLoggedIn: _isLoggedIn }: CategoryCards
     },
     {
       type: 'inspirasi' as const,
-      icon: Sparkles,
+      icon: HeartHandshake,
       iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
       title: 'Inspirasi',
       desc: 'Ceritakan kisah inspiratif dan karya gotong royong warga untuk dipublikasikan.',
