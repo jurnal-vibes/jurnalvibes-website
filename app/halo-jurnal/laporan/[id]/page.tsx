@@ -21,6 +21,7 @@ import {
   Check,
   AlertTriangle,
   MessageSquare,
+  Globe,
 } from 'lucide-react'
 import { DUMMY_REPORTS } from '@/data/dummyReports'
 
@@ -166,6 +167,23 @@ export default function HaloJurnalLaporanDetailPage() {
             found = localList.find((r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id)
           } catch {}
         }
+
+        // Terapkan override status dari admin jika ada
+        if (found && typeof window !== 'undefined') {
+          try {
+            const overrides = JSON.parse(localStorage.getItem('halo_jurnal_status_overrides') || '{}')
+            const saved = overrides[found.id] || (found.nomor_tiket ? overrides[found.nomor_tiket] : null)
+            if (saved) {
+              found = {
+                ...found,
+                status: saved.status || found.status,
+                is_public: saved.is_public !== undefined ? saved.is_public : found.is_public,
+                status_log: saved.status_log || found.status_log,
+              }
+            }
+          } catch {}
+        }
+
         setReport(found || null)
       } else {
         setReport(data)
@@ -187,6 +205,23 @@ export default function HaloJurnalLaporanDetailPage() {
           found = localList.find((r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id)
         } catch {}
       }
+
+      // Terapkan override status dari admin jika ada
+      if (found && typeof window !== 'undefined') {
+        try {
+          const overrides = JSON.parse(localStorage.getItem('halo_jurnal_status_overrides') || '{}')
+          const saved = overrides[found.id] || (found.nomor_tiket ? overrides[found.nomor_tiket] : null)
+          if (saved) {
+            found = {
+              ...found,
+              status: saved.status || found.status,
+              is_public: saved.is_public !== undefined ? saved.is_public : found.is_public,
+              status_log: saved.status_log || found.status_log,
+            }
+          }
+        } catch {}
+      }
+
       setReport(found || null)
     } finally {
       setLoading(false)
@@ -430,6 +465,28 @@ export default function HaloJurnalLaporanDetailPage() {
         <span className="text-primary font-bold font-mono">ID #{ticketDisplayId}</span>
       </div>
 
+      {/* Banner Peringatan Laporan Privat / Disembunyikan */}
+      {report.is_public === false && (
+        <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-slate-900 text-white border border-slate-800 flex items-start gap-3.5 shadow-md">
+          <Lock className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-xs uppercase tracking-wider text-amber-400">
+                Laporan Bersifat Privat / Rahasia
+              </span>
+              <span className="text-[10px] font-semibold bg-white/10 px-2 py-0.5 rounded text-slate-300">
+                Disembunyikan dari Feed Publik
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Laporan ini disembunyikan dari Feed Publik warga oleh Redaksi Halo Jurnal. Hanya pemilik nomor tiket{' '}
+              <code className="text-amber-300 font-mono font-bold">{ticketDisplayId}</code> dan admin redaksi yang
+              dapat memantau penanganan ini. Dukungan publik dinonaktifkan.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Column: Report Details & Riwayat Status */}
         <div className="lg:col-span-2 space-y-6">
@@ -440,6 +497,17 @@ export default function HaloJurnalLaporanDetailPage() {
                 <span className="bg-[#fceeed] dark:bg-rose-950/60 text-[#852221] dark:text-rose-300 font-extrabold text-[11px] tracking-wider px-3.5 py-1 rounded-full uppercase border border-[#fad4d1] dark:border-rose-900/50">
                   {report.kategori || report.jenis || 'ANGGARAN'}
                 </span>
+                {report.is_public === false ? (
+                  <span className="inline-flex items-center gap-1 bg-slate-800 text-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700">
+                    <Lock className="w-3 h-3 text-amber-400" />
+                    <span>Privat</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200">
+                    <Globe className="w-3 h-3 text-emerald-600" />
+                    <span>Publik</span>
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5">
@@ -470,19 +538,29 @@ export default function HaloJurnalLaporanDetailPage() {
                 )}
 
                 {/* Dukung Button */}
-                <button
-                  type="button"
-                  onClick={handleLike}
-                  disabled={isLiking}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                    hasLiked
-                      ? 'bg-primary text-white border-primary shadow-2xs'
-                      : 'border-[#a83232]/50 text-[#852221] dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30'
-                  }`}
-                >
-                  <ThumbsUp className={`w-3.5 h-3.5 ${hasLiked ? 'fill-current' : ''}`} />
-                  <span>Dukung Laporan ({report.dukungan_count || 0})</span>
-                </button>
+                {report.is_public === false ? (
+                  <span
+                    title="Dukungan publik dinonaktifkan karena laporan ini berstatus privat"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 text-xs font-medium cursor-not-allowed select-none"
+                  >
+                    <Lock className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Dukungan Dinonaktifkan</span>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleLike}
+                    disabled={isLiking}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      hasLiked
+                        ? 'bg-primary text-white border-primary shadow-2xs'
+                        : 'border-[#a83232]/50 text-[#852221] dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30'
+                    }`}
+                  >
+                    <ThumbsUp className={`w-3.5 h-3.5 ${hasLiked ? 'fill-current' : ''}`} />
+                    <span>Dukung Laporan ({report.dukungan_count || 0})</span>
+                  </button>
+                )}
 
                 {/* Bagikan */}
                 <button

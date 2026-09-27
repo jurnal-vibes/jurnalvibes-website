@@ -44,7 +44,7 @@ export function mapSupabaseArticle(row: any): Article {
 
 /**
  * Fetches all articles from the Supabase `articles` table.
- * Fallbacks to DUMMY_ARTICLES if the table is empty or an error occurs.
+ * Fallbacks to localStorage ('jurnal_wave_articles') or DUMMY_ARTICLES if the table is empty or an error occurs.
  */
 export async function fetchArticlesFromSupabase(): Promise<Article[]> {
   try {
@@ -53,16 +53,24 @@ export async function fetchArticlesFromSupabase(): Promise<Article[]> {
       .select('*')
       .order('id', { ascending: false });
 
-    if (error) {
-      console.warn('Supabase fetch query notice:', error.message);
-      return DUMMY_ARTICLES;
-    }
-
-    if (data && data.length > 0) {
+    if (!error && data && data.length > 0) {
       return data.map(mapSupabaseArticle);
     }
   } catch (err) {
     console.warn('Supabase connection notice:', err);
+  }
+
+  // Client-side fallback to localStorage first
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('jurnal_wave_articles');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {}
   }
 
   return DUMMY_ARTICLES;
@@ -100,6 +108,22 @@ export async function fetchArticleByIdFromSupabase(idOrSlug: string): Promise<Ar
     }
   } catch (err) {
     console.warn('Supabase article lookup notice:', err);
+  }
+
+  // Fallback to local storage if running in browser
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('jurnal_wave_articles');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const foundInLocal = parsed.find(
+            (a: any) => String(a.id) === String(idOrSlug) || a.slug === idOrSlug
+          );
+          if (foundInLocal) return foundInLocal;
+        }
+      }
+    } catch {}
   }
 
   // Fallback to local dummy data search
