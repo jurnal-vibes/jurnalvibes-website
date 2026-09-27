@@ -1,10 +1,10 @@
 import React from 'react'
 import Link from 'next/link'
-import { ExternalLink, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 export default function HaloJurnalFooter() {
   return (
-    <footer className="border-t border-outline-variant/60 bg-surface text-on-surface py-10 md:py-12 transition-colors duration-300">
+    <footer className="border-t border-outline-variant/60 bg-surface text-on-surface pt-10 pb-24 md:py-12 transition-colors duration-300">
       <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-outline-variant/60">
           {/* Brand Info */}

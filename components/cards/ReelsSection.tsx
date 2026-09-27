@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Film, Play } from 'lucide-react';
 import { Reel } from '@/types';
@@ -29,21 +29,43 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
   subtitle,
   limit
 }) => {
+  const [currentReels, setCurrentReels] = useState<Reel[]>(reels);
   const [activeCategory, setActiveCategory] = useState<string>('Semua');
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
+  useEffect(() => {
+    const syncReels = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_reels');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setCurrentReels(parsed);
+              return;
+            }
+          }
+          localStorage.setItem('jurnal_wave_reels', JSON.stringify(reels));
+        } catch {}
+      }
+    };
+    syncReels();
+    window.addEventListener('storage', syncReels);
+    return () => window.removeEventListener('storage', syncReels);
+  }, [reels]);
+
   const filteredReels = useMemo(() => {
     let list = activeCategory === 'Semua'
-      ? reels
-      : reels.filter(
+      ? currentReels
+      : currentReels.filter(
           reel => reel.category?.toLowerCase() === activeCategory.toLowerCase()
         );
     if (limit && limit > 0) {
       list = list.slice(0, limit);
     }
     return list;
-  }, [reels, activeCategory, limit]);
+  }, [currentReels, activeCategory, limit]);
 
   const handleOpenViewer = (index: number) => {
     setSelectedIndex(index);

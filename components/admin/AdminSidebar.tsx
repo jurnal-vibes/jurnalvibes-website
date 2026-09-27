@@ -16,9 +16,12 @@ import {
   ChevronRight,
   LogOut,
   X,
+  MessageSquare,
+  Film,
 } from 'lucide-react'
 import { DUMMY_REPORTS } from '@/data/dummyReports'
 import { DUMMY_ARTICLES } from '@/data/dummyArticles'
+import { DUMMY_REELS } from '@/data/dummyPolls'
 
 interface AdminSidebarProps {
   isOpen: boolean
@@ -31,8 +34,10 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   // Dynamic badge counts
   const [counts, setCounts] = useState({
     pendingReports: 1,
+    unreadChat: 0,
     flaggedKtp: 2,
     articles: 10,
+    reels: 8,
   })
 
   useEffect(() => {
@@ -58,7 +63,33 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           })
           const pending = allReports.filter((r) => r.status === 'diterima').length
 
-          // 2. KTP Flagged
+          // 2. Chat Warga Belum Dibaca
+          const readSet = new Set<string>(
+            JSON.parse(localStorage.getItem('halo_jurnal_read_chats') || '[]')
+          )
+          let unreadChatCount = 0
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i)
+            if (k && k.startsWith('halo_jurnal_chat_')) {
+              try {
+                const list = JSON.parse(localStorage.getItem(k) || '[]')
+                if (Array.isArray(list)) {
+                  list.forEach((m: any) => {
+                    if (
+                      m.sender_id !== 'admin-redaksi' &&
+                      m.profiles?.role !== 'admin' &&
+                      m.role !== 'admin' &&
+                      !readSet.has(m.id)
+                    ) {
+                      unreadChatCount++
+                    }
+                  })
+                }
+              } catch {}
+            }
+          }
+
+          // 3. KTP Flagged
           const ktpSaved = JSON.parse(
             localStorage.getItem('halo_jurnal_ktp_verifications') || '[]'
           )
@@ -66,7 +97,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             ? ktpSaved.filter((k: any) => k.status === 'flagged').length
             : 2
 
-          // 3. Articles count
+          // 4. Articles count
           const artSaved = JSON.parse(
             localStorage.getItem('jurnal_wave_articles') || '[]'
           )
@@ -74,10 +105,20 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             ? artSaved.length
             : DUMMY_ARTICLES.length
 
+          // 5. Reels count
+          const reelsSaved = JSON.parse(
+            localStorage.getItem('jurnal_wave_reels') || '[]'
+          )
+          const totalReels = Array.isArray(reelsSaved) && reelsSaved.length > 0
+            ? reelsSaved.length
+            : DUMMY_REELS.length
+
           setCounts({
             pendingReports: pending,
+            unreadChat: unreadChatCount,
             flaggedKtp: flagged,
             articles: totalArticles,
+            reels: totalReels,
           })
         } catch {}
       }
@@ -112,14 +153,21 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           href: '/halo-jurnal/admin/laporan',
           icon: FileText,
           badge: counts.pendingReports > 0 ? String(counts.pendingReports) : null,
-          badgeColor: 'bg-red-50 text-[#c00015] border border-red-200/80',
+          badgeColor: 'bg-red-500/10 text-[#c00015]',
         },
         {
-          name: 'Verifikasi KTP & AI',
+          name: 'Chat Warga',
+          href: '/halo-jurnal/admin/chat',
+          icon: MessageSquare,
+          badge: counts.unreadChat > 0 ? String(counts.unreadChat) : null,
+          badgeColor: 'bg-emerald-500/10 text-emerald-800',
+        },
+        {
+          name: 'Verifikasi KTP',
           href: '/halo-jurnal/admin/verifikasi-ktp',
           icon: ShieldCheck,
           badge: counts.flaggedKtp > 0 ? String(counts.flaggedKtp) : null,
-          badgeColor: 'bg-amber-50 text-amber-700 border border-amber-200/80',
+          badgeColor: 'bg-amber-500/10 text-amber-800',
         },
         {
           name: 'Feed Publik',
@@ -137,6 +185,13 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           href: '/halo-jurnal/admin/berita',
           icon: Newspaper,
           badge: String(counts.articles),
+          badgeColor: 'bg-slate-100 text-slate-600',
+        },
+        {
+          name: 'Vibes Reels',
+          href: '/halo-jurnal/admin/reels',
+          icon: Film,
+          badge: String(counts.reels),
           badgeColor: 'bg-slate-100 text-slate-600',
         },
         {
@@ -202,7 +257,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 <span className="font-heading font-extrabold text-base tracking-tight text-slate-900">
                   Jurnal<span className="text-[#c00015]">Wave</span>
                 </span>
-                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1 py-0.2 rounded border border-slate-200">
+                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
                   Admin
                 </span>
               </div>

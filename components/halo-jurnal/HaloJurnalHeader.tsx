@@ -10,7 +10,6 @@ import {
   X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import UserAvatar from './UserAvatar'
 import LogoutButton from './LogoutButton'
 
 export default function HaloJurnalHeader() {
@@ -35,6 +34,18 @@ export default function HaloJurnalHeader() {
           if (prof?.full_name) {
             setFullName(prof.full_name)
           }
+        } else if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('halo_jurnal_current_user')
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored)
+              setUser(parsed)
+              setFullName(parsed.full_name || parsed.user_metadata?.full_name || 'Warga Sukabumi')
+            } catch {}
+          } else {
+            setUser(null)
+            setFullName(null)
+          }
         }
       } catch (err) {
         console.error('Error fetching user for header:', err)
@@ -42,7 +53,14 @@ export default function HaloJurnalHeader() {
         setCheckedAuth(true)
       }
     }
+
     checkUser()
+    window.addEventListener('storage', checkUser)
+    window.addEventListener('focus', checkUser)
+    return () => {
+      window.removeEventListener('storage', checkUser)
+      window.removeEventListener('focus', checkUser)
+    }
   }, [])
 
   const navLinks = [
@@ -142,20 +160,6 @@ export default function HaloJurnalHeader() {
           {checkedAuth ? (
             user ? (
               <div className="flex items-center gap-2">
-                <Link
-                  href="/halo-jurnal/profil"
-                  className="flex items-center gap-2 hover:opacity-85 transition-opacity"
-                  title="Profil Akun"
-                >
-                  <UserAvatar
-                    name={fullName || user.user_metadata?.full_name || user.email}
-                    size="sm"
-                    bgColor="primary"
-                  />
-                  <span className="hidden md:inline-block text-xs font-bold text-on-surface max-w-[120px] truncate">
-                    {fullName || user.user_metadata?.full_name || 'Profil'}
-                  </span>
-                </Link>
                 <LogoutButton />
               </div>
             ) : (

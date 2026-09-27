@@ -414,7 +414,7 @@ function LaporForm() {
       : category || 'Pilih Kategori'
 
   return (
-    <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 pt-10 sm:pt-12 md:pt-16 pb-16">
+    <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 pt-6 sm:pt-12 md:pt-16 pb-16">
       {/* Header Info */}
       <div className="text-left max-w-3xl mb-6">
         <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight mb-2">
@@ -452,7 +452,7 @@ function LaporForm() {
         <div className="lg:col-span-2">
           <form
             onSubmit={handleSubmit}
-            className="bg-surface border border-outline-variant/80 rounded-3xl p-5 sm:p-7 shadow-xs space-y-6"
+            className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs space-y-5 sm:space-y-6"
           >
             {/* Conditional: Instansi for Informasi */}
             {reportType === 'informasi' && (
@@ -651,7 +651,7 @@ function LaporForm() {
 
         {/* Sidebar Column: Pratinjau Bersih Bergaya Jurnal Wave */}
         <div className="space-y-5 lg:sticky lg:top-24 self-start">
-          <div className="bg-surface border border-outline-variant/80 rounded-3xl p-5 sm:p-6 shadow-xs">
+          <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs">
             {/* Header Pratinjau */}
             <div className="flex items-center gap-2 pb-3.5 mb-4 border-b border-outline-variant/60">
               <FileText className="w-4 h-4 text-primary" />

@@ -5,20 +5,13 @@ import Link from 'next/link'
 import {
   ShieldCheck,
   Search,
-  Filter,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
   Eye,
   Check,
   X,
-  RotateCcw,
-  Sparkles,
   ExternalLink,
-  Lock,
-  User,
-  HelpCircle,
-  Camera,
+  FileText,
+  Clock,
+  XCircle,
 } from 'lucide-react'
 
 interface KtpVerificationItem {
@@ -47,7 +40,7 @@ const INITIAL_KTP_DATA: KtpVerificationItem[] = [
     ai_confidence: 68,
     ai_detected_name: 'DEDI SUPRIADI',
     ai_detected_nik: '3202111508890003',
-    ai_notes: 'Foto KTP agak buram di sudut kanan bawah karena pantulan cahaya lampu.',
+    ai_notes: 'Foto KTP agak buram di sudut kanan bawah karena pantulan cahaya.',
     status: 'flagged',
     submitted_at: '2026-09-26T08:15:00Z',
   },
@@ -61,7 +54,7 @@ const INITIAL_KTP_DATA: KtpVerificationItem[] = [
     ai_confidence: 72,
     ai_detected_name: 'SITI NUR HALIZAH',
     ai_detected_nik: '3202055204950001',
-    ai_notes: 'Ada perbedaan spasi pada nama: "Siti Nurhaliza" (Form) vs "SITI NUR HALIZAH" (KTP Fisik).',
+    ai_notes: 'Terdapat perbedaan penulisan spasi nama antara formulir dengan dokumen e-KTP fisik.',
     status: 'flagged',
     submitted_at: '2026-09-26T09:30:00Z',
   },
@@ -75,7 +68,7 @@ const INITIAL_KTP_DATA: KtpVerificationItem[] = [
     ai_confidence: 98,
     ai_detected_name: 'AHMAD FAUZI',
     ai_detected_nik: '3202120101900005',
-    ai_notes: 'Dokumen fisik e-KTP sah, seluruh karakter NIK dan nama cocok 100%.',
+    ai_notes: 'Seluruh karakter NIK dan nama terverifikasi sesuai data kependudukan.',
     status: 'auto_approved',
     submitted_at: '2026-09-25T14:20:00Z',
   },
@@ -89,7 +82,7 @@ const INITIAL_KTP_DATA: KtpVerificationItem[] = [
     ai_confidence: 96,
     ai_detected_name: 'BUDI SANTOSO',
     ai_detected_nik: '3202141011880002',
-    ai_notes: 'Format e-KTP Jawa Barat terverifikasi otomatis.',
+    ai_notes: 'Format e-KTP wilayah Jawa Barat valid dan terverifikasi.',
     status: 'auto_approved',
     submitted_at: '2026-09-25T11:05:00Z',
   },
@@ -103,7 +96,7 @@ const INITIAL_KTP_DATA: KtpVerificationItem[] = [
     ai_confidence: 25,
     ai_detected_name: 'TIDAK TERDETEKSI',
     ai_detected_nik: 'TIDAK TERDETEKSI',
-    ai_notes: 'Bukan gambar fisik e-KTP. AI mendeteksi foto selfie / gambar non-dokumen.',
+    ai_notes: 'Bukan gambar fisik e-KTP yang valid. Gambar berupa foto profil non-identitas.',
     status: 'rejected',
     submitted_at: '2026-09-24T16:45:00Z',
   },
@@ -169,7 +162,7 @@ export default function AdminVerifikasiKtpPage() {
     if (selectedItem?.id === id) {
       setSelectedItem(null)
     }
-    setToastMessage('Dokumen KTP berhasil disetujui secara manual.')
+    setToastMessage('Dokumen KTP berhasil diverifikasi dan disetujui.')
     setTimeout(() => setToastMessage(null), 3500)
   }
 
@@ -181,7 +174,7 @@ export default function AdminVerifikasiKtpPage() {
     if (selectedItem?.id === id) {
       setSelectedItem(null)
     }
-    setToastMessage('Dokumen KTP ditolak. Notifikasi perbaikan dikirim ke warga.')
+    setToastMessage('Dokumen KTP ditolak. Pelapor diminta mengunggah ulang.')
     setTimeout(() => setToastMessage(null), 3500)
   }
 
@@ -215,256 +208,255 @@ export default function AdminVerifikasiKtpPage() {
 
   return (
     <div className="space-y-6">
-      {/* 1. Header Halaman */}
+      {/* 1. Header Halaman Bersih & Profesional */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h1 className="text-xl font-heading font-bold text-slate-900 tracking-tight">
-            Monitoring AI Verifikasi KTP Warga
+            Verifikasi KTP Warga
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Sistem otomatis AI OCR &amp; Vision memverifikasi dokumen warga. Redaksi hanya meninjau
-            kasus yang ditandai ragu-ragu (*human-in-the-loop*).
+            Pemeriksaan dan validasi keaslian berkas e-KTP pelapor aduan warga Sukabumi.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span>AI Model Aktif: OCR Vision v2</span>
-          </span>
         </div>
       </div>
 
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-2xs">
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
+            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             <span>{toastMessage}</span>
           </div>
           <button
             onClick={() => setToastMessage(null)}
-            className="text-emerald-700 hover:underline font-bold"
+            className="text-emerald-700 hover:text-emerald-950 font-bold"
           >
-            Tutup
+            ✕
           </button>
         </div>
       )}
 
-      {/* 2. Kartu Ringkasan Metrik AI */}
+      {/* 2. Kartu Ringkasan Status Verifikasi */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Butuh Tinjauan */}
+        {/* Menunggu Tinjauan */}
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-medium">Perlu Tinjauan Manual</span>
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <span className="text-xs font-medium">Menunggu Tinjauan</span>
           </div>
-          <p className="text-2xl font-bold font-heading text-amber-700">{countFlagged}</p>
-          <p className="text-[11px] text-amber-700 font-medium">Foto buram / nama beda spasi</p>
+          <p className="text-2xl font-bold font-heading text-slate-900">{countFlagged}</p>
+          <p className="text-[11px] text-slate-500">Perlu pemeriksaan manual berkas</p>
         </div>
 
-        {/* Lolos Otomatis */}
+        {/* Terverifikasi */}
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-medium">Lolos Verifikasi Sah</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span className="text-xs font-medium">Terverifikasi Sah</span>
           </div>
           <p className="text-2xl font-bold font-heading text-slate-900">{countApproved}</p>
-          <p className="text-[11px] text-emerald-700 font-medium">Auto-Approved oleh AI</p>
+          <p className="text-[11px] text-slate-500">Kesesuaian data kependudukan sah</p>
         </div>
 
         {/* Ditolak */}
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-medium">Ditolak / Tidak Valid</span>
-            <XCircle className="w-4 h-4 text-rose-500" />
+            <span className="text-xs font-medium">Ditolak</span>
           </div>
           <p className="text-2xl font-bold font-heading text-slate-900">{countRejected}</p>
-          <p className="text-[11px] text-slate-500">Bukan fisik e-KTP asli</p>
+          <p className="text-[11px] text-slate-500">Dokumen tidak memenuhi persyaratan</p>
         </div>
       </div>
 
-      {/* 3. Tab Filter & Search */}
-      <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3">
+      {/* 3. Filter Segmented & Kolom Pencarian */}
+      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+          {/* Segmented Filter Buttons */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
             <button
               onClick={() => setFilterTab('flagged')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                 filterTab === 'flagged'
-                  ? 'bg-amber-600 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#c00015] text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
               }`}
             >
-              <span>Perlu Tinjauan</span>
-              <span className="px-1.5 py-0.2 rounded text-[10px] bg-white/20 text-white font-bold">
+              <span>Menunggu Tinjauan</span>
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                filterTab === 'flagged' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+              }`}>
                 {countFlagged}
               </span>
             </button>
 
             <button
               onClick={() => setFilterTab('approved')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                 filterTab === 'approved'
-                  ? 'bg-slate-900 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#c00015] text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
               }`}
             >
               <span>Terverifikasi Sah</span>
-              <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-200 text-slate-700 font-bold">
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                filterTab === 'approved' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+              }`}>
                 {countApproved}
               </span>
             </button>
 
             <button
               onClick={() => setFilterTab('rejected')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                 filterTab === 'rejected'
-                  ? 'bg-slate-900 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#c00015] text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
               }`}
             >
               <span>Ditolak</span>
-              <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-200 text-slate-700 font-bold">
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                filterTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+              }`}>
                 {countRejected}
               </span>
             </button>
 
             <button
               onClick={() => setFilterTab('all')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                 filterTab === 'all'
-                  ? 'bg-slate-900 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#c00015] text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
               }`}
             >
               <span>Semua Berkas</span>
             </button>
           </div>
 
-          {/* Search */}
+          {/* Kolom Pencarian */}
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama warga / NIK..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#c00015]"
+              placeholder="Cari nama warga atau NIK..."
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#c00015] transition"
             />
           </div>
         </div>
       </div>
 
-      {/* 4. Tabel Daftar Berkas KTP */}
+      {/* 4. Tabel Daftar Berkas KTP (Desktop Pas, Mobile Scrollable) */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full min-w-[720px] md:min-w-0 table-fixed text-left text-xs">
+            <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
               <tr>
-                <th className="py-3 px-4">Nama Pelapor &amp; Kontak</th>
-                <th className="py-3 px-4">NIK (Terproteksi)</th>
-                <th className="py-3 px-4">Akurasi Keyakinan AI</th>
-                <th className="py-3 px-4">Catatan Deteksi AI</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Aksi Tinjau</th>
+                <th className="py-3 pl-4 pr-3 whitespace-nowrap w-[240px]">Nama Pelapor &amp; Kontak</th>
+                <th className="py-3 px-2 whitespace-nowrap w-[130px]">NIK (Terproteksi)</th>
+                <th className="py-3 px-2 whitespace-nowrap w-[100px]">Kesesuaian</th>
+                <th className="py-3 px-3">Catatan Hasil Cek</th>
+                <th className="py-3 px-2 whitespace-nowrap w-[115px]">Status</th>
+                <th className="py-3 pl-2 pr-4 whitespace-nowrap w-[125px] text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredItems.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                  {/* Nama & Kontak */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <p className="font-heading font-semibold text-slate-900">
-                      {item.resident_name}
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      {item.phone} • {item.email}
-                    </p>
-                  </td>
-
-                  {/* NIK */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <span className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                      {maskNik(item.nik)}
-                    </span>
-                  </td>
-
-                  {/* Skor Keyakinan AI */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-2 rounded-full bg-slate-100 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${
-                            item.ai_confidence >= 85
-                              ? 'bg-emerald-600'
-                              : item.ai_confidence >= 60
-                              ? 'bg-amber-500'
-                              : 'bg-rose-500'
-                          }`}
-                          style={{ width: `${item.ai_confidence}%` }}
-                        />
-                      </div>
-                      <span className="font-semibold text-slate-800">
-                        {item.ai_confidence}%
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Catatan Deteksi AI */}
-                  <td className="py-3.5 px-4 max-w-xs">
-                    <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
-                      {item.ai_notes}
-                    </p>
-                  </td>
-
-                  {/* Status Badge */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    {item.status === 'flagged' && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                        <AlertTriangle className="w-3 h-3 text-amber-600" />
-                        Perlu Tinjauan
-                      </span>
-                    )}
-                    {item.status === 'auto_approved' && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                        Otomatis AI
-                      </span>
-                    )}
-                    {item.status === 'manual_approved' && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-800 border border-blue-200">
-                        <Check className="w-3 h-3 text-blue-600" />
-                        Disetujui Redaksi
-                      </span>
-                    )}
-                    {item.status === 'rejected' && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200">
-                        <XCircle className="w-3 h-3 text-rose-600" />
-                        Ditolak
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Tombol Aksi */}
-                  <td className="py-3.5 px-4 whitespace-nowrap text-right">
-                    <button
-                      onClick={() => setSelectedItem(item)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-semibold transition shadow-2xs"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Periksa Berkas</span>
-                    </button>
+              {filteredItems.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <FileText className="w-8 h-8 text-slate-300 mx-auto mb-1.5" />
+                    <p className="font-semibold text-slate-600">Tidak ada berkas ditemukan</p>
+                    <p className="text-[11px]">Coba sesuaikan filter atau kata kunci pencarian.</p>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredItems.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                    {/* Nama & Kontak */}
+                    <td className="py-3 px-3.5 align-middle min-w-0">
+                      <p className="font-heading font-semibold text-slate-900 truncate">
+                        {item.resident_name}
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-0.5 truncate" title={`${item.phone} • ${item.email}`}>
+                        {item.phone} • {item.email}
+                      </p>
+                    </td>
+
+                    {/* NIK */}
+                    <td className="py-3 px-2 whitespace-nowrap align-middle">
+                      <span className="font-mono text-xs font-semibold text-slate-700">
+                        {maskNik(item.nik)}
+                      </span>
+                    </td>
+
+                    {/* Skor Kesesuaian */}
+                    <td className="py-3 px-2 whitespace-nowrap align-middle">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-12 h-1.5 rounded-full bg-slate-100 overflow-hidden shrink-0">
+                          <div
+                            className={`h-full rounded-full ${
+                              item.ai_confidence >= 85
+                                ? 'bg-emerald-600'
+                                : item.ai_confidence >= 60
+                                ? 'bg-amber-500'
+                                : 'bg-rose-500'
+                            }`}
+                            style={{ width: `${item.ai_confidence}%` }}
+                          />
+                        </div>
+                        <span className="font-mono font-semibold text-slate-800 text-xs">
+                          {item.ai_confidence}%
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Catatan Validasi */}
+                    <td className="py-3 px-3 align-middle min-w-0">
+                      <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                        {item.ai_notes}
+                      </p>
+                    </td>
+
+                    {/* Status Badge (Ghost Minimalist Linear-Style - No Capsule Cover/Pill) */}
+                    <td className="py-3 px-2 whitespace-nowrap align-middle">
+                      {item.status === 'flagged' && (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700">
+                          <Clock className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Perlu Tinjau</span>
+                        </span>
+                      )}
+                      {(item.status === 'auto_approved' || item.status === 'manual_approved') && (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Terverifikasi</span>
+                        </span>
+                      )}
+                      {item.status === 'rejected' && (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700">
+                          <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                          <span>Ditolak</span>
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Tombol Aksi */}
+                    <td className="py-3 pl-2 pr-4 whitespace-nowrap align-middle text-center">
+                      <button
+                        onClick={() => setSelectedItem(item)}
+                        className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-white hover:bg-[#c00015] hover:text-white hover:border-[#c00015] text-slate-800 border border-slate-200 text-xs font-semibold transition shadow-2xs cursor-pointer group"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
+                        <span>Periksa</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* 5. Modal / Dialog Inspeksi Berkas Bersanding (Side-by-side Inspection) */}
+      {/* 5. Modal / Dialog Inspeksi Berkas Bersanding */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh]">
@@ -473,12 +465,12 @@ export default function AdminVerifikasiKtpPage() {
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-[#c00015]" />
                 <h3 className="font-heading font-bold text-sm text-slate-900">
-                  Inspeksi Dokumen KTP: {selectedItem.resident_name}
+                  Verifikasi Dokumen: {selectedItem.resident_name}
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedItem(null)}
-                className="p-1 rounded-md text-slate-400 hover:text-slate-800 transition"
+                className="p-1 rounded-md text-slate-400 hover:text-slate-800 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -490,7 +482,7 @@ export default function AdminVerifikasiKtpPage() {
                 {/* Kiri: Foto Dokumen KTP */}
                 <div className="space-y-2">
                   <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Foto Fisik KTP yang Diunggah:
+                    Foto Fisik e-KTP Pelapor:
                   </p>
                   <div className="rounded-xl border border-slate-200 bg-slate-100 overflow-hidden aspect-[16/10] relative group">
                     <img
@@ -510,22 +502,22 @@ export default function AdminVerifikasiKtpPage() {
                   </div>
                 </div>
 
-                {/* Kanan: Hasil Ekstraksi AI Vision/OCR */}
+                {/* Kanan: Hasil Ekstraksi Data */}
                 <div className="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                   <p className="font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Hasil Pembacaan AI OCR:</span>
+                    <FileText className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Hasil Ekstraksi Dokumen:</span>
                   </p>
 
                   <div className="space-y-2 divide-y divide-slate-200/60">
                     <div className="pt-1">
-                      <span className="text-slate-500">Nama Input Form:</span>
+                      <span className="text-slate-500">Nama di Formulir:</span>
                       <p className="font-bold text-slate-900">{selectedItem.resident_name}</p>
                     </div>
 
                     <div className="pt-2">
-                      <span className="text-slate-500">Nama Terbaca di KTP:</span>
-                      <p className="font-bold text-blue-700">
+                      <span className="text-slate-500">Nama pada Fisik KTP:</span>
+                      <p className="font-bold text-slate-900">
                         {selectedItem.ai_detected_name}
                       </p>
                     </div>
@@ -538,15 +530,15 @@ export default function AdminVerifikasiKtpPage() {
                     </div>
 
                     <div className="pt-2">
-                      <span className="text-slate-500">Skor Keyakinan AI:</span>
-                      <p className="font-bold text-amber-700">
-                        {selectedItem.ai_confidence}% (Perlu Konfirmasi Manusia)
+                      <span className="text-slate-500">Tingkat Kesesuaian:</span>
+                      <p className="font-bold text-slate-900">
+                        {selectedItem.ai_confidence}%
                       </p>
                     </div>
 
                     <div className="pt-2">
-                      <span className="text-slate-500">Alasan Ditandai AI:</span>
-                      <p className="text-slate-700 leading-snug mt-0.5">
+                      <span className="text-slate-500">Catatan Validasi:</span>
+                      <p className="text-slate-700 leading-relaxed mt-0.5">
                         {selectedItem.ai_notes}
                       </p>
                     </div>
@@ -556,29 +548,29 @@ export default function AdminVerifikasiKtpPage() {
             </div>
 
             {/* Footer Aksi Modal */}
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button
                 onClick={() =>
                   handleReject(
                     selectedItem.id,
-                    'Foto KTP buram / tidak terbaca dengan jelas. Mohon unggah ulang foto fisik KTP dengan pencahayaan terang.'
+                    'Foto KTP buram atau tidak terbaca dengan jelas. Pelapor diminta mengunggah ulang foto fisik e-KTP.'
                   )
                 }
-                className="px-3.5 py-2 rounded-lg bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold transition"
+                className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-lg bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 text-xs font-semibold transition cursor-pointer text-center"
               >
-                Minta Foto Ulang (Tolak)
+                Tolak Dokumen
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="px-3.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold transition"
+                  className="flex-1 sm:flex-initial px-3.5 py-2.5 sm:py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold transition cursor-pointer text-center"
                 >
                   Tutup
                 </button>
                 <button
                   onClick={() => handleApprove(selectedItem.id)}
-                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow-2xs flex items-center gap-1.5"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>Setujui KTP Sah</span>

@@ -22,6 +22,8 @@ import {
   AlertTriangle,
   MessageSquare,
   Globe,
+  Search,
+  FileCheck,
 } from 'lucide-react'
 import { DUMMY_REPORTS } from '@/data/dummyReports'
 
@@ -138,13 +140,44 @@ export default function HaloJurnalLaporanDetailPage() {
         .eq('laporan_id', id)
         .order('created_at', { ascending: true })
 
-      if (!error && chatData) {
-        setMessages(chatData)
+      let merged = chatData || []
+      if (typeof window !== 'undefined') {
+        const local = JSON.parse(
+          localStorage.getItem(`halo_jurnal_chat_${id}`) ||
+          (report?.nomor_tiket ? localStorage.getItem(`halo_jurnal_chat_${report.nomor_tiket}`) : null) ||
+          '[]'
+        )
+        const map = new Map<string, any>()
+        merged.forEach((m: any) => map.set(m.id, m))
+        local.forEach((m: any) => {
+          if (!map.has(m.id)) map.set(m.id, m)
+        })
+        merged = Array.from(map.values()).sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
       }
-    } catch (err) {
-      console.error('Chat fetch error:', err)
+      setMessages(merged)
+    } catch {
+      if (typeof window !== 'undefined') {
+        const local = JSON.parse(
+          localStorage.getItem(`halo_jurnal_chat_${id}`) ||
+          (report?.nomor_tiket ? localStorage.getItem(`halo_jurnal_chat_${report.nomor_tiket}`) : null) ||
+          '[]'
+        )
+        setMessages(local)
+      }
     }
   }
+
+  useEffect(() => {
+    fetchChatMessages()
+    window.addEventListener('storage', fetchChatMessages)
+    window.addEventListener('focus', fetchChatMessages)
+    return () => {
+      window.removeEventListener('storage', fetchChatMessages)
+      window.removeEventListener('focus', fetchChatMessages)
+    }
+  }, [id, report?.nomor_tiket])
 
   const fetchReportDetail = async () => {
     setLoading(true)
@@ -289,23 +322,56 @@ export default function HaloJurnalLaporanDetailPage() {
         }
       }
 
-      const { data: newMsg, error } = await supabase
-        .from('chat_messages')
-        .insert({
+      let sentMsg = null
+      try {
+        const { data: newMsg, error } = await supabase
+          .from('chat_messages')
+          .insert({
+            laporan_id: id,
+            sender_id: user.id,
+            message: chatMessage.trim() || 'Mengirim lampiran berkas',
+            file_url: fileUrl,
+            file_type: fileType,
+          })
+          .select(`*, profiles:sender_id(full_name, role)`)
+          .single()
+
+        if (!error && newMsg) {
+          sentMsg = newMsg
+        }
+      } catch {}
+
+      if (!sentMsg) {
+        sentMsg = {
+          id: `chat-citizen-${Date.now()}`,
           laporan_id: id,
           sender_id: user.id,
-          message: chatMessage.trim() || 'Mengirim lampiran berkas',
+          message: chatMessage.trim() || 'Mengirim berkas',
           file_url: fileUrl,
           file_type: fileType,
-        })
-        .select(`*, profiles:sender_id(full_name, role)`)
-        .single()
-
-      if (!error && newMsg) {
-        setMessages((prev) => [...prev, newMsg])
-        setChatMessage('')
-        setChatFile(null)
+          created_at: new Date().toISOString(),
+          profiles: {
+            full_name: user?.user_metadata?.full_name || 'Warga Pelapor',
+            role: 'citizen',
+          },
+        }
       }
+
+      setMessages((prev) => {
+        const next = [...prev, sentMsg]
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(`halo_jurnal_chat_${id}`, JSON.stringify(next))
+            if (report?.nomor_tiket) {
+              localStorage.setItem(`halo_jurnal_chat_${report.nomor_tiket}`, JSON.stringify(next))
+            }
+            window.dispatchEvent(new Event('storage'))
+          } catch {}
+        }
+        return next
+      })
+      setChatMessage('')
+      setChatFile(null)
     } catch (err) {
       console.error('Send message error:', err)
     } finally {
@@ -330,38 +396,52 @@ export default function HaloJurnalLaporanDetailPage() {
     }
   }
 
-  // Construct status timeline items
+  // Construct status timeline items (difilter dari log teknis database yang membingungkan warga)
   const getTimelineItems = () => {
     if (report?.status_log && report.status_log.length > 0) {
-      // Sort descending (latest on top)
-      return [...report.status_log]
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .map((log) => {
-          let title = 'Laporan Diterima'
-          if (log.status === 'selesai') title = 'Laporan Selesai'
-          else if (log.status === 'ditindaklanjuti') title = 'Laporan Ditindaklanjuti'
-          else if (log.status === 'diproses') title = 'Laporan Diproses'
+      // 1. Saring pesan teknis seperti perubahan visibilitas internal
+      const meaningfulLogs = report.status_log.filter((log: any) => {
+        if (!log.catatan) return true
+        const text = log.catatan.toLowerCase()
+        if (
+          text.startsWith('visibilitas laporan diatur') ||
+          text.includes('visibilitas diatur ke')
+        ) {
+          return false
+        }
+        return true
+      })
 
-          let defaultNote = 'Laporan baru diterima'
-          if (log.status === 'selesai') {
-            defaultNote = 'Status diubah menjadi selesai oleh Admin Jurnal Sukabumi.'
-          } else if (log.status === 'ditindaklanjuti') {
-            defaultNote = 'Status diubah menjadi ditindaklanjuti oleh Admin Jurnal Sukabumi.'
-          } else if (log.status === 'diproses') {
-            defaultNote = 'Status diubah menjadi diproses oleh Admin Jurnal Sukabumi.'
-          }
+      if (meaningfulLogs.length > 0) {
+        return [...meaningfulLogs]
+          .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .map((log: any) => {
+            let title = 'Laporan Diterima'
+            if (log.status === 'selesai') title = 'Laporan Selesai Dituntaskan'
+            else if (log.status === 'ditindaklanjuti') title = 'Koordinasi Dinas Instansi'
+            else if (log.status === 'diproses') title = 'Investigasi Lapangan'
 
-          return {
-            id: log.id,
-            status: log.status,
-            title,
-            date: formatLogDate(log.created_at),
-            catatan: log.catatan || defaultNote,
-          }
-        })
+            let defaultNote = 'Laporan telah diverifikasi oleh tim Halo Jurnal.'
+            if (log.status === 'selesai') {
+              defaultNote = 'Penanganan masalah telah dituntaskan dan dikonfirmasi selesai.'
+            } else if (log.status === 'ditindaklanjuti') {
+              defaultNote = 'Laporan diteruskan ke instansi dinas berwenang untuk tindak lanjut teknis.'
+            } else if (log.status === 'diproses') {
+              defaultNote = 'Tim redaksi sedang memvalidasi fakta dan menginvestigasi kondisi lapangan.'
+            }
+
+            return {
+              id: log.id,
+              status: log.status,
+              title,
+              date: formatLogDate(log.created_at),
+              catatan: log.catatan || defaultNote,
+            }
+          })
+      }
     }
 
-    // Fallback if no explicit status_log records
+    // Fallback yang rapi & berbobot
     const items = []
     const createdAt = report?.created_at || new Date().toISOString()
 
@@ -369,41 +449,36 @@ export default function HaloJurnalLaporanDetailPage() {
       items.push({
         id: 'log-3',
         status: 'selesai',
-        title: 'Laporan Selesai',
-        date: formatLogDate(new Date(new Date(createdAt).getTime() + 86400000 * 5).toISOString()),
-        catatan: 'Status diubah menjadi selesai oleh Admin Jurnal Sukabumi.',
+        title: 'Laporan Selesai Dituntaskan',
+        date: formatLogDate(new Date(new Date(createdAt).getTime() + 86400000 * 3).toISOString()),
+        catatan: 'Penanganan masalah telah selesai dituntaskan dan terverifikasi di lapangan.',
       })
+    }
+    if (report?.status === 'selesai' || report?.status === 'ditindaklanjuti') {
       items.push({
         id: 'log-2',
         status: 'ditindaklanjuti',
-        title: 'Laporan Ditindaklanjuti',
+        title: 'Koordinasi Dinas Terkait',
         date: formatLogDate(new Date(new Date(createdAt).getTime() + 86400000 * 2).toISOString()),
-        catatan: 'Status diubah menjadi ditindaklanjuti oleh Admin Jurnal Sukabumi.',
+        catatan: 'Laporan diteruskan ke instansi dinas berwenang Kabupaten/Kota Sukabumi.',
       })
-    } else if (report?.status === 'ditindaklanjuti') {
-      items.push({
-        id: 'log-2',
-        status: 'ditindaklanjuti',
-        title: 'Laporan Ditindaklanjuti',
-        date: formatLogDate(new Date(new Date(createdAt).getTime() + 86400000 * 2).toISOString()),
-        catatan: 'Status diubah menjadi ditindaklanjuti oleh Admin Jurnal Sukabumi.',
-      })
-    } else if (report?.status === 'diproses') {
+    }
+    if (report?.status === 'selesai' || report?.status === 'ditindaklanjuti' || report?.status === 'diproses') {
       items.push({
         id: 'log-1b',
         status: 'diproses',
-        title: 'Laporan Diproses',
+        title: 'Investigasi Lapangan',
         date: formatLogDate(new Date(new Date(createdAt).getTime() + 86400000 * 1).toISOString()),
-        catatan: 'Status diubah menjadi diproses oleh Admin Jurnal Sukabumi.',
+        catatan: 'Tim redaksi memvalidasi bukti dan melakukan investigasi di lokasi.',
       })
     }
 
     items.push({
       id: 'log-1',
       status: 'diterima',
-      title: 'Laporan Diterima',
+      title: 'Laporan Diterima Sistem',
       date: formatLogDate(createdAt),
-      catatan: 'Laporan baru diterima',
+      catatan: 'Laporan warga berhasil diterima dan diverifikasi dengan nomor tiket sah.',
     })
 
     return items
@@ -490,7 +565,7 @@ export default function HaloJurnalLaporanDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Column: Report Details & Riwayat Status */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-surface border border-outline-variant/80 rounded-3xl p-6 sm:p-8 shadow-xs">
+          <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xs">
             {/* Header: Category Badge + Status Badge + Dukung Button */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="flex items-center gap-2">
@@ -658,7 +733,7 @@ export default function HaloJurnalLaporanDetailPage() {
               )}
             </div>
 
-            {/* Section: Riwayat Status (Matches Photo 1 Exactly) */}
+            {/* Section: Riwayat Status (Tampilan Bersih & Rapi Persis Versi Awal) */}
             <div className="pt-2">
               <div className="pb-3 mb-6 border-b border-outline-variant/60">
                 <h2 className="font-heading font-bold text-lg sm:text-xl text-on-surface">
@@ -707,11 +782,11 @@ export default function HaloJurnalLaporanDetailPage() {
           </div>
         </div>
 
-        {/* Right Column: Chat Admin Terbatas / Chat Pelapor */}
+        {/* Right Column: Chat Langsung Redaksi */}
         <div className="lg:col-span-1 space-y-6">
           {canAccessChat ? (
             /* Active Chat Room for Reporter & Admin */
-            <div className="bg-surface border border-outline-variant/80 rounded-3xl p-5 sm:p-6 shadow-xs">
+            <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs">
               <div className="flex items-center justify-between pb-3 mb-4 border-b border-outline-variant/60">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-primary" />

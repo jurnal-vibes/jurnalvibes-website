@@ -83,6 +83,34 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
     };
   }, [isOpen]);
 
+  // Auto-record views when user watches a reel
+  useEffect(() => {
+    if (!isOpen) return;
+    const activeReel = reels[currentIndex];
+    if (!activeReel) return;
+
+    try {
+      const saved = localStorage.getItem('jurnal_wave_reels');
+      if (saved) {
+        const parsed: Reel[] = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const updated = parsed.map((r) => {
+            if (r.id === activeReel.id) {
+              const currentNum = parseInt(String(r.viewsCount || '0').replace(/[^0-9]/g, ''), 10) || 0;
+              const newCount = currentNum + 1;
+              return {
+                ...r,
+                viewsCount: newCount >= 1000 ? `${(newCount / 1000).toFixed(1)}k` : `${newCount}`,
+              };
+            }
+            return r;
+          });
+          localStorage.setItem('jurnal_wave_reels', JSON.stringify(updated));
+        }
+      }
+    } catch {}
+  }, [isOpen, currentIndex, reels]);
+
   // Handle Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
@@ -324,21 +352,35 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
               {/* Bottom Video Details Overlay */}
               <div className="absolute inset-x-0 bottom-0 z-20 p-5 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col gap-2 pointer-events-none">
                 <div className="pointer-events-auto flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-sm text-white hover:underline cursor-pointer">
-                    {reel.creator || '@jurnalvibes'}
-                  </span>
+                  <a
+                    href={reel.socialUrl || (reel.platform === 'tiktok' ? `https://www.tiktok.com/@${(reel.creator || 'jurnalvibes').replace('@', '')}` : `https://www.instagram.com/${(reel.creator || 'jurnalvibes').replace('@', '')}`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-sm text-white hover:underline cursor-pointer flex items-center gap-1 group"
+                    title={`Buka akun ${reel.creator || '@jurnalvibes'} di media sosial`}
+                  >
+                    <span>{reel.creator || '@jurnalvibes'}</span>
+                    <ExternalLink className="w-3 h-3 text-white/70 group-hover:text-white transition-colors" />
+                  </a>
                   {reel.category && (
                     <span className="text-[10px] font-bold bg-white/20 backdrop-blur-xs text-white px-2 py-0.5 rounded-full uppercase">
                       {reel.category}
                     </span>
                   )}
                   <a
-                    href="https://instagram.com"
+                    href={reel.socialUrl || (reel.platform === 'tiktok' ? `https://www.tiktok.com/@${(reel.creator || 'jurnalvibes').replace('@', '')}` : `https://www.instagram.com/${(reel.creator || 'jurnalvibes').replace('@', '')}`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/90 hover:text-white bg-white/15 hover:bg-white/25 backdrop-blur-xs px-2.5 py-0.5 rounded-full transition-colors pointer-events-auto cursor-pointer"
+                    title="Buka postingan asli di media sosial pembuat video"
                   >
-                    <span>Buka di Medsos</span>
+                    <span>
+                      {reel.platform === 'tiktok' || reel.socialUrl?.includes('tiktok.com')
+                        ? 'Buka di TikTok'
+                        : reel.platform === 'youtube' || reel.socialUrl?.includes('youtube.com')
+                        ? 'Buka di YouTube'
+                        : 'Buka di Instagram'}
+                    </span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
