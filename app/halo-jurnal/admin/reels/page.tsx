@@ -299,7 +299,7 @@ export default function AdminReelsPage() {
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <span className="text-xs font-medium text-slate-500">Sistem Tayangan</span>
           <p className="text-2xl font-bold font-heading text-slate-900">Hitung Otomatis</p>
-          <p className="text-[11px] text-emerald-700 font-medium">Views naik organik saat diputar warga</p>
+          <p className="text-[11px] text-slate-500 font-medium">Views naik organik saat diputar warga</p>
         </div>
       </div>
 
@@ -819,7 +819,7 @@ export default function AdminReelsPage() {
                 <div className="text-[11px] text-slate-600 space-y-0.5 min-w-0">
                   <p className="font-semibold text-slate-900 truncate">{formTitle || 'Judul Video Reels'}</p>
                   <p className="text-slate-500 font-mono truncate">{formCreator || '@kreator'} • {formPlatform}</p>
-                  <p className="text-emerald-700 font-medium">✓ Siap diputar di web &amp; terhubung ke medsos asli</p>
+                  <p className="text-slate-600 font-medium">✓ Siap diputar di web &amp; terhubung ke medsos asli</p>
                 </div>
               </div>
 

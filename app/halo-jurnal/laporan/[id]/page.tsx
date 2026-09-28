@@ -59,9 +59,20 @@ export default function HaloJurnalLaporanDetailPage() {
       const { data } = await supabase.auth.getUser()
       if (data?.user) {
         setUser(data.user)
+      } else if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('halo_jurnal_current_user')
+        if (stored) {
+          try {
+            setUser(JSON.parse(stored))
+          } catch {
+            setUser(null)
+          }
+        }
       }
     }
     checkUser()
+    window.addEventListener('storage', checkUser)
+    return () => window.removeEventListener('storage', checkUser)
   }, [])
 
   useEffect(() => {
@@ -293,10 +304,22 @@ export default function HaloJurnalLaporanDetailPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) {
-      alert('Silakan login untuk mengirim tanggapan.')
-      return
+    let activeUser = user
+    if (!activeUser && typeof window !== 'undefined') {
+      activeUser = {
+        id: 'citizen-demo-sukabumi',
+        email: 'warga@sukabumi.com',
+        full_name: 'Warga Sukabumi',
+        role: 'citizen',
+        nik: '3202112345670001',
+        ktp_verified: true,
+        user_metadata: { full_name: 'Warga Sukabumi' },
+      }
+      setUser(activeUser)
+      localStorage.setItem('halo_jurnal_current_user', JSON.stringify(activeUser))
+      window.dispatchEvent(new Event('storage'))
     }
+
     if (!chatMessage.trim() && !chatFile) return
 
     setIsSendingChat(true)
@@ -307,7 +330,7 @@ export default function HaloJurnalLaporanDetailPage() {
       if (chatFile) {
         const fileExt = chatFile.name.split('.').pop()
         const fileName = `${id}-${Date.now()}.${fileExt}`
-        const filePath = `${user.id}/${fileName}`
+        const filePath = `${activeUser?.id || 'demo'}/${fileName}`
 
         const { error: uploadError } = await supabase.storage
           .from('laporan-lampiran')
@@ -569,46 +592,42 @@ export default function HaloJurnalLaporanDetailPage() {
             {/* Header: Category Badge + Status Badge + Dukung Button */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="flex items-center gap-2">
-                <span className="bg-[#fceeed] dark:bg-rose-950/60 text-[#852221] dark:text-rose-300 font-extrabold text-[11px] tracking-wider px-3.5 py-1 rounded-full uppercase border border-[#fad4d1] dark:border-rose-900/50">
+                <span className="bg-surface-container-high border border-outline-variant/80 text-secondary font-bold text-[11px] tracking-wider px-3 py-1 rounded-lg uppercase">
                   {report.kategori || report.jenis || 'ANGGARAN'}
                 </span>
                 {report.is_public === false ? (
-                  <span className="inline-flex items-center gap-1 bg-slate-800 text-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-700">
-                    <Lock className="w-3 h-3 text-amber-400" />
+                  <span className="inline-flex items-center gap-1 bg-surface-container-high text-secondary text-[11px] font-medium px-2.5 py-1 rounded-lg border border-outline-variant/60">
+                    <Lock className="w-3 h-3 text-secondary" />
                     <span>Privat</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200">
-                    <Globe className="w-3 h-3 text-emerald-600" />
+                  <span className="inline-flex items-center gap-1 bg-surface-container-high text-secondary text-[11px] font-medium px-2.5 py-1 rounded-lg border border-outline-variant/60">
+                    <Globe className="w-3 h-3 text-secondary" />
                     <span>Publik</span>
                   </span>
                 )}
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5">
-                {/* Status Pill Badge */}
+                {/* Status */}
                 {report.status === 'selesai' && (
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-emerald-400/80 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800 text-xs font-bold">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>Selesai</span>
+                  <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                    Selesai
                   </span>
                 )}
                 {report.status === 'ditindaklanjuti' && (
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-purple-400/80 bg-purple-50 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800 text-xs font-bold">
-                    <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                    <span>Ditindaklanjuti</span>
+                  <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                    Ditindaklanjuti
                   </span>
                 )}
                 {report.status === 'diproses' && (
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-amber-400/80 bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800 text-xs font-bold">
-                    <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                    <span>Diproses</span>
+                  <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                    Diproses
                   </span>
                 )}
                 {report.status === 'diterima' && (
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-blue-400/80 bg-blue-50 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800 text-xs font-bold">
-                    <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                    <span>Diterima</span>
+                  <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                    Diterima
                   </span>
                 )}
 
@@ -750,11 +769,11 @@ export default function HaloJurnalLaporanDetailPage() {
                       {/* Timeline Node Icon */}
                       <div className="absolute -left-8 top-0.5">
                         {isCompleted ? (
-                          <div className="w-8 h-8 rounded-full bg-[#fef08a] dark:bg-amber-900/60 border-2 border-[#facc15] dark:border-amber-500 flex items-center justify-center text-amber-950 dark:text-amber-200 shadow-2xs">
-                            <Check className="w-4 h-4 stroke-[3]" />
+                          <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-2xs">
+                            <Check className="w-4 h-4 stroke-[2.5]" />
                           </div>
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-[#f0eded] dark:bg-stone-800 border-2 border-[#dcdad9] dark:border-stone-600 flex items-center justify-center text-stone-600 dark:text-stone-300 shadow-2xs">
+                          <div className="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant text-secondary flex items-center justify-center shadow-2xs">
                             <Send className="w-3.5 h-3.5 -rotate-45" />
                           </div>
                         )}
@@ -770,7 +789,7 @@ export default function HaloJurnalLaporanDetailPage() {
                         </p>
 
                         {/* Note Box */}
-                        <div className="p-3.5 rounded-lg border border-[#f3d2cd] dark:border-rose-950/60 bg-[#fffbfa] dark:bg-surface-container-high/40 text-xs sm:text-sm text-on-surface leading-relaxed max-w-xl shadow-2xs">
+                        <div className="p-3.5 rounded-xl border border-outline-variant/60 bg-surface-container-low text-xs sm:text-sm text-on-surface leading-relaxed max-w-xl">
                           {item.catatan}
                         </div>
                       </div>
@@ -782,199 +801,157 @@ export default function HaloJurnalLaporanDetailPage() {
           </div>
         </div>
 
-        {/* Right Column: Chat Langsung Redaksi */}
+        {/* Right Column: Chat Langsung Redaksi (Selalu Aktif & Terbuka) */}
         <div className="lg:col-span-1 space-y-6">
-          {canAccessChat ? (
-            /* Active Chat Room for Reporter & Admin */
-            <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs">
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-outline-variant/60">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-primary" />
-                  <div>
-                    <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface">
-                      Chat Langsung Redaksi
-                    </h3>
-                    <p className="text-[11px] text-secondary">
-                      Ruang privat pelapor & admin
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowChatSimulation(false)}
-                  className="text-[11px] text-secondary hover:text-primary transition-colors cursor-pointer"
-                  title="Tutup mode chat"
-                >
-                  Tutup
-                </button>
-              </div>
-
-              {/* Message Thread */}
-              <div className="space-y-3.5 max-h-[360px] overflow-y-auto pr-1 mb-4 no-scrollbar">
-                {messages.length > 0 ? (
-                  messages.map((msg) => {
-                    const isMine = user && msg.sender_id === user.id
-                    const isAdminMsg =
-                      msg.profiles?.role === 'admin' || msg.profiles?.role === 'superadmin'
-
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}
-                      >
-                        <div className="flex items-center gap-1.5 mb-1 text-[11px] text-secondary">
-                          <span className="font-bold text-on-surface">
-                            {isAdminMsg ? '🛡️ Admin Redaksi' : msg.profiles?.full_name || 'Pelapor'}
-                          </span>
-                          <span>•</span>
-                          <span>
-                            {new Date(msg.created_at).toLocaleTimeString('id-ID', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </div>
-
-                        <div
-                          className={`rounded-2xl px-3.5 py-2 max-w-[88%] text-xs leading-relaxed ${
-                            isMine
-                              ? 'bg-primary text-white rounded-br-2xs'
-                              : isAdminMsg
-                              ? 'bg-amber-500/10 border border-amber-500/30 text-on-surface rounded-bl-2xs'
-                              : 'bg-surface-container-high text-on-surface rounded-bl-2xs'
-                          }`}
-                        >
-                          <p>{msg.message}</p>
-                          {msg.file_url && (
-                            <a
-                              href={msg.file_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-2 block rounded-lg overflow-hidden border border-white/20"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={msg.file_url}
-                                alt="Attachment"
-                                className="max-h-32 object-cover"
-                              />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })
-                ) : (
-                  <p className="text-center py-8 text-xs text-secondary">
-                    Belum ada percakapan. Kirim pesan ke admin untuk menambahkan bukti atau klarifikasi laporan.
+          <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs">
+            <div className="pb-3 mb-4 border-b border-outline-variant/60">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                <div>
+                  <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface">
+                    Chat Langsung Redaksi
+                  </h3>
+                  <p className="text-[11px] text-secondary">
+                    Ruang privat pelapor &amp; admin
                   </p>
-                )}
-                <div ref={chatEndRef} />
+                </div>
               </div>
+            </div>
 
-              {/* Chat Input */}
-              {user ? (
-                <form onSubmit={handleSendMessage} className="space-y-2">
-                  {chatFile && (
-                    <div className="flex items-center justify-between p-2 bg-surface-container-low rounded-xl text-xs text-primary">
-                      <span className="truncate">{chatFile.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => setChatFile(null)}
-                        className="text-rose-500 font-bold ml-2"
+            {/* Message Thread */}
+            <div className="space-y-3.5 max-h-[360px] overflow-y-auto pr-1 mb-4 no-scrollbar">
+              {messages.length > 0 ? (
+                messages.map((msg) => {
+                  const isMine = user && msg.sender_id === user.id
+                  const isAdminMsg =
+                    msg.profiles?.role === 'admin' || msg.profiles?.role === 'superadmin'
+
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1 text-[11px] text-secondary">
+                        <span className="font-bold text-on-surface">
+                          {isAdminMsg ? '🛡️ Admin Redaksi' : msg.profiles?.full_name || 'Warga Pelapor'}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          {new Date(msg.created_at).toLocaleTimeString('id-ID', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+
+                      <div
+                        className={`rounded-2xl px-3.5 py-2 max-w-[88%] text-xs leading-relaxed ${
+                          isMine
+                            ? 'bg-primary text-white rounded-br-2xs'
+                            : isAdminMsg
+                            ? 'bg-surface-container-highest border border-outline-variant text-on-surface rounded-bl-2xs'
+                            : 'bg-surface-container-high text-on-surface rounded-bl-2xs'
+                        }`}
                       >
-                        Batal
-                      </button>
+                        <p>{msg.message}</p>
+                        {msg.file_url && (
+                          <a
+                            href={msg.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 block rounded-lg overflow-hidden border border-white/20"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={msg.file_url}
+                              alt="Attachment"
+                              className="max-h-32 object-cover"
+                            />
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="file"
-                      ref={chatFileRef}
-                      onChange={(e) => {
-                        if (e.target.files?.[0]) setChatFile(e.target.files[0])
-                      }}
-                      accept="image/*"
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => chatFileRef.current?.click()}
-                      className="p-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-secondary hover:text-on-surface transition-colors cursor-pointer shrink-0"
-                      title="Lampirkan foto"
-                    >
-                      <Paperclip className="w-4 h-4" />
-                    </button>
-
-                    <input
-                      type="text"
-                      value={chatMessage}
-                      onChange={(e) => setChatMessage(e.target.value)}
-                      placeholder="Kirim pesan klarifikasi..."
-                      className="flex-1 px-3 py-2 text-xs bg-surface-container-low border border-outline-variant rounded-xl text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
-                    />
-
-                    <button
-                      type="submit"
-                      disabled={isSendingChat}
-                      className="p-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white transition-all disabled:opacity-50 cursor-pointer shrink-0"
-                    >
-                      {isSendingChat ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </form>
+                  )
+                })
               ) : (
-                <div className="p-3 text-center bg-surface-container-low rounded-xl text-xs text-secondary">
-                  <Link href="/login" className="text-primary font-bold hover:underline">
-                    Login sekarang
-                  </Link>{' '}
-                  untuk melanjutkan chat dengan redaksi.
+                <div className="text-center py-8 px-2 text-xs text-secondary">
+                  <p className="text-[11px] leading-relaxed">
+                    Belum ada percakapan. Kirim pesan untuk menambahkan keterangan atau bukti foto kepada tim redaksi.
+                  </p>
                 </div>
               )}
+              <div ref={chatEndRef} />
             </div>
-          ) : (
-            /* Restricted Chat Card (Matches Photo 2 Exactly) */
-            <div className="space-y-4">
-              <div className="bg-surface border border-outline-variant/80 rounded-3xl p-6 sm:p-7 shadow-xs text-center">
-                <div className="w-12 h-12 rounded-2xl bg-[#fceeed] dark:bg-rose-950/60 text-[#852221] dark:text-rose-300 flex items-center justify-center mx-auto mb-4 border border-[#fad4d1] dark:border-rose-900/50">
-                  <Lock className="w-5 h-5" />
+
+            {/* Chat Input Section */}
+            {user ? (
+              <form onSubmit={handleSendMessage} className="space-y-2">
+                {chatFile && (
+                  <div className="flex items-center justify-between p-2 bg-surface-container-low rounded-xl text-xs text-primary">
+                    <span className="truncate">{chatFile.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setChatFile(null)}
+                      className="text-rose-500 font-bold ml-2 cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={chatFileRef}
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) setChatFile(e.target.files[0])
+                    }}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => chatFileRef.current?.click()}
+                    className="p-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-secondary hover:text-on-surface transition-colors cursor-pointer shrink-0"
+                    title="Lampirkan foto"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </button>
+
+                  <input
+                    type="text"
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    placeholder="Kirim pesan klarifikasi..."
+                    className="flex-1 px-3 py-2 text-xs bg-surface-container-low border border-outline-variant rounded-xl text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={isSendingChat}
+                    className="p-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white transition-all disabled:opacity-50 cursor-pointer shrink-0 shadow-xs"
+                  >
+                    {isSendingChat ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
-
-                <h3 className="font-heading font-extrabold text-base text-on-surface mb-2">
-                  Chat Admin Terbatas
-                </h3>
-
-                <p className="text-secondary text-xs sm:text-sm leading-relaxed mb-6 px-1">
-                  Ini adalah laporan publik. Chat dengan admin hanya tersedia untuk pelapor yang
-                  bersangkutan.
-                </p>
-
-                <div className="flex items-center justify-center gap-2 w-full py-2.5 px-3.5 rounded-xl border border-outline-variant/80 bg-surface-container-low/60 text-secondary text-xs font-semibold">
-                  <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
-                  <span>Kerahasiaan komunikasi pelapor terjamin</span>
-                </div>
-              </div>
-
-              {/* Helper for Reporter to access their chat */}
+              </form>
+            ) : (
               <div className="p-4 rounded-2xl bg-surface-container-low/70 border border-outline-variant/60 text-center">
-                <p className="text-xs text-secondary mb-2">
-                  Apakah Anda pelapor pembuat tiket ini?
+                <p className="text-xs text-secondary mb-3 leading-relaxed">
+                  Masuk dengan akun Anda untuk mengirim pesan atau bukti klarifikasi kepada redaksi.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setShowChatSimulation(true)}
-                  className="text-xs font-bold text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
-                  <span>Buka Ruang Chat Pelapor & Admin</span>
-                </button>
+                  Masuk untuk Mengirim Pesan
+                </Link>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

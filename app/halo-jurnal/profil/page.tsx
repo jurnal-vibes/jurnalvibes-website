@@ -376,13 +376,13 @@ export default function HaloJurnalProfilPage() {
                 {profile?.full_name || 'Pengguna Halo Jurnal'}
               </h1>
               {profile?.ktp_verified ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/80 text-secondary text-xs font-semibold">
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary" />
                   Warga Terverifikasi
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-bold border border-amber-500/20">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/60 text-secondary text-xs font-medium">
+                  <AlertCircle className="w-3.5 h-3.5 text-secondary" />
                   Menunggu Verifikasi KTP
                 </span>
               )}
@@ -491,7 +491,7 @@ export default function HaloJurnalProfilPage() {
                 onClick={() => setShowKtpModal(true)}
                 className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/60 flex items-start gap-3 cursor-pointer hover:border-primary/50 transition-colors group"
               >
-                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold text-secondary uppercase tracking-wider">
@@ -536,13 +536,13 @@ export default function HaloJurnalProfilPage() {
                     Dokumen Verifikasi (e-KTP)
                   </h2>
                   {profile?.ktp_verified ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-200/50">
-                      <ShieldCheck className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-surface-container-high text-secondary text-[10px] font-semibold border border-outline-variant/60">
+                      <ShieldCheck className="w-3 h-3 text-primary" />
                       Valid
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 text-[10px] font-extrabold uppercase tracking-wider border border-amber-200/50">
-                      <AlertCircle className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-surface-container-high text-secondary text-[10px] font-medium border border-outline-variant/60">
+                      <AlertCircle className="w-3 h-3 text-secondary" />
                       Perlu Tinjauan
                     </span>
                   )}
@@ -696,9 +696,9 @@ export default function HaloJurnalProfilPage() {
             <div className="lg:col-span-6 bg-surface-container-low rounded-2xl border border-outline-variant/60 p-5 flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <ShieldCheck className="w-4 h-4 text-primary" />
                   <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-on-surface">
-                    Jaminan Keamanan & Perlindungan Privasi (UU PDP)
+                    Jaminan Keamanan &amp; Perlindungan Privasi (UU PDP)
                   </h3>
                 </div>
 
@@ -706,7 +706,7 @@ export default function HaloJurnalProfilPage() {
                   <div className="flex items-start gap-2.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
                     <span>
-                      <strong className="text-on-surface font-semibold">Terenkripsi & Rahasia:</strong> Dokumen KTP Anda hanya dapat diakses oleh tim redaksi internal dan tidak pernah dibagikan ke pihak luar maupun feed publik.
+                      <strong className="text-on-surface font-semibold">Terenkripsi &amp; Rahasia:</strong> Dokumen KTP Anda hanya dapat diakses oleh tim redaksi internal dan tidak pernah dibagikan ke pihak luar maupun feed publik.
                     </span>
                   </div>
 
@@ -729,7 +729,7 @@ export default function HaloJurnalProfilPage() {
               {/* Catatan Privasi Bawah */}
               <div className="mt-4 pt-3.5 border-t border-outline-variant/40 flex items-center justify-between text-[11px] text-secondary">
                 <span className="flex items-center gap-1.5">
-                  <Lock className="w-3 h-3 text-emerald-600" />
+                  <Lock className="w-3 h-3 text-primary" />
                   Data Kependudukan Terlindungi Enkripsi
                 </span>
                 <span className="text-[10px] font-semibold text-secondary/80">

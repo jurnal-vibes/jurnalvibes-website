@@ -29,6 +29,21 @@ export default function HaloJurnalSubNav() {
           if (prof?.full_name) {
             setFullName(prof.full_name)
           }
+        } else if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('halo_jurnal_current_user')
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored)
+              setUser(parsed)
+              setFullName(parsed.full_name || parsed.user_metadata?.full_name || 'Warga Sukabumi')
+            } catch {
+              setUser(null)
+              setFullName(null)
+            }
+          } else {
+            setUser(null)
+            setFullName(null)
+          }
         }
       } catch (err) {
         console.error('Error fetching user for subnav:', err)
@@ -36,7 +51,14 @@ export default function HaloJurnalSubNav() {
         setCheckedAuth(true)
       }
     }
+
     checkUser()
+    window.addEventListener('storage', checkUser)
+    window.addEventListener('focus', checkUser)
+    return () => {
+      window.removeEventListener('storage', checkUser)
+      window.removeEventListener('focus', checkUser)
+    }
   }, [])
 
   const navLinks = [

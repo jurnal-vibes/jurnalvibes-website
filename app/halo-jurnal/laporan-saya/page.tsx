@@ -253,130 +253,90 @@ export default function HaloJurnalLaporanSayaPage() {
 
       {/* 2. Stat Cards Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
-        {/* TOTAL */}
-        <button
-          type="button"
-          onClick={() => setStatusFilter('Semua Status')}
-          className={`p-4 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left border ${
-            statusFilter === 'Semua Status' || statusFilter === 'TOTAL'
-              ? 'bg-surface border-primary ring-1 ring-primary/30 shadow-2xs'
-              : 'bg-surface hover:bg-surface-container-low border-outline-variant/70'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <ClipboardList className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-2xl text-on-surface leading-none block mb-1">
-              {totalCount}
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
-              Total Laporan
-            </span>
-          </div>
-        </button>
-
-        {/* DITERIMA */}
-        <button
-          type="button"
-          onClick={() => setStatusFilter('Diterima')}
-          className={`p-4 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left border ${
-            statusFilter === 'Diterima'
-              ? 'bg-surface border-blue-500 ring-1 ring-blue-500/30 shadow-2xs'
-              : 'bg-surface hover:bg-surface-container-low border-outline-variant/70'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <Inbox className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-2xl text-on-surface leading-none block mb-1">
-              {diterimaCount}
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
-              Diterima
-            </span>
-          </div>
-        </button>
-
-        {/* DIPROSES */}
-        <button
-          type="button"
-          onClick={() => setStatusFilter('Diproses')}
-          className={`p-4 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left border ${
-            statusFilter === 'Diproses'
-              ? 'bg-surface border-amber-500 ring-1 ring-amber-500/30 shadow-2xs'
-              : 'bg-surface hover:bg-surface-container-low border-outline-variant/70'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-2xl text-on-surface leading-none block mb-1">
-              {diprosesCount}
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
-              Diproses
-            </span>
-          </div>
-        </button>
-
-        {/* DITINDAKLANJUTI */}
-        <button
-          type="button"
-          onClick={() => setStatusFilter('Ditindaklanjuti')}
-          className={`p-4 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left border ${
-            statusFilter === 'Ditindaklanjuti'
-              ? 'bg-surface border-purple-500 ring-1 ring-purple-500/30 shadow-2xs'
-              : 'bg-surface hover:bg-surface-container-low border-outline-variant/70'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-2xl text-on-surface leading-none block mb-1">
-              {ditindaklanjutiCount}
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
-              Ditindaklanjuti
-            </span>
-          </div>
-        </button>
-
-        {/* SELESAI */}
-        <button
-          type="button"
-          onClick={() => setStatusFilter('Selesai')}
-          className={`p-4 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left border col-span-2 sm:col-span-1 ${
-            statusFilter === 'Selesai'
-              ? 'bg-surface border-emerald-500 ring-1 ring-emerald-500/30 shadow-2xs'
-              : 'bg-surface hover:bg-surface-container-low border-outline-variant/70'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <span className="font-heading font-bold text-2xl text-on-surface leading-none block mb-1">
-              {selesaiCount}
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
-              Selesai
-            </span>
-          </div>
-        </button>
+        {[
+          {
+            key: 'Semua Status',
+            label: 'Total Laporan',
+            count: totalCount,
+            icon: ClipboardList,
+            iconColor: 'bg-primary/10 text-primary border border-primary/20',
+            activeBorder: 'border-primary ring-1 ring-primary/25 shadow-2xs',
+            hoverBorder: 'hover:border-primary/40',
+            colSpan: '',
+          },
+          {
+            key: 'Diterima',
+            label: 'Diterima',
+            count: diterimaCount,
+            icon: Inbox,
+            iconColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
+            activeBorder: 'border-blue-500 ring-1 ring-blue-500/25 shadow-2xs',
+            hoverBorder: 'hover:border-blue-400/50',
+            colSpan: '',
+          },
+          {
+            key: 'Diproses',
+            label: 'Diproses',
+            count: diprosesCount,
+            icon: Clock,
+            iconColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+            activeBorder: 'border-amber-500 ring-1 ring-amber-500/25 shadow-2xs',
+            hoverBorder: 'hover:border-amber-400/50',
+            colSpan: '',
+          },
+          {
+            key: 'Ditindaklanjuti',
+            label: 'Ditindaklanjuti',
+            count: ditindaklanjutiCount,
+            icon: ShieldCheck,
+            iconColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20',
+            activeBorder: 'border-purple-500 ring-1 ring-purple-500/25 shadow-2xs',
+            hoverBorder: 'hover:border-purple-400/50',
+            colSpan: '',
+          },
+          {
+            key: 'Selesai',
+            label: 'Selesai',
+            count: selesaiCount,
+            icon: CheckCircle2,
+            iconColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+            activeBorder: 'border-emerald-500 ring-1 ring-emerald-500/25 shadow-2xs',
+            hoverBorder: 'hover:border-emerald-400/50',
+            colSpan: 'col-span-2 sm:col-span-1',
+          },
+        ].map((tab) => {
+          const Icon = tab.icon
+          const isActive =
+            statusFilter === tab.key || (tab.key === 'Semua Status' && statusFilter === 'TOTAL')
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setStatusFilter(tab.key)}
+              className={`p-4 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left border ${tab.colSpan} ${
+                isActive
+                  ? `bg-surface ${tab.activeBorder}`
+                  : `bg-surface hover:bg-surface-container-low border-outline-variant/70 ${tab.hoverBorder}`
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${tab.iconColor}`}
+                >
+                  <Icon className="w-4 h-4 stroke-[2.2px]" />
+                </div>
+              </div>
+              <div>
+                <span className="font-heading font-bold text-2xl text-on-surface leading-none block mb-1">
+                  {tab.count}
+                </span>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
+                  {tab.label}
+                </span>
+              </div>
+            </button>
+          )
+        })}
       </div>
 
       {/* 3. Search & Filter Bar */}
@@ -519,30 +479,26 @@ export default function HaloJurnalLaporanSayaPage() {
                     </span>
                   </div>
 
-                  {/* Status Pill */}
+                  {/* Status */}
                   <div>
                     {status === 'selesai' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 text-xs font-medium border border-emerald-200/60">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Selesai</span>
+                      <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                        Selesai
                       </span>
                     )}
                     {status === 'ditindaklanjuti' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 text-xs font-medium border border-purple-200/60">
-                        <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                        <span>Ditindaklanjuti</span>
+                      <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                        Ditindaklanjuti
                       </span>
                     )}
                     {status === 'diproses' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 text-xs font-medium border border-amber-200/60">
-                        <Clock className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Diproses</span>
+                      <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                        Diproses
                       </span>
                     )}
                     {status === 'diterima' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 text-xs font-medium border border-blue-200/60">
-                        <Inbox className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Diterima</span>
+                      <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                        Diterima
                       </span>
                     )}
                   </div>

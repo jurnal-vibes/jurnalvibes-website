@@ -58,7 +58,7 @@ export default function TentangKamiPage() {
         {/* Konten Redaksional */}
         <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-4">
           <p>
-            Portal berita <strong><a href="https://jurnalsukabumi.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.jurnalsukabumi.com</a></strong> berada di bawah naungan <strong>PT. Media Jurnal Sukabumi</strong>. Jurnalsukabumi.com hadir di tengah menjamurnya beragam media siber. Kehadirannya tentu saja diharapkan menjadi pembeda dengan media online lainnya.
+            Portal berita <strong>Jurnal Wave</strong> berada di bawah naungan <strong>PT. Media Jurnal Sukabumi</strong>. Jurnal Wave hadir di tengah menjamurnya beragam media siber. Kehadirannya tentu saja diharapkan menjadi pembeda dengan media online lainnya.
           </p>
           <p>
             Maka itu, dibidani oleh sumber daya manusia yang mumpuni, profesional, dan konsisten di bidang jurnalistik, kami hadir di tengah masyarakat menyajikan informasi yang jelas, seimbang, dan dapat dipercaya seputar Kota dan Kabupaten Sukabumi.

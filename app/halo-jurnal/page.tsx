@@ -25,9 +25,9 @@ export default async function HaloJurnalLandingPage() {
     .select('*, laporan_lampiran(file_url)')
     .eq('is_public', true)
     .order('created_at', { ascending: false })
-    .limit(3)
+    .limit(4)
 
-  const recentReports = dbRecentReports && dbRecentReports.length > 0 ? dbRecentReports : DUMMY_REPORTS.slice(0, 3)
+  const recentReports = dbRecentReports && dbRecentReports.length > 0 ? dbRecentReports : DUMMY_REPORTS.slice(0, 4)
 
   const { count: countTotal } = await supabase
     .from('laporan')
@@ -98,26 +98,26 @@ export default async function HaloJurnalLandingPage() {
       </section>
 
       {/* Category Cards Section */}
-      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 -mt-10 sm:-mt-20 md:-mt-32 relative z-30 pb-12 sm:pb-16">
+      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 -mt-10 sm:-mt-20 md:-mt-32 relative z-30 pb-8 sm:pb-12">
         <CategoryCards />
       </section>
 
       {/* Recent Reports Grid */}
-      <section className="bg-surface-container-low/60 border-y border-outline-variant/60 py-12 md:py-16 px-4 sm:px-6 md:px-6">
+      <section className="bg-surface-container-low/60 border-y border-outline-variant/60 py-8 sm:py-10 px-4 sm:px-6 md:px-8">
         <div className="max-w-container-max mx-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8 sm:mb-10">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-5 sm:mb-6">
             <div>
-              <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight">
+              <h2 className="font-heading font-bold text-xl sm:text-2xl text-on-surface tracking-tight">
                 Laporan Publik Terkini
               </h2>
-              <p className="text-secondary text-xs sm:text-sm mt-1">
+              <p className="text-secondary text-xs sm:text-sm mt-0.5">
                 Pantau perkembangan penanganan pengaduan masyarakat secara terbuka.
               </p>
             </div>
 
             <Link
               href="/halo-jurnal/feed-publik"
-              className="group inline-flex items-center gap-1.5 text-primary hover:text-primary-dark font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
+              className="group inline-flex items-center gap-1.5 text-primary hover:text-primary-dark font-semibold text-xs sm:text-sm transition-colors cursor-pointer self-start sm:self-auto"
             >
               <span className="group-hover:underline underline-offset-4">Lihat Semua Laporan</span>
               <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -129,61 +129,61 @@ export default async function HaloJurnalLandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="relative py-12 sm:py-16 bg-surface border-t border-outline-variant/60 overflow-hidden">
+      <section className="relative py-8 sm:py-10 bg-surface border-t border-outline-variant/60 overflow-hidden">
         {/* Subtle Ambient Glows */}
         <div className="absolute -left-12 -top-12 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
         <div className="absolute right-0 bottom-0 w-72 h-72 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
-        <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-5">
             {/* Laporan Masuk */}
-            <div className="group relative p-6 sm:py-7 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
-              <span className="font-heading font-extrabold text-3xl sm:text-4xl text-on-surface tracking-tight mb-1">
+            <div className="group relative p-4 sm:p-5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
+              <span className="font-heading font-bold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
                 {totalLaporan || 0}
               </span>
-              <span className="text-xs sm:text-sm font-bold text-on-surface uppercase tracking-wider mb-0.5">
+              <span className="text-xs font-bold text-on-surface uppercase tracking-wider mb-0.5">
                 Laporan Masuk
               </span>
-              <span className="text-[11px] sm:text-xs text-secondary">
+              <span className="text-[11px] text-secondary">
                 Aspirasi warga terhimpun
               </span>
             </div>
 
             {/* Tuntas Ditangani */}
-            <div className="group relative p-6 sm:py-7 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
-              <span className="font-heading font-extrabold text-3xl sm:text-4xl text-on-surface tracking-tight mb-1">
+            <div className="group relative p-4 sm:p-5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
+              <span className="font-heading font-bold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
                 {tuntasLaporan || 0}
               </span>
-              <span className="text-xs sm:text-sm font-bold text-on-surface uppercase tracking-wider mb-0.5">
+              <span className="text-xs font-bold text-on-surface uppercase tracking-wider mb-0.5">
                 Tuntas Ditangani
               </span>
-              <span className="text-[11px] sm:text-xs text-secondary">
+              <span className="text-[11px] text-secondary">
                 Solusi tervalidasi
               </span>
             </div>
 
             {/* Sedang Diproses */}
-            <div className="group relative p-6 sm:py-7 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
-              <span className="font-heading font-extrabold text-3xl sm:text-4xl text-on-surface tracking-tight mb-1">
+            <div className="group relative p-4 sm:p-5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
+              <span className="font-heading font-bold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
                 {prosesLaporan || 0}
               </span>
-              <span className="text-xs sm:text-sm font-bold text-on-surface uppercase tracking-wider mb-0.5">
+              <span className="text-xs font-bold text-on-surface uppercase tracking-wider mb-0.5">
                 Sedang Diproses
               </span>
-              <span className="text-[11px] sm:text-xs text-secondary">
+              <span className="text-[11px] text-secondary">
                 Tindak lanjut instansi
               </span>
             </div>
 
             {/* Transparansi */}
-            <div className="group relative p-6 sm:py-7 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
-              <span className="font-heading font-extrabold text-3xl sm:text-4xl text-on-surface tracking-tight mb-1">
+            <div className="group relative p-4 sm:p-5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
+              <span className="font-heading font-bold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
                 100%
               </span>
-              <span className="text-xs sm:text-sm font-bold text-on-surface uppercase tracking-wider mb-0.5">
+              <span className="text-xs font-bold text-on-surface uppercase tracking-wider mb-0.5">
                 Transparansi
               </span>
-              <span className="text-[11px] sm:text-xs text-secondary">
+              <span className="text-[11px] text-secondary">
                 Terbuka & akuntabel
               </span>
             </div>

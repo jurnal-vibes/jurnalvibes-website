@@ -46,15 +46,15 @@ export default function RecentPublicReports({ initialReports = [] }: RecentPubli
           return r
         })
 
-        // Filter ketat: HANYA yang berstatus publik (is_public !== false)
-        return allReports.filter((r) => r.is_public !== false).slice(0, 3)
+        // Filter ketat: HANYA yang berstatus publik (is_public !== false) - Ambil 4 agar sejajar sempurna 4 kolom
+        return allReports.filter((r) => r.is_public !== false).slice(0, 4)
       } catch (err) {
         console.error('Error loading public reports on client:', err)
       }
     }
 
     // SSR fallback: pastikan hanya is_public !== false
-    return source.filter((r: any) => r.is_public !== false).slice(0, 3)
+    return source.filter((r: any) => r.is_public !== false).slice(0, 4)
   }
 
   const [reports, setReports] = useState<any[]>(getFilteredPublicReports())
@@ -86,7 +86,7 @@ export default function RecentPublicReports({ initialReports = [] }: RecentPubli
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
       {reports.map((report) => {
         const imageUrl =
           report.laporan_lampiran &&
@@ -111,7 +111,7 @@ export default function RecentPublicReports({ initialReports = [] }: RecentPubli
             className="group bg-surface border border-outline-variant/70 hover:border-primary/50 rounded-2xl overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col"
           >
             {/* Top Media Thumbnail */}
-            <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-surface-container-high shrink-0">
+            <div className="relative h-28 sm:h-32 w-full overflow-hidden bg-surface-container-high shrink-0">
               {imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -121,8 +121,8 @@ export default function RecentPublicReports({ initialReports = [] }: RecentPubli
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-surface-container-high via-surface-container to-surface-container-low flex flex-col items-center justify-center p-3 text-center border-b border-outline-variant/40">
-                  <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
-                    <FileText className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
+                    <FileText className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[10px] font-bold text-secondary uppercase tracking-wider font-heading">
                     {report.kategori || 'Pengaduan Publik'}
@@ -132,30 +132,11 @@ export default function RecentPublicReports({ initialReports = [] }: RecentPubli
 
               {/* Floating Status Badge (Top-Left) */}
               <div className="absolute top-2.5 left-2.5 z-10">
-                {status === 'selesai' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md text-emerald-700 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider shadow-xs border border-emerald-500/30">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    <span>{report.jenis === 'inspirasi' ? 'Tayang' : 'Selesai'}</span>
-                  </span>
-                )}
-                {status === 'diproses' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider shadow-xs border border-amber-500/30">
-                    <Clock className="w-3 h-3 text-amber-600" />
-                    <span>Diproses</span>
-                  </span>
-                )}
-                {status === 'diterima' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md text-blue-700 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider shadow-xs border border-blue-500/30">
-                    <Clock className="w-3 h-3 text-blue-600" />
-                    <span>Diterima</span>
-                  </span>
-                )}
-                {status === 'ditindaklanjuti' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/95 dark:bg-slate-900/90 backdrop-blur-md text-purple-700 dark:text-purple-400 text-[10px] font-bold uppercase tracking-wider shadow-xs border border-purple-500/30">
-                    <ShieldCheck className="w-3 h-3 text-purple-600" />
-                    <span>Ditindaklanjuti</span>
-                  </span>
-                )}
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-black/65 backdrop-blur-md text-white text-[10px] font-semibold tracking-wide capitalize">
+                  {status === 'selesai'
+                    ? (report.jenis === 'inspirasi' ? 'Tayang' : 'Selesai')
+                    : status}
+                </span>
               </div>
 
               {/* Floating Date Badge (Top-Right) */}
@@ -166,12 +147,12 @@ export default function RecentPublicReports({ initialReports = [] }: RecentPubli
             </div>
 
             {/* Card Content */}
-            <div className="p-4 flex-1 flex flex-col justify-between">
+            <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
               <div>
-                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-1.5 line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+                <h3 className="font-heading font-bold text-xs sm:text-sm text-on-surface mb-1 line-clamp-2 group-hover:text-primary transition-colors leading-snug">
                   {report.judul}
                 </h3>
-                <p className="text-secondary text-xs line-clamp-2 leading-relaxed mb-3">
+                <p className="text-secondary text-[11px] sm:text-xs line-clamp-2 leading-relaxed mb-2.5">
                   {report.deskripsi}
                 </p>
               </div>
