@@ -9,7 +9,7 @@ import {
   AlertTriangle,
   Lightbulb,
   Info,
-  Sparkles,
+  BookOpen,
   UploadCloud,
   Send,
   Loader2,
@@ -405,7 +405,7 @@ function LaporForm() {
     { type: 'pengaduan' as const, label: 'Pengaduan', icon: AlertTriangle },
     { type: 'aspirasi' as const, label: 'Aspirasi', icon: Lightbulb },
     { type: 'informasi' as const, label: 'Informasi', icon: Info },
-    { type: 'inspirasi' as const, label: 'Inspirasi', icon: Sparkles },
+    { type: 'inspirasi' as const, label: 'Inspirasi', icon: BookOpen },
   ]
 
   const displayCategory =

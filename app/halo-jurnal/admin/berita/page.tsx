@@ -312,9 +312,9 @@ export default function AdminBeritaPage() {
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-500 font-medium">Pilihan Redaksi (Editor&apos;s Pick)</p>
-            <p className="text-2xl font-heading font-bold text-amber-600 mt-1">{editorsCount}</p>
+            <p className="text-2xl font-heading font-bold text-slate-900 mt-1">{editorsCount}</p>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
             <Star className="w-5 h-5" />
           </div>
         </div>
@@ -474,12 +474,12 @@ export default function AdminBeritaPage() {
                           onClick={() => handleToggleEditorsPick(article.id)}
                           className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer ${
                             article.isEditorsPick
-                              ? 'bg-amber-500/10 text-amber-700'
+                              ? 'bg-slate-100 text-slate-800 border border-slate-200'
                               : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                           }`}
                           title="Klik untuk jadikan atau batalkan status Pilihan Redaksi"
                         >
-                          <Star className={`w-3.5 h-3.5 ${article.isEditorsPick ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} />
+                          <Star className={`w-3.5 h-3.5 ${article.isEditorsPick ? 'text-slate-800 fill-slate-800' : 'text-slate-400'}`} />
                           <span>Pilihan</span>
                         </button>
                       </div>
@@ -496,7 +496,7 @@ export default function AdminBeritaPage() {
                         {/* Tombol Edit Nyata Berfungsi */}
                         <button
                           onClick={() => handleOpenEdit(article)}
-                          className="p-1.5 rounded-md text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition cursor-pointer"
+                          className="p-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
                           title="Edit Berita Ini"
                         >
                           <Edit className="w-3.5 h-3.5" />

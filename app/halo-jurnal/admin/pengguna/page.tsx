@@ -194,16 +194,16 @@ export default function AdminTimRedaksiPage() {
 
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-2xs">
+        <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
+            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{toastMessage}</span>
           </div>
           <button
             onClick={() => setToastMessage(null)}
-            className="text-emerald-700 hover:underline font-bold cursor-pointer"
+            className="text-slate-400 hover:text-white font-bold cursor-pointer"
           >
-            Tutup
+            ✕
           </button>
         </div>
       )}
@@ -216,7 +216,7 @@ export default function AdminTimRedaksiPage() {
         </div>
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs">
           <p className="text-xs text-slate-500 font-medium">Reporter / Jurnalis</p>
-          <p className="text-2xl font-heading font-bold text-blue-700 mt-1">
+          <p className="text-2xl font-heading font-bold text-slate-900 mt-1">
             {members.filter((m) => m.role.includes('Reporter')).length}
           </p>
         </div>
@@ -228,7 +228,7 @@ export default function AdminTimRedaksiPage() {
         </div>
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs">
           <p className="text-xs text-slate-500 font-medium">Status Aktif</p>
-          <p className="text-2xl font-heading font-bold text-emerald-600 mt-1">
+          <p className="text-2xl font-heading font-bold text-slate-900 mt-1">
             {members.filter((m) => m.status === 'aktif').length}
           </p>
         </div>
@@ -274,11 +274,11 @@ export default function AdminTimRedaksiPage() {
                   </td>
                   <td className="py-3.5 px-4">
                     {member.status === 'aktif' ? (
-                      <span className="text-xs font-semibold text-emerald-700">
+                      <span className="text-xs font-semibold text-slate-700">
                         Aktif
                       </span>
                     ) : (
-                      <span className="text-xs font-semibold text-amber-700">
+                      <span className="text-xs font-medium text-slate-500">
                         Cuti
                       </span>
                     )}

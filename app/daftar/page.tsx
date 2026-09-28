@@ -79,22 +79,6 @@ export default function DaftarPage() {
     }
   }
 
-  // Isi Otomatis untuk Uji Coba Cepat
-  const handleAutoFillDemo = () => {
-    setFullName('Siti Nurhaliza')
-    setNik('3202116508950002')
-    setEmail('siti.sukabumi@gmail.com')
-    setPhone('085723456789')
-    setPassword('WargaSukabumi123!')
-    setConfirmPassword('WargaSukabumi123!')
-    // Berikan contoh preview e-KTP dan mock file agar langsung lolos validasi wajib KTP
-    const sampleKtpSvg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250" viewBox="0 0 400 250"><rect width="400" height="250" fill="%23cbd5e1"/><text x="200" y="125" font-family="sans-serif" font-size="16" fill="%23334155" text-anchor="middle">Contoh e-KTP Siti Nurhaliza</text></svg>'
-    setKtpPreviewUrl(sampleKtpSvg)
-    const mockFile = new File(['mock-ktp-demo'], 'ktp_siti_nurhaliza.jpg', { type: 'image/jpeg' })
-    setKtpFile(mockFile)
-    setAgreed(true)
-    setError('')
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -559,17 +543,6 @@ export default function DaftarPage() {
                   Masuk di Sini &rarr;
                 </Link>
               </p>
-            </div>
-
-            {/* Tombol Isi Otomatis Contoh (Demo Test) */}
-            <div className="mt-6 pt-4 border-t border-outline-variant/40 text-center">
-              <button
-                type="button"
-                onClick={handleAutoFillDemo}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-secondary hover:text-primary transition-colors cursor-pointer"
-              >
-                <span>Gunakan Data Contoh untuk Uji Coba Pendaftaran</span>
-              </button>
             </div>
           </div>
         </div>

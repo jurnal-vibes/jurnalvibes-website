@@ -222,14 +222,14 @@ export default function AdminVerifikasiKtpPage() {
 
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center justify-between shadow-2xs">
+        <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
-            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span>{toastMessage}</span>
           </div>
           <button
             onClick={() => setToastMessage(null)}
-            className="text-emerald-700 hover:text-emerald-950 font-bold"
+            className="text-slate-400 hover:text-white font-bold cursor-pointer"
           >
             ✕
           </button>
@@ -395,10 +395,10 @@ export default function AdminVerifikasiKtpPage() {
                           <div
                             className={`h-full rounded-full ${
                               item.ai_confidence >= 85
-                                ? 'bg-emerald-600'
+                                ? 'bg-slate-800'
                                 : item.ai_confidence >= 60
-                                ? 'bg-amber-500'
-                                : 'bg-rose-500'
+                                ? 'bg-slate-600'
+                                : 'bg-slate-400'
                             }`}
                             style={{ width: `${item.ai_confidence}%` }}
                           />
@@ -416,23 +416,23 @@ export default function AdminVerifikasiKtpPage() {
                       </p>
                     </td>
 
-                    {/* Status Badge (Ghost Minimalist Linear-Style - No Capsule Cover/Pill) */}
+                    {/* Status Badge (Ghost Minimalist Linear-Style - Clean Neutral Typography) */}
                     <td className="py-3 px-2 whitespace-nowrap align-middle">
                       {item.status === 'flagged' && (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700">
-                          <Clock className="w-3.5 h-3.5 text-amber-500" />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                          <Clock className="w-3.5 h-3.5 text-slate-500" />
                           <span>Perlu Tinjau</span>
                         </span>
                       )}
                       {(item.status === 'auto_approved' || item.status === 'manual_approved') && (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                          <ShieldCheck className="w-3.5 h-3.5 text-slate-700" />
                           <span>Terverifikasi</span>
                         </span>
                       )}
                       {item.status === 'rejected' && (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700">
-                          <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                          <XCircle className="w-3.5 h-3.5 text-slate-400" />
                           <span>Ditolak</span>
                         </span>
                       )}
@@ -570,7 +570,7 @@ export default function AdminVerifikasiKtpPage() {
                 </button>
                 <button
                   onClick={() => handleApprove(selectedItem.id)}
-                  className="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>Setujui KTP Sah</span>

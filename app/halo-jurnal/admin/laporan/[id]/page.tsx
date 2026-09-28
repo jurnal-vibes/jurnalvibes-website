@@ -312,32 +312,32 @@ export default function AdminDetailLaporanPage() {
     return cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase()
   }
 
-  // Helper warna badge status (Stripe Modern Tag - Sudut Tumpul, Tint Lembut, Tanpa Border Pagar)
+  // Helper warna badge status (Clean Neutral Typography & Subtle Slate Tint)
   const getStatusBadgeConfig = (status: string) => {
     switch (status) {
       case 'selesai':
         return {
           label: 'Selesai',
-          bg: 'bg-emerald-500/10 text-emerald-800',
-          dot: 'bg-emerald-600',
+          bg: 'bg-slate-100 text-slate-800 border border-slate-200',
+          dot: 'bg-slate-700',
         }
       case 'ditindaklanjuti':
         return {
           label: 'Ditindaklanjuti',
-          bg: 'bg-purple-500/10 text-purple-800',
-          dot: 'bg-purple-600',
+          bg: 'bg-slate-100 text-slate-800 border border-slate-200',
+          dot: 'bg-slate-700',
         }
       case 'diproses':
         return {
           label: 'Diproses',
-          bg: 'bg-blue-500/10 text-blue-800',
-          dot: 'bg-blue-600',
+          bg: 'bg-slate-100 text-slate-800 border border-slate-200',
+          dot: 'bg-slate-700',
         }
       default:
         return {
           label: 'Diterima',
-          bg: 'bg-amber-500/10 text-amber-800',
-          dot: 'bg-amber-600',
+          bg: 'bg-slate-100 text-slate-800 border border-slate-200',
+          dot: 'bg-slate-700',
         }
     }
   }
@@ -384,11 +384,11 @@ export default function AdminDetailLaporanPage() {
                 {currentBadge.label}
               </span>
               {report.is_public ? (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-800">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                   Tayang Publik
                 </span>
               ) : (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
                   Privat
                 </span>
               )}
@@ -486,8 +486,8 @@ export default function AdminDetailLaporanPage() {
                   <span className="font-semibold text-slate-900">
                     {(report as any).is_anonim ? 'Pelapor Anonim' : 'Warga Sukabumi Terverifikasi'}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-800">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    <ShieldCheck className="w-3 h-3 text-slate-700" />
                     KTP Sah
                   </span>
                   <span className="text-slate-400">•</span>
@@ -680,17 +680,7 @@ export default function AdminDetailLaporanPage() {
             <div className="relative pl-4 space-y-3.5 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
               {visibleLogs.map((log, idx) => (
                 <div key={log.id || idx} className="relative text-xs space-y-1">
-                  <span
-                    className={`absolute -left-4 top-1 w-2.5 h-2.5 rounded-full ${
-                      log.status === 'selesai'
-                        ? 'bg-emerald-500 ring-4 ring-emerald-50'
-                        : log.status === 'ditindaklanjuti'
-                        ? 'bg-purple-500 ring-4 ring-purple-50'
-                        : log.status === 'diproses'
-                        ? 'bg-blue-500 ring-4 ring-blue-50'
-                        : 'bg-amber-500 ring-4 ring-amber-50'
-                    }`}
-                  />
+                  <span className="absolute -left-4 top-1 w-2.5 h-2.5 rounded-full bg-slate-700 ring-4 ring-slate-100" />
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-900 capitalize">
                       Tahap: {log.status}

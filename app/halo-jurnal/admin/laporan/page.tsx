@@ -40,19 +40,19 @@ export default function AdminLaporanPage() {
     return clean
   }
 
-  // Status badge styling (Ghost Minimalist Linear-Style - No Capsule Cover)
+  // Status badge styling (Ghost Minimalist Linear-Style - Clean Neutral Typography)
   const getStatusBadge = (status: DummyReport['status']) => {
     switch (status) {
       case 'diterima':
-        return <span className="text-xs font-semibold text-amber-700">Diterima</span>
+        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Diterima</span>
       case 'diproses':
-        return <span className="text-xs font-semibold text-blue-700">Diproses</span>
+        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Diproses</span>
       case 'ditindaklanjuti':
-        return <span className="text-xs font-semibold text-purple-700">Ditindaklanjuti</span>
+        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Ditindaklanjuti</span>
       case 'selesai':
-        return <span className="text-xs font-semibold text-emerald-700">Selesai</span>
+        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Selesai</span>
       default:
-        return <span className="text-xs font-medium text-slate-600">{status}</span>
+        return <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{status}</span>
     }
   }
 
@@ -440,10 +440,10 @@ export default function AdminLaporanPage() {
                           )}
                           {reportChatCount > 0 && (
                             <span
-                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700"
+                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary"
                               title={`${reportChatCount} pesan dari warga di tiket ini`}
                             >
-                              <MessageSquare className="w-3 h-3 text-emerald-600" />
+                              <MessageSquare className="w-3 h-3 text-primary" />
                               <span>{reportChatCount}</span>
                             </span>
                           )}

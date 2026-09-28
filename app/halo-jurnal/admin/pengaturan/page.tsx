@@ -180,7 +180,7 @@ export default function AdminPengaturanWebPage() {
         {/* Bagian 2: Kontak Resmi & Hotline Aduan */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Phone className="w-4 h-4 text-emerald-600" />
+            <Phone className="w-4 h-4 text-slate-700" />
             <h2 className="text-sm font-heading font-bold text-slate-900">
               Hotline Redaksi &amp; Layanan Pengaduan
             </h2>
@@ -229,7 +229,7 @@ export default function AdminPengaturanWebPage() {
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <Megaphone className="w-4 h-4 text-amber-600" />
+              <Megaphone className="w-4 h-4 text-slate-700" />
               <h2 className="text-sm font-heading font-bold text-slate-900">
                 Pita Pengumuman Berjalan (Running Text)
               </h2>
@@ -263,7 +263,7 @@ export default function AdminPengaturanWebPage() {
             <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
               <span>Status pita pengumuman:</span>
               {settings.isAnnouncementActive ? (
-                <span className="font-semibold text-emerald-700">
+                <span className="font-semibold text-slate-700">
                   Aktif Tayang
                 </span>
               ) : (

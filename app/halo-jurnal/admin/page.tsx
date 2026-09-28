@@ -79,20 +79,20 @@ export default function AdminDashboardPage() {
     return item.status === filterStatus
   }).slice(0, 6)
 
-  // Status badge styling (Ghost Minimalist Linear-Style - No Capsule Cover)
+  // Status badge styling (Ghost Minimalist Linear-Style - Clean Neutral Typography)
   const getStatusBadge = (status: DummyReport['status']) => {
     switch (status) {
       case 'diterima':
-        return <span className="text-xs font-semibold text-amber-700">Diterima</span>
+        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Diterima</span>
       case 'diproses':
-        return <span className="text-xs font-semibold text-blue-700">Diproses</span>
+        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Diproses</span>
       case 'ditindaklanjuti':
-        return <span className="text-xs font-semibold text-purple-700">Ditindaklanjuti</span>
+        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Ditindaklanjuti</span>
       case 'selesai':
-        return <span className="text-xs font-semibold text-emerald-700">Selesai</span>
+        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Selesai</span>
       default:
         return (
-          <span className="text-xs font-medium text-slate-600">
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
             {status}
           </span>
         )
@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
             <span className="text-xs font-medium">Perlu Verifikasi</span>
           </div>
           <p className="text-2xl font-bold font-heading text-slate-900">{laporanDiterima}</p>
-          <p className="text-[11px] text-amber-700 font-medium">Menunggu respon awal</p>
+          <p className="text-[11px] text-slate-500 font-medium">Menunggu respon awal</p>
         </div>
 
         {/* Sedang Ditangani */}
@@ -158,32 +158,32 @@ export default function AdminDashboardPage() {
             <span className="text-xs font-medium">Dituntaskan</span>
           </div>
           <p className="text-2xl font-bold font-heading text-slate-900">{laporanSelesai}</p>
-          <p className="text-[11px] text-emerald-700 font-medium">Selesai ditangani</p>
+          <p className="text-[11px] text-slate-500 font-medium">Selesai ditangani</p>
         </div>
       </div>
 
       {/* 3. Kotak Tindakan Mendesak (Action Queue Ringkas) */}
-      <div className="p-3.5 sm:p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-slate-200/80 text-slate-700 flex items-center justify-center shrink-0">
             <ShieldCheck className="w-4 h-4" />
           </div>
           <p className="text-slate-800 leading-snug">
             <strong>Antrean Tindakan:</strong> Ada <strong>1 aduan baru</strong> belum ditinjau dan{' '}
-            <strong>2 berkas KTP</strong> ditandai AI butuh verifikasi manual redaksi.
+            <strong>2 berkas KTP</strong> ditandai butuh verifikasi manual redaksi.
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/halo-jurnal/admin/verifikasi-ktp"
-            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold transition"
+            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold transition shadow-2xs"
           >
             Tinjau KTP (2)
           </Link>
           <Link
             href="/halo-jurnal/admin/laporan"
-            className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold transition"
+            className="px-3 py-1.5 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white font-semibold transition shadow-2xs"
           >
             Buka Aduan Baru
           </Link>
@@ -268,7 +268,7 @@ export default function AdminDashboardPage() {
                   {/* Feed Publik (Ghost Minimalist) */}
                   <td className="py-3.5 px-4 whitespace-nowrap align-middle">
                     {report.is_public ? (
-                      <span className="text-xs font-semibold text-emerald-700">
+                      <span className="text-xs font-semibold text-slate-700">
                         Publik
                       </span>
                     ) : (
@@ -327,9 +327,9 @@ export default function AdminDashboardPage() {
           <div className="space-y-2.5">
             {[
               { label: 'Infrastruktur & Jalan Rusak', pct: 42, color: 'bg-[#c00015]' },
-              { label: 'Pelayanan Publik & Instansi', pct: 28, color: 'bg-blue-600' },
-              { label: 'Lingkungan & Kebersihan', pct: 18, color: 'bg-emerald-600' },
-              { label: 'Anggaran & Pungli', pct: 12, color: 'bg-amber-600' },
+              { label: 'Pelayanan Publik & Instansi', pct: 28, color: 'bg-slate-700' },
+              { label: 'Lingkungan & Kebersihan', pct: 18, color: 'bg-slate-500' },
+              { label: 'Anggaran & Pungli', pct: 12, color: 'bg-slate-400' },
             ].map((item, idx) => (
               <div key={idx} className="space-y-1">
                 <div className="flex justify-between text-xs">

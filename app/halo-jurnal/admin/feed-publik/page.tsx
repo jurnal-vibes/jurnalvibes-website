@@ -120,17 +120,17 @@ export default function AdminModerasiFeedPublikPage() {
   const totalPublik = reportsList.filter((r) => r.is_public !== false).length
   const totalPrivat = reportsList.filter((r) => r.is_public === false).length
 
-  // Helper warna badge status penanganan (Ghost Minimalist Linear-Style - No Capsule Cover)
+  // Helper warna badge status penanganan (Ghost Minimalist Linear-Style - Clean Neutral Typography)
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'selesai':
-        return <span className="text-[11px] font-semibold text-emerald-700">Selesai</span>
+        return <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">Selesai</span>
       case 'ditindaklanjuti':
-        return <span className="text-[11px] font-semibold text-purple-700">Ditindaklanjuti</span>
+        return <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">Ditindaklanjuti</span>
       case 'diproses':
-        return <span className="text-[11px] font-semibold text-blue-700">Diproses</span>
+        return <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">Diproses</span>
       default:
-        return <span className="text-[11px] font-semibold text-amber-700">Diterima</span>
+        return <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">Diterima</span>
     }
   }
 
@@ -162,14 +162,14 @@ export default function AdminModerasiFeedPublikPage() {
 
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center justify-between shadow-2xs">
+        <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
-            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span>{toastMessage}</span>
           </div>
           <button
             onClick={() => setToastMessage(null)}
-            className="text-emerald-700 hover:text-emerald-950 font-bold cursor-pointer"
+            className="text-slate-400 hover:text-white font-bold cursor-pointer"
           >
             ✕
           </button>
@@ -182,9 +182,9 @@ export default function AdminModerasiFeedPublikPage() {
           <div>
             <p className="text-xs text-slate-500 font-medium">Tayang Publik</p>
             <p className="text-2xl font-heading font-bold text-slate-900 mt-1">{totalPublik}</p>
-            <p className="text-[11px] text-emerald-600 font-medium mt-0.5">Dapat diakses warga</p>
+            <p className="text-[11px] text-slate-500 font-medium mt-0.5">Dapat diakses warga</p>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
             <Globe className="w-5 h-5" />
           </div>
         </div>
@@ -321,7 +321,7 @@ export default function AdminModerasiFeedPublikPage() {
                     {/* Status Visibilitas (Ghost Minimalist) */}
                     <td className="py-3 px-2 whitespace-nowrap align-middle">
                       {report.is_public !== false ? (
-                        <span className="text-xs font-semibold text-emerald-700">
+                        <span className="text-xs font-semibold text-slate-700">
                           Publik
                         </span>
                       ) : (
@@ -342,7 +342,7 @@ export default function AdminModerasiFeedPublikPage() {
                         {report.is_public !== false ? (
                           <button
                             onClick={() => handleToggleVisibility(report.id, false)}
-                            className="px-2 py-1 rounded text-xs font-medium bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-200 hover:border-rose-200 transition cursor-pointer shadow-2xs"
+                            className="px-2 py-1 rounded text-xs font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition cursor-pointer shadow-2xs"
                             title="Tarik laporan ini dari Feed Publik"
                           >
                             Tarik
@@ -350,7 +350,7 @@ export default function AdminModerasiFeedPublikPage() {
                         ) : (
                           <button
                             onClick={() => handleToggleVisibility(report.id, true)}
-                            className="px-2.5 py-1 rounded text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 transition cursor-pointer"
+                            className="px-2.5 py-1 rounded text-xs font-semibold bg-[#c00015] hover:bg-[#a00012] text-white transition cursor-pointer shadow-2xs"
                             title="Tayangkan kembali laporan ini ke Feed Publik"
                           >
                             Tayang

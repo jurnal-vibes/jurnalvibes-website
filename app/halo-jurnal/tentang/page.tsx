@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import {
-  ShieldCheck,
   Shield,
   Eye,
   Gauge,
@@ -49,17 +48,12 @@ export default function HaloJurnalTentangPage() {
         <div className="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Kolom Kiri: Teks & Tombol */}
           <div className="lg:col-span-6 space-y-5">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/10 text-white text-[11px] font-bold uppercase tracking-wider border border-white/20">
-              <ShieldCheck className="w-3.5 h-3.5 text-rose-200" />
-              <span>DIGITAL GOVERNANCE &amp; CITIZEN VOICE</span>
-            </span>
-
             <h1 className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight text-white leading-tight">
               Tentang Halo Jurnal
             </h1>
 
             <p className="text-white/90 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl">
-              Platform aspirasi dan pengaduan warga yang dikelola secara independen oleh redaksi Jurnal Sukabumi (PT Media Jurnal Sukabumi). Kami menerima, memverifikasi, dan menjembatani komunikasi langsung dengan pihak berwenang demi transparansi dan kemajuan Sukabumi.
+              Platform aspirasi dan pengaduan warga yang dikelola secara independen oleh redaksi Jurnal Wave (PT Media Jurnal Sukabumi). Kami menerima, memverifikasi, dan menjembatani komunikasi langsung dengan pihak berwenang demi transparansi dan kemajuan Sukabumi.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -143,7 +137,7 @@ export default function HaloJurnalTentangPage() {
                 3. Diskusi Langsung
               </h3>
               <p className="text-secondary text-xs leading-relaxed max-w-[220px]">
-                Berinteraksi langsung dengan Admin Jurnal Sukabumi untuk proses klarifikasi data.
+                Berinteraksi langsung dengan Admin Jurnal Wave untuk proses klarifikasi data.
               </p>
             </div>
 
@@ -165,20 +159,20 @@ export default function HaloJurnalTentangPage() {
 
       {/* ===================== SEKSI 2: KOMITMEN KAMI TERHADAP MASYARAKAT ===================== */}
       <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8">
-        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary tracking-tight mb-8">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary tracking-tight mb-6 sm:mb-8">
           Komitmen Kami terhadap Masyarakat
         </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Kolom Kiri: 3 Kartu Nilai */}
-          <div className="lg:col-span-6 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+          {/* Kolom Kiri: 3 Kartu Nilai (Kompak & Elegan) */}
+          <div className="lg:col-span-7 flex flex-col justify-between gap-3">
             {/* Card 1: Kerahasiaan Data */}
-            <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 sm:p-6 shadow-2xs flex items-start gap-4 hover:border-primary/40 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                <Shield className="w-5 h-5" />
+            <div className="bg-surface border border-outline-variant/80 rounded-xl p-3.5 sm:p-4 shadow-2xs flex items-start gap-3.5 hover:border-primary/40 transition-colors flex-1">
+              <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <Shield className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-1">
+                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-0.5">
                   Kerahasiaan Data
                 </h3>
                 <p className="text-secondary text-xs sm:text-sm leading-relaxed">
@@ -188,12 +182,12 @@ export default function HaloJurnalTentangPage() {
             </div>
 
             {/* Card 2: Transparansi Publik */}
-            <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 sm:p-6 shadow-2xs flex items-start gap-4 hover:border-primary/40 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                <Eye className="w-5 h-5" />
+            <div className="bg-surface border border-outline-variant/80 rounded-xl p-3.5 sm:p-4 shadow-2xs flex items-start gap-3.5 hover:border-primary/40 transition-colors flex-1">
+              <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <Eye className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-1">
+                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-0.5">
                   Transparansi Publik
                 </h3>
                 <p className="text-secondary text-xs sm:text-sm leading-relaxed">
@@ -203,12 +197,12 @@ export default function HaloJurnalTentangPage() {
             </div>
 
             {/* Card 3: Respon Cepat */}
-            <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 sm:p-6 shadow-2xs flex items-start gap-4 hover:border-primary/40 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                <Gauge className="w-5 h-5" />
+            <div className="bg-surface border border-outline-variant/80 rounded-xl p-3.5 sm:p-4 shadow-2xs flex items-start gap-3.5 hover:border-primary/40 transition-colors flex-1">
+              <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <Gauge className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-1">
+                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-0.5">
                   Respon Cepat
                 </h3>
                 <p className="text-secondary text-xs sm:text-sm leading-relaxed">
@@ -218,27 +212,27 @@ export default function HaloJurnalTentangPage() {
             </div>
           </div>
 
-          {/* Kolom Kanan: 3 Gambar Kolase */}
-          <div className="lg:col-span-6 space-y-4">
-            {/* Gambar Atas: Sertifikat Resmi / Legal Seal */}
-            <div className="h-52 sm:h-60 rounded-2xl overflow-hidden border border-outline-variant/80 shadow-xs relative">
+          {/* Kolom Kanan: 3 Gambar Kolase (Kompak, Proporsional, Sejajar 100% dengan Kolom Kiri) */}
+          <div className="lg:col-span-5 flex flex-col justify-between gap-3 h-full">
+            {/* Gambar Atas: Lady Justice */}
+            <div className="h-40 sm:h-48 lg:h-auto lg:flex-[3] min-h-0 rounded-xl overflow-hidden border border-outline-variant/80 shadow-2xs relative">
               <img
                 src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1000&q=80"
-                alt="Sertifikat Resmi Halo Jurnal"
+                alt="Prinsip Keadilan & Akuntabilitas Halo Jurnal"
                 className="w-full h-full object-cover"
               />
             </div>
 
             {/* 2 Gambar Bawah Side-by-Side */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="h-36 sm:h-44 rounded-2xl overflow-hidden border border-outline-variant/80 shadow-xs relative">
+            <div className="h-28 sm:h-32 lg:h-auto lg:flex-[2] min-h-0 grid grid-cols-2 gap-3">
+              <div className="h-full rounded-xl overflow-hidden border border-outline-variant/80 shadow-2xs relative">
                 <img
                   src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80"
                   alt="Dashboard Transparansi Publik"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="h-36 sm:h-44 rounded-2xl overflow-hidden border border-outline-variant/80 shadow-xs relative">
+              <div className="h-full rounded-xl overflow-hidden border border-outline-variant/80 shadow-2xs relative">
                 <img
                   src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"
                   alt="Kolaborasi Tim Redaksi & Penanganan Aduan"
@@ -256,12 +250,12 @@ export default function HaloJurnalTentangPage() {
           {/* Header Profil */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
             <div>
-              <span className="inline-block px-3 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-extrabold uppercase tracking-wider mb-2">
-                PROFIL RESMI MEDIA
-              </span>
               <h2 className="font-heading font-black text-2xl sm:text-3xl text-on-surface tracking-tight">
                 PT. Media Jurnal Sukabumi
               </h2>
+              <p className="text-secondary text-xs sm:text-sm font-medium mt-1">
+                Badan Hukum Resmi Penerbit Media Siber &amp; Pengelola Halo Jurnal
+              </p>
             </div>
 
             <Link
@@ -274,7 +268,7 @@ export default function HaloJurnalTentangPage() {
           </div>
 
           <p className="text-secondary text-xs sm:text-sm leading-relaxed mb-8 max-w-4xl">
-            Portal berita <strong className="text-on-surface">www.jurnalsukabumi.com</strong> berada di bawah naungan <strong className="text-on-surface">PT. Media Jurnal Sukabumi</strong>. Jurnalsukabumi.com hadir di tengah menjamurnya beragam media siber. Kehadirannya tentu saja diharapkan menjadi pembeda dengan media online lainnya. Maka itu, dibidani oleh sumber daya manusia yang mumpuni, profesional, dan konsisten di bidang jurnalistik, kami hadir di tengah masyarakat.
+            Portal berita <strong className="text-on-surface">Jurnal Wave</strong> berada di bawah naungan <strong className="text-on-surface">PT. Media Jurnal Sukabumi</strong>. Jurnal Wave hadir di tengah menjamurnya beragam media siber. Kehadirannya tentu saja diharapkan menjadi pembeda dengan media online lainnya. Maka itu, dibidani oleh sumber daya manusia yang mumpuni, profesional, dan konsisten di bidang jurnalistik, kami hadir di tengah masyarakat.
           </p>
 
           {/* 3 Box Grid: Susunan Redaksi, Legalitas Resmi, Rekening Resmi */}

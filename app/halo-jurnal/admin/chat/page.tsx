@@ -408,7 +408,7 @@ function ChatDeskContent() {
                           {rep.nomor_tiket}
                         </span>
                         {isWaiting && (
-                          <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 shrink-0">
+                          <span className="text-[10px] font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
                             Butuh Balasan
                           </span>
                         )}
@@ -480,8 +480,8 @@ function ChatDeskContent() {
                       {!(currentReport as any).is_anonim && (
                         <>
                           <span>•</span>
-                          <span className="inline-flex items-center gap-0.5 text-emerald-700 font-semibold">
-                            <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                          <span className="inline-flex items-center gap-0.5 text-slate-700 font-semibold">
+                            <ShieldCheck className="w-3 h-3 text-slate-600" />
                             KTP Sah
                           </span>
                         </>

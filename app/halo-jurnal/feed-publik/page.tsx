@@ -18,7 +18,7 @@ import {
   AlertTriangle,
   Lightbulb,
   FileText,
-  Sparkles,
+  BookOpen,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -616,53 +616,49 @@ function FeedPublikContent() {
                       <div className="flex items-center gap-2 flex-wrap mb-3">
                         {/* Jenis Badge */}
                         {report.jenis === 'informasi' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 text-[10px] sm:text-[11px] font-bold border border-purple-200/60">
-                            <FileText className="w-3 h-3" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[11px] font-semibold border border-outline-variant/60">
+                            <FileText className="w-3 h-3 text-secondary" />
                             <span>Informasi</span>
                           </span>
                         )}
                         {report.jenis === 'pengaduan' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 text-[10px] sm:text-[11px] font-bold border border-rose-200/60">
-                            <AlertTriangle className="w-3 h-3" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[11px] font-semibold border border-outline-variant/60">
+                            <AlertTriangle className="w-3 h-3 text-secondary" />
                             <span>Pengaduan</span>
                           </span>
                         )}
                         {report.jenis === 'aspirasi' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 text-[10px] sm:text-[11px] font-bold border border-amber-200/60">
-                            <Lightbulb className="w-3 h-3" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[11px] font-semibold border border-outline-variant/60">
+                            <Lightbulb className="w-3 h-3 text-secondary" />
                             <span>Aspirasi</span>
                           </span>
                         )}
                         {report.jenis === 'inspirasi' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-cyan-50 text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300 text-[10px] sm:text-[11px] font-bold border border-cyan-200/60">
-                            <Sparkles className="w-3 h-3" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[11px] font-semibold border border-outline-variant/60">
+                            <BookOpen className="w-3 h-3 text-secondary" />
                             <span>Inspirasi</span>
                           </span>
                         )}
 
-                        {/* Status Badge */}
+                        {/* Status */}
                         {report.status === 'selesai' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 text-[10px] sm:text-[11px] font-bold border border-emerald-200/60">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Selesai</span>
+                          <span className="text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                            Selesai
                           </span>
                         )}
                         {report.status === 'diproses' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 text-[10px] sm:text-[11px] font-bold border border-amber-200/60">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>Diproses</span>
+                          <span className="text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                            Diproses
                           </span>
                         )}
                         {report.status === 'diterima' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 text-[10px] sm:text-[11px] font-bold border border-blue-200/60">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>Diterima</span>
+                          <span className="text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                            Diterima
                           </span>
                         )}
                         {report.status === 'ditindaklanjuti' && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 text-[10px] sm:text-[11px] font-bold border border-purple-200/60">
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                            <span>Ditindaklanjuti</span>
+                          <span className="text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                            Ditindaklanjuti
                           </span>
                         )}
                       </div>
