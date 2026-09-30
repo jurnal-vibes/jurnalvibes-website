@@ -28,13 +28,13 @@ interface SiteSettings {
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  portalName: 'Jurnal Wave',
+  portalName: 'Jurnal Vibes',
   haloJurnalName: 'Halo Jurnal Sukabumi',
   tagline: 'Suara Anda, Wadah Kami — Media Aspirasi & Advokasi Publik Sukabumi',
-  whatsappHotline: '0812-3456-7890',
-  emailContact: 'redaksi@jurnalwave.id',
-  officeAddress: 'Jl. R.E. Martadinata No. 45, Cikole, Kota Sukabumi, Jawa Barat',
-  announcementText: 'Redaksi Halo Jurnal menerima laporan warga 24 jam. Setiap aduan fisik diverifikasi maksimal 1x24 jam kerja.',
+  whatsappHotline: '0821-1165-1470',
+  emailContact: 'redaksi@jurnalsukabumi.com',
+  officeAddress: 'Perum Bukit Randu Asri, Blok K No. 14, Cibadak, Kab. Sukabumi 43351',
+  announcementText: 'Redaksi Halo Jurnal menerima laporan warga 24 jam. Setiap aduan diverifikasi maksimal 1x24 jam kerja.',
   isAnnouncementActive: true,
   isMaintenanceMode: false,
 }

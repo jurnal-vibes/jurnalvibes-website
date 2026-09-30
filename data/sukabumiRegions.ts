@@ -1,0 +1,66 @@
+/**
+ * Daftar Wilayah Administratif Lengkap Sukabumi
+ * Terdiri dari Kota Sukabumi (7 Kecamatan) dan Kabupaten Sukabumi (47 Kecamatan)
+ */
+
+export const KOTA_SUKABUMI_KECAMATAN = [
+  'Kec. Baros',
+  'Kec. Cibeureum',
+  'Kec. Cikole',
+  'Kec. Citamiang',
+  'Kec. Gunungpuyuh',
+  'Kec. Lembursitu',
+  'Kec. Warudoyong',
+]
+
+export const KAB_SUKABUMI_KECAMATAN = [
+  'Kec. Bantargadung',
+  'Kec. Bojonggenteng',
+  'Kec. Caringin',
+  'Kec. Ciambar',
+  'Kec. Cibadak',
+  'Kec. Cibitung',
+  'Kec. Cicantayan',
+  'Kec. Cicurug',
+  'Kec. Cidadap',
+  'Kec. Cidahu',
+  'Kec. Cidolog',
+  'Kec. Ciemas',
+  'Kec. Cikakak',
+  'Kec. Cikembar',
+  'Kec. Cikidang',
+  'Kec. Cimanggu',
+  'Kec. Ciracap',
+  'Kec. Cireunghas',
+  'Kec. Cisaat',
+  'Kec. Cisolok',
+  'Kec. Curugkembar',
+  'Kec. Gegerbitung',
+  'Kec. Gunungguruh',
+  'Kec. Jampang Kulon',
+  'Kec. Jampang Tengah',
+  'Kec. Kabandungan',
+  'Kec. Kadudampit',
+  'Kec. Kalapanunggal',
+  'Kec. Kalibunder',
+  'Kec. Kebonpedes',
+  'Kec. Lengkong',
+  'Kec. Nagrak',
+  'Kec. Nyalindung',
+  'Kec. Pabuaran',
+  'Kec. Palabuhanratu',
+  'Kec. Parakansalak',
+  'Kec. Parungkuda',
+  'Kec. Purabaya',
+  'Kec. Sagaranten',
+  'Kec. Simpenan',
+  'Kec. Sukabumi',
+  'Kec. Sukalarang',
+  'Kec. Sukaraja',
+  'Kec. Surade',
+  'Kec. Tegalbuleud',
+  'Kec. Waluran',
+  'Kec. Warungkiara',
+]
+
+export const SEMUA_WILAYAH_LABEL = 'Semua Wilayah Sukabumi'

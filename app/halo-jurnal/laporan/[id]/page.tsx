@@ -26,6 +26,7 @@ import {
   FileCheck,
 } from 'lucide-react'
 import { DUMMY_REPORTS } from '@/data/dummyReports'
+import { normalizeCategoryName } from '@/data/haloJurnalCategories'
 
 export default function HaloJurnalLaporanDetailPage() {
   const params = useParams()
@@ -593,7 +594,7 @@ export default function HaloJurnalLaporanDetailPage() {
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="flex items-center gap-2">
                 <span className="bg-surface-container-high border border-outline-variant/80 text-secondary font-bold text-[11px] tracking-wider px-3 py-1 rounded-lg uppercase">
-                  {report.kategori || report.jenis || 'ANGGARAN'}
+                  {normalizeCategoryName(report.kategori) || report.jenis || 'Umum'}
                 </span>
                 {report.is_public === false ? (
                   <span className="inline-flex items-center gap-1 bg-surface-container-high text-secondary text-[11px] font-medium px-2.5 py-1 rounded-lg border border-outline-variant/60">

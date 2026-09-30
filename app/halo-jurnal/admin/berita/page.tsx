@@ -141,7 +141,7 @@ export default function AdminBeritaPage() {
         newImageUrl.trim() ||
         'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80',
       author: 'Tim Redaksi',
-      reporter: newReporter.trim() || 'Redaksi Jurnal Wave',
+      reporter: newReporter.trim() || 'Redaksi Jurnal Vibes',
       redaktur: 'Redaksi Pelaksana',
       tags: [newCategory],
       readTime: '3 min read',
@@ -169,7 +169,7 @@ export default function AdminBeritaPage() {
     setNewIsHero(false)
     setNewIsEditorsPick(false)
 
-    setToastMessage('Berita berhasil ditambahkan dan langsung terbit di Jurnal Wave!')
+    setToastMessage('Berita berhasil ditambahkan dan langsung terbit di Jurnal Vibes!')
     setTimeout(() => setToastMessage(null), 3500)
   }
 
@@ -256,7 +256,7 @@ export default function AdminBeritaPage() {
             Manajemen Berita &amp; Konten Media
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Tulis berita baru, edit artikel, atur headline utama, dan kelola penerbitan portal Jurnal Wave.
+            Tulis berita baru, edit artikel, atur headline utama, dan kelola penerbitan portal Jurnal Vibes.
           </p>
         </div>
 
@@ -726,7 +726,7 @@ export default function AdminBeritaPage() {
               <div className="flex items-center gap-2">
                 <Newspaper className="w-5 h-5 text-[#c00015]" />
                 <h3 className="font-heading font-bold text-sm text-slate-900">
-                  Tulis Berita Baru Jurnal Wave
+                  Tulis Berita Baru Jurnal Vibes
                 </h3>
               </div>
               <button

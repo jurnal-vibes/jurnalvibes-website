@@ -31,7 +31,7 @@ export default function AdminLayout({
 
         {/* Footer Kecil Admin */}
         <footer className="px-6 py-4 border-t border-slate-200 text-center text-xs text-slate-500 bg-white/50">
-          © 2026 <strong className="text-slate-800 font-semibold">Jurnal Wave</strong> &amp;{' '}
+          © 2026 <strong className="text-slate-800 font-semibold">Jurnal Vibes</strong> &amp;{' '}
           <strong className="text-slate-800 font-semibold">Halo Jurnal</strong> — Portal Redaksi &amp;
           Pusat Kendali Laporan Warga.
         </footer>

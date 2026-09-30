@@ -47,9 +47,6 @@ export default function TentangKamiPage() {
 
         {/* Header Artikel */}
         <header className="border-b border-outline-variant dark:border-slate-800 pb-5">
-          <span className="text-primary font-bold text-xs uppercase tracking-wider block mb-2">
-            Profil Media &amp; Susunan Redaksi
-          </span>
           <h1 className="font-headline-xl text-3xl md:text-4xl font-bold text-on-surface dark:text-white leading-tight">
             Tentang Kami
           </h1>
@@ -58,11 +55,20 @@ export default function TentangKamiPage() {
         {/* Konten Redaksional */}
         <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-4">
           <p>
-            Portal berita <strong>Jurnal Wave</strong> berada di bawah naungan <strong>PT. Media Jurnal Sukabumi</strong>. Jurnal Wave hadir di tengah menjamurnya beragam media siber. Kehadirannya tentu saja diharapkan menjadi pembeda dengan media online lainnya.
+            Portal berita <strong>Jurnal Vibes</strong> berada di bawah naungan <strong>PT. Media Jurnal Sukabumi</strong>. Jurnal Vibes hadir di tengah menjamurnya beragam media siber untuk menyajikan informasi yang independen, faktual, dan mendalam seputar Kota dan Kabupaten Sukabumi.
           </p>
           <p>
-            Maka itu, dibidani oleh sumber daya manusia yang mumpuni, profesional, dan konsisten di bidang jurnalistik, kami hadir di tengah masyarakat menyajikan informasi yang jelas, seimbang, dan dapat dipercaya seputar Kota dan Kabupaten Sukabumi.
+            Dibidani oleh jurnalis profesional yang konsisten pada kode etik pers, kami berkomitmen menyuarakan aspirasi warga. Sebagai wujud nyata komitmen tersebut, kami juga mengoperasikan <strong>Halo Jurnal</strong>—platform interaktif pelaporan dan pengaduan warga untuk transparansi fasilitas serta layanan publik di Sukabumi.
           </p>
+          <div className="pt-1">
+            <Link
+              href="/halo-jurnal"
+              className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline bg-primary/10 px-3.5 py-1.5 rounded-full"
+            >
+              <span>Jelajahi Portal Layanan Warga: Halo Jurnal</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </article>
 
         {/* Box Susunan Redaksi (Gaya Khas Media Pers Indonesia) */}

@@ -53,7 +53,7 @@ export default function HaloJurnalTentangPage() {
             </h1>
 
             <p className="text-white/90 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl">
-              Platform aspirasi dan pengaduan warga yang dikelola secara independen oleh redaksi Jurnal Wave (PT Media Jurnal Sukabumi). Kami menerima, memverifikasi, dan menjembatani komunikasi langsung dengan pihak berwenang demi transparansi dan kemajuan Sukabumi.
+              Platform aspirasi dan pengaduan warga yang dikelola secara independen oleh redaksi Jurnal Vibes (PT Media Jurnal Sukabumi). Kami menerima, memverifikasi, dan menjembatani komunikasi langsung dengan pihak berwenang demi transparansi dan kemajuan Sukabumi.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -137,7 +137,7 @@ export default function HaloJurnalTentangPage() {
                 3. Diskusi Langsung
               </h3>
               <p className="text-secondary text-xs leading-relaxed max-w-[220px]">
-                Berinteraksi langsung dengan Admin Jurnal Wave untuk proses klarifikasi data.
+                Berinteraksi langsung dengan Admin Halo Jurnal untuk proses klarifikasi data.
               </p>
             </div>
 
@@ -268,7 +268,7 @@ export default function HaloJurnalTentangPage() {
           </div>
 
           <p className="text-secondary text-xs sm:text-sm leading-relaxed mb-8 max-w-4xl">
-            Portal berita <strong className="text-on-surface">Jurnal Wave</strong> berada di bawah naungan <strong className="text-on-surface">PT. Media Jurnal Sukabumi</strong>. Jurnal Wave hadir di tengah menjamurnya beragam media siber. Kehadirannya tentu saja diharapkan menjadi pembeda dengan media online lainnya. Maka itu, dibidani oleh sumber daya manusia yang mumpuni, profesional, dan konsisten di bidang jurnalistik, kami hadir di tengah masyarakat.
+            Portal berita <strong className="text-on-surface">Jurnal Vibes</strong> berada di bawah naungan <strong className="text-on-surface">PT. Media Jurnal Sukabumi</strong>. Jurnal Vibes hadir di tengah menjamurnya beragam media siber. Kehadirannya tentu saja diharapkan menjadi pembeda dengan media online lainnya. Maka itu, dibidani oleh sumber daya manusia yang mumpuni, profesional, dan konsisten di bidang jurnalistik, kami hadir di tengah masyarakat.
           </p>
 
           {/* 3 Box Grid: Susunan Redaksi, Legalitas Resmi, Rekening Resmi */}
