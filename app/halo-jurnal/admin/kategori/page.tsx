@@ -200,7 +200,7 @@ export default function AdminKategoriHeadlinePage() {
                 Headline Utama Beranda (Hero Banner)
               </h2>
               <p className="text-[11px] text-slate-500">
-                Artikel terpilih akan otomatis tampil dengan ukuran terbesar di posisi teratas portal Jurnal Wave.
+                Artikel terpilih akan otomatis tampil dengan ukuran terbesar di posisi teratas portal Jurnal Vibes.
               </p>
             </div>
           </div>

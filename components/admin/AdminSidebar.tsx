@@ -178,7 +178,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       ],
     },
     {
-      title: 'Jurnal Wave CMS',
+      title: 'Jurnal Vibes CMS',
       items: [
         {
           name: 'Artikel Berita',

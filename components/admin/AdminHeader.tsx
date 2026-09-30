@@ -201,13 +201,13 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
       return { section: 'Halo Jurnal', page: 'Moderasi Feed Publik', sectionHref: '/halo-jurnal/admin/feed-publik' }
     }
     if (pathname === '/halo-jurnal/admin/berita') {
-      return { section: 'Jurnal Wave', page: 'Manajemen Berita', sectionHref: '/halo-jurnal/admin/berita' }
+      return { section: 'Jurnal Vibes', page: 'Manajemen Berita', sectionHref: '/halo-jurnal/admin/berita' }
     }
     if (pathname === '/halo-jurnal/admin/reels') {
-      return { section: 'Jurnal Wave', page: 'Vibes Reels', sectionHref: '/halo-jurnal/admin/reels' }
+      return { section: 'Jurnal Vibes', page: 'Vibes Reels', sectionHref: '/halo-jurnal/admin/reels' }
     }
     if (pathname === '/halo-jurnal/admin/kategori') {
-      return { section: 'Jurnal Wave', page: 'Kategori & Headline', sectionHref: '/halo-jurnal/admin/kategori' }
+      return { section: 'Jurnal Vibes', page: 'Kategori & Headline', sectionHref: '/halo-jurnal/admin/kategori' }
     }
     if (pathname === '/halo-jurnal/admin/pengguna') {
       return { section: 'Sistem', page: 'Tim Redaksi', sectionHref: '/halo-jurnal/admin/pengguna' }

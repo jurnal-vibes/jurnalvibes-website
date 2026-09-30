@@ -10,13 +10,10 @@ import {
   Loader2,
   Lock,
   User,
-  ShieldCheck,
-  ArrowUpRight,
-  Landmark,
+  ArrowLeft,
   AlertCircle,
   CheckCircle2,
 } from 'lucide-react'
-import HaloJurnalHeader from '@/components/halo-jurnal/HaloJurnalHeader'
 
 function LoginPageContent() {
   const router = useRouter()
@@ -97,92 +94,69 @@ function LoginPageContent() {
   }
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-surface text-on-surface">
-      {/* 1. HEADER RESMI WEBSITE (Warna Asli Website: Surface #fbf9f9 & Border #e7bdb8) */}
-      <HaloJurnalHeader />
+    <div className="w-full min-h-screen bg-surface text-on-surface flex flex-col justify-center items-center p-4 sm:p-6 lg:p-10">
+      {/* Navigasi Kembali ke Beranda di Atas Card */}
+      <div className="w-full max-w-5xl mb-4 flex items-center justify-start">
+        <Link
+          href="/halo-jurnal"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-primary transition-colors group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-primary group-hover:-translate-x-0.5 transition-transform" />
+          <span>Kembali ke Beranda</span>
+        </Link>
+      </div>
 
-      {/* 2. TATA LETAK SPLIT 50/50 UTAMA */}
-      <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-2 min-h-[580px]">
-        {/* KOLOM KIRI: BACKGROUND FOTO RESMI BERANDA (/hero-banner.webp) */}
-        <div className="relative overflow-hidden bg-black text-white p-6 sm:p-10 lg:p-14 xl:p-16 flex flex-col justify-between">
-          {/* Foto Resmi yang Sama Persis dengan Halaman Beranda */}
-          <div className="absolute inset-0 z-0 overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/hero-banner.webp"
-              alt="Halo Jurnal Sukabumi Banner"
-              className="w-full h-full object-cover object-bottom scale-100"
-            />
-            {/* Gradient Overlay Gelap Khas Beranda agar gambar terlihat jelas dan teks terbaca kontras */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/55 z-10" />
-            <div className="absolute inset-0 bg-primary/20 mix-blend-multiply z-10" />
-          </div>
+      {/* Kartu Utama Berperbandingan Proporsional */}
+      <div className="w-full max-w-5xl bg-surface-container-lowest border border-outline-variant/60 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xs relative overflow-hidden">
+        {/* Subtle Background Glow Khas Halo Jurnal */}
+        <div className="absolute -left-12 -top-12 w-96 h-96 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+        <div className="absolute right-0 bottom-0 w-96 h-96 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
 
-          {/* Konten Atas */}
-          <div className="relative z-20">
-
-            {/* Ikon Landmark */}
-            <div className="mb-4">
-              <Landmark className="w-8 h-8 text-white drop-shadow-sm stroke-[2.2px]" />
-            </div>
-
-            {/* Judul Utama */}
-            <h1 className="font-heading font-extrabold text-3xl sm:text-4xl lg:text-[44px] leading-[1.15] text-white mb-4 tracking-tight drop-shadow-md">
-              Membangun Kepercayaan<br />
-              Lewat Transparansi.
-            </h1>
-
-            {/* Sub-judul */}
-            <p className="text-white/95 text-xs sm:text-sm md:text-base leading-relaxed max-w-lg mb-8 font-normal drop-shadow-xs">
-              Halo Jurnal adalah portal aspirasi resmi yang menjamin setiap laporan masyarakat didengar, dicatat, dan ditindaklanjuti secara profesional.
-            </p>
-
-            {/* 2 Kartu Frosted Glass */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
-              {/* Kartu 1: Data Terenkripsi */}
-              <div className="bg-black/35 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 shadow-sm hover:bg-black/45 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center mb-3">
-                  <ShieldCheck className="w-5 h-5 text-amber-300" />
-                </div>
-                <h3 className="font-heading font-bold text-white text-sm mb-1">
-                  Data Terenkripsi
-                </h3>
-                <p className="text-white/85 text-xs leading-relaxed">
-                  Keamanan identitas pelapor adalah prioritas utama kami.
-                </p>
-              </div>
-
-              {/* Kartu 2: Respon Terukur */}
-              <div className="bg-black/35 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 shadow-sm hover:bg-black/45 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center mb-3">
-                  <ArrowUpRight className="w-5 h-5 text-amber-300" />
-                </div>
-                <h3 className="font-heading font-bold text-white text-sm mb-1">
-                  Respon Terukur
-                </h3>
-                <p className="text-white/85 text-xs leading-relaxed">
-                  Setiap jurnal aspirasi dipantau dan dikelola oleh tim Admin Jurnal Sukabumi secara real-time.
-                </p>
-              </div>
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* SISI KIRI: GAMBAR MASKOT (KEPALA PAS DI ATAS, KAKI TERANGKAT RAPI DARI BAWAH) */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center pointer-events-none self-stretch pt-2 pb-4">
+            <div className="relative w-full h-full min-h-[320px] sm:min-h-[380px] md:min-h-[440px] max-h-[460px] flex flex-col items-center justify-start">
+              {/* Soft glow podium */}
+              <div className="absolute w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-primary/15 via-amber-500/10 to-transparent blur-3xl pointer-events-none" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/hallo-jurnal-presenter.webp"
+                alt="Hallo Jurnal Presenter"
+                className="w-full h-full max-h-[440px] object-contain object-top drop-shadow-xl select-none transition-transform duration-300"
+              />
+              {/* Bayangan halus di bawah kaki */}
+              <div className="w-24 sm:w-32 h-2.5 bg-black/10 blur-xs rounded-full -mt-1.5 pointer-events-none" />
             </div>
           </div>
 
-          {/* Copyright Bawah Kiri */}
-          <div className="relative z-20 pt-8 mt-6 border-t border-white/20 text-white/75 text-xs font-medium">
-            © 2026 Halo Jurnal. Portal Aspirasi Masyarakat.
-          </div>
-        </div>
-
-        {/* KOLOM KANAN: FORMULIR LOGIN LANGSUNG DI KANVAS (SESUAI BENTUK REFERENSI TANPA KOTAK KARTU) */}
-        <div className="bg-surface flex items-center justify-center p-6 sm:p-10 lg:p-14 xl:p-20">
-          <div className="w-full max-w-[420px]">
-            {/* Header Form */}
+          {/* SISI KANAN: KALIMAT DI ATAS & TEMPAT LOGIN DI BAWAHNYA */}
+          <div className="md:col-span-7 flex flex-col justify-center py-2">
+            {/* Kalimat Singkat di Bagian Atas */}
             <div className="mb-6">
-              <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary tracking-tight mb-1.5">
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-2xs">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/halo-jurnal-icon.webp"
+                    alt="Halo Jurnal Logo"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-heading font-bold text-sm text-on-surface tracking-tight leading-none">
+                    Halo Jurnal
+                  </span>
+                  <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">
+                    Aspirasi &amp; Aduan Sukabumi
+                  </span>
+                </div>
+              </div>
+
+              <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary tracking-tight mb-2">
                 Selamat Datang Kembali
-              </h2>
-              <p className="text-secondary text-xs sm:text-sm">
-                Masuk untuk melihat status laporan Anda.
+              </h1>
+              <p className="text-secondary text-xs sm:text-sm leading-relaxed max-w-lg">
+                Sampurasun! Masuk ke akun warga Anda untuk memantau status tindak lanjut aspirasi dan aduan pelayanan publik.
               </p>
             </div>
 
@@ -202,7 +176,7 @@ function LoginPageContent() {
               </div>
             )}
 
-            {/* Form */}
+            {/* Tempat Login di Bagian Bawah Kalimat */}
             <form onSubmit={handleLogin} className="space-y-4">
               {/* Email */}
               <div>
@@ -278,7 +252,7 @@ function LoginPageContent() {
             </form>
 
             {/* Register Link */}
-            <div className="mt-5 text-center">
+            <div className="mt-5 text-center sm:text-left">
               <p className="text-xs text-secondary">
                 Belum punya akun?{' '}
                 <Link href="/daftar" className="font-bold text-primary hover:underline">
@@ -289,38 +263,6 @@ function LoginPageContent() {
           </div>
         </div>
       </div>
-
-      {/* 3. FOOTER RESMI DI BAGIAN PALING BAWAH (Warna Asli Website: Surface #fbf9f9 & Border #e7bdb8) */}
-      <footer className="w-full bg-surface border-t border-outline-variant/60 py-8 sm:py-10 px-6 sm:px-10 lg:px-16 transition-colors">
-        <div className="max-w-container-max mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="max-w-md">
-            <div className="flex items-center gap-2.5 mb-2">
-              <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0 shadow-2xs">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/halo-jurnal-icon.webp" alt="Halo Jurnal Logo" className="w-full h-full object-contain" />
-              </div>
-              <h3 className="font-heading font-extrabold text-lg text-on-surface tracking-tight">
-                Halo Jurnal
-              </h3>
-            </div>
-            <p className="text-secondary text-xs sm:text-sm leading-relaxed">
-              Wadah aspirasi digital untuk mewujudkan tata kelola kota yang lebih baik, transparan, dan akuntabel.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-6 sm:gap-8 text-xs sm:text-sm font-semibold text-on-surface">
-            <Link href="/halo-jurnal/kebijakan-privasi" className="hover:text-primary transition-colors">
-              Kebijakan Privasi
-            </Link>
-            <Link href="/halo-jurnal/syarat-ketentuan" className="hover:text-primary transition-colors">
-              Syarat &amp; Ketentuan
-            </Link>
-            <Link href="/halo-jurnal/hubungi-kami" className="hover:text-primary transition-colors">
-              Hubungi Kami
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

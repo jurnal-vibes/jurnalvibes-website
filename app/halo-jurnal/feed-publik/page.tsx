@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Loader2,
   X,
-  ShieldAlert,
   AlertTriangle,
   Lightbulb,
   FileText,
@@ -22,9 +21,20 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  MapPin,
+  Check,
 } from 'lucide-react'
 
 import { DUMMY_REPORTS } from '@/data/dummyReports'
+import {
+  KOTA_SUKABUMI_KECAMATAN,
+  KAB_SUKABUMI_KECAMATAN,
+  SEMUA_WILAYAH_LABEL,
+} from '@/data/sukabumiRegions'
+import {
+  getCategoriesForJenis,
+  normalizeCategoryName,
+} from '@/data/haloJurnalCategories'
 
 function getRelativeTime(dateString: string) {
   if (!dateString) return 'Baru saja'
@@ -63,32 +73,49 @@ function FeedPublikContent() {
   const [selectedJenis, setSelectedJenis] = useState<string>('Semua Jenis')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedStatus, setSelectedStatus] = useState<string>('Semua Laporan')
-  const [selectedWilayah, setSelectedWilayah] = useState<string>('Semua Wilayah Sukabumi')
+  const [selectedWilayah, setSelectedWilayah] = useState<string>(SEMUA_WILAYAH_LABEL)
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
 
-  const categories = [
-    'Infrastruktur',
-    'Pelayanan Publik',
-    'Kesehatan',
-    'Keamanan',
-    'Kebersihan Lingkungan',
-    'Keamanan & Ketertiban',
-  ]
+  // Custom Dropdown Wilayah State
+  const [isWilayahOpen, setIsWilayahOpen] = useState(false)
+  const [wilayahSearch, setWilayahSearch] = useState('')
+  const wilayahRef = useRef<HTMLDivElement>(null)
+  const wilayahSearchInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wilayahRef.current && !wilayahRef.current.contains(event.target as Node)) {
+        setIsWilayahOpen(false)
+      }
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsWilayahOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isWilayahOpen) {
+      setTimeout(() => {
+        wilayahSearchInputRef.current?.focus()
+      }, 50)
+    } else {
+      setWilayahSearch('')
+    }
+  }, [isWilayahOpen])
+
+  const categories = getCategoriesForJenis(selectedJenis)
 
   const statusOptions = ['Semua Laporan', 'Diterima', 'Diproses', 'Selesai']
   const jenisOptions = ['Semua Jenis', 'Pengaduan', 'Aspirasi', 'Informasi', 'Inspirasi']
-  const wilayahOptions = [
-    'Semua Wilayah Sukabumi',
-    'Kec. Cikole',
-    'Kec. Citamiang',
-    'Kec. Warudoyong',
-    'Kec. Baros',
-    'Kec. Lembursitu',
-    'Kec. Gunungpuyuh',
-    'Kec. Cibeureum',
-    'Kab. Sukabumi',
-  ]
 
   useEffect(() => {
     const checkUser = async () => {
@@ -163,9 +190,17 @@ function FeedPublikContent() {
       query = query.eq('jenis', selectedJenis.toLowerCase())
     }
 
-    if (selectedWilayah && selectedWilayah !== 'Semua Wilayah Sukabumi') {
-      const cleanWilayah = selectedWilayah.replace(/^Kec\.\s*|^Kab\.\s*/i, '').trim().toLowerCase()
-      query = query.ilike('lokasi', `%${cleanWilayah}%`)
+    if (selectedWilayah && selectedWilayah !== SEMUA_WILAYAH_LABEL) {
+      if (selectedWilayah === 'Kota Sukabumi') {
+        query = query.or(
+          'lokasi.ilike.%Kota Sukabumi%,lokasi.ilike.%Cikole%,lokasi.ilike.%Citamiang%,lokasi.ilike.%Warudoyong%,lokasi.ilike.%Baros%,lokasi.ilike.%Lembursitu%,lokasi.ilike.%Gunungpuyuh%,lokasi.ilike.%Cibeureum%'
+        )
+      } else if (selectedWilayah === 'Kab. Sukabumi') {
+        query = query.ilike('lokasi', '%Kab%')
+      } else {
+        const cleanWilayah = selectedWilayah.replace(/^Kec\.\s*/i, '').trim().toLowerCase()
+        query = query.ilike('lokasi', `%${cleanWilayah}%`)
+      }
     }
 
     if (searchQuery.trim()) {
@@ -230,7 +265,9 @@ function FeedPublikContent() {
       if (selectedCategories.length > 0) {
         filtered = filtered.filter((r) =>
           selectedCategories.some(
-            (c) => c.toLowerCase() === r.kategori?.toLowerCase()
+            (c) =>
+              normalizeCategoryName(c).toLowerCase() ===
+              normalizeCategoryName(r.kategori).toLowerCase()
           )
         )
       }
@@ -253,9 +290,31 @@ function FeedPublikContent() {
       }
 
       // 5. Filter Wilayah
-      if (selectedWilayah && selectedWilayah !== 'Semua Wilayah Sukabumi') {
-        const cleanWilayah = selectedWilayah.replace(/^Kec\.\s*|^Kab\.\s*/i, '').trim().toLowerCase()
-        filtered = filtered.filter((r) => r.lokasi?.toLowerCase().includes(cleanWilayah))
+      if (selectedWilayah && selectedWilayah !== SEMUA_WILAYAH_LABEL) {
+        if (selectedWilayah === 'Kota Sukabumi') {
+          const kotaKeywords = [
+            'kota sukabumi',
+            'cikole',
+            'citamiang',
+            'warudoyong',
+            'baros',
+            'lembursitu',
+            'gunungpuyuh',
+            'cibeureum',
+          ]
+          filtered = filtered.filter((r) => {
+            const loc = (r.lokasi || '').toLowerCase()
+            return kotaKeywords.some((k) => loc.includes(k))
+          })
+        } else if (selectedWilayah === 'Kab. Sukabumi') {
+          filtered = filtered.filter((r) => {
+            const loc = (r.lokasi || '').toLowerCase()
+            return loc.includes('kab') || loc.includes('kabupaten')
+          })
+        } else {
+          const cleanWilayah = selectedWilayah.replace(/^Kec\.\s*/i, '').trim().toLowerCase()
+          filtered = filtered.filter((r) => (r.lokasi || '').toLowerCase().includes(cleanWilayah))
+        }
       }
 
       // 6. Filter Pencarian
@@ -336,6 +395,16 @@ function FeedPublikContent() {
     }
   }
 
+  const handleSelectJenis = (item: string) => {
+    setSelectedJenis(item)
+    const validCats = getCategoriesForJenis(item)
+    setSelectedCategories((prev) =>
+      prev.filter((c) =>
+        validCats.some((v) => v.toLowerCase() === c.toLowerCase())
+      )
+    )
+  }
+
   const toggleCategory = (cat: string) => {
     if (selectedCategories.includes(cat)) {
       setSelectedCategories(selectedCategories.filter((c) => c !== cat))
@@ -348,7 +417,7 @@ function FeedPublikContent() {
     setSelectedJenis('Semua Jenis')
     setSelectedCategories([])
     setSelectedStatus('Semua Laporan')
-    setSelectedWilayah('Semua Wilayah Sukabumi')
+    setSelectedWilayah(SEMUA_WILAYAH_LABEL)
     setSearchQuery('')
     setCurrentPage(1)
   }
@@ -357,7 +426,7 @@ function FeedPublikContent() {
     selectedJenis !== 'Semua Jenis' ||
     selectedCategories.length > 0 ||
     selectedStatus !== 'Semua Laporan' ||
-    selectedWilayah !== 'Semua Wilayah Sukabumi' ||
+    selectedWilayah !== SEMUA_WILAYAH_LABEL ||
     searchQuery.trim().length > 0
 
   // Perhitungan Paginasi
@@ -372,6 +441,27 @@ function FeedPublikContent() {
     setCurrentPage(page)
     feedTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+
+  // Filter list kecamatan berdasarkan input pencarian dropdown
+  const searchClean = wilayahSearch.trim().toLowerCase()
+  const filteredKotaKec = KOTA_SUKABUMI_KECAMATAN.filter((w) =>
+    w.toLowerCase().includes(searchClean)
+  )
+  const filteredKabKec = KAB_SUKABUMI_KECAMATAN.filter((w) =>
+    w.toLowerCase().includes(searchClean)
+  )
+  const showSemuaWilayah =
+    !searchClean || SEMUA_WILAYAH_LABEL.toLowerCase().includes(searchClean)
+  const showSemuaKota =
+    !searchClean || 'semua kota sukabumi'.includes(searchClean)
+  const showSemuaKab =
+    !searchClean || 'semua kab. sukabumi'.includes(searchClean)
+  const hasAnyMatches =
+    showSemuaWilayah ||
+    showSemuaKota ||
+    showSemuaKab ||
+    filteredKotaKec.length > 0 ||
+    filteredKabKec.length > 0
 
   return (
     <div className="w-full max-w-container-max mx-auto px-4 sm:px-6 md:px-8 py-6">
@@ -404,7 +494,7 @@ function FeedPublikContent() {
             mobileFilterOpen ? 'block' : 'hidden md:block'
           }`}
         >
-          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto [scrollbar-width:thin] pr-1 pb-6 space-y-6">
+          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto subtle-scrollbar pr-1 pb-6 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="font-heading font-extrabold text-xl text-primary tracking-tight">
                 Filter Laporan
@@ -435,7 +525,7 @@ function FeedPublikContent() {
                       type="radio"
                       name="sidebar-jenis-laporan"
                       checked={selectedJenis === item}
-                      onChange={() => setSelectedJenis(item)}
+                      onChange={() => handleSelectJenis(item)}
                       className="w-4 h-4 accent-primary text-primary cursor-pointer"
                     />
                     <span
@@ -457,7 +547,7 @@ function FeedPublikContent() {
               <span className="block text-[11px] font-bold uppercase tracking-wider text-secondary mb-3">
                 KATEGORI
               </span>
-              <div className="space-y-2.5">
+              <div className="space-y-2.5 max-h-56 overflow-y-auto subtle-scrollbar pr-1">
                 {categories.map((cat) => {
                   const checked = selectedCategories.includes(cat)
                   return (
@@ -518,25 +608,225 @@ function FeedPublikContent() {
               </div>
             </div>
 
-            {/* 4. WILAYAH */}
-            <div>
-              <span className="block text-[11px] font-bold uppercase tracking-wider text-secondary mb-3">
-                WILAYAH
-              </span>
-              <div className="relative">
-                <select
-                  value={selectedWilayah}
-                  onChange={(e) => setSelectedWilayah(e.target.value)}
-                  className="w-full appearance-none px-3.5 py-2.5 pr-8 text-xs bg-surface border border-outline-variant/80 rounded-xl text-on-surface font-semibold focus:outline-none focus:border-primary shadow-2xs cursor-pointer"
-                >
-                  {wilayahOptions.map((w) => (
-                    <option key={w} value={w}>
-                      {w}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            {/* 4. WILAYAH (CUSTOM SEARCHABLE DROPDOWN BUTTON) */}
+            <div ref={wilayahRef} className="relative inline-block w-full max-w-[210px]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-secondary">
+                  WILAYAH
+                </span>
+                {selectedWilayah !== SEMUA_WILAYAH_LABEL && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedWilayah(SEMUA_WILAYAH_LABEL)
+                      setIsWilayahOpen(false)
+                    }}
+                    className="text-[11px] text-primary hover:underline font-semibold cursor-pointer"
+                  >
+                    Reset
+                  </button>
+                )}
               </div>
+
+              {/* Trigger Button - Ramping & Tidak Terlalu Lebar ke Kanan */}
+              <button
+                type="button"
+                onClick={() => setIsWilayahOpen(!isWilayahOpen)}
+                className={`w-full max-w-[210px] flex items-center justify-between gap-1.5 px-3 py-2 text-xs bg-surface border rounded-xl text-on-surface font-semibold shadow-2xs cursor-pointer transition-all duration-150 ${
+                  isWilayahOpen
+                    ? 'border-primary ring-2 ring-primary/10 shadow-sm'
+                    : selectedWilayah !== SEMUA_WILAYAH_LABEL
+                    ? 'border-primary/80 bg-primary/[0.03]'
+                    : 'border-outline-variant/80 hover:border-primary/50'
+                }`}
+                aria-expanded={isWilayahOpen}
+                aria-haspopup="listbox"
+              >
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <MapPin
+                    className={`w-3.5 h-3.5 shrink-0 ${
+                      selectedWilayah !== SEMUA_WILAYAH_LABEL ? 'text-primary' : 'text-secondary'
+                    }`}
+                  />
+                  <span className="truncate text-left font-medium text-xs">
+                    {selectedWilayah}
+                  </span>
+                </div>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 shrink-0 text-secondary transition-transform duration-200 ${
+                    isWilayahOpen ? 'rotate-180 text-primary' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Floating Dropdown Popover */}
+              {isWilayahOpen && (
+                <div className="absolute top-full left-0 w-64 max-w-[calc(100vw-2rem)] mt-1.5 z-50 bg-surface border border-outline-variant rounded-2xl shadow-xl overflow-hidden backdrop-blur-md animate-in fade-in zoom-in-95 duration-150">
+                  {/* Search Input Bar inside Popover */}
+                  <div className="p-2 border-b border-outline-variant/60 bg-surface-container-lowest/90 sticky top-0 z-10">
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 text-secondary absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        ref={wilayahSearchInputRef}
+                        type="text"
+                        value={wilayahSearch}
+                        onChange={(e) => setWilayahSearch(e.target.value)}
+                        placeholder="Cari kecamatan..."
+                        className="w-full pl-8 pr-7 py-1.5 text-xs bg-surface-container-low border border-outline-variant rounded-lg text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
+                      />
+                      {wilayahSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setWilayahSearch('')}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-on-surface p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Scrollable Options List - Menggunakan subtle-scrollbar */}
+                  <div className="max-h-56 overflow-y-auto subtle-scrollbar p-1.5 space-y-1 text-xs divide-y divide-outline-variant/40">
+                    {/* Opsi: Semua Wilayah */}
+                    {showSemuaWilayah && (
+                      <div className="pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedWilayah(SEMUA_WILAYAH_LABEL)
+                            setIsWilayahOpen(false)
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
+                            selectedWilayah === SEMUA_WILAYAH_LABEL
+                              ? 'bg-primary/10 text-primary font-bold'
+                              : 'text-on-surface hover:bg-surface-container'
+                          }`}
+                        >
+                          <span>{SEMUA_WILAYAH_LABEL}</span>
+                          {selectedWilayah === SEMUA_WILAYAH_LABEL && (
+                            <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                          )}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Group: Kota Sukabumi */}
+                    {(showSemuaKota || filteredKotaKec.length > 0) && (
+                      <div className="pt-1.5 space-y-1">
+                        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary flex items-center justify-between">
+                          <span>Kota Sukabumi</span>
+                          <span className="text-[10px] bg-surface-container px-1.5 py-0.2 rounded font-normal">
+                            7 Kec
+                          </span>
+                        </div>
+
+                        {showSemuaKota && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedWilayah('Kota Sukabumi')
+                              setIsWilayahOpen(false)
+                            }}
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                              selectedWilayah === 'Kota Sukabumi'
+                                ? 'bg-primary/10 text-primary font-bold'
+                                : 'text-on-surface hover:bg-surface-container'
+                            }`}
+                          >
+                            <span className="font-semibold text-xs">Semua Kota Sukabumi</span>
+                            {selectedWilayah === 'Kota Sukabumi' && (
+                              <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                            )}
+                          </button>
+                        )}
+
+                        {filteredKotaKec.map((w) => (
+                          <button
+                            key={w}
+                            type="button"
+                            onClick={() => {
+                              setSelectedWilayah(w)
+                              setIsWilayahOpen(false)
+                            }}
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                              selectedWilayah === w
+                                ? 'bg-primary/10 text-primary font-bold'
+                                : 'text-on-surface hover:bg-surface-container'
+                            }`}
+                          >
+                            <span className="text-xs">{w}</span>
+                            {selectedWilayah === w && (
+                              <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Group: Kabupaten Sukabumi */}
+                    {(showSemuaKab || filteredKabKec.length > 0) && (
+                      <div className="pt-1.5 space-y-1">
+                        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-secondary flex items-center justify-between">
+                          <span>Kabupaten Sukabumi</span>
+                          <span className="text-[10px] bg-surface-container px-1.5 py-0.2 rounded font-normal">
+                            47 Kec
+                          </span>
+                        </div>
+
+                        {showSemuaKab && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedWilayah('Kab. Sukabumi')
+                              setIsWilayahOpen(false)
+                            }}
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                              selectedWilayah === 'Kab. Sukabumi'
+                                ? 'bg-primary/10 text-primary font-bold'
+                                : 'text-on-surface hover:bg-surface-container'
+                            }`}
+                          >
+                            <span className="font-semibold text-xs">Semua Kab. Sukabumi</span>
+                            {selectedWilayah === 'Kab. Sukabumi' && (
+                              <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                            )}
+                          </button>
+                        )}
+
+                        {filteredKabKec.map((w) => (
+                          <button
+                            key={w}
+                            type="button"
+                            onClick={() => {
+                              setSelectedWilayah(w)
+                              setIsWilayahOpen(false)
+                            }}
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                              selectedWilayah === w
+                                ? 'bg-primary/10 text-primary font-bold'
+                                : 'text-on-surface hover:bg-surface-container'
+                            }`}
+                          >
+                            <span className="text-xs">{w}</span>
+                            {selectedWilayah === w && (
+                              <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Empty State */}
+                    {!hasAnyMatches && (
+                      <div className="py-6 px-3 text-center text-secondary">
+                        <p className="text-xs font-semibold text-on-surface">Kecamatan tidak ditemukan</p>
+                        <p className="text-[11px] mt-0.5">Coba kata kunci lain atau periksa ejaan.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </aside>
@@ -598,18 +888,13 @@ function FeedPublikContent() {
                       className="bg-surface border border-outline-variant/80 hover:border-primary/50 rounded-2xl p-4 sm:p-6 shadow-2xs transition-all duration-200"
                     >
                       {/* Header Card: Pelapor Terenkripsi & Waktu / Alamat */}
-                      <div className="flex items-start gap-3 mb-3.5">
-                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                          <ShieldAlert className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="block font-bold text-xs sm:text-sm text-on-surface leading-tight">
-                            Pelapor Terenkripsi
-                          </span>
-                          <span className="block text-[11px] text-secondary mt-0.5 leading-snug line-clamp-1">
-                            {getRelativeTime(report.created_at)} &bull; {report.lokasi || 'Sukabumi, Jawa Barat'}
-                          </span>
-                        </div>
+                      <div className="mb-3">
+                        <span className="block font-bold text-xs sm:text-sm text-on-surface leading-tight">
+                          Pelapor Terenkripsi
+                        </span>
+                        <span className="block text-[11px] text-secondary mt-0.5 leading-snug line-clamp-1">
+                          {getRelativeTime(report.created_at)} &bull; {report.lokasi || 'Sukabumi, Jawa Barat'}
+                        </span>
                       </div>
 
                       {/* Badges Row: Jenis Laporan & Status */}
@@ -637,6 +922,13 @@ function FeedPublikContent() {
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[11px] font-semibold border border-outline-variant/60">
                             <BookOpen className="w-3 h-3 text-secondary" />
                             <span>Inspirasi</span>
+                          </span>
+                        )}
+
+                        {/* Kategori Badge */}
+                        {report.kategori && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-surface-container-low text-secondary text-[11px] font-medium border border-outline-variant/60">
+                            {normalizeCategoryName(report.kategori)}
                           </span>
                         )}
 

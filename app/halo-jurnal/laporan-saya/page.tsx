@@ -22,6 +22,10 @@ import {
   RotateCcw,
 } from 'lucide-react'
 import { DUMMY_REPORTS } from '@/data/dummyReports'
+import {
+  ALL_REPORT_CATEGORIES,
+  normalizeCategoryName,
+} from '@/data/haloJurnalCategories'
 
 export default function HaloJurnalLaporanSayaPage() {
   const supabase = createClient()
@@ -153,7 +157,9 @@ export default function HaloJurnalLaporanSayaPage() {
     // Filter Kategori
     if (categoryFilter !== 'Semua Kategori') {
       list = list.filter(
-        (r) => (r.kategori || '').toLowerCase() === categoryFilter.toLowerCase()
+        (r) =>
+          normalizeCategoryName(r.kategori).toLowerCase() ===
+          categoryFilter.toLowerCase()
       )
     }
 
@@ -191,9 +197,12 @@ export default function HaloJurnalLaporanSayaPage() {
   ).length
   const selesaiCount = allReports.filter((r) => r.status?.toLowerCase() === 'selesai').length
 
+  const userCats = Array.from(
+    new Set(allReports.map((r) => normalizeCategoryName(r.kategori)).filter(Boolean))
+  )
   const categoryOptions = [
     'Semua Kategori',
-    ...Array.from(new Set(allReports.map((r) => r.kategori).filter(Boolean))),
+    ...Array.from(new Set([...ALL_REPORT_CATEGORIES, ...userCats])),
   ]
 
   const formatDate = (dateString: string) => {
@@ -470,7 +479,7 @@ export default function HaloJurnalLaporanSayaPage() {
 
                     {/* Kategori */}
                     <span className="inline-block px-2 py-0.5 rounded bg-surface-container-high text-on-surface text-[11px] font-medium">
-                      {report.kategori || 'Umum'}
+                      {normalizeCategoryName(report.kategori)}
                     </span>
 
                     {/* Tanggal */}

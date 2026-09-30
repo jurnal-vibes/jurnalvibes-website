@@ -38,9 +38,6 @@ export function HubungiKamiClient() {
 
         {/* Header Dokumen */}
         <header className="border-b border-outline-variant dark:border-slate-800 pb-5">
-          <span className="text-primary font-bold text-xs uppercase tracking-wider block mb-2">
-            Kontak Redaksi &amp; Iklan
-          </span>
           <h1 className="font-headline-xl text-3xl md:text-4xl font-bold text-on-surface dark:text-white leading-tight">
             Hubungi Kami
           </h1>

@@ -38,6 +38,8 @@ interface FormConfig {
   sidebarInfo: string
 }
 
+import { REPORT_CATEGORIES_BY_TYPE } from '@/data/haloJurnalCategories'
+
 const formConfigs: Record<ReportType, FormConfig> = {
   pengaduan: {
     headerTitle: 'Formulir Pengaduan Warga',
@@ -48,14 +50,7 @@ const formConfigs: Record<ReportType, FormConfig> = {
     descLabel: 'Detail Pengaduan / Keluhan',
     descPlaceholder: 'Jelaskan masalah yang Anda alami secara detail dan kronologinya...',
     locationLabel: 'Lokasi Kejadian',
-    categories: [
-      'Infrastruktur',
-      'Kebersihan Lingkungan',
-      'Keamanan & Ketertiban',
-      'Pelayanan Publik',
-      'Kesehatan',
-      'Lainnya',
-    ],
+    categories: REPORT_CATEGORIES_BY_TYPE.pengaduan,
     submitText: 'Kirim Pengaduan',
     sidebarInfo:
       'Laporan pengaduan Anda akan ditindaklanjuti oleh tim Redaksi Jurnal Sukabumi dalam waktu 2x24 jam.',
@@ -68,13 +63,7 @@ const formConfigs: Record<ReportType, FormConfig> = {
     descLabel: 'Rincian Ide / Usulan',
     descPlaceholder: 'Jelaskan ide atau harapan Anda untuk kemajuan bersama...',
     locationLabel: 'Lokasi Target / Scope Usulan',
-    categories: [
-      'Pembangunan Daerah',
-      'Program Kemasyarakatan',
-      'Inovasi Pelayanan',
-      'Fasilitas Umum',
-      'Lainnya',
-    ],
+    categories: REPORT_CATEGORIES_BY_TYPE.aspirasi,
     submitText: 'Kirim Aspirasi',
     sidebarInfo:
       'Aspirasi Anda akan didokumentasikan dan dipublikasikan untuk menjadi pertimbangan instansi terkait.',
@@ -89,7 +78,7 @@ const formConfigs: Record<ReportType, FormConfig> = {
     descPlaceholder:
       'Jelaskan informasi apa yang Anda butuhkan dan untuk keperluan apa secara mendetail.',
     locationLabel: 'Wilayah / Scope Informasi',
-    categories: ['Kebijakan', 'Data Statistik', 'Anggaran', 'Laporan Kegiatan', 'Lainnya'],
+    categories: REPORT_CATEGORIES_BY_TYPE.informasi,
     submitText: 'Ajukan Permohonan',
     sidebarInfo:
       'Permohonan akan diproses maksimal 10 hari kerja sesuai UU Keterbukaan Informasi Publik.',
@@ -104,13 +93,7 @@ const formConfigs: Record<ReportType, FormConfig> = {
     descPlaceholder:
       'Ceritakan kegiatan atau hal positif yang terjadi, siapa yang terlibat, dan dampaknya...',
     locationLabel: 'Lokasi Kegiatan (Opsional)',
-    categories: [
-      'Gotong Royong',
-      'Prestasi Warga',
-      'UMKM & Ekonomi Lokal',
-      'Komunitas & Kegiatan Sosial',
-      'Lainnya',
-    ],
+    categories: REPORT_CATEGORIES_BY_TYPE.inspirasi,
     submitText: 'Bagikan Cerita',
     sidebarInfo:
       'Cerita Anda akan diverifikasi oleh Redaksi. Setelah disetujui, cerita akan tayang di Feed Publik.',
@@ -128,13 +111,7 @@ const instansiList = [
   'Lainnya',
 ]
 
-const jenisInformasiList = [
-  'Kebijakan',
-  'Data Statistik',
-  'Anggaran',
-  'Laporan Kegiatan',
-  'Lainnya',
-]
+const jenisInformasiList = REPORT_CATEGORIES_BY_TYPE.informasi
 
 function LaporForm() {
   const router = useRouter()

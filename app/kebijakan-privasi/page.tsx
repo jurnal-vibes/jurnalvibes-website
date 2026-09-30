@@ -32,9 +32,6 @@ export default function KebijakanPrivasiPage() {
 
         {/* Header Dokumen */}
         <header className="border-b border-outline-variant dark:border-slate-800 pb-5">
-          <span className="text-primary font-bold text-xs uppercase tracking-wider block mb-2">
-            Perlindungan Privasi Pengunjung
-          </span>
           <h1 className="font-headline-xl text-3xl md:text-4xl font-bold text-on-surface dark:text-white leading-tight">
             Kebijakan Privasi (Privacy Policy)
           </h1>

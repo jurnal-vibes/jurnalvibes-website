@@ -1,102 +1,46 @@
+'use client'
+
 import React from 'react'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 
 export default function HaloJurnalFooter() {
   return (
-    <footer className="border-t border-outline-variant/60 bg-surface text-on-surface pt-10 pb-24 md:py-12 transition-colors duration-300">
-      <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-outline-variant/60">
-          {/* Brand Info */}
-          <div className="md:col-span-2 space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
-                <img
-                  src="/halo-jurnal-icon.webp"
-                  alt="Halo Jurnal Logo"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <span className="font-heading font-black text-lg text-on-surface">Halo Jurnal</span>
-            </div>
-            <p className="text-secondary text-xs sm:text-sm leading-relaxed max-w-md">
-              Inisiatif platform transparansi publik dan penyaluran aspirasi masyarakat Kota &amp; Kabupaten Sukabumi yang dikelola secara independen oleh PT Media Jurnal Sukabumi.
+    <footer className="w-full bg-surface border-t border-outline-variant/60 mt-auto relative transition-colors duration-300">
+      <div className="max-w-container-max mx-auto pt-5 sm:pt-6 pb-24 md:pb-6 px-4 sm:px-6 md:px-12">
+        <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-4">
+          {/* Sisi Kiri (Desktop) / Bawah (Mobile): Copyright */}
+          <div className="text-center md:text-left">
+            <p className="text-xs text-secondary">
+              © 2026 Jurnal Vibes. All rights reserved.
             </p>
-            <div className="pt-2">
-              <Link
-                href="/"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"
-              >
-                <span>Kunjungi Portal Berita Jurnal Wave</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+          </div>
+
+          {/* Sisi Kanan (Desktop) / Atas (Mobile): Navigasi Ringkas */}
+          <div className="text-center md:text-right">
+            <nav
+              aria-label="Footer Navigation"
+              className="flex flex-wrap justify-center md:justify-end gap-x-5 gap-y-2 text-xs text-on-surface-variant font-medium"
+            >
+              <Link href="/halo-jurnal/tentang" className="hover:text-primary transition-colors">
+                Tentang Kami
               </Link>
-            </div>
+              <Link href="/halo-jurnal/syarat-ketentuan" className="hover:text-primary transition-colors">
+                Syarat &amp; Ketentuan
+              </Link>
+              <Link href="/halo-jurnal/kebijakan-privasi" className="hover:text-primary transition-colors">
+                Kebijakan Privasi
+              </Link>
+              <Link href="/halo-jurnal/hubungi-kami" className="hover:text-primary transition-colors">
+                Hubungi Kami
+              </Link>
+              <Link href="/" className="hover:text-primary text-primary font-semibold transition-colors">
+                Portal Utama
+              </Link>
+            </nav>
           </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-on-surface mb-3">
-              Layanan Warga
-            </h4>
-            <ul className="space-y-2 text-xs text-secondary">
-              <li>
-                <Link href="/halo-jurnal" className="hover:text-primary transition-colors">
-                  Beranda Halo Jurnal
-                </Link>
-              </li>
-              <li>
-                <Link href="/halo-jurnal/lapor" className="hover:text-primary transition-colors">
-                  Kirim Laporan &amp; Aduan
-                </Link>
-              </li>
-              <li>
-                <Link href="/halo-jurnal/feed-publik" className="hover:text-primary transition-colors">
-                  Feed Laporan Publik
-                </Link>
-              </li>
-              <li>
-                <Link href="/halo-jurnal/laporan-saya" className="hover:text-primary transition-colors">
-                  Pantau Laporan Saya
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal & Contact */}
-          <div>
-            <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-on-surface mb-3">
-              Tentang &amp; Aturan
-            </h4>
-            <ul className="space-y-2 text-xs text-secondary">
-              <li>
-                <Link href="/halo-jurnal/tentang" className="hover:text-primary transition-colors">
-                  Tentang Halo Jurnal
-                </Link>
-              </li>
-              <li>
-                <Link href="/halo-jurnal/kebijakan-privasi" className="hover:text-primary transition-colors">
-                  Kebijakan Privasi
-                </Link>
-              </li>
-              <li>
-                <Link href="/halo-jurnal/syarat-ketentuan" className="hover:text-primary transition-colors">
-                  Syarat &amp; Ketentuan
-                </Link>
-              </li>
-              <li>
-                <Link href="/halo-jurnal/hubungi-kami" className="hover:text-primary transition-colors">
-                  Hubungi Dukungan
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-secondary gap-2 text-center sm:text-left">
-          <p>© 2026 PT Media Jurnal Sukabumi. Seluruh hak cipta dilindungi undang-undang.</p>
-          <p className="text-[11px]">Terintegrasi dalam ekosistem digital Jurnal Wave</p>
         </div>
       </div>
     </footer>
   )
 }
+
