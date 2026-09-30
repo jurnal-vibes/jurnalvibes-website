@@ -4,3 +4,15 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/admin"
+  to = "/halo-jurnal/admin"
+  status = 301
+  force = false
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/halo-jurnal/admin/:splat"
+  status = 301
+  force = false

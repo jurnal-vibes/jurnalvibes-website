@@ -11,6 +11,20 @@ const nextConfig: NextConfig = {
     ],
   },
   compress: true,
+  async redirects() {
+    return [
+      {
+        source: '/admin',
+        destination: '/halo-jurnal/admin',
+        permanent: true,
+      },
+      {
+        source: '/admin/:path*',
+        destination: '/halo-jurnal/admin/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
