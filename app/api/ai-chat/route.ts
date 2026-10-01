@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DUMMY_ARTICLES } from '@/data/dummyArticles'
+import { findRelevantSukabumiKnowledge } from '@/data/sukabumiKnowledge'
 
 const SYSTEM_PROMPT = `Anda adalah "Jurnal Vibes AI", asisten virtual resmi untuk portal berita Jurnal Vibes dan layanan pengaduan warga Halo Jurnal Sukabumi.
 
@@ -122,7 +123,10 @@ export async function POST(req: NextRequest) {
       parts: [{ text: message }]
     })
 
-    // Siapkan daftar artikel berita terbaru dari website untuk konteks dinamis AI (RAG)
+    // 1. Ambil wawasan lokal Sukabumi yang relevan dengan pertanyaan (Bank Pengetahuan Sukabumi)
+    const localKnowledge = findRelevantSukabumiKnowledge(message)
+
+    // 2. Siapkan daftar artikel berita terbaru dari website untuk konteks dinamis AI (RAG)
     const recentArticlesList = DUMMY_ARTICLES.slice(0, 8)
       .map(
         (a, i) =>
@@ -131,6 +135,8 @@ export async function POST(req: NextRequest) {
       .join('\n')
 
     const dynamicSystemInstruction = `${SYSTEM_PROMPT}
+
+${localKnowledge ? `Wawasan Lokal Sukabumi Terverifikasi Khusus untuk Pertanyaan Ini:\n${localKnowledge}\n` : ''}
 
 Daftar Berita & Artikel Terkini yang Sedang Tayang di Jurnal Vibes:
 ${recentArticlesList}
