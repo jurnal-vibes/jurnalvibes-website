@@ -33,7 +33,9 @@ const FONT_SIZE_CLASSES: Record<FontSize, string> = {
 };
 
 // Kamus Fonetik Istilah Serapan / Bahasa Inggris agar Dilafalkan Alami & Pas oleh TTS Bahasa Indonesia
+// Berlaku otomatis untuk seluruh artikel berita di situs Jurnal Vibes
 const LOANWORD_PHONETICS: [RegExp, string][] = [
+  // Musik & Event
   [/\bline[- ]?up\b/gi, 'lain ap'],
   [/\bmerchandise\b/gi, 'mercendais'],
   [/\blive\b/gi, 'laif'],
@@ -41,17 +43,40 @@ const LOANWORD_PHONETICS: [RegExp, string][] = [
   [/\bevent\b/gi, 'ivent'],
   [/\bcreative\b/gi, 'kreatif'],
   [/\bfest\b/gi, 'fes'],
+  [/\bshowcase\b/gi, 'syokeis'],
+  [/\bteaser\b/gi, 'tiser'],
+  [/\btrailer\b/gi, 'treiler'],
+  [/\bcomeback\b/gi, 'kambek'],
+  // Bisnis, Kuliner & Gaya Hidup
   [/\bbrand\b/gi, 'brend'],
   [/\bbooth\b/gi, 'but'],
+  [/\bcoffee shop\b/gi, 'kofi syop'],
+  [/\bcold brew\b/gi, 'kold bru'],
+  [/\blifestyle\b/gi, 'laifstail'],
+  [/\breview\b/gi, 'rivyu'],
+  [/\bweekend\b/gi, 'wik-end'],
+  [/\bbudget\b/gi, 'bajet'],
+  [/\bworkshop\b/gi, 'worsyop'],
+  [/\bmeet[- ]?up\b/gi, 'mit ap'],
+  // Digital & Teknologi
+  [/\bstartup\b/gi, 'start ap'],
+  [/\bgadget\b/gi, 'gejet'],
+  [/\bsmartphone\b/gi, 'smartfon'],
   [/\bpodcast\b/gi, 'podkes'],
   [/\bonline\b/gi, 'onlain'],
   [/\boffline\b/gi, 'oflain'],
-  [/\breview\b/gi, 'rivyu'],
-  [/\blifestyle\b/gi, 'laifstail'],
-  [/\bcold brew\b/gi, 'kold bru'],
   [/\bupdate\b/gi, 'apdet'],
-  [/\bcoffee shop\b/gi, 'kofi syop'],
-  [/\bweekend\b/gi, 'wik-end'],
+  [/\bdownload\b/gi, 'daunlod'],
+  [/\bupload\b/gi, 'aplod'],
+  [/\bgaming\b/gi, 'geming'],
+  [/\bgamer\b/gi, 'gemer'],
+  [/\bgame\b/gi, 'gem'],
+  [/\bcontent creator\b/gi, 'konten krieitor'],
+  [/\binfluencer\b/gi, 'influenser'],
+  [/\brating\b/gi, 'reiting'],
+  [/\bfeedback\b/gi, 'fidbek'],
+  [/\bdeadline\b/gi, 'dedlain'],
+  // Format Waktu & Finansial Lokal
   [/\bWIB\b/gi, 'W I B'],
   [/\bRp\s*([\d.,]+)/gi, '$1 rupiah'],
 ];
