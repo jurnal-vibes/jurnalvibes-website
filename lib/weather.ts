@@ -52,6 +52,41 @@ export interface SukabumiWeatherData {
 
 export const SUKABUMI_WEATHER_LOCATIONS = [
   {
+    id: 'kabupaten',
+    name: 'Kabupaten Sukabumi',
+    fullName: 'Kabupaten Sukabumi, Jawa Barat',
+    lat: -6.9875,
+    lon: 106.5414
+  },
+  {
+    id: 'cisaat',
+    name: 'Kecamatan Cisaat',
+    fullName: 'Kecamatan Cisaat, Sukabumi, Jawa Barat',
+    lat: -6.9150,
+    lon: 106.8920
+  },
+  {
+    id: 'goalpara',
+    name: 'Jalan Goalpara',
+    fullName: 'Jalan Goalpara, Sukabumi, Jawa Barat',
+    lat: -6.8970,
+    lon: 106.9650
+  },
+  {
+    id: 'selabintana',
+    name: 'Jalan Selabintana',
+    fullName: 'Jalan Selabintana, Sukabumi, Jawa Barat',
+    lat: -6.8830,
+    lon: 106.9450
+  },
+  {
+    id: 'cikole',
+    name: 'Kecamatan Cikole',
+    fullName: 'Kecamatan Cikole, Kota Sukabumi, Jawa Barat',
+    lat: -6.9180,
+    lon: 106.9320
+  },
+  {
     id: 'kota',
     name: 'Kota Sukabumi',
     fullName: 'Sukabumi, Kota Sukabumi, Jawa Barat',
@@ -64,13 +99,6 @@ export const SUKABUMI_WEATHER_LOCATIONS = [
     fullName: 'Palabuhanratu, Kab. Sukabumi, Jawa Barat',
     lat: -6.9875,
     lon: 106.5414
-  },
-  {
-    id: 'cisaat',
-    name: 'Cisaat',
-    fullName: 'Cisaat, Kab. Sukabumi, Jawa Barat',
-    lat: -6.9150,
-    lon: 106.8920
   },
   {
     id: 'cibadak',
@@ -123,11 +151,24 @@ const DAY_NAMES_SHORT = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 const DAY_NAMES_FULL = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 
 export async function fetchLiveSukabumiWeather(
-  locationId = 'kota'
+  locationId = 'kota',
+  customCoords?: { lat: number; lon: number; name?: string }
 ): Promise<SukabumiWeatherData> {
-  const loc =
+  let loc =
     SUKABUMI_WEATHER_LOCATIONS.find((l) => l.id === locationId) ||
-    SUKABUMI_WEATHER_LOCATIONS[0]
+    SUKABUMI_WEATHER_LOCATIONS[5] // Default Kota Sukabumi
+
+  if (customCoords && !isNaN(customCoords.lat) && !isNaN(customCoords.lon)) {
+    loc = {
+      id: 'presisi',
+      name: customCoords.name || 'Lokasi Presisi',
+      fullName: customCoords.name
+        ? `${customCoords.name}, Sukabumi, Jawa Barat`
+        : 'Lokasi Anda (Presisi), Sukabumi, Jawa Barat',
+      lat: customCoords.lat,
+      lon: customCoords.lon,
+    }
+  }
 
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&forecast_days=8&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FJakarta`
@@ -190,7 +231,6 @@ export async function fetchLiveSukabumiWeather(
         const mapping = mapWmoCodeToCondition(code)
         const precip = Math.round(hourly.precipitation_probability?.[idx] ?? 0)
 
-        // Capture precipitation for current hour
         if (idx === now.getHours()) {
           currentPrecipitation = precip
         }

@@ -1,12 +1,17 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   MapPin,
   MoreVertical,
   ChevronDown,
   RefreshCw,
-  Check
+  X,
+  Home,
+  Crosshair,
+  Info,
+  Check,
+  Loader2
 } from 'lucide-react';
 import {
   SUKABUMI_WEATHER_LOCATIONS,
@@ -27,14 +32,31 @@ export function CuacaView({ initialData }: CuacaViewProps) {
   const [selectedDayIdx, setSelectedDayIdx] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<MetricTab>('suhu');
   const [unit, setUnit] = useState<TempUnit>('C');
-  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [showMenu, setShowMenu] = useState<boolean>(false);
 
-  // Ganti lokasi
+  // Modal "Pilih area" Google Cuaca
+  const [isAreaModalOpen, setIsAreaModalOpen] = useState<boolean>(false);
+  const [isDetectingGps, setIsDetectingGps] = useState<boolean>(false);
+  const [homeLocation, setHomeLocation] = useState<{ id: string; name: string } | null>(null);
+  const [isSettingHome, setIsSettingHome] = useState<boolean>(false);
+
+  // Ambil data home dari localStorage saat mount
+  useEffect(() => {
+    try {
+      const savedHome = localStorage.getItem('jv_weather_home');
+      if (savedHome) {
+        setHomeLocation(JSON.parse(savedHome));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Ganti lokasi via modal
   const handleSelectLocation = async (locId: string) => {
     setSelectedLocId(locId);
-    setIsDropdownOpen(false);
+    setIsAreaModalOpen(false);
     setIsRefreshing(true);
     try {
       const res = await fetch(`/api/weather?loc=${locId}`);
@@ -48,6 +70,56 @@ export function CuacaView({ initialData }: CuacaViewProps) {
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  // Tetapkan alamat rumah
+  const handleSetHome = (locId: string, name: string) => {
+    const homeObj = { id: locId, name };
+    setHomeLocation(homeObj);
+    try {
+      localStorage.setItem('jv_weather_home', JSON.stringify(homeObj));
+    } catch {
+      // ignore
+    }
+    setIsSettingHome(false);
+    handleSelectLocation(locId);
+  };
+
+  // Gunakan lokasi presisi via Browser Geolocation
+  const handleUsePreciseLocation = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      alert('Geolokasi tidak didukung oleh browser Anda.');
+      return;
+    }
+
+    setIsDetectingGps(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(
+            `/api/weather?lat=${latitude}&lon=${longitude}&name=${encodeURIComponent('Lokasi Anda')}`
+          );
+          if (res.ok) {
+            const json = await res.json();
+            setData(json);
+            setSelectedLocId('presisi');
+            setSelectedDayIdx(0);
+            setIsAreaModalOpen(false);
+          }
+        } catch (err) {
+          console.error('Gagal mengambil cuaca dari GPS:', err);
+        } finally {
+          setIsDetectingGps(false);
+        }
+      },
+      (error) => {
+        console.warn('Geolocation denied/error:', error);
+        setIsDetectingGps(false);
+        alert('Izin lokasi ditolak atau tidak dapat diakses. Menampilkan cuaca Sukabumi.');
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
   };
 
   // Refresh data
@@ -84,11 +156,9 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
     let startIdx = 0;
     if (selectedDayIdx === 0) {
-      // Hari ini: mulai dari jam terdekat berikutnya (misal jam 11)
       const roundedNextHour = Math.ceil(currentHour / 3) * 3;
       startIdx = Math.min(roundedNextHour, 21);
     } else {
-      // Hari berikutnya: mulai dari jam 08.00 atau 05.00
       startIdx = selectedDayIdx * 24 + 8;
     }
 
@@ -148,7 +218,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
       const x = padX + (i / (currentPoints.length - 1)) * usableWidth;
       const val = values[i];
       const norm = (val - minVal) / range;
-      // Kurva tidak terlalu datar atau curam
       const y = padTop + (1 - norm) * usableHeight;
       return {
         x,
@@ -252,9 +321,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
       default:
         return (
           <svg className={sizeClass} viewBox="0 0 64 64" fill="none">
-            {/* Sun behind cloud */}
             <circle cx="26" cy="24" r="13" fill="#FBBC04" />
-            {/* Soft fluffy cloud */}
             <path
               d="M48 44H22a11 11 0 0 1-2.2-21.78A15 15 0 0 1 46 25a10 10 0 0 1 2 19z"
               fill="#E8EAED"
@@ -282,39 +349,14 @@ export function CuacaView({ initialData }: CuacaViewProps) {
             <span className="font-semibold tracking-tight">{data.locationFull}</span>
             <span className="text-[#9aa0a6]">•</span>
 
-            {/* Dropdown Button 'Pilih area' */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="text-[#8ab4f8] hover:text-[#aecbfa] hover:underline flex items-center gap-0.5 text-sm transition-colors cursor-pointer"
-              >
-                Pilih area
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-
-              {/* Area Switcher Popover */}
-              {isDropdownOpen && (
-                <div className="absolute left-0 top-full mt-2 w-56 bg-[#303134] rounded-xl shadow-2xl border border-[#3c4043] py-1.5 z-50 animate-in fade-in zoom-in-95">
-                  <div className="px-3 py-1.5 text-[11px] font-bold text-[#9aa0a6] uppercase tracking-wider">
-                    Wilayah Sukabumi
-                  </div>
-                  {SUKABUMI_WEATHER_LOCATIONS.map(loc => (
-                    <button
-                      key={loc.id}
-                      type="button"
-                      onClick={() => handleSelectLocation(loc.id)}
-                      className={`w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-[#3c4043] transition-colors cursor-pointer ${
-                        selectedLocId === loc.id ? 'text-[#8ab4f8] font-bold' : 'text-[#e8eaed]'
-                      }`}
-                    >
-                      <span>{loc.name}</span>
-                      {selectedLocId === loc.id && <Check className="w-3.5 h-3.5 text-[#8ab4f8]" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Tombol 'Pilih area' - Membuka Modal Google Cuaca */}
+            <button
+              type="button"
+              onClick={() => setIsAreaModalOpen(true)}
+              className="text-[#8ab4f8] hover:text-[#aecbfa] hover:underline flex items-center gap-0.5 text-sm transition-colors cursor-pointer"
+            >
+              Pilih area
+            </button>
           </div>
 
           {/* Three dots menu */}
@@ -347,7 +389,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           {/* Sisi Kiri: Ikon Besar + Suhu + Presipitasi/Kelembapan/Angin */}
           <div className="flex items-center gap-4 sm:gap-6">
-            {/* Big Google Weather Icon */}
             <div className="shrink-0">
               {renderGoogleWeatherIcon(
                 selectedDayIdx === 0 ? data.iconName : selectedDay.iconName,
@@ -355,7 +396,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
               )}
             </div>
 
-            {/* Suhu & Unit */}
             <div className="flex items-baseline gap-1.5">
               <span className="text-6xl sm:text-7xl font-normal tracking-tight text-[#e8eaed]">
                 {formatTemp(selectedDayIdx === 0 ? data.temperature : selectedDay.tempMax)}
@@ -383,7 +423,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
               </div>
             </div>
 
-            {/* Metric Details Text */}
             <div className="hidden sm:flex flex-col text-xs sm:text-[13px] text-[#9aa0a6] leading-relaxed ml-2 border-l border-[#3c4043] pl-4">
               <span>Presipitasi: {data.precipitation}%</span>
               <span>Kelembapan: {data.humidity}%</span>
@@ -405,7 +444,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
           </div>
         </div>
 
-        {/* Metric details visible on mobile */}
+        {/* Mobile metrics */}
         <div className="flex sm:hidden justify-between text-xs text-[#9aa0a6] mb-4 pb-3 border-b border-[#303134]">
           <span>Presipitasi: {data.precipitation}%</span>
           <span>Kelembapan: {data.humidity}%</span>
@@ -468,24 +507,20 @@ export function CuacaView({ initialData }: CuacaViewProps) {
               className="w-full h-[135px] overflow-visible"
             >
               <defs>
-                {/* Yellow Gradient (Suhu) */}
                 <linearGradient id="yellowGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#fbbc04" stopOpacity="0.4" />
                   <stop offset="100%" stopColor="#fbbc04" stopOpacity="0.0" />
                 </linearGradient>
-                {/* Blue Gradient (Presipitasi) */}
                 <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#8ab4f8" stopOpacity="0.4" />
                   <stop offset="100%" stopColor="#8ab4f8" stopOpacity="0.0" />
                 </linearGradient>
-                {/* Teal Gradient (Angin) */}
                 <linearGradient id="tealGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#78d9ec" stopOpacity="0.4" />
                   <stop offset="100%" stopColor="#78d9ec" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
 
-              {/* Filled Area */}
               {chartConfig.areaD && (
                 <path
                   d={chartConfig.areaD}
@@ -494,7 +529,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                 />
               )}
 
-              {/* Stroke Curve Line */}
               {chartConfig.pathD && (
                 <path
                   d={chartConfig.pathD}
@@ -506,7 +540,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                 />
               )}
 
-              {/* Data Values (Above Points) */}
               {chartConfig.pointsWithCoords.map((pt, i) => (
                 <g key={`val-${i}`}>
                   <text
@@ -519,7 +552,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                   >
                     {pt.valStr}
                   </text>
-                  {/* Time Labels (Below Points) */}
                   <text
                     x={pt.x}
                     y={128}
@@ -551,7 +583,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                     : 'hover:bg-[#282a2d] text-[#9aa0a6]'
                 }`}
               >
-                {/* Day Name */}
                 <span
                   className={`text-xs font-semibold ${
                     isSelected ? 'text-[#e8eaed]' : 'text-[#9aa0a6]'
@@ -560,12 +591,10 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                   {day.dayName}
                 </span>
 
-                {/* Weather Icon */}
                 <div className="my-2">
                   {renderGoogleWeatherIcon(day.iconName, 'w-8 h-8')}
                 </div>
 
-                {/* Min / Max Temp */}
                 <div className="flex items-center gap-1 text-xs">
                   <span className="font-bold text-[#e8eaed]">
                     {formatTemp(day.tempMax)}°
@@ -579,23 +608,158 @@ export function CuacaView({ initialData }: CuacaViewProps) {
           })}
         </div>
 
-        {/* FOOTER: Google Cuaca style attribution */}
+        {/* FOOTER */}
         <div className="mt-6 pt-3 flex justify-between items-center text-[11px] text-[#9aa0a6]">
           <span className="text-zinc-500">
             Diperbarui {data.updatedAt} • Data Satelit Open-Meteo
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-[#9aa0a6] hover:text-[#8ab4f8] transition-colors cursor-pointer">
+            <span
+              onClick={() => setIsAreaModalOpen(true)}
+              className="text-[#9aa0a6] hover:text-[#8ab4f8] transition-colors cursor-pointer"
+            >
               Google Cuaca
             </span>
             <span>•</span>
-            <span className="text-[#9aa0a6] hover:text-[#8ab4f8] transition-colors cursor-pointer">
+            <span
+              onClick={handleRefresh}
+              className="text-[#9aa0a6] hover:text-[#8ab4f8] transition-colors cursor-pointer"
+            >
               Masukan
             </span>
           </div>
         </div>
 
       </div>
+
+      {/* MODAL "PILIH AREA" (100% IDENTIK DENGAN SCREENSHOT GOOGLE CUACA) */}
+      {isAreaModalOpen && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div
+            className="w-full max-w-[430px] bg-[#202124] text-[#e8eaed] rounded-2xl p-5 sm:p-6 shadow-2xl border border-[#3c4043] animate-in zoom-in-95 duration-150 relative select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header: Judul & Tombol Close (✕) */}
+            <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-[#303134]">
+              <h3 className="text-lg font-bold text-[#e8eaed] tracking-tight">
+                Pilih area
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsAreaModalOpen(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#9aa0a6] hover:text-[#e8eaed] hover:bg-[#303134] transition-colors cursor-pointer"
+                title="Tutup"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-5">
+              {/* SECTION 1: Untuk Anda */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-[#e8eaed]">
+                  <span>Untuk Anda</span>
+                  <Info className="w-4 h-4 text-[#9aa0a6]" />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (homeLocation) {
+                        handleSelectLocation(homeLocation.id);
+                      } else {
+                        setIsSettingHome(!isSettingHome);
+                      }
+                    }}
+                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-[#3c4043] bg-[#202124] hover:bg-[#303134] text-xs sm:text-sm text-[#8ab4f8] transition-colors cursor-pointer"
+                  >
+                    <Home className="w-4 h-4 text-[#8ab4f8]" />
+                    <span>
+                      {homeLocation ? `Rumah (${homeLocation.name})` : 'Tetapkan alamat rumah'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Submenu pilih alamat rumah jika belum ditetapkan */}
+                {isSettingHome && !homeLocation && (
+                  <div className="mt-2 p-3 bg-[#303134] rounded-xl border border-[#3c4043] text-xs flex flex-col gap-2">
+                    <span className="text-[#9aa0a6]">Pilih area rumah Anda di Sukabumi:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {SUKABUMI_WEATHER_LOCATIONS.map(loc => (
+                        <button
+                          key={`set-home-${loc.id}`}
+                          type="button"
+                          onClick={() => handleSetHome(loc.id, loc.name)}
+                          className="px-2.5 py-1 rounded-full bg-[#202124] hover:bg-primary text-[#e8eaed] hover:text-white border border-[#3c4043] cursor-pointer"
+                        >
+                          {loc.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 2: Populer */}
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-[#e8eaed]">
+                  <span>Populer</span>
+                  <Info className="w-4 h-4 text-[#9aa0a6]" />
+                </div>
+
+                {/* Flow of Pill Buttons persis seperti screenshot */}
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  {SUKABUMI_WEATHER_LOCATIONS.map((loc) => {
+                    const isActive = selectedLocId === loc.id;
+                    return (
+                      <button
+                        key={loc.id}
+                        type="button"
+                        onClick={() => handleSelectLocation(loc.id)}
+                        className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full border text-xs sm:text-sm transition-all cursor-pointer ${
+                          isActive
+                            ? 'bg-[#303134] border-[#8ab4f8] text-[#8ab4f8] font-medium'
+                            : 'bg-[#202124] border-[#3c4043] hover:bg-[#303134] hover:border-[#5f6368] text-[#e8eaed]'
+                        }`}
+                      >
+                        <MapPin className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-[#8ab4f8]' : 'text-[#9aa0a6]'}`} />
+                        <span>{loc.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* SECTION 3: Lokasi Saat Ini */}
+              <div className="flex flex-col gap-2 pt-1 border-t border-[#303134]">
+                <div className="text-xs sm:text-sm font-medium text-[#e8eaed]">
+                  Lokasi Saat Ini
+                </div>
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleUsePreciseLocation}
+                    disabled={isDetectingGps}
+                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-[#3c4043] bg-[#202124] hover:bg-[#303134] text-xs sm:text-sm text-[#8ab4f8] transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isDetectingGps ? (
+                      <Loader2 className="w-4 h-4 text-[#8ab4f8] animate-spin" />
+                    ) : (
+                      <Crosshair className="w-4 h-4 text-[#8ab4f8]" />
+                    )}
+                    <span>
+                      {isDetectingGps ? 'Mendeteksi koordinat Anda...' : 'Gunakan lokasi presisi'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
