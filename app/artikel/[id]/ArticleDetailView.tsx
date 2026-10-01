@@ -91,22 +91,20 @@ export function ArticleDetailView({ id }: { id: string }) {
     };
   }, []);
 
-  // 2. Pembersihan Naskah Berita agar Dibaca Luwes & Alami Seperti Penyiar Berita
+  // 2. Pembersihan Naskah Berita: Membaca Murni Teks Berita yang Tertera di Artikel
   const prepareSpeechText = (startFromSec = 0) => {
     if (!article) return '';
-    let clean = (article.content || '')
-      .replace(/^(JURNALVIBES\.COM|JURNAL VIBES)(\s*[-–—]\s*)/i, 'Jurnal Vibes. ')
-      .replace(/https?:\/\/\S+/g, '') // Hapus tautan URL
-      .replace(/#[a-zA-Z0-9_]+/g, '') // Hapus hashtag
-      .replace(/[*_~`#|]/g, '') // Hapus simbol markdown
-      .replace(/WIB/gi, 'W.I.B') // Pengucapan W-I-B
-      .replace(/km\/h/gi, 'kilometer per jam')
-      .replace(/Rp\s*([\d.,]+)/gi, '$1 rupiah')
-      .replace(/\s+/g, ' ')
+
+    // Ambil isi teks berita asli dan bersihkan hanya tag HTML atau format markdown
+    const cleanContent = (article.content || '')
+      .replace(/<[^>]*>/g, '') // Hapus tag HTML jika ada
+      .replace(/[*_#~`]/g, '') // Hapus format markdown
+      .replace(/https?:\/\/\S+/g, '') // Hapus raw link URL
+      .replace(/\s+/g, ' ') // Normalisasi jeda spasi & baris baru
       .trim();
 
-    const intro = `${article.title}. Diberitakan oleh ${article.author && article.author !== 'Tim Redaksi' ? article.author : 'Redaksi Jurnal Vibes'}. `;
-    const fullText = intro + clean;
+    // Gabungkan judul berita dan isi naskah berita asli tanpa tambahan kalimat karangan
+    const fullText = `${article.title}. ${cleanContent}`;
 
     const fraction = totalDuration > 0 ? startFromSec / totalDuration : 0;
     const startIndex = Math.floor(fullText.length * fraction);
