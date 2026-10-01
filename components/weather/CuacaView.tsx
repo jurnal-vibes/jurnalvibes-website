@@ -580,28 +580,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
           })}
         </div>
 
-        {/* FOOTER */}
-        <div className="mt-6 pt-3 flex justify-between items-center text-[11px] text-[#9aa0a6]">
-          <span className="text-zinc-500">
-            Diperbarui {data.updatedAt} • Data Satelit Open-Meteo
-          </span>
-          <div className="flex items-center gap-2">
-            <span
-              onClick={() => setIsAreaModalOpen(true)}
-              className="text-[#9aa0a6] hover:text-[#8ab4f8] transition-colors cursor-pointer"
-            >
-              Google Cuaca
-            </span>
-            <span>•</span>
-            <span
-              onClick={handleRefresh}
-              className="text-[#9aa0a6] hover:text-[#8ab4f8] transition-colors cursor-pointer"
-            >
-              Masukan
-            </span>
-          </div>
-        </div>
-
       </div>
 
       {/* MODAL "PILIH AREA" (TEMA PUTIH-MERAH JURNAL VIBES) */}
