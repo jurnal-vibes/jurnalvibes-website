@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { DUMMY_ARTICLES } from '@/data/dummyArticles'
 
 const SYSTEM_PROMPT = `Anda adalah "Jurnal Vibes AI", asisten virtual resmi untuk portal berita Jurnal Vibes dan layanan pengaduan warga Halo Jurnal Sukabumi.
 
@@ -116,7 +117,22 @@ export async function POST(req: NextRequest) {
       parts: [{ text: message }]
     })
 
-    // Panggil Google Gemini Flash-Lite API (respons instan, stabil, dan cerdas)
+    // Siapkan daftar artikel berita terbaru dari website untuk konteks dinamis AI (RAG)
+    const recentArticlesList = DUMMY_ARTICLES.slice(0, 8)
+      .map(
+        (a, i) =>
+          `${i + 1}. [Kategori ${a.category.toUpperCase()}] "${a.title}" (Link: /artikel/${a.id}) - ${a.excerpt}`
+      )
+      .join('\n')
+
+    const dynamicSystemInstruction = `${SYSTEM_PROMPT}
+
+Daftar Berita & Artikel Terkini yang Sedang Tayang di Jurnal Vibes:
+${recentArticlesList}
+
+(Bila pengunjung bertanya tentang berita terbaru, update hari ini, atau topik yang terkait berita di atas, sebutkan judul artikel dan berikan link rujukan /artikel/[id] agar pembaca bisa langsung membacanya).`
+
+    // Panggil Google Gemini Flash-Lite API (respons instan, stabil, dan konsisten)
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${apiKey}`
 
     const geminiRes = await fetch(endpoint, {
@@ -127,10 +143,10 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         contents: formattedContents,
         systemInstruction: {
-          parts: [{ text: SYSTEM_PROMPT }]
+          parts: [{ text: dynamicSystemInstruction }]
         },
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.2,
           maxOutputTokens: 2048
         }
       })
