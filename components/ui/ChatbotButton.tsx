@@ -197,8 +197,8 @@ export const ChatbotButton: React.FC = () => {
           if (bulletMatch) {
             const content = bulletMatch[2];
             return (
-              <div key={lineIdx} className="flex items-start gap-2.5 my-1 pl-1">
-                <span className="shrink-0 w-2 h-2 rounded-full bg-primary dark:bg-blue-400 mt-2 select-none shadow-2xs" />
+              <div key={lineIdx} className="flex items-start gap-2 my-1 pl-0.5">
+                <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary/75 dark:bg-blue-400 mt-2 select-none" />
                 <div className="flex-1 leading-relaxed text-xs sm:text-sm">
                   {renderLineContent(content)}
                 </div>
