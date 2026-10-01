@@ -174,7 +174,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
     return points;
   }, [data.hourlyPoints, selectedDayIdx]);
 
-  // Kalkulasi kurva SVG Spline (Warna Emas & Kontras Elegan di atas Card Merah)
+  // Kalkulasi kurva SVG Spline
   const chartConfig = useMemo(() => {
     const width = 800;
     const height = 110;
@@ -185,28 +185,28 @@ export function CuacaView({ initialData }: CuacaViewProps) {
     const usableHeight = height - padTop - padBottom;
 
     if (currentPoints.length < 2) {
-      return { pathD: '', areaD: '', pointsWithCoords: [], strokeColor: '#fbbc04', fillColor: 'url(#goldGrad)' };
+      return { pathD: '', areaD: '', pointsWithCoords: [], strokeColor: '#fbbc04', fillColor: 'url(#yellowGrad)' };
     }
 
     let values: number[] = [];
     let unitLabel = '';
-    let strokeColor = '#fbbc04'; // Kuning Emas Google
-    let gradId = 'goldGrad';
+    let strokeColor = '#fbbc04';
+    let gradId = 'yellowGrad';
 
     if (activeTab === 'suhu') {
       values = currentPoints.map(p => formatTemp(p.temp));
       unitLabel = '';
       strokeColor = '#fbbc04';
-      gradId = 'goldGrad';
+      gradId = 'yellowGrad';
     } else if (activeTab === 'presipitasi') {
       values = currentPoints.map(p => p.precipitation);
       unitLabel = '%';
-      strokeColor = '#93c5fd'; // Biru Lembut Kontras
+      strokeColor = '#8ab4f8';
       gradId = 'blueGrad';
     } else {
       values = currentPoints.map(p => p.windSpeed);
       unitLabel = ' km/h';
-      strokeColor = '#6ee7b7'; // Toska Lembut Kontras
+      strokeColor = '#78d9ec';
       gradId = 'tealGrad';
     }
 
@@ -255,7 +255,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
     };
   }, [currentPoints, activeTab, unit]);
 
-  // Ikon Cuaca Google 3D / Flat
+  // Ikon Cuaca Google 3D / Flat Elegan
   const renderGoogleWeatherIcon = (
     iconName: string,
     sizeClass = 'w-12 h-12'
@@ -265,7 +265,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
         return (
           <svg className={sizeClass} viewBox="0 0 64 64" fill="none">
             <circle cx="32" cy="32" r="16" fill="#FBBC04" />
-            <circle cx="32" cy="32" r="22" stroke="#F29900" strokeWidth="2" strokeDasharray="4 4" opacity="0.6" />
+            <circle cx="32" cy="32" r="22" stroke="#F29900" strokeWidth="2" strokeDasharray="4 4" opacity="0.4" />
           </svg>
         );
       case 'Cloud':
@@ -273,11 +273,11 @@ export function CuacaView({ initialData }: CuacaViewProps) {
           <svg className={sizeClass} viewBox="0 0 64 64" fill="none">
             <path
               d="M48 42H18a12 12 0 0 1-2.4-23.76A16 16 0 0 1 47 22a11 11 0 0 1 1 20z"
-              fill="#D1D5DB"
+              fill="#9AA0A6"
             />
             <path
               d="M46 40H20a10 10 0 0 1-2-19.8A14 14 0 0 1 45 23a9 9 0 0 1 1 17z"
-              fill="#F3F4F6"
+              fill="#BDC1C6"
             />
           </svg>
         );
@@ -286,11 +286,11 @@ export function CuacaView({ initialData }: CuacaViewProps) {
           <svg className={sizeClass} viewBox="0 0 64 64" fill="none">
             <path
               d="M46 36H20a10 10 0 0 1-2-19.8A14 14 0 0 1 45 19a9 9 0 0 1 1 17z"
-              fill="#D1D5DB"
+              fill="#7F868E"
             />
-            <circle cx="22" cy="46" r="2.5" fill="#60A5FA" />
-            <circle cx="32" cy="48" r="2.5" fill="#60A5FA" />
-            <circle cx="42" cy="46" r="2.5" fill="#60A5FA" />
+            <circle cx="22" cy="46" r="2.5" fill="#4285F4" />
+            <circle cx="32" cy="48" r="2.5" fill="#4285F4" />
+            <circle cx="42" cy="46" r="2.5" fill="#4285F4" />
           </svg>
         );
       case 'CloudLightning':
@@ -298,11 +298,11 @@ export function CuacaView({ initialData }: CuacaViewProps) {
           <svg className={sizeClass} viewBox="0 0 64 64" fill="none">
             <path
               d="M46 34H20a10 10 0 0 1-2-19.8A14 14 0 0 1 45 17a9 9 0 0 1 1 17z"
-              fill="#9CA3AF"
+              fill="#5F6368"
             />
-            <polygon points="30,34 25,44 31,44 28,52 38,41 32,41" fill="#FDE047" />
-            <circle cx="20" cy="48" r="2" fill="#60A5FA" />
-            <circle cx="44" cy="48" r="2" fill="#60A5FA" />
+            <polygon points="30,34 25,44 31,44 28,52 38,41 32,41" fill="#FBBC04" />
+            <circle cx="20" cy="48" r="2" fill="#4285F4" />
+            <circle cx="44" cy="48" r="2" fill="#4285F4" />
           </svg>
         );
       case 'CloudSunRain':
@@ -311,10 +311,10 @@ export function CuacaView({ initialData }: CuacaViewProps) {
             <circle cx="40" cy="22" r="10" fill="#FBBC04" />
             <path
               d="M42 38H18a9 9 0 0 1-1.8-17.8A12 12 0 0 1 39 21a8 8 0 0 1 3 17z"
-              fill="#E5E7EB"
+              fill="#BDC1C6"
             />
-            <circle cx="24" cy="46" r="2" fill="#60A5FA" />
-            <circle cx="34" cy="48" r="2" fill="#60A5FA" />
+            <circle cx="24" cy="46" r="2" fill="#4285F4" />
+            <circle cx="34" cy="48" r="2" fill="#4285F4" />
           </svg>
         );
       case 'CloudSun':
@@ -324,7 +324,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
             <circle cx="26" cy="24" r="13" fill="#FBBC04" />
             <path
               d="M48 44H22a11 11 0 0 1-2.2-21.78A15 15 0 0 1 46 25a10 10 0 0 1 2 19z"
-              fill="#E5E7EB"
+              fill="#E8EAED"
             />
             <path
               d="M47 42H24a9 9 0 0 1-1.8-17.8A13 13 0 0 1 45 26a8 8 0 0 1 2 16z"
@@ -339,25 +339,21 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
   return (
     <div className="w-full flex justify-center">
-      {/* CARD MERAH GRADIEN ELEGAN JURNAL VIBES */}
-      <div className="w-full max-w-[760px] bg-gradient-to-br from-[#ba1a1a] via-[#a30010] to-[#76000a] text-white rounded-2xl p-5 sm:p-7 shadow-xl border border-red-900/40 font-sans transition-all duration-300 relative select-none overflow-hidden">
+      {/* Google Weather Outer Card */}
+      <div className="w-full max-w-[760px] bg-[#202124] text-[#e8eaed] rounded-2xl p-5 sm:p-7 shadow-2xl border border-[#303134] font-sans transition-all duration-300 relative select-none">
         
-        {/* Glow ambient background subtle */}
-        <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 -bottom-20 w-72 h-72 rounded-full bg-black/25 blur-3xl pointer-events-none" />
-
         {/* TOP BAR: Location Pin & Pilih Area */}
-        <div className="flex items-center justify-between gap-3 mb-5 relative z-10">
-          <div className="flex items-center gap-2 text-sm sm:text-base text-white/95 font-medium flex-wrap">
-            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 shrink-0" />
-            <span className="font-bold tracking-tight text-white">{data.locationFull}</span>
-            <span className="text-white/40">•</span>
+        <div className="flex items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-2 text-sm sm:text-base text-[#e8eaed] font-medium flex-wrap relative">
+            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#9aa0a6] shrink-0" />
+            <span className="font-semibold tracking-tight">{data.locationFull}</span>
+            <span className="text-[#9aa0a6]">•</span>
 
-            {/* Tombol 'Pilih area' Kuning Terang Elegan */}
+            {/* Tombol 'Pilih area' - Membuka Modal Google Cuaca */}
             <button
               type="button"
               onClick={() => setIsAreaModalOpen(true)}
-              className="text-amber-300 hover:text-amber-200 underline flex items-center gap-0.5 text-sm font-semibold transition-colors cursor-pointer"
+              className="text-[#8ab4f8] hover:text-[#aecbfa] hover:underline flex items-center gap-0.5 text-sm transition-colors cursor-pointer"
             >
               Pilih area
             </button>
@@ -368,20 +364,20 @@ export function CuacaView({ initialData }: CuacaViewProps) {
             <button
               type="button"
               onClick={() => setShowMenu(!showMenu)}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#303134] text-[#9aa0a6] hover:text-white transition-colors cursor-pointer"
               title="Opsi"
             >
               <MoreVertical className="w-4 h-4" />
             </button>
             {showMenu && (
-              <div className="absolute right-0 top-full mt-1 w-44 bg-[#1f2023] text-zinc-100 rounded-xl shadow-2xl border border-zinc-700 py-1 z-50 animate-in fade-in zoom-in-95">
+              <div className="absolute right-0 top-full mt-1 w-44 bg-[#303134] rounded-xl shadow-xl border border-[#3c4043] py-1 z-50">
                 <button
                   type="button"
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="w-full text-left px-3.5 py-2 text-xs text-zinc-200 hover:bg-zinc-800 hover:text-white flex items-center gap-2 cursor-pointer transition-colors"
+                  className="w-full text-left px-3.5 py-2 text-xs text-[#e8eaed] hover:bg-[#3c4043] flex items-center gap-2 cursor-pointer"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-amber-400' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
                   <span>Segarkan Data</span>
                 </button>
               </div>
@@ -390,10 +386,10 @@ export function CuacaView({ initialData }: CuacaViewProps) {
         </div>
 
         {/* HERO WEATHER DISPLAY */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 relative z-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           {/* Sisi Kiri: Ikon Besar + Suhu + Presipitasi/Kelembapan/Angin */}
           <div className="flex items-center gap-4 sm:gap-6">
-            <div className="shrink-0 drop-shadow-md">
+            <div className="shrink-0">
               {renderGoogleWeatherIcon(
                 selectedDayIdx === 0 ? data.iconName : selectedDay.iconName,
                 'w-18 h-18 sm:w-20 sm:h-20'
@@ -401,25 +397,25 @@ export function CuacaView({ initialData }: CuacaViewProps) {
             </div>
 
             <div className="flex items-baseline gap-1.5">
-              <span className="text-6xl sm:text-7xl font-light tracking-tight text-white drop-shadow-xs">
+              <span className="text-6xl sm:text-7xl font-normal tracking-tight text-[#e8eaed]">
                 {formatTemp(selectedDayIdx === 0 ? data.temperature : selectedDay.tempMax)}
               </span>
-              <div className="flex items-center text-sm font-semibold text-white/70 select-none ml-1">
+              <div className="flex items-center text-sm font-medium text-[#9aa0a6] select-none ml-1">
                 <button
                   type="button"
                   onClick={() => setUnit('C')}
                   className={`hover:text-white transition-colors cursor-pointer ${
-                    unit === 'C' ? 'text-white font-bold' : 'text-white/60'
+                    unit === 'C' ? 'text-[#e8eaed] font-bold' : 'text-[#9aa0a6]'
                   }`}
                 >
                   °C
                 </button>
-                <span className="mx-1 text-white/40">|</span>
+                <span className="mx-1 text-[#5f6368]">|</span>
                 <button
                   type="button"
                   onClick={() => setUnit('F')}
                   className={`hover:text-white transition-colors cursor-pointer ${
-                    unit === 'F' ? 'text-white font-bold' : 'text-white/60'
+                    unit === 'F' ? 'text-[#e8eaed] font-bold' : 'text-[#9aa0a6]'
                   }`}
                 >
                   °F
@@ -427,101 +423,101 @@ export function CuacaView({ initialData }: CuacaViewProps) {
               </div>
             </div>
 
-            <div className="hidden sm:flex flex-col text-xs sm:text-[13px] text-white/85 leading-relaxed ml-2 border-l border-white/20 pl-4 font-medium">
-              <span>Presipitasi: <strong className="text-white font-bold">{data.precipitation}%</strong></span>
-              <span>Kelembapan: <strong className="text-white font-bold">{data.humidity}%</strong></span>
-              <span>Angin: <strong className="text-white font-bold">{data.windSpeed} km/h</strong></span>
+            <div className="hidden sm:flex flex-col text-xs sm:text-[13px] text-[#9aa0a6] leading-relaxed ml-2 border-l border-[#3c4043] pl-4">
+              <span>Presipitasi: {data.precipitation}%</span>
+              <span>Kelembapan: {data.humidity}%</span>
+              <span>Angin: {data.windSpeed} km/h</span>
             </div>
           </div>
 
           {/* Sisi Kanan: Cuaca, Hari & Jam, Kondisi */}
           <div className="text-left sm:text-right flex flex-col justify-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-normal text-[#e8eaed] tracking-tight">
               Cuaca
             </h2>
-            <div className="text-sm font-medium text-white/80 mt-0.5">
+            <div className="text-sm text-[#9aa0a6] mt-0.5">
               {selectedDayIdx === 0 ? `${data.dayName} ${data.timeNow}` : selectedDay.dayFullName}
             </div>
-            <div className="text-sm font-semibold text-amber-300">
+            <div className="text-sm text-[#9aa0a6]">
               {selectedDayIdx === 0 ? data.condition : selectedDay.condition}
             </div>
           </div>
         </div>
 
         {/* Mobile metrics */}
-        <div className="flex sm:hidden justify-between text-xs text-white/90 mb-4 pb-3 border-b border-white/15 font-medium relative z-10">
+        <div className="flex sm:hidden justify-between text-xs text-[#9aa0a6] mb-4 pb-3 border-b border-[#303134]">
           <span>Presipitasi: {data.precipitation}%</span>
           <span>Kelembapan: {data.humidity}%</span>
           <span>Angin: {data.windSpeed} km/h</span>
         </div>
 
         {/* TABS ROW: Suhu | Presipitasi | Angin */}
-        <div className="flex items-center gap-6 border-b border-white/20 mb-4 relative z-10">
+        <div className="flex items-center gap-6 border-b border-[#3c4043] mb-4">
           <button
             type="button"
             onClick={() => setActiveTab('suhu')}
-            className={`pb-2 text-sm font-semibold transition-colors relative cursor-pointer ${
+            className={`pb-2 text-sm font-medium transition-colors relative cursor-pointer ${
               activeTab === 'suhu'
-                ? 'text-amber-300'
-                : 'text-white/70 hover:text-white'
+                ? 'text-[#e8eaed]'
+                : 'text-[#9aa0a6] hover:text-[#e8eaed]'
             }`}
           >
             Suhu
             {activeTab === 'suhu' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-amber-400 rounded-t-sm" />
+              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#fbbc04] rounded-t-sm" />
             )}
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('presipitasi')}
-            className={`pb-2 text-sm font-semibold transition-colors relative cursor-pointer ${
+            className={`pb-2 text-sm font-medium transition-colors relative cursor-pointer ${
               activeTab === 'presipitasi'
-                ? 'text-blue-200'
-                : 'text-white/70 hover:text-white'
+                ? 'text-[#e8eaed]'
+                : 'text-[#9aa0a6] hover:text-[#e8eaed]'
             }`}
           >
             Presipitasi
             {activeTab === 'presipitasi' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-300 rounded-t-sm" />
+              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#8ab4f8] rounded-t-sm" />
             )}
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('angin')}
-            className={`pb-2 text-sm font-semibold transition-colors relative cursor-pointer ${
+            className={`pb-2 text-sm font-medium transition-colors relative cursor-pointer ${
               activeTab === 'angin'
-                ? 'text-emerald-200'
-                : 'text-white/70 hover:text-white'
+                ? 'text-[#e8eaed]'
+                : 'text-[#9aa0a6] hover:text-[#e8eaed]'
             }`}
           >
             Angin
             {activeTab === 'angin' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-emerald-300 rounded-t-sm" />
+              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#78d9ec] rounded-t-sm" />
             )}
           </button>
         </div>
 
-        {/* HOURLY SPLINE CHART (Google Area Spline di atas Card Merah) */}
-        <div className="w-full relative overflow-x-auto no-scrollbar py-2 relative z-10">
+        {/* HOURLY SPLINE CHART (Google Area Spline) */}
+        <div className="w-full relative overflow-x-auto no-scrollbar py-2">
           <div className="min-w-[620px] w-full">
             <svg
               viewBox="0 0 800 135"
               className="w-full h-[135px] overflow-visible"
             >
               <defs>
-                <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#fbbc04" stopOpacity="0.45" />
-                  <stop offset="100%" stopColor="#fbbc04" stopOpacity="0.02" />
+                <linearGradient id="yellowGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#fbbc04" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#fbbc04" stopOpacity="0.0" />
                 </linearGradient>
                 <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.45" />
-                  <stop offset="100%" stopColor="#93c5fd" stopOpacity="0.02" />
+                  <stop offset="0%" stopColor="#8ab4f8" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#8ab4f8" stopOpacity="0.0" />
                 </linearGradient>
                 <linearGradient id="tealGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6ee7b7" stopOpacity="0.45" />
-                  <stop offset="100%" stopColor="#6ee7b7" stopOpacity="0.02" />
+                  <stop offset="0%" stopColor="#78d9ec" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#78d9ec" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
 
@@ -549,7 +545,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                   <text
                     x={pt.x}
                     y={Math.max(16, pt.y - 10)}
-                    fill="#ffffff"
+                    fill="#e8eaed"
                     fontSize="13"
                     fontWeight="bold"
                     textAnchor="middle"
@@ -559,7 +555,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                   <text
                     x={pt.x}
                     y={128}
-                    fill="rgba(255, 255, 255, 0.75)"
+                    fill="#9aa0a6"
                     fontSize="11"
                     fontWeight="normal"
                     textAnchor="middle"
@@ -572,8 +568,8 @@ export function CuacaView({ initialData }: CuacaViewProps) {
           </div>
         </div>
 
-        {/* 8 DAYS FORECAST ROW (Google Weather 8 Days Bar dengan Frosted Glass) */}
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 mt-4 pt-4 border-t border-white/15 relative z-10">
+        {/* 8 DAYS FORECAST ROW (Google Weather 8 Days Bar) */}
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-1 mt-4 pt-3 border-t border-[#303134]">
           {data.forecast7Days.slice(0, 8).map((day, idx) => {
             const isSelected = selectedDayIdx === idx;
             return (
@@ -581,29 +577,29 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                 key={idx}
                 type="button"
                 onClick={() => setSelectedDayIdx(idx)}
-                className={`flex flex-col items-center justify-between p-2.5 rounded-xl transition-all cursor-pointer ${
+                className={`flex flex-col items-center justify-between p-2 rounded-xl transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-white text-zinc-900 shadow-lg scale-102 border border-white'
-                    : 'bg-white/10 hover:bg-white/20 border border-white/15 text-white'
+                    ? 'bg-[#303134] shadow-md border border-zinc-700/60'
+                    : 'hover:bg-[#282a2d] text-[#9aa0a6]'
                 }`}
               >
                 <span
-                  className={`text-xs font-bold ${
-                    isSelected ? 'text-zinc-900' : 'text-white'
+                  className={`text-xs font-semibold ${
+                    isSelected ? 'text-[#e8eaed]' : 'text-[#9aa0a6]'
                   }`}
                 >
                   {day.dayName}
                 </span>
 
-                <div className="my-2 drop-shadow-xs">
+                <div className="my-2">
                   {renderGoogleWeatherIcon(day.iconName, 'w-8 h-8')}
                 </div>
 
                 <div className="flex items-center gap-1 text-xs">
-                  <span className={`font-bold ${isSelected ? 'text-zinc-900' : 'text-white'}`}>
+                  <span className="font-bold text-[#e8eaed]">
                     {formatTemp(day.tempMax)}°
                   </span>
-                  <span className={`${isSelected ? 'text-zinc-500' : 'text-white/70'}`}>
+                  <span className="text-[#9aa0a6]">
                     {formatTemp(day.tempMin)}°
                   </span>
                 </div>
@@ -613,21 +609,21 @@ export function CuacaView({ initialData }: CuacaViewProps) {
         </div>
 
         {/* FOOTER */}
-        <div className="mt-6 pt-3 flex justify-between items-center text-[11px] text-white/70 border-t border-white/15 relative z-10">
-          <span>
+        <div className="mt-6 pt-3 flex justify-between items-center text-[11px] text-[#9aa0a6]">
+          <span className="text-zinc-500">
             Diperbarui {data.updatedAt} • Data Satelit Open-Meteo
           </span>
           <div className="flex items-center gap-2">
             <span
               onClick={() => setIsAreaModalOpen(true)}
-              className="text-white/80 hover:text-amber-300 transition-colors cursor-pointer font-medium"
+              className="text-[#9aa0a6] hover:text-[#8ab4f8] transition-colors cursor-pointer"
             >
               Google Cuaca
             </span>
             <span>•</span>
             <span
               onClick={handleRefresh}
-              className="text-white/80 hover:text-amber-300 transition-colors cursor-pointer font-medium"
+              className="text-[#9aa0a6] hover:text-[#8ab4f8] transition-colors cursor-pointer"
             >
               Masukan
             </span>
@@ -636,25 +632,28 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
       </div>
 
-      {/* MODAL "PILIH AREA" (TEMA PUTIH BERSIH NETRAL DENGAN AKSEN MERAH JURNAL VIBES) */}
+      {/* MODAL "PILIH AREA" (TEMA PUTIH-MERAH JURNAL VIBES) */}
       {isAreaModalOpen && (
         <div 
-          className="fixed inset-0 bg-black/45 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setIsAreaModalOpen(false)}
         >
           <div
-            className="w-full max-w-[430px] bg-white text-zinc-900 rounded-2xl p-5 sm:p-6 shadow-2xl border border-zinc-200 animate-in zoom-in-95 duration-150 relative select-none"
+            className="w-full max-w-[430px] bg-white text-zinc-900 rounded-2xl p-5 sm:p-6 shadow-2xl border border-red-100 animate-in zoom-in-95 duration-150 relative select-none"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header: Judul & Tombol Close (✕) */}
             <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-zinc-100">
-              <h3 className="text-lg font-bold text-zinc-900 tracking-tight">
-                Pilih area
-              </h3>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-4 rounded-full bg-red-600" />
+                <h3 className="text-lg font-bold text-zinc-900 tracking-tight">
+                  Pilih area
+                </h3>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsAreaModalOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-primary hover:bg-red-50 transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                 title="Tutup"
               >
                 <X className="w-5 h-5" />
@@ -679,10 +678,10 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                         setIsSettingHome(!isSettingHome);
                       }
                     }}
-                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-zinc-200 hover:border-primary/50 bg-zinc-50 hover:bg-red-50/40 text-xs sm:text-sm text-zinc-800 hover:text-primary transition-colors cursor-pointer group"
+                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-red-200 bg-red-50/70 hover:bg-red-100/70 text-xs sm:text-sm text-red-700 hover:text-red-800 font-medium transition-colors cursor-pointer"
                   >
-                    <Home className="w-4 h-4 text-primary group-hover:scale-105 transition-transform" />
-                    <span className="font-medium">
+                    <Home className="w-4 h-4 text-red-600 shrink-0" />
+                    <span>
                       {homeLocation ? `Rumah (${homeLocation.name})` : 'Tetapkan alamat rumah'}
                     </span>
                   </button>
@@ -690,7 +689,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
                 {/* Submenu pilih alamat rumah jika belum ditetapkan */}
                 {isSettingHome && !homeLocation && (
-                  <div className="mt-2 p-3 bg-red-50/40 rounded-xl border border-red-100 text-xs flex flex-col gap-2">
+                  <div className="mt-2 p-3 bg-red-50/50 rounded-xl border border-red-200 text-xs flex flex-col gap-2 animate-in fade-in">
                     <span className="text-zinc-600 font-medium">Pilih area rumah Anda di Sukabumi:</span>
                     <div className="flex flex-wrap gap-1.5">
                       {SUKABUMI_WEATHER_LOCATIONS.map(loc => (
@@ -698,7 +697,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                           key={`set-home-${loc.id}`}
                           type="button"
                           onClick={() => handleSetHome(loc.id, loc.name)}
-                          className="px-2.5 py-1 rounded-full bg-white hover:bg-primary text-zinc-800 hover:text-white border border-zinc-200 hover:border-primary cursor-pointer transition-colors shadow-2xs"
+                          className="px-2.5 py-1 rounded-full bg-white hover:bg-red-600 text-zinc-800 hover:text-white border border-red-200 cursor-pointer transition-colors shadow-2xs font-medium"
                         >
                           {loc.name}
                         </button>
@@ -724,13 +723,13 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                         key={loc.id}
                         type="button"
                         onClick={() => handleSelectLocation(loc.id)}
-                        className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full border text-xs sm:text-sm transition-all cursor-pointer ${
+                        className={`group inline-flex items-center gap-2 px-3.5 py-2 rounded-full border text-xs sm:text-sm transition-all cursor-pointer ${
                           isActive
-                            ? 'bg-primary border-primary text-white font-semibold shadow-xs'
-                            : 'bg-zinc-50 hover:bg-red-50/40 border-zinc-200 hover:border-primary/50 text-zinc-700 hover:text-primary'
+                            ? 'bg-red-600 border-red-600 text-white font-semibold shadow-xs'
+                            : 'bg-white border-zinc-200 hover:border-red-300 hover:bg-red-50/50 text-zinc-700 hover:text-red-700'
                         }`}
                       >
-                        <MapPin className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-white' : 'text-primary/70'}`} />
+                        <MapPin className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${isActive ? 'text-white' : 'text-zinc-400 group-hover:text-red-500'}`} />
                         <span>{loc.name}</span>
                       </button>
                     );
@@ -749,14 +748,14 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                     type="button"
                     onClick={handleUsePreciseLocation}
                     disabled={isDetectingGps}
-                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-zinc-200 hover:border-primary/50 bg-zinc-50 hover:bg-red-50/40 text-xs sm:text-sm text-zinc-800 hover:text-primary transition-colors cursor-pointer disabled:opacity-50 group"
+                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-red-200 bg-red-50/70 hover:bg-red-100/70 text-xs sm:text-sm text-red-700 hover:text-red-800 font-medium transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {isDetectingGps ? (
-                      <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                      <Loader2 className="w-4 h-4 text-red-600 animate-spin shrink-0" />
                     ) : (
-                      <Crosshair className="w-4 h-4 text-primary group-hover:scale-105 transition-transform" />
+                      <Crosshair className="w-4 h-4 text-red-600 shrink-0" />
                     )}
-                    <span className="font-medium">
+                    <span>
                       {isDetectingGps ? 'Mendeteksi koordinat Anda...' : 'Gunakan lokasi presisi'}
                     </span>
                   </button>
