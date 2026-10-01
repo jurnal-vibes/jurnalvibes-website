@@ -49,8 +49,9 @@ export function ArticleDetailView({ id }: { id: string }) {
   const [availableVoice, setAvailableVoice] = useState<SpeechSynthesisVoice | null>(null);
 
   // Perkiraan durasi membaca / TTS (~130 kata per menit untuk tempo santai)
-  const wordCount = article?.content ? article.content.trim().split(/\s+/).length : 0;
-  const totalDuration = Math.max(30, Math.round((wordCount / 130) * 60));
+  const fullArticleSpeechText = `${article?.title || ''} ${article?.content || ''}`.trim();
+  const wordCount = fullArticleSpeechText ? fullArticleSpeechText.split(/\s+/).length : 0;
+  const totalDuration = Math.max(15, Math.round((wordCount / 130) * 60));
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -68,14 +69,17 @@ export function ArticleDetailView({ id }: { id: string }) {
 
       const idVoices = voices.filter(v =>
         v.lang.toLowerCase().startsWith('id') ||
-        v.lang.toLowerCase().includes('indonesia')
+        v.lang.toLowerCase().includes('indonesia') ||
+        v.name.toLowerCase().includes('indonesia')
       );
 
       // Prioritas: Suara online/natural Google atau Microsoft
       const natural = idVoices.find(v =>
-        v.name.includes('Google') ||
-        v.name.includes('Natural') ||
-        v.name.includes('Online')
+        v.name.toLowerCase().includes('google') ||
+        v.name.toLowerCase().includes('natural') ||
+        v.name.toLowerCase().includes('online') ||
+        v.name.toLowerCase().includes('gadis') ||
+        v.name.toLowerCase().includes('ardi')
       );
 
       setAvailableVoice(natural || idVoices[0] || null);
@@ -130,12 +134,25 @@ export function ArticleDetailView({ id }: { id: string }) {
     utterance.rate = currentRate;
     utterance.pitch = 1.0;
 
-    if (availableVoice) {
-      utterance.voice = availableVoice;
-    } else {
+    let selectedVoice = availableVoice;
+    if (!selectedVoice) {
       const voices = window.speechSynthesis.getVoices();
-      const idVoice = voices.find(v => v.lang.toLowerCase().includes('id'));
-      if (idVoice) utterance.voice = idVoice;
+      const idVoices = voices.filter(v =>
+        v.lang.toLowerCase().startsWith('id') ||
+        v.lang.toLowerCase().includes('indonesia') ||
+        v.name.toLowerCase().includes('indonesia')
+      );
+      selectedVoice = idVoices.find(v =>
+        v.name.toLowerCase().includes('google') ||
+        v.name.toLowerCase().includes('natural') ||
+        v.name.toLowerCase().includes('online') ||
+        v.name.toLowerCase().includes('gadis') ||
+        v.name.toLowerCase().includes('ardi')
+      ) || idVoices[0] || null;
+    }
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
     }
 
     utterance.onend = () => {
