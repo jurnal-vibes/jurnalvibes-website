@@ -32,6 +32,30 @@ const FONT_SIZE_CLASSES: Record<FontSize, string> = {
   lg: 'text-[17px] sm:text-[18px] leading-relaxed'
 };
 
+// Kamus Fonetik Istilah Serapan / Bahasa Inggris agar Dilafalkan Alami & Pas oleh TTS Bahasa Indonesia
+const LOANWORD_PHONETICS: [RegExp, string][] = [
+  [/\bline[- ]?up\b/gi, 'lain ap'],
+  [/\bmerchandise\b/gi, 'mercendais'],
+  [/\blive\b/gi, 'laif'],
+  [/\bstreaming\b/gi, 'striming'],
+  [/\bevent\b/gi, 'ivent'],
+  [/\bcreative\b/gi, 'kreatif'],
+  [/\bfest\b/gi, 'fes'],
+  [/\bbrand\b/gi, 'brend'],
+  [/\bbooth\b/gi, 'but'],
+  [/\bpodcast\b/gi, 'podkes'],
+  [/\bonline\b/gi, 'onlain'],
+  [/\boffline\b/gi, 'oflain'],
+  [/\breview\b/gi, 'rivyu'],
+  [/\blifestyle\b/gi, 'laifstail'],
+  [/\bcold brew\b/gi, 'kold bru'],
+  [/\bupdate\b/gi, 'apdet'],
+  [/\bcoffee shop\b/gi, 'kofi syop'],
+  [/\bweekend\b/gi, 'wik-end'],
+  [/\bWIB\b/gi, 'W I B'],
+  [/\bRp\s*([\d.,]+)/gi, '$1 rupiah'],
+];
+
 export function ArticleDetailView({ id }: { id: string }) {
   const initialArticle = DUMMY_ARTICLES.find(a => a.id === id || a.slug === id) || DUMMY_ARTICLES[0];
 
@@ -108,7 +132,12 @@ export function ArticleDetailView({ id }: { id: string }) {
       .trim();
 
     // Gabungkan judul berita dan isi naskah berita asli tanpa tambahan kalimat karangan
-    const fullText = `${article.title}. ${cleanContent}`;
+    let fullText = `${article.title}. ${cleanContent}`;
+
+    // Terapkan penyesuaian fonetik agar istilah serapan/asing dilafalkan natural oleh engine Bahasa Indonesia
+    for (const [pattern, replacement] of LOANWORD_PHONETICS) {
+      fullText = fullText.replace(pattern, replacement);
+    }
 
     const fraction = totalDuration > 0 ? startFromSec / totalDuration : 0;
     const startIndex = Math.floor(fullText.length * fraction);
@@ -286,6 +315,48 @@ export function ArticleDetailView({ id }: { id: string }) {
       window.speechSynthesis.cancel();
     }
   };
+
+  // 6. Media Session API (Integrasi Kontrol Play/Pause/Skip di Layar Kunci & Notifikasi HP)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
+
+    if (isAudioActive) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: article.title,
+          artist: 'Jurnal Vibes',
+          album: article.categoryLabel || 'Berita Sukabumi',
+          artwork: [
+            { src: article.imageUrl || '/logo-white.png', sizes: '512x512', type: 'image/jpeg' },
+          ],
+        });
+
+        navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+        navigator.mediaSession.setActionHandler('play', () => {
+          handlePlayToggle();
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          handlePlayToggle();
+        });
+        navigator.mediaSession.setActionHandler('seekbackward', () => {
+          handleSkipTime(-10);
+        });
+        navigator.mediaSession.setActionHandler('seekforward', () => {
+          handleSkipTime(10);
+        });
+        navigator.mediaSession.setActionHandler('stop', () => {
+          handleCloseAudio();
+        });
+      } catch (err) {
+        console.warn('MediaSession notice:', err);
+      }
+    } else {
+      try {
+        navigator.mediaSession.playbackState = 'none';
+      } catch {}
+    }
+  }, [isAudioActive, isPlaying, article.title, article.categoryLabel, article.imageUrl]);
 
   useEffect(() => {
     async function loadData() {
