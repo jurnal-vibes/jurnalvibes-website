@@ -206,6 +206,19 @@ export const ChatbotButton: React.FC = () => {
             );
           }
 
+          // Cek format judul dengan titik dua (contoh: "Kemasan Unik: Dikemas...") -> otomatis jadikan poin berindentasi
+          const colonHeadingMatch = trimmed.match(/^([^:\n]{2,40}):\s+(.+)/);
+          if (colonHeadingMatch) {
+            return (
+              <div key={lineIdx} className="flex items-start gap-2 my-1 pl-0.5">
+                <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary/75 dark:bg-blue-400 mt-2 select-none" />
+                <div className="flex-1 leading-relaxed text-xs sm:text-sm">
+                  {renderLineContent(trimmed)}
+                </div>
+              </div>
+            );
+          }
+
           // Paragraf biasa
           return (
             <p key={lineIdx} className="leading-relaxed text-xs sm:text-sm my-0.5">
