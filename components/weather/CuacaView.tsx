@@ -632,22 +632,25 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
       </div>
 
-      {/* MODAL "PILIH AREA" (100% IDENTIK DENGAN SCREENSHOT GOOGLE CUACA) */}
+      {/* MODAL "PILIH AREA" (WARNA NETRAL ELEGAN) */}
       {isAreaModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div 
+          className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setIsAreaModalOpen(false)}
+        >
           <div
-            className="w-full max-w-[430px] bg-[#202124] text-[#e8eaed] rounded-2xl p-5 sm:p-6 shadow-2xl border border-[#3c4043] animate-in zoom-in-95 duration-150 relative select-none"
+            className="w-full max-w-[430px] bg-[#1e1f22] text-zinc-100 rounded-2xl p-5 sm:p-6 shadow-2xl border border-zinc-700/80 animate-in zoom-in-95 duration-150 relative select-none"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header: Judul & Tombol Close (✕) */}
-            <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-[#303134]">
-              <h3 className="text-lg font-bold text-[#e8eaed] tracking-tight">
+            <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-zinc-800">
+              <h3 className="text-lg font-bold text-zinc-100 tracking-tight">
                 Pilih area
               </h3>
               <button
                 type="button"
                 onClick={() => setIsAreaModalOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[#9aa0a6] hover:text-[#e8eaed] hover:bg-[#303134] transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                 title="Tutup"
               >
                 <X className="w-5 h-5" />
@@ -657,9 +660,9 @@ export function CuacaView({ initialData }: CuacaViewProps) {
             <div className="flex flex-col gap-5">
               {/* SECTION 1: Untuk Anda */}
               <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-[#e8eaed]">
+                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-zinc-200">
                   <span>Untuk Anda</span>
-                  <Info className="w-4 h-4 text-[#9aa0a6]" />
+                  <Info className="w-4 h-4 text-zinc-400" />
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -672,9 +675,9 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                         setIsSettingHome(!isSettingHome);
                       }
                     }}
-                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-[#3c4043] bg-[#202124] hover:bg-[#303134] text-xs sm:text-sm text-[#8ab4f8] transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-zinc-700 bg-zinc-900/80 hover:bg-zinc-800 text-xs sm:text-sm text-zinc-200 hover:text-white transition-colors cursor-pointer"
                   >
-                    <Home className="w-4 h-4 text-[#8ab4f8]" />
+                    <Home className="w-4 h-4 text-zinc-300" />
                     <span>
                       {homeLocation ? `Rumah (${homeLocation.name})` : 'Tetapkan alamat rumah'}
                     </span>
@@ -683,15 +686,15 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
                 {/* Submenu pilih alamat rumah jika belum ditetapkan */}
                 {isSettingHome && !homeLocation && (
-                  <div className="mt-2 p-3 bg-[#303134] rounded-xl border border-[#3c4043] text-xs flex flex-col gap-2">
-                    <span className="text-[#9aa0a6]">Pilih area rumah Anda di Sukabumi:</span>
+                  <div className="mt-2 p-3 bg-zinc-850 bg-[#26272b] rounded-xl border border-zinc-700 text-xs flex flex-col gap-2">
+                    <span className="text-zinc-400">Pilih area rumah Anda di Sukabumi:</span>
                     <div className="flex flex-wrap gap-1.5">
                       {SUKABUMI_WEATHER_LOCATIONS.map(loc => (
                         <button
                           key={`set-home-${loc.id}`}
                           type="button"
                           onClick={() => handleSetHome(loc.id, loc.name)}
-                          className="px-2.5 py-1 rounded-full bg-[#202124] hover:bg-primary text-[#e8eaed] hover:text-white border border-[#3c4043] cursor-pointer"
+                          className="px-2.5 py-1 rounded-full bg-zinc-900 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700 cursor-pointer transition-colors"
                         >
                           {loc.name}
                         </button>
@@ -703,12 +706,12 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
               {/* SECTION 2: Populer */}
               <div className="flex flex-col gap-2.5">
-                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-[#e8eaed]">
+                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-zinc-200">
                   <span>Populer</span>
-                  <Info className="w-4 h-4 text-[#9aa0a6]" />
+                  <Info className="w-4 h-4 text-zinc-400" />
                 </div>
 
-                {/* Flow of Pill Buttons persis seperti screenshot */}
+                {/* Flow of Pill Buttons - Palet Netral */}
                 <div className="flex flex-wrap gap-2 pt-0.5">
                   {SUKABUMI_WEATHER_LOCATIONS.map((loc) => {
                     const isActive = selectedLocId === loc.id;
@@ -719,11 +722,11 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                         onClick={() => handleSelectLocation(loc.id)}
                         className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full border text-xs sm:text-sm transition-all cursor-pointer ${
                           isActive
-                            ? 'bg-[#303134] border-[#8ab4f8] text-[#8ab4f8] font-medium'
-                            : 'bg-[#202124] border-[#3c4043] hover:bg-[#303134] hover:border-[#5f6368] text-[#e8eaed]'
+                            ? 'bg-zinc-700 border-zinc-400 text-white font-semibold shadow-xs'
+                            : 'bg-zinc-900/60 border-zinc-700/80 hover:bg-zinc-800 hover:border-zinc-500 text-zinc-300 hover:text-white'
                         }`}
                       >
-                        <MapPin className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-[#8ab4f8]' : 'text-[#9aa0a6]'}`} />
+                        <MapPin className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-white' : 'text-zinc-400'}`} />
                         <span>{loc.name}</span>
                       </button>
                     );
@@ -732,8 +735,8 @@ export function CuacaView({ initialData }: CuacaViewProps) {
               </div>
 
               {/* SECTION 3: Lokasi Saat Ini */}
-              <div className="flex flex-col gap-2 pt-1 border-t border-[#303134]">
-                <div className="text-xs sm:text-sm font-medium text-[#e8eaed]">
+              <div className="flex flex-col gap-2 pt-1 border-t border-zinc-800">
+                <div className="text-xs sm:text-sm font-medium text-zinc-200">
                   Lokasi Saat Ini
                 </div>
 
@@ -742,12 +745,12 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                     type="button"
                     onClick={handleUsePreciseLocation}
                     disabled={isDetectingGps}
-                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-[#3c4043] bg-[#202124] hover:bg-[#303134] text-xs sm:text-sm text-[#8ab4f8] transition-colors cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-zinc-700 bg-zinc-900/80 hover:bg-zinc-800 text-xs sm:text-sm text-zinc-200 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {isDetectingGps ? (
-                      <Loader2 className="w-4 h-4 text-[#8ab4f8] animate-spin" />
+                      <Loader2 className="w-4 h-4 text-zinc-300 animate-spin" />
                     ) : (
-                      <Crosshair className="w-4 h-4 text-[#8ab4f8]" />
+                      <Crosshair className="w-4 h-4 text-zinc-300" />
                     )}
                     <span>
                       {isDetectingGps ? 'Mendeteksi koordinat Anda...' : 'Gunakan lokasi presisi'}
