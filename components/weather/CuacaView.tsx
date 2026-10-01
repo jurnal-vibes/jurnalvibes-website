@@ -7,7 +7,6 @@ import {
   ChevronDown,
   RefreshCw,
   X,
-  Home,
   Crosshair,
   Info,
   Check,
@@ -38,20 +37,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
   // Modal "Pilih area" Google Cuaca
   const [isAreaModalOpen, setIsAreaModalOpen] = useState<boolean>(false);
   const [isDetectingGps, setIsDetectingGps] = useState<boolean>(false);
-  const [homeLocation, setHomeLocation] = useState<{ id: string; name: string } | null>(null);
-  const [isSettingHome, setIsSettingHome] = useState<boolean>(false);
-
-  // Ambil data home dari localStorage saat mount
-  useEffect(() => {
-    try {
-      const savedHome = localStorage.getItem('jv_weather_home');
-      if (savedHome) {
-        setHomeLocation(JSON.parse(savedHome));
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
 
   // Ganti lokasi via modal
   const handleSelectLocation = async (locId: string) => {
@@ -70,19 +55,6 @@ export function CuacaView({ initialData }: CuacaViewProps) {
     } finally {
       setIsRefreshing(false);
     }
-  };
-
-  // Tetapkan alamat rumah
-  const handleSetHome = (locId: string, name: string) => {
-    const homeObj = { id: locId, name };
-    setHomeLocation(homeObj);
-    try {
-      localStorage.setItem('jv_weather_home', JSON.stringify(homeObj));
-    } catch {
-      // ignore
-    }
-    setIsSettingHome(false);
-    handleSelectLocation(locId);
   };
 
   // Gunakan lokasi presisi via Browser Geolocation
@@ -661,56 +633,10 @@ export function CuacaView({ initialData }: CuacaViewProps) {
             </div>
 
             <div className="flex flex-col gap-5">
-              {/* SECTION 1: Untuk Anda */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between text-xs sm:text-sm font-semibold text-zinc-800">
-                  <span>Untuk Anda</span>
-                  <Info className="w-4 h-4 text-zinc-400" />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (homeLocation) {
-                        handleSelectLocation(homeLocation.id);
-                      } else {
-                        setIsSettingHome(!isSettingHome);
-                      }
-                    }}
-                    className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-red-200 bg-red-50/70 hover:bg-red-100/70 text-xs sm:text-sm text-red-700 hover:text-red-800 font-medium transition-colors cursor-pointer"
-                  >
-                    <Home className="w-4 h-4 text-red-600 shrink-0" />
-                    <span>
-                      {homeLocation ? `Rumah (${homeLocation.name})` : 'Tetapkan alamat rumah'}
-                    </span>
-                  </button>
-                </div>
-
-                {/* Submenu pilih alamat rumah jika belum ditetapkan */}
-                {isSettingHome && !homeLocation && (
-                  <div className="mt-2 p-3 bg-red-50/50 rounded-xl border border-red-200 text-xs flex flex-col gap-2 animate-in fade-in">
-                    <span className="text-zinc-600 font-medium">Pilih area rumah Anda di Sukabumi:</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {SUKABUMI_WEATHER_LOCATIONS.map(loc => (
-                        <button
-                          key={`set-home-${loc.id}`}
-                          type="button"
-                          onClick={() => handleSetHome(loc.id, loc.name)}
-                          className="px-2.5 py-1 rounded-full bg-white hover:bg-red-600 text-zinc-800 hover:text-white border border-red-200 cursor-pointer transition-colors shadow-2xs font-medium"
-                        >
-                          {loc.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* SECTION 2: Populer */}
+              {/* SECTION: Populer */}
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between text-xs sm:text-sm font-semibold text-zinc-800">
-                  <span>Populer</span>
+                  <span>Area Populer Sukabumi</span>
                   <Info className="w-4 h-4 text-zinc-400" />
                 </div>
 
