@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight,
@@ -14,7 +14,8 @@ import {
   Tag,
   RotateCcw,
   RotateCw,
-  Volume2
+  Volume2,
+  Loader2
 } from 'lucide-react';
 import { FaFacebookF, FaXTwitter, FaWhatsapp } from 'react-icons/fa6';
 import { FaTelegramPlane } from 'react-icons/fa';
@@ -90,17 +91,23 @@ export function ArticleDetailView({ id }: { id: string }) {
   const [headerCopied, setHeaderCopied] = useState<boolean>(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
 
-  // Audio Player State (Opsi 3: Floating Mini Player Teroptimasi)
+  // Audio Player State & Sentence Queue Engine (Anti-Cutoff & Non-Destructive Resume)
   const [isAudioActive, setIsAudioActive] = useState<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [availableVoice, setAvailableVoice] = useState<SpeechSynthesisVoice | null>(null);
 
-  // Perkiraan durasi membaca / TTS (~130 kata per menit untuk tempo santai)
+  const currentSentenceIdxRef = useRef<number>(0);
+  const sentencesRef = useRef<string[]>([]);
+  const isPlayingRef = useRef<boolean>(false);
+  const nextSentenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Perkiraan durasi membaca / TTS (~115 kata per menit untuk tempo santai berwibawa)
   const fullArticleSpeechText = `${article?.title || ''} ${article?.content || ''}`.trim();
   const wordCount = fullArticleSpeechText ? fullArticleSpeechText.split(/\s+/).length : 0;
-  const totalDuration = Math.max(15, Math.round((wordCount / 130) * 60));
+  const totalDuration = Math.max(15, Math.round((wordCount / 115) * 60));
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -108,7 +115,48 @@ export function ArticleDetailView({ id }: { id: string }) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  // 1. Deteksi & Prioritaskan Suara Bahasa Indonesia Alami (Google / Microsoft / Apple / Generic id-ID)
+  // 1. Ekstrak seluruh unit kalimat berita (Judul Headline + Semua Paragraf Isi)
+  const extractSentences = useCallback(() => {
+    if (!article) return [];
+
+    const cleanTitle = (article.title || '')
+      .replace(/[*_#~`]/g, '')
+      .trim()
+      .replace(/[.?!]+$/, '');
+
+    const paragraphs = (article.content || '')
+      .replace(/<[^>]*>/g, '') // Hapus tag HTML
+      .replace(/[*_#~`]/g, '') // Hapus markdown
+      .replace(/https?:\/\/\S+/g, '') // Hapus link URL
+      .split(/\n\s*\n/)
+      .map(p => p.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    const rawList: string[] = [];
+    if (cleanTitle) {
+      rawList.push(`${cleanTitle}.`);
+    }
+
+    paragraphs.forEach(p => {
+      // Pecah paragraf jadi kalimat utuh berdasarkan tanda baca
+      const sList = p.split(/(?<=[.?!])\s+/).map(s => s.trim()).filter(Boolean);
+      sList.forEach(s => {
+        const fullSentence = /[.?!]$/.test(s) ? s : `${s}.`;
+        rawList.push(fullSentence);
+      });
+    });
+
+    // Terapkan kamus fonetik istilah serapan ke setiap kalimat
+    return rawList.map(sentence => {
+      let text = sentence;
+      for (const [pattern, replacement] of LOANWORD_PHONETICS) {
+        text = text.replace(pattern, replacement);
+      }
+      return text;
+    });
+  }, [article]);
+
+  // 2. Deteksi & Prioritaskan Suara Bahasa Indonesia Alami (Microsoft Gadis/Ardi Natural & Google Natural)
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
@@ -144,58 +192,39 @@ export function ArticleDetailView({ id }: { id: string }) {
     };
   }, []);
 
-  // 2. Pembersihan Naskah Berita: Membaca Murni Teks Berita dengan Artikulasi Penyiar Berita Profesional
-  const prepareSpeechText = (startFromSec = 0) => {
-    if (!article) return '';
+  // 3. Eksekusi Suara Kalimat demi Kalimat (Mencegah Audio Terputus & Menjamin 100% Naskah Tuntas)
+  const speakSentence = useCallback((index: number, rate = playbackRate) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
-    // Bersihkan judul dan siapkan sebagai headline pembuka
-    const cleanTitle = (article.title || '')
-      .replace(/[*_#~`]/g, '')
-      .trim()
-      .replace(/[.?!]+$/, '');
-
-    // Olah paragraf isi: normalisasi spasi, pastikan titik tegas, dan beri jeda napas presenter antar-paragraf
-    const cleanParagraphs = (article.content || '')
-      .replace(/<[^>]*>/g, '') // Hapus tag HTML jika ada
-      .replace(/[*_#~`]/g, '') // Hapus format markdown
-      .replace(/https?:\/\/\S+/g, '') // Hapus raw link URL
-      .split(/\n\s*\n/) // Pisahkan per paragraf
-      .map(p => p.replace(/\s+/g, ' ').trim())
-      .filter(Boolean)
-      .map(p => (/[.?!]$/.test(p) ? p : `${p}.`)) // Pastikan intonasi turun di akhir kalimat
-      .join(' ... '); // Jeda artikulasi presenter antar paragraf
-
-    // Gabungkan judul (headline) dengan jeda sejenak sebelum masuk ke paragraf isi
-    let fullText = `${cleanTitle}. ... ${cleanParagraphs}`;
-
-    // Terapkan penyesuaian fonetik agar istilah serapan/asing dilafalkan natural oleh engine Bahasa Indonesia
-    for (const [pattern, replacement] of LOANWORD_PHONETICS) {
-      fullText = fullText.replace(pattern, replacement);
+    if (nextSentenceTimeoutRef.current) {
+      clearTimeout(nextSentenceTimeoutRef.current);
+      nextSentenceTimeoutRef.current = null;
     }
 
-    const fraction = totalDuration > 0 ? startFromSec / totalDuration : 0;
-    const startIndex = Math.floor(fullText.length * fraction);
+    const sentences = sentencesRef.current.length > 0 ? sentencesRef.current : extractSentences();
+    sentencesRef.current = sentences;
 
-    // Cari batas spasi terdekat agar tidak memotong kata di tengah
-    const sliceFrom = fullText.slice(startIndex);
-    const spaceIndex = sliceFrom.indexOf(' ');
-    const safeStart = spaceIndex > 0 && startIndex > 0 ? startIndex + spaceIndex + 1 : startIndex;
+    if (sentences.length === 0) return;
 
-    return fullText.slice(safeStart);
-  };
+    // Jika seluruh kalimat sudah selesai dibaca sampai akhir
+    if (index >= sentences.length) {
+      isPlayingRef.current = false;
+      setIsPlaying(false);
+      setCurrentTime(totalDuration);
+      currentSentenceIdxRef.current = 0;
+      return;
+    }
 
-  // 3. Eksekusi Speech Synthesis
-  const startSpeech = (startFromSec = 0, currentRate = playbackRate) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-
-    const textToRead = prepareSpeechText(startFromSec);
+    currentSentenceIdxRef.current = index;
+    const textToRead = sentences[index];
     if (!textToRead) return;
+
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(textToRead);
     utterance.lang = 'id-ID';
-    // Tempo dan nada disetel khas pembawa berita profesional: artikulasi mantap, berwibawa, dan tidak terburu-buru
-    utterance.rate = Math.round(currentRate * 0.94 * 100) / 100;
+    // Tempo dan nada disetel khas pembawa berita profesional
+    utterance.rate = Math.round(rate * 0.94 * 100) / 100;
     utterance.pitch = 0.98;
 
     let selectedVoice = availableVoice;
@@ -220,33 +249,49 @@ export function ArticleDetailView({ id }: { id: string }) {
     }
 
     utterance.onend = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
+      if (!isPlayingRef.current) return;
+
+      const nextIdx = index + 1;
+      if (nextIdx < sentences.length) {
+        // Update perkiraan progres waktu sesuai persentase kalimat selesai
+        const progress = nextIdx / sentences.length;
+        setCurrentTime(Math.min(totalDuration - 1, Math.round(progress * totalDuration)));
+
+        // Beri jeda napas penyiar (~200ms) sebelum kalimat selanjutnya
+        nextSentenceTimeoutRef.current = setTimeout(() => {
+          if (isPlayingRef.current) {
+            speakSentence(nextIdx, rate);
+          }
+        }, 200);
+      } else {
+        // TUNTAS! Seluruh naskah sampai kalimat terakhir selesai
+        isPlayingRef.current = false;
+        setIsPlaying(false);
+        setCurrentTime(totalDuration);
+        currentSentenceIdxRef.current = 0;
+      }
     };
 
     utterance.onerror = (e) => {
       if (e.error !== 'interrupted' && e.error !== 'canceled') {
-        console.warn('Speech synthesis event:', e.error);
+        console.warn('Speech synthesis event notice:', e.error);
       }
     };
 
     window.speechSynthesis.speak(utterance);
-  };
+  }, [availableVoice, extractSentences, playbackRate, totalDuration]);
 
-  // 4. Timer Progress Pemutaran
+  // 4. Timer Visual Progres Pemutaran (Hanya mengikuti progres, TIDAK PERNAH membatalkan audio)
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying) {
-      const intervalMs = 100;
+      const intervalMs = 200;
       interval = setInterval(() => {
         setCurrentTime(prev => {
           const next = prev + (intervalMs / 1000) * playbackRate;
-          if (next >= totalDuration) {
-            setIsPlaying(false);
-            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-              window.speechSynthesis.cancel();
-            }
-            return 0;
+          // Batasi di totalDuration - 0.5s selama belum ada sinyal onend dari kalimat terakhir
+          if (next >= totalDuration - 0.5) {
+            return Math.max(0, totalDuration - 0.5);
           }
           return next;
         });
@@ -255,7 +300,7 @@ export function ArticleDetailView({ id }: { id: string }) {
     return () => clearInterval(interval);
   }, [isPlaying, totalDuration, playbackRate]);
 
-  // 5. Anti-Cutoff Heartbeat Khusus Browser Chrome (Mencegah Audio Berhenti Tiba-Tiba Setelah 15 Detik)
+  // 5. Anti-Cutoff Heartbeat Khusus Browser Chrome (Mencegah Audio Macet di Latar Belakang)
   useEffect(() => {
     let heartbeat: NodeJS.Timeout;
     if (isPlaying) {
@@ -273,6 +318,9 @@ export function ArticleDetailView({ id }: { id: string }) {
     return () => {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.cancel();
+      }
+      if (nextSentenceTimeoutRef.current) {
+        clearTimeout(nextSentenceTimeoutRef.current);
       }
     };
   }, []);
@@ -292,23 +340,35 @@ export function ArticleDetailView({ id }: { id: string }) {
   const handlePlayToggle = () => {
     if (!isAudioActive) {
       setIsAudioActive(true);
-      setIsPlaying(true);
-      startSpeech(0);
+      setIsLoadingAudio(true);
+
+      const sentences = extractSentences();
+      sentencesRef.current = sentences;
+
+      // Beri waktu loading audio & inisialisasi suara
+      setTimeout(() => {
+        setIsLoadingAudio(false);
+        isPlayingRef.current = true;
+        setIsPlaying(true);
+        speakSentence(currentSentenceIdxRef.current || 0);
+      }, 300);
     } else {
       if (isPlaying) {
+        // Jeda tanpa mereset posisi baca!
+        isPlayingRef.current = false;
         setIsPlaying(false);
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          window.speechSynthesis.pause();
+          window.speechSynthesis.cancel();
+        }
+        if (nextSentenceTimeoutRef.current) {
+          clearTimeout(nextSentenceTimeoutRef.current);
+          nextSentenceTimeoutRef.current = null;
         }
       } else {
+        // Lanjutkan dari posisi kalimat terakhir yang tersimpan
+        isPlayingRef.current = true;
         setIsPlaying(true);
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          if (window.speechSynthesis.paused) {
-            window.speechSynthesis.resume();
-          } else {
-            startSpeech(currentTime);
-          }
-        }
+        speakSentence(currentSentenceIdxRef.current);
       }
     }
   };
@@ -319,16 +379,31 @@ export function ArticleDetailView({ id }: { id: string }) {
     const newProgress = Math.max(0, Math.min(1, clickX / rect.width));
     const newTime = Math.round(newProgress * totalDuration);
     setCurrentTime(newTime);
-    if (isPlaying) {
-      startSpeech(newTime);
+
+    const sentences = sentencesRef.current.length > 0 ? sentencesRef.current : extractSentences();
+    sentencesRef.current = sentences;
+    if (sentences.length > 0) {
+      const targetIdx = Math.min(sentences.length - 1, Math.floor(newProgress * sentences.length));
+      currentSentenceIdxRef.current = targetIdx;
+      if (isPlayingRef.current) {
+        speakSentence(targetIdx, playbackRate);
+      }
     }
   };
 
   const handleSkipTime = (deltaSeconds: number) => {
     const nextTime = Math.max(0, Math.min(totalDuration, currentTime + deltaSeconds));
     setCurrentTime(nextTime);
-    if (isPlaying) {
-      startSpeech(nextTime);
+
+    const sentences = sentencesRef.current.length > 0 ? sentencesRef.current : extractSentences();
+    sentencesRef.current = sentences;
+    if (sentences.length > 0) {
+      const newProgress = totalDuration > 0 ? nextTime / totalDuration : 0;
+      const targetIdx = Math.min(sentences.length - 1, Math.max(0, Math.floor(newProgress * sentences.length)));
+      currentSentenceIdxRef.current = targetIdx;
+      if (isPlayingRef.current) {
+        speakSentence(targetIdx, playbackRate);
+      }
     }
   };
 
@@ -337,17 +412,24 @@ export function ArticleDetailView({ id }: { id: string }) {
     const nextIdx = (rates.indexOf(playbackRate) + 1) % rates.length;
     const nextRate = rates[nextIdx];
     setPlaybackRate(nextRate);
-    if (isPlaying) {
-      startSpeech(currentTime, nextRate);
+    if (isPlayingRef.current) {
+      speakSentence(currentSentenceIdxRef.current, nextRate);
     }
   };
 
   const handleCloseAudio = () => {
+    isPlayingRef.current = false;
     setIsAudioActive(false);
     setIsPlaying(false);
+    setIsLoadingAudio(false);
     setCurrentTime(0);
+    currentSentenceIdxRef.current = 0;
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
+    }
+    if (nextSentenceTimeoutRef.current) {
+      clearTimeout(nextSentenceTimeoutRef.current);
+      nextSentenceTimeoutRef.current = null;
     }
   };
 
@@ -642,14 +724,18 @@ export function ArticleDetailView({ id }: { id: string }) {
               className="inline-flex items-center gap-2.5 py-1 text-on-surface hover:text-primary text-xs sm:text-sm font-semibold transition-colors cursor-pointer group"
             >
               <span className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                {isPlaying ? (
+                {isLoadingAudio ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : isPlaying ? (
                   <Pause className="w-3 h-3 fill-current" />
                 ) : (
                   <Play className="w-3 h-3 fill-current ml-0.5" />
                 )}
               </span>
               <span className="flex items-center min-h-[20px]">
-                {isAudioActive ? (
+                {isLoadingAudio ? (
+                  <span className="text-primary font-medium text-xs">Menyiapkan Audio...</span>
+                ) : isAudioActive ? (
                   isPlaying ? (
                     <div className="flex items-center h-5 gap-[3px] mx-1" title="Sedang Memutar">
                       <style>{`
@@ -870,10 +956,12 @@ export function ArticleDetailView({ id }: { id: string }) {
             type="button"
             onClick={handlePlayToggle}
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary hover:bg-primary-dark text-white flex items-center justify-center shrink-0 shadow-sm hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-            title={isPlaying ? 'Jeda' : 'Putar'}
-            aria-label={isPlaying ? 'Jeda' : 'Putar'}
+            title={isLoadingAudio ? 'Mempersiapkan audio...' : isPlaying ? 'Jeda' : 'Putar'}
+            aria-label={isLoadingAudio ? 'Mempersiapkan audio...' : isPlaying ? 'Jeda' : 'Putar'}
           >
-            {isPlaying ? (
+            {isLoadingAudio ? (
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
+            ) : isPlaying ? (
               <Pause className="w-4 h-4 fill-current" />
             ) : (
               <Play className="w-4 h-4 fill-current ml-0.5" />
