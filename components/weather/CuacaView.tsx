@@ -311,8 +311,21 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
   return (
     <div className="w-full">
-      {/* Google Weather Outer Card */}
-      <div className="w-full bg-[#202124] text-[#e8eaed] rounded-2xl p-5 sm:p-7 shadow-2xl border border-[#303134] font-sans transition-all duration-300 relative select-none">
+      {/* Google Weather Outer Card dengan Latar Gambar Sukabumi */}
+      <div className="w-full bg-[#1c1d20] text-[#e8eaed] rounded-2xl p-5 sm:p-7 shadow-2xl border border-zinc-700/60 font-sans transition-all duration-300 relative select-none overflow-hidden">
+        {/* Background Image dengan Dark Overlay */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          {/* eslint-disable-next-img-element */}
+          <img
+            src="/weather-bg.webp"
+            alt="Latar Cuaca Sukabumi"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#18191c]/80 via-[#18191c]/88 to-[#121316]/95 backdrop-blur-[2px]" />
+        </div>
+
+        {/* Card Content - Z-Index 10 */}
+        <div className="relative z-10 flex flex-col">
         
         {/* TOP BAR: Location Pin & Pilih Area */}
         <div className="flex items-center justify-between gap-3 mb-5">
@@ -551,8 +564,8 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                 onClick={() => setSelectedDayIdx(idx)}
                 className={`flex flex-col items-center justify-between p-2 rounded-xl transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#303134] shadow-md border border-zinc-700/60'
-                    : 'hover:bg-[#282a2d] text-[#9aa0a6]'
+                    ? 'bg-black/50 shadow-md border border-white/20 backdrop-blur-md'
+                    : 'bg-black/20 hover:bg-black/40 text-[#9aa0a6] border border-white/5 backdrop-blur-xs'
                 }`}
               >
                 <span
@@ -578,6 +591,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
               </button>
             );
           })}
+        </div>
         </div>
 
       </div>
