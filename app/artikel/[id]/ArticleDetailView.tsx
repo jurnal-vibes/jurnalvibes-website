@@ -11,7 +11,10 @@ import {
   Play,
   Pause,
   X,
-  Tag
+  Tag,
+  RotateCcw,
+  RotateCw,
+  Volume2
 } from 'lucide-react';
 import { FaFacebookF, FaXTwitter, FaWhatsapp } from 'react-icons/fa6';
 import { FaTelegramPlane } from 'react-icons/fa';
@@ -38,15 +41,16 @@ export function ArticleDetailView({ id }: { id: string }) {
   const [headerCopied, setHeaderCopied] = useState<boolean>(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
 
-  // Audio Player State (Opsi 3: Floating Mini Player)
+  // Audio Player State (Opsi 3: Floating Mini Player Teroptimasi)
   const [isAudioActive, setIsAudioActive] = useState<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [playbackRate, setPlaybackRate] = useState<number>(1);
+  const [availableVoice, setAvailableVoice] = useState<SpeechSynthesisVoice | null>(null);
 
-  // Perkiraan durasi membaca / TTS (~140 kata per menit)
+  // Perkiraan durasi membaca / TTS (~130 kata per menit untuk tempo santai)
   const wordCount = article?.content ? article.content.trim().split(/\s+/).length : 0;
-  const totalDuration = Math.max(30, Math.round((wordCount / 140) * 60));
+  const totalDuration = Math.max(30, Math.round((wordCount / 130) * 60));
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -54,23 +58,86 @@ export function ArticleDetailView({ id }: { id: string }) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  // 1. Deteksi & Prioritaskan Suara Bahasa Indonesia Alami (Google / Microsoft / Apple / Generic id-ID)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    const findIndonesianVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices || voices.length === 0) return;
+
+      const idVoices = voices.filter(v =>
+        v.lang.toLowerCase().startsWith('id') ||
+        v.lang.toLowerCase().includes('indonesia')
+      );
+
+      // Prioritas: Suara online/natural Google atau Microsoft
+      const natural = idVoices.find(v =>
+        v.name.includes('Google') ||
+        v.name.includes('Natural') ||
+        v.name.includes('Online')
+      );
+
+      setAvailableVoice(natural || idVoices[0] || null);
+    };
+
+    findIndonesianVoice();
+    window.speechSynthesis.onvoiceschanged = findIndonesianVoice;
+
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
+  }, []);
+
+  // 2. Pembersihan Naskah Berita agar Dibaca Luwes & Alami Seperti Penyiar Berita
+  const prepareSpeechText = (startFromSec = 0) => {
+    if (!article) return '';
+    let clean = (article.content || '')
+      .replace(/^(JURNALVIBES\.COM|JURNAL VIBES)(\s*[-–—]\s*)/i, 'Jurnal Vibes. ')
+      .replace(/https?:\/\/\S+/g, '') // Hapus tautan URL
+      .replace(/#[a-zA-Z0-9_]+/g, '') // Hapus hashtag
+      .replace(/[*_~`#|]/g, '') // Hapus simbol markdown
+      .replace(/WIB/gi, 'W.I.B') // Pengucapan W-I-B
+      .replace(/km\/h/gi, 'kilometer per jam')
+      .replace(/Rp\s*([\d.,]+)/gi, '$1 rupiah')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const intro = `${article.title}. Diberitakan oleh ${article.author && article.author !== 'Tim Redaksi' ? article.author : 'Redaksi Jurnal Vibes'}. `;
+    const fullText = intro + clean;
+
+    const fraction = totalDuration > 0 ? startFromSec / totalDuration : 0;
+    const startIndex = Math.floor(fullText.length * fraction);
+
+    // Cari batas spasi terdekat agar tidak memotong kata di tengah
+    const sliceFrom = fullText.slice(startIndex);
+    const spaceIndex = sliceFrom.indexOf(' ');
+    const safeStart = spaceIndex > 0 && startIndex > 0 ? startIndex + spaceIndex + 1 : startIndex;
+
+    return fullText.slice(safeStart);
+  };
+
+  // 3. Eksekusi Speech Synthesis
   const startSpeech = (startFromSec = 0, currentRate = playbackRate) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
 
-    // Kalkulasi posisi teks berdasarkan durasi
-    const fraction = totalDuration > 0 ? startFromSec / totalDuration : 0;
-    const startIndex = Math.floor((article.content || '').length * fraction);
-    const textToRead = `${article.title}. ` + (article.content || '').slice(startIndex);
+    const textToRead = prepareSpeechText(startFromSec);
+    if (!textToRead) return;
 
     const utterance = new SpeechSynthesisUtterance(textToRead);
     utterance.lang = 'id-ID';
     utterance.rate = currentRate;
+    utterance.pitch = 1.0;
 
-    const voices = window.speechSynthesis.getVoices();
-    const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
-    if (idVoice) {
-      utterance.voice = idVoice;
+    if (availableVoice) {
+      utterance.voice = availableVoice;
+    } else {
+      const voices = window.speechSynthesis.getVoices();
+      const idVoice = voices.find(v => v.lang.toLowerCase().includes('id'));
+      if (idVoice) utterance.voice = idVoice;
     }
 
     utterance.onend = () => {
@@ -87,10 +154,11 @@ export function ArticleDetailView({ id }: { id: string }) {
     window.speechSynthesis.speak(utterance);
   };
 
+  // 4. Timer Progress Pemutaran
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying) {
-      const intervalMs = 50;
+      const intervalMs = 100;
       interval = setInterval(() => {
         setCurrentTime(prev => {
           const next = prev + (intervalMs / 1000) * playbackRate;
@@ -107,6 +175,20 @@ export function ArticleDetailView({ id }: { id: string }) {
     }
     return () => clearInterval(interval);
   }, [isPlaying, totalDuration, playbackRate]);
+
+  // 5. Anti-Cutoff Heartbeat Khusus Browser Chrome (Mencegah Audio Berhenti Tiba-Tiba Setelah 15 Detik)
+  useEffect(() => {
+    let heartbeat: NodeJS.Timeout;
+    if (isPlaying) {
+      heartbeat = setInterval(() => {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking) {
+          window.speechSynthesis.pause();
+          window.speechSynthesis.resume();
+        }
+      }, 10000);
+    }
+    return () => clearInterval(heartbeat);
+  }, [isPlaying]);
 
   useEffect(() => {
     return () => {
@@ -160,6 +242,14 @@ export function ArticleDetailView({ id }: { id: string }) {
     setCurrentTime(newTime);
     if (isPlaying) {
       startSpeech(newTime);
+    }
+  };
+
+  const handleSkipTime = (deltaSeconds: number) => {
+    const nextTime = Math.max(0, Math.min(totalDuration, currentTime + deltaSeconds));
+    setCurrentTime(nextTime);
+    if (isPlaying) {
+      startSpeech(nextTime);
     }
   };
 
@@ -642,12 +732,23 @@ export function ArticleDetailView({ id }: { id: string }) {
 
       {/* Floating Bottom Mini Player (Simple Capsule - Positioned above BottomNav on mobile) */}
       {isAudioActive && (
-        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full shadow-2xl border border-outline-variant/80 dark:border-slate-800 px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-lg bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full shadow-2xl border border-outline-variant/80 dark:border-slate-800 px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-center gap-2 sm:gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+          {/* Rewind 10s */}
+          <button
+            type="button"
+            onClick={() => handleSkipTime(-10)}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-variant/50 transition-colors cursor-pointer shrink-0"
+            title="Mundur 10 detik"
+            aria-label="Mundur 10 detik"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+
           {/* Play/Pause Button */}
           <button
             type="button"
             onClick={handlePlayToggle}
-            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-dark text-white flex items-center justify-center shrink-0 shadow-sm hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary hover:bg-primary-dark text-white flex items-center justify-center shrink-0 shadow-sm hover:scale-105 active:scale-95 transition-transform cursor-pointer"
             title={isPlaying ? 'Jeda' : 'Putar'}
             aria-label={isPlaying ? 'Jeda' : 'Putar'}
           >
@@ -658,8 +759,19 @@ export function ArticleDetailView({ id }: { id: string }) {
             )}
           </button>
 
+          {/* Forward 10s */}
+          <button
+            type="button"
+            onClick={() => handleSkipTime(10)}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-variant/50 transition-colors cursor-pointer shrink-0"
+            title="Maju 10 detik"
+            aria-label="Maju 10 detik"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+          </button>
+
           {/* Scrubbing Bar & Time */}
-          <div className="flex items-center gap-2.5 flex-grow min-w-0">
+          <div className="flex items-center gap-2 flex-grow min-w-0">
             <span className="text-[11px] font-mono text-on-surface-variant/80 shrink-0 select-none">
               {formatTime(currentTime)}
             </span>
@@ -691,7 +803,7 @@ export function ArticleDetailView({ id }: { id: string }) {
               type="button"
               onClick={handleSpeedToggle}
               title="Kecepatan pemutaran"
-              className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-surface-variant/80 hover:bg-surface-variant text-on-surface dark:text-gray-200 cursor-pointer border border-outline-variant/60 transition-colors"
+              className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-surface-variant/80 hover:bg-surface-variant text-on-surface dark:text-gray-200 cursor-pointer border border-outline-variant/60 transition-colors"
             >
               {playbackRate}x
             </button>
