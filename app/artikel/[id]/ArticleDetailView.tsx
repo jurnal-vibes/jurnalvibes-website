@@ -122,13 +122,13 @@ export function ArticleDetailView({ id }: { id: string }) {
         v.name.toLowerCase().includes('indonesia')
       );
 
-      // Prioritas: Suara online/natural Google atau Microsoft
+      // Prioritas: Suara news anchor online/natural Microsoft (Gadis/Ardi) & Google Natural
       const natural = idVoices.find(v =>
-        v.name.toLowerCase().includes('google') ||
-        v.name.toLowerCase().includes('natural') ||
-        v.name.toLowerCase().includes('online') ||
         v.name.toLowerCase().includes('gadis') ||
-        v.name.toLowerCase().includes('ardi')
+        v.name.toLowerCase().includes('ardi') ||
+        v.name.toLowerCase().includes('natural') ||
+        v.name.toLowerCase().includes('google') ||
+        v.name.toLowerCase().includes('online')
       );
 
       setAvailableVoice(natural || idVoices[0] || null);
@@ -144,20 +144,29 @@ export function ArticleDetailView({ id }: { id: string }) {
     };
   }, []);
 
-  // 2. Pembersihan Naskah Berita: Membaca Murni Teks Berita yang Tertera di Artikel
+  // 2. Pembersihan Naskah Berita: Membaca Murni Teks Berita dengan Artikulasi Penyiar Berita Profesional
   const prepareSpeechText = (startFromSec = 0) => {
     if (!article) return '';
 
-    // Ambil isi teks berita asli dan bersihkan hanya tag HTML atau format markdown
-    const cleanContent = (article.content || '')
+    // Bersihkan judul dan siapkan sebagai headline pembuka
+    const cleanTitle = (article.title || '')
+      .replace(/[*_#~`]/g, '')
+      .trim()
+      .replace(/[.?!]+$/, '');
+
+    // Olah paragraf isi: normalisasi spasi, pastikan titik tegas, dan beri jeda napas presenter antar-paragraf
+    const cleanParagraphs = (article.content || '')
       .replace(/<[^>]*>/g, '') // Hapus tag HTML jika ada
       .replace(/[*_#~`]/g, '') // Hapus format markdown
       .replace(/https?:\/\/\S+/g, '') // Hapus raw link URL
-      .replace(/\s+/g, ' ') // Normalisasi jeda spasi & baris baru
-      .trim();
+      .split(/\n\s*\n/) // Pisahkan per paragraf
+      .map(p => p.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .map(p => (/[.?!]$/.test(p) ? p : `${p}.`)) // Pastikan intonasi turun di akhir kalimat
+      .join(' ... '); // Jeda artikulasi presenter antar paragraf
 
-    // Gabungkan judul berita dan isi naskah berita asli tanpa tambahan kalimat karangan
-    let fullText = `${article.title}. ${cleanContent}`;
+    // Gabungkan judul (headline) dengan jeda sejenak sebelum masuk ke paragraf isi
+    let fullText = `${cleanTitle}. ... ${cleanParagraphs}`;
 
     // Terapkan penyesuaian fonetik agar istilah serapan/asing dilafalkan natural oleh engine Bahasa Indonesia
     for (const [pattern, replacement] of LOANWORD_PHONETICS) {
@@ -185,8 +194,9 @@ export function ArticleDetailView({ id }: { id: string }) {
 
     const utterance = new SpeechSynthesisUtterance(textToRead);
     utterance.lang = 'id-ID';
-    utterance.rate = currentRate;
-    utterance.pitch = 1.0;
+    // Tempo dan nada disetel khas pembawa berita profesional: artikulasi mantap, berwibawa, dan tidak terburu-buru
+    utterance.rate = Math.round(currentRate * 0.94 * 100) / 100;
+    utterance.pitch = 0.98;
 
     let selectedVoice = availableVoice;
     if (!selectedVoice) {
@@ -197,11 +207,11 @@ export function ArticleDetailView({ id }: { id: string }) {
         v.name.toLowerCase().includes('indonesia')
       );
       selectedVoice = idVoices.find(v =>
-        v.name.toLowerCase().includes('google') ||
-        v.name.toLowerCase().includes('natural') ||
-        v.name.toLowerCase().includes('online') ||
         v.name.toLowerCase().includes('gadis') ||
-        v.name.toLowerCase().includes('ardi')
+        v.name.toLowerCase().includes('ardi') ||
+        v.name.toLowerCase().includes('natural') ||
+        v.name.toLowerCase().includes('google') ||
+        v.name.toLowerCase().includes('online')
       ) || idVoices[0] || null;
     }
 
