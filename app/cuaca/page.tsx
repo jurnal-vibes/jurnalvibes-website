@@ -23,7 +23,7 @@ export default async function CuacaPage() {
     <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-6 lg:px-gutter pt-stack-lg pb-10 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
       <LeftSidebar articles={DUMMY_ARTICLES} />
 
-      <main className="w-full md:w-3/4 flex flex-col gap-6 pr-0 md:pr-6 lg:pr-12">
+      <main className="w-full md:w-3/4 flex flex-col gap-6">
         <header className="flex flex-col gap-2 mb-2">
           <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
             Cuaca Sukabumi Hari Ini

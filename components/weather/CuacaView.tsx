@@ -310,9 +310,9 @@ export function CuacaView({ initialData }: CuacaViewProps) {
   const selectedDay = data.forecast7Days[selectedDayIdx] || data.forecast7Days[0];
 
   return (
-    <div className="w-full flex justify-center">
+    <div className="w-full">
       {/* Google Weather Outer Card */}
-      <div className="w-full max-w-[760px] bg-[#202124] text-[#e8eaed] rounded-2xl p-5 sm:p-7 shadow-2xl border border-[#303134] font-sans transition-all duration-300 relative select-none">
+      <div className="w-full bg-[#202124] text-[#e8eaed] rounded-2xl p-5 sm:p-7 shadow-2xl border border-[#303134] font-sans transition-all duration-300 relative select-none">
         
         {/* TOP BAR: Location Pin & Pilih Area */}
         <div className="flex items-center justify-between gap-3 mb-5">
@@ -402,13 +402,13 @@ export function CuacaView({ initialData }: CuacaViewProps) {
             </div>
           </div>
 
-          {/* Sisi Kanan: Cuaca, Hari & Jam, Kondisi */}
+          {/* Sisi Kanan: Cuaca, Hari, Kondisi (Jam Dihapus Sesuai Permintaan) */}
           <div className="text-left sm:text-right flex flex-col justify-center">
             <h2 className="text-2xl sm:text-3xl font-normal text-[#e8eaed] tracking-tight">
               Cuaca
             </h2>
             <div className="text-sm text-[#9aa0a6] mt-0.5">
-              {selectedDayIdx === 0 ? `${data.dayName} ${data.timeNow}` : selectedDay.dayFullName}
+              {selectedDayIdx === 0 ? data.dayName : selectedDay.dayFullName}
             </div>
             <div className="text-sm text-[#9aa0a6]">
               {selectedDayIdx === 0 ? data.condition : selectedDay.condition}
