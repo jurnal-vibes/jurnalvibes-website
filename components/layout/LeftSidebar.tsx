@@ -36,7 +36,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ articles }) => {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                onClick={(e) => {
+                  if (item.href === '/' && isHome) {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer ${
                   item.isActive
                     ? 'bg-primary/10 text-primary font-bold shadow-2xs'
                     : 'text-on-surface-variant hover:bg-surface-variant/70 hover:text-primary'

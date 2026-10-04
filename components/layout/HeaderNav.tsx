@@ -61,6 +61,16 @@ export const HeaderNav: React.FC = () => {
     { href: '/health', label: 'Health' },
   ];
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname === '/') {
+      e.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   return (
     <>
       <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant/60 transition-colors duration-300">
@@ -105,7 +115,12 @@ export const HeaderNav: React.FC = () => {
           <div className="flex justify-between items-center px-3 sm:px-4 md:px-6 h-16 md:h-20 max-w-container-max mx-auto w-full relative z-10 gap-2 md:gap-4">
             {/* Brand Logo */}
             <div className="flex items-center shrink-0">
-              <Link href="/" className="flex items-center shrink-0">
+              <Link
+                href="/"
+                onClick={handleLogoClick}
+                className="flex items-center shrink-0 cursor-pointer"
+                aria-label="Kembali ke Beranda atau Gulir ke Atas"
+              >
                 <Logo variant="light" size="md" />
               </Link>
             </div>
@@ -218,7 +233,14 @@ export const HeaderNav: React.FC = () => {
           <div className="flex flex-col h-full overflow-hidden">
             {/* Sheet Header (Full Width Top Bar) */}
             <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-outline-variant/60 flex items-center justify-between bg-surface shrink-0">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link
+                href="/"
+                onClick={(e) => {
+                  setIsMobileMenuOpen(false);
+                  handleLogoClick(e);
+                }}
+                className="flex items-center shrink-0 cursor-pointer"
+              >
                 <Logo variant="light" size="md" />
               </Link>
               <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>

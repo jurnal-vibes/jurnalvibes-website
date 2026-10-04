@@ -14,6 +14,12 @@ export const BottomNav: React.FC = () => {
         {/* 1. For You */}
         <Link
           href="/"
+          onClick={(e) => {
+            if (pathname === '/') {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
           className={`flex flex-col items-center justify-center py-1 transition-all duration-200 active:scale-90 ${
             pathname === '/'
               ? 'text-primary font-bold'
