@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight,
@@ -579,7 +579,67 @@ export function ArticleDetailView({ id }: { id: string }) {
     });
   };
 
-  const relatedArticles = allArticles.filter(a => a.id !== article.id).slice(0, 3);
+  // Algoritma Rekomendasi Berita Terkait Cerdas (Smart Related Articles)
+  const relatedArticles = useMemo(() => {
+    if (!allArticles || allArticles.length === 0 || !article) return [];
+
+    const currentTags = (article.tags || []).map(t => t.toLowerCase().replace(/^#/, '').trim()).filter(Boolean);
+    const currentCategory = (article.category || '').toLowerCase().trim();
+    const currentSubCategory = (article.subCategory || '').toLowerCase().trim();
+
+    // Kata kunci judul penting (abaikan stopwords umum bahasa Indonesia)
+    const stopWords = new Set([
+      'yang', 'dan', 'dari', 'untuk', 'akan', 'pada', 'dengan', 'atau', 'ini',
+      'itu', 'bisa', 'oleh', 'juga', 'saat', 'para', 'ke', 'di', 'ada', 'tak'
+    ]);
+    const titleKeywords = (article.title || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length >= 4 && !stopWords.has(w));
+
+    const scored = allArticles
+      .filter(a => a.id !== article.id && a.slug !== article.slug)
+      .map(candidate => {
+        let score = 0;
+
+        // 1. Kesamaan Tagar (+4 poin per tagar yang cocok)
+        const candidateTags = (candidate.tags || []).map(t => t.toLowerCase().replace(/^#/, '').trim());
+        currentTags.forEach(tag => {
+          if (candidateTags.includes(tag)) {
+            score += 4;
+          }
+        });
+
+        // 2. Kesamaan SubKategori (+3 poin)
+        const candSub = (candidate.subCategory || '').toLowerCase().trim();
+        if (candSub && currentSubCategory && candSub === currentSubCategory) {
+          score += 3;
+        }
+
+        // 3. Kesamaan Kategori Induk (+2 poin)
+        const candCat = (candidate.category || '').toLowerCase().trim();
+        if (candCat && currentCategory && candCat === currentCategory) {
+          score += 2;
+        }
+
+        // 4. Kesamaan Kata Kunci Judul (+1 poin)
+        const candTitle = (candidate.title || '').toLowerCase();
+        titleKeywords.forEach(kw => {
+          if (candTitle.includes(kw)) {
+            score += 1;
+          }
+        });
+
+        return { article: candidate, score };
+      });
+
+    // Urutkan berdasarkan skor relevansi tertinggi
+    scored.sort((a, b) => b.score - a.score);
+
+    // Ambil top 3 artikel paling relevan
+    return scored.slice(0, 3).map(item => item.article);
+  }, [article, allArticles]);
 
   return (
     <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-6 lg:px-gutter pt-stack-lg pb-6 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
