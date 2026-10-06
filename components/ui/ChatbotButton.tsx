@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { X, Send, ExternalLink } from 'lucide-react';
+import { X, Send, Loader2 } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -13,11 +13,12 @@ interface ChatMessage {
 export const ChatbotButton: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const [inputText, setInputText] = useState<string>('');
+  const [isAiTyping, setIsAiTyping] = useState<boolean>(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       sender: 'ai',
-      text: 'Halo! 👋 Selamat datang di Jurnal Vibes AI. Ada berita, rekomendasi kuliner Cikole, atau informasi seputar Sukabumi yang ingin kamu tanyakan?'
+      text: 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Vibes AI. Ada berita terkini, rekomendasi kuliner Cikole, tempat wisata Sukabumi, info loker, atau panduan Halo Jurnal yang ingin kamu tanyakan?'
     }
   ]);
 
@@ -51,16 +52,16 @@ export const ChatbotButton: React.FC = () => {
     };
   }, [isChatOpen]);
 
-  // Auto scroll chat to bottom when messages update
+  // Auto scroll chat to bottom when messages update or AI is typing
   useEffect(() => {
     if (isChatOpen) {
       chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isChatOpen]);
+  }, [messages, isChatOpen, isAiTyping]);
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputText).trim();
-    if (!query) return;
+    if (!query || isAiTyping) return;
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -70,37 +71,50 @@ export const ChatbotButton: React.FC = () => {
 
     setMessages(prev => [...prev, userMsg]);
     if (!textToSend) setInputText('');
+    setIsAiTyping(true);
 
-    // Simulate smart AI response
-    setTimeout(() => {
-      let replyText = '';
-      const lower = query.toLowerCase();
+    try {
+      const response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: query,
+          history: messages
+        })
+      });
 
-      if (lower.includes('kopi') || lower.includes('cikole') || lower.includes('kuliner')) {
-        replyText =
-          '☕ Kedai Kopi Cikole Sukabumi sedang viral dengan konsep industrial-minimalis! Menu andalannya Signature Cold Brew 18 jam & Gourmet Latte. Kamu bisa cek ulasan lengkapnya di kategori Lifestyle & Kuliner.';
-      } else if (lower.includes('berita') || lower.includes('terkini') || lower.includes('update')) {
-        replyText =
-          '📰 Berita terbaru Sukabumi hari ini: Festival Kuliner 2024 dibanjiri pengunjung, Siswa SMAN 1 meraih Medali Emas OSN, dan Riset IoT Mahasiswa UMMI Sukabumi!';
-      } else if (lower.includes('loker') || lower.includes('kerja')) {
-        replyText =
-          '💼 Info Loker Sukabumi: Tersedia lowongan kerja Barista Cikole, Staff Admin Digital, dan Graphic Designer. Cek halaman /loker untuk detail selengkapnya!';
-      } else if (lower.includes('wisata') || lower.includes('gede') || lower.includes('cikaso')) {
-        replyText =
-          '🏔️ Rekomendasi Wisata Sukabumi: Pendakian Gunung Gede jalur Selabintana & keindahan 3 air terjun Curug Cikaso di Sukabumi Selatan!';
-      } else {
-        replyText =
-          '✨ Terima kasih pertanyaannya! Jurnal Vibes AI selalu siap memberikan berita & informasi terpercaya seputar Kota dan Kabupaten Sukabumi.';
+      if (!response.ok) {
+        throw new Error('Gagal menghubungi asisten AI');
       }
 
-      const aiMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        sender: 'ai',
-        text: replyText
-      };
+      const data = await response.json();
+      const aiReply =
+        data.reply ||
+        'Terima kasih! Ada hal lain seputar Sukabumi atau Jurnal Vibes yang ingin kamu tanyakan?';
 
-      setMessages(prev => [...prev, aiMsg]);
-    }, 600);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          sender: 'ai',
+          text: aiReply
+        }
+      ]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          sender: 'ai',
+          text: 'Maaf, sedang ada kendala jaringan saat menghubungkan ke asisten cerdas. Silakan coba kembali sesaat lagi.'
+        }
+      ]);
+    } finally {
+      setIsAiTyping(false);
+    }
   };
 
   const handleReset = () => {
@@ -108,10 +122,99 @@ export const ChatbotButton: React.FC = () => {
       {
         id: '1',
         sender: 'ai',
-        text: 'Halo! 👋 Selamat datang di Jurnal Vibes AI. Ada berita, rekomendasi kuliner Cikole, atau informasi seputar Sukabumi yang ingin kamu tanyakan?'
+        text: 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Vibes AI. Ada berita terkini, rekomendasi kuliner Cikole, tempat wisata Sukabumi, info loker, atau panduan Halo Jurnal yang ingin kamu tanyakan?'
       }
     ]);
     setInputText('');
+  };
+
+  // Helper untuk merender teks dengan indentasi gantung rapi, bullet terstruktur, dan penekanan judul
+  const renderFormattedText = (text: string) => {
+    const lines = text.split('\n');
+
+    const renderLineContent = (content: string) => {
+      // Cek apakah ada format "Nama Tempat: Keterangan" atau "Nama Tempat. Keterangan"
+      const headingMatch = content.match(/^([^.:]{2,45})([.:])\s+(.+)/);
+      if (!content.includes('*') && headingMatch) {
+        const title = headingMatch[1];
+        const separator = headingMatch[2];
+        const desc = headingMatch[3];
+        return (
+          <>
+            <strong className="font-bold text-on-surface dark:text-slate-100">
+              {title}{separator}
+            </strong>{' '}
+            <span className="text-on-surface/90 dark:text-slate-200">{desc}</span>
+          </>
+        );
+      }
+
+      // Pisahkan teks jika ada sisa tanda bintang (*teks* atau **teks**)
+      const parts = content.split(/(\*{1,2}.*?\*{1,2})/g);
+      return parts.map((part, pIdx) => {
+        if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+          const innerText = part.replace(/^\*+|\*+$/g, '');
+          return (
+            <strong key={pIdx} className="font-bold text-on-surface dark:text-slate-100">
+              {innerText}
+            </strong>
+          );
+        }
+        return part.replace(/\*/g, '');
+      });
+    };
+
+    return (
+      <div className="flex flex-col gap-1 w-full">
+        {lines.map((line, lineIdx) => {
+          const trimmed = line.trim();
+
+          // Baris kosong
+          if (!trimmed) {
+            return <div key={lineIdx} className="h-1" />;
+          }
+
+          // Cek list bernomor (contoh: "1. ", "2. ")
+          const numberedMatch = trimmed.match(/^(\d+)[.)]\s+(.+)/);
+          // Cek bullet point (contoh: "• ", "- ", "* ")
+          const bulletMatch = trimmed.match(/^([•\-\*])\s+(.+)/);
+
+          if (numberedMatch) {
+            const num = numberedMatch[1];
+            const content = numberedMatch[2];
+            return (
+              <div key={lineIdx} className="flex items-start gap-2.5 my-1 pl-0.5">
+                <span className="shrink-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary/10 dark:bg-primary/25 text-primary dark:text-blue-300 font-bold text-[11px] mt-0.5 select-none shadow-2xs">
+                  {num}
+                </span>
+                <div className="flex-1 leading-relaxed text-xs sm:text-sm">
+                  {renderLineContent(content)}
+                </div>
+              </div>
+            );
+          }
+
+          if (bulletMatch) {
+            const content = bulletMatch[2];
+            return (
+              <div key={lineIdx} className="flex items-start gap-2 my-1 pl-0.5">
+                <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary/75 dark:bg-blue-400 mt-2 select-none" />
+                <div className="flex-1 leading-relaxed text-xs sm:text-sm">
+                  {renderLineContent(content)}
+                </div>
+              </div>
+            );
+          }
+
+          // Paragraf biasa
+          return (
+            <p key={lineIdx} className="leading-relaxed text-xs sm:text-sm my-0.5">
+              {renderLineContent(trimmed)}
+            </p>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -171,7 +274,7 @@ export const ChatbotButton: React.FC = () => {
               {messages.map(msg => (
                 <div
                   key={msg.id}
-                  className={`flex flex-col max-w-[85%] ${
+                  className={`flex flex-col max-w-[88%] ${
                     msg.sender === 'user' ? 'self-end items-end' : 'self-start items-start'
                   }`}
                 >
@@ -182,10 +285,20 @@ export const ChatbotButton: React.FC = () => {
                         : 'bg-surface-container dark:bg-slate-800 text-on-surface rounded-bl-none border border-outline-variant dark:border-slate-700'
                     }`}
                   >
-                    {msg.text}
+                    {renderFormattedText(msg.text)}
                   </div>
                 </div>
               ))}
+
+              {/* Typing Indicator */}
+              {isAiTyping && (
+                <div className="self-start flex items-center gap-1.5 px-4 py-3 rounded-2xl rounded-bl-none bg-surface-container dark:bg-slate-800 border border-outline-variant dark:border-slate-700 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce" />
+                </div>
+              )}
+
               <div ref={chatBottomRef} />
             </div>
 
@@ -200,22 +313,32 @@ export const ChatbotButton: React.FC = () => {
               </Link>
 
               <button
-                onClick={() => handleSendMessage('Rekomendasi kuliner Cikole')}
-                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer"
+                onClick={() => handleSendMessage('Rekomendasi kuliner Cikole Sukabumi')}
+                disabled={isAiTyping}
+                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer disabled:opacity-50"
               >
                 Kuliner Cikole
               </button>
               <button
-                onClick={() => handleSendMessage('Berita terbaru Sukabumi')}
-                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer"
+                onClick={() => handleSendMessage('Berita terbaru Sukabumi hari ini')}
+                disabled={isAiTyping}
+                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer disabled:opacity-50"
               >
                 Berita Terbaru
               </button>
               <button
-                onClick={() => handleSendMessage('Info lowongan kerja')}
-                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer"
+                onClick={() => handleSendMessage('Info lowongan kerja Sukabumi terbaru')}
+                disabled={isAiTyping}
+                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer disabled:opacity-50"
               >
                 Info Loker
+              </button>
+              <button
+                onClick={() => handleSendMessage('Bagaimana cara membuat laporan di Halo Jurnal?')}
+                disabled={isAiTyping}
+                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer disabled:opacity-50"
+              >
+                Cara Lapor Aduan
               </button>
             </div>
 
@@ -232,20 +355,25 @@ export const ChatbotButton: React.FC = () => {
                   type="text"
                   value={inputText}
                   onChange={e => setInputText(e.target.value)}
-                  placeholder="Tanya sesuatu..."
-                  className="flex-1 bg-surface-container dark:bg-slate-800 rounded-xl px-4 py-2.5 border border-outline-variant dark:border-slate-700 focus:border-primary outline-none text-xs sm:text-sm text-on-surface placeholder:text-on-surface-variant/50 transition-colors"
+                  placeholder={isAiTyping ? 'AI sedang merespons...' : 'Tanya sesuatu...'}
+                  disabled={isAiTyping}
+                  className="flex-1 bg-surface-container dark:bg-slate-800 rounded-xl px-4 py-2.5 border border-outline-variant dark:border-slate-700 focus:border-primary outline-none text-xs sm:text-sm text-on-surface placeholder:text-on-surface-variant/50 transition-colors disabled:opacity-60"
                 />
                 <button
                   type="submit"
-                  disabled={!inputText.trim()}
+                  disabled={!inputText.trim() || isAiTyping}
                   className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
-                    inputText.trim()
+                    inputText.trim() && !isAiTyping
                       ? 'bg-primary text-on-primary border-primary hover:scale-105 shadow-xs'
                       : 'bg-surface-container dark:bg-slate-800 text-on-surface-variant/40 border-outline-variant dark:border-slate-700 cursor-not-allowed'
                   }`}
                   title="Kirim pesan"
                 >
-                  <Send className="w-4 h-4" />
+                  {isAiTyping ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
                 </button>
               </form>
             </div>

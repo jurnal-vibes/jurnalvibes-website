@@ -404,7 +404,6 @@ export default function HaloJurnalProfilPage() {
                   <span>Ubah Data</span>
                 </button>
               )}
-              <LogoutButton />
             </div>
           </div>
         </div>
@@ -692,49 +691,36 @@ export default function HaloJurnalProfilPage() {
               </div>
             </div>
 
-            {/* Security Guarantee & Information Box */}
+            {/* Security Guarantee - compact */}
             <div className="lg:col-span-6 bg-surface-container-low rounded-2xl border border-outline-variant/60 p-5 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <ShieldCheck className="w-4 h-4 text-primary" />
-                  <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-on-surface">
-                    Jaminan Keamanan &amp; Perlindungan Privasi (UU PDP)
-                  </h3>
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+                <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-on-surface">
+                  Jaminan Keamanan & Privasi (UU PDP)
+                </h3>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container border border-outline-variant/60 text-xs text-on-surface">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span><strong>Terenkripsi</strong> — tidak dibagikan ke publik</span>
                 </div>
-
-                <div className="space-y-3 text-xs text-secondary leading-relaxed">
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-on-surface font-semibold">Terenkripsi &amp; Rahasia:</strong> Dokumen KTP Anda hanya dapat diakses oleh tim redaksi internal dan tidak pernah dibagikan ke pihak luar maupun feed publik.
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-on-surface font-semibold">Integritas Pelaporan:</strong> Verifikasi KTP memastikan laporan yang Anda kirimkan memiliki kredibilitas resmi untuk ditindaklanjuti instansi berwenang.
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-on-surface font-semibold">Pembaruan Dokumen:</strong> Anda dapat memperbarui foto KTP kapan saja jika ada perubahan dokumen atau kualitas foto sebelumnya kurang jelas.
-                    </span>
-                  </div>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container border border-outline-variant/60 text-xs text-on-surface">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span><strong>Integritas</strong> — laporan lebih kredibel & resmi</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container border border-outline-variant/60 text-xs text-on-surface">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span><strong>Dapat diperbarui</strong> — ubah KTP kapan saja</span>
                 </div>
               </div>
 
-              {/* Catatan Privasi Bawah */}
               <div className="mt-4 pt-3.5 border-t border-outline-variant/40 flex items-center justify-between text-[11px] text-secondary">
                 <span className="flex items-center gap-1.5">
                   <Lock className="w-3 h-3 text-primary" />
-                  Data Kependudukan Terlindungi Enkripsi
+                  Data dilindungi enkripsi
                 </span>
-                <span className="text-[10px] font-semibold text-secondary/80">
-                  PT Media Jurnal Sukabumi
-                </span>
+                <span className="text-[10px] font-semibold text-secondary/80">PT Media Jurnal Sukabumi</span>
               </div>
             </div>
           </div>

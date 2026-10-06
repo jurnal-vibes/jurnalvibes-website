@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight,
@@ -11,7 +11,11 @@ import {
   Play,
   Pause,
   X,
-  Tag
+  Tag,
+  RotateCcw,
+  RotateCw,
+  Volume2,
+  Loader2
 } from 'lucide-react';
 import { FaFacebookF, FaXTwitter, FaWhatsapp } from 'react-icons/fa6';
 import { FaTelegramPlane } from 'react-icons/fa';
@@ -29,6 +33,55 @@ const FONT_SIZE_CLASSES: Record<FontSize, string> = {
   lg: 'text-[17px] sm:text-[18px] leading-relaxed'
 };
 
+// Kamus Fonetik Istilah Serapan / Bahasa Inggris agar Dilafalkan Alami & Pas oleh TTS Bahasa Indonesia
+// Berlaku otomatis untuk seluruh artikel berita di situs Jurnal Vibes
+const LOANWORD_PHONETICS: [RegExp, string][] = [
+  // Musik & Event
+  [/\bline[- ]?up\b/gi, 'lain ap'],
+  [/\bmerchandise\b/gi, 'mercendais'],
+  [/\blive\b/gi, 'laif'],
+  [/\bstreaming\b/gi, 'striming'],
+  [/\bevent\b/gi, 'ivent'],
+  [/\bcreative\b/gi, 'kreatif'],
+  [/\bfest\b/gi, 'fes'],
+  [/\bshowcase\b/gi, 'syokeis'],
+  [/\bteaser\b/gi, 'tiser'],
+  [/\btrailer\b/gi, 'treiler'],
+  [/\bcomeback\b/gi, 'kambek'],
+  // Bisnis, Kuliner & Gaya Hidup
+  [/\bbrand\b/gi, 'brend'],
+  [/\bbooth\b/gi, 'but'],
+  [/\bcoffee shop\b/gi, 'kofi syop'],
+  [/\bcold brew\b/gi, 'kold bru'],
+  [/\blifestyle\b/gi, 'laifstail'],
+  [/\breview\b/gi, 'rivyu'],
+  [/\bweekend\b/gi, 'wik-end'],
+  [/\bbudget\b/gi, 'bajet'],
+  [/\bworkshop\b/gi, 'worsyop'],
+  [/\bmeet[- ]?up\b/gi, 'mit ap'],
+  // Digital & Teknologi
+  [/\bstartup\b/gi, 'start ap'],
+  [/\bgadget\b/gi, 'gejet'],
+  [/\bsmartphone\b/gi, 'smartfon'],
+  [/\bpodcast\b/gi, 'podkes'],
+  [/\bonline\b/gi, 'onlain'],
+  [/\boffline\b/gi, 'oflain'],
+  [/\bupdate\b/gi, 'apdet'],
+  [/\bdownload\b/gi, 'daunlod'],
+  [/\bupload\b/gi, 'aplod'],
+  [/\bgaming\b/gi, 'geming'],
+  [/\bgamer\b/gi, 'gemer'],
+  [/\bgame\b/gi, 'gem'],
+  [/\bcontent creator\b/gi, 'konten krieitor'],
+  [/\binfluencer\b/gi, 'influenser'],
+  [/\brating\b/gi, 'reiting'],
+  [/\bfeedback\b/gi, 'fidbek'],
+  [/\bdeadline\b/gi, 'dedlain'],
+  // Format Waktu & Finansial Lokal
+  [/\bWIB\b/gi, 'W I B'],
+  [/\bRp\s*([\d.,]+)/gi, '$1 rupiah'],
+];
+
 export function ArticleDetailView({ id }: { id: string }) {
   const initialArticle = DUMMY_ARTICLES.find(a => a.id === id || a.slug === id) || DUMMY_ARTICLES[0];
 
@@ -38,15 +91,23 @@ export function ArticleDetailView({ id }: { id: string }) {
   const [headerCopied, setHeaderCopied] = useState<boolean>(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
 
-  // Audio Player State (Opsi 3: Floating Mini Player)
+  // Audio Player State & Sentence Queue Engine (Anti-Cutoff & Non-Destructive Resume)
   const [isAudioActive, setIsAudioActive] = useState<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [playbackRate, setPlaybackRate] = useState<number>(1);
+  const [availableVoice, setAvailableVoice] = useState<SpeechSynthesisVoice | null>(null);
 
-  // Perkiraan durasi membaca / TTS (~140 kata per menit)
-  const wordCount = article?.content ? article.content.trim().split(/\s+/).length : 0;
-  const totalDuration = Math.max(30, Math.round((wordCount / 140) * 60));
+  const currentSentenceIdxRef = useRef<number>(0);
+  const sentencesRef = useRef<string[]>([]);
+  const isPlayingRef = useRef<boolean>(false);
+  const nextSentenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Perkiraan durasi membaca / TTS (~115 kata per menit untuk tempo santai berwibawa)
+  const fullArticleSpeechText = `${article?.title || ''} ${article?.content || ''}`.trim();
+  const wordCount = fullArticleSpeechText ? fullArticleSpeechText.split(/\s+/).length : 0;
+  const totalDuration = Math.max(15, Math.round((wordCount / 115) * 60));
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -54,52 +115,183 @@ export function ArticleDetailView({ id }: { id: string }) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const startSpeech = (startFromSec = 0, currentRate = playbackRate) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+  // 1. Ekstrak seluruh unit kalimat berita (Judul Headline + Semua Paragraf Isi)
+  const extractSentences = useCallback(() => {
+    if (!article) return [];
 
-    // Kalkulasi posisi teks berdasarkan durasi
-    const fraction = totalDuration > 0 ? startFromSec / totalDuration : 0;
-    const startIndex = Math.floor((article.content || '').length * fraction);
-    const textToRead = `${article.title}. ` + (article.content || '').slice(startIndex);
+    const cleanTitle = (article.title || '')
+      .replace(/[*_#~`]/g, '')
+      .trim()
+      .replace(/[.?!]+$/, '');
+
+    const paragraphs = (article.content || '')
+      .replace(/<[^>]*>/g, '') // Hapus tag HTML
+      .replace(/[*_#~`]/g, '') // Hapus markdown
+      .replace(/https?:\/\/\S+/g, '') // Hapus link URL
+      .split(/\n\s*\n/)
+      .map(p => p.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    const rawList: string[] = [];
+    if (cleanTitle) {
+      rawList.push(`${cleanTitle}.`);
+    }
+
+    paragraphs.forEach(p => {
+      // Pecah paragraf jadi kalimat utuh berdasarkan tanda baca
+      const sList = p.split(/(?<=[.?!])\s+/).map(s => s.trim()).filter(Boolean);
+      sList.forEach(s => {
+        const fullSentence = /[.?!]$/.test(s) ? s : `${s}.`;
+        rawList.push(fullSentence);
+      });
+    });
+
+    // Terapkan kamus fonetik istilah serapan ke setiap kalimat
+    return rawList.map(sentence => {
+      let text = sentence;
+      for (const [pattern, replacement] of LOANWORD_PHONETICS) {
+        text = text.replace(pattern, replacement);
+      }
+      return text;
+    });
+  }, [article]);
+
+  // 2. Deteksi & Prioritaskan Suara Bahasa Indonesia Alami (Microsoft Gadis/Ardi Natural & Google Natural)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    const findIndonesianVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices || voices.length === 0) return;
+
+      const idVoices = voices.filter(v =>
+        v.lang.toLowerCase().startsWith('id') ||
+        v.lang.toLowerCase().includes('indonesia') ||
+        v.name.toLowerCase().includes('indonesia')
+      );
+
+      // Prioritas: Suara news anchor online/natural Microsoft (Gadis/Ardi) & Google Natural
+      const natural = idVoices.find(v =>
+        v.name.toLowerCase().includes('gadis') ||
+        v.name.toLowerCase().includes('ardi') ||
+        v.name.toLowerCase().includes('natural') ||
+        v.name.toLowerCase().includes('google') ||
+        v.name.toLowerCase().includes('online')
+      );
+
+      setAvailableVoice(natural || idVoices[0] || null);
+    };
+
+    findIndonesianVoice();
+    window.speechSynthesis.onvoiceschanged = findIndonesianVoice;
+
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
+  }, []);
+
+  // 3. Eksekusi Suara Kalimat demi Kalimat (Mencegah Audio Terputus & Menjamin 100% Naskah Tuntas)
+  const speakSentence = useCallback((index: number, rate = playbackRate) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    if (nextSentenceTimeoutRef.current) {
+      clearTimeout(nextSentenceTimeoutRef.current);
+      nextSentenceTimeoutRef.current = null;
+    }
+
+    const sentences = sentencesRef.current.length > 0 ? sentencesRef.current : extractSentences();
+    sentencesRef.current = sentences;
+
+    if (sentences.length === 0) return;
+
+    // Jika seluruh kalimat sudah selesai dibaca sampai akhir
+    if (index >= sentences.length) {
+      isPlayingRef.current = false;
+      setIsPlaying(false);
+      setCurrentTime(totalDuration);
+      currentSentenceIdxRef.current = 0;
+      return;
+    }
+
+    currentSentenceIdxRef.current = index;
+    const textToRead = sentences[index];
+    if (!textToRead) return;
+
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(textToRead);
     utterance.lang = 'id-ID';
-    utterance.rate = currentRate;
+    // Tempo dan nada disetel khas pembawa berita profesional
+    utterance.rate = Math.round(rate * 0.94 * 100) / 100;
+    utterance.pitch = 0.98;
 
-    const voices = window.speechSynthesis.getVoices();
-    const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
-    if (idVoice) {
-      utterance.voice = idVoice;
+    let selectedVoice = availableVoice;
+    if (!selectedVoice) {
+      const voices = window.speechSynthesis.getVoices();
+      const idVoices = voices.filter(v =>
+        v.lang.toLowerCase().startsWith('id') ||
+        v.lang.toLowerCase().includes('indonesia') ||
+        v.name.toLowerCase().includes('indonesia')
+      );
+      selectedVoice = idVoices.find(v =>
+        v.name.toLowerCase().includes('gadis') ||
+        v.name.toLowerCase().includes('ardi') ||
+        v.name.toLowerCase().includes('natural') ||
+        v.name.toLowerCase().includes('google') ||
+        v.name.toLowerCase().includes('online')
+      ) || idVoices[0] || null;
+    }
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
     }
 
     utterance.onend = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
+      if (!isPlayingRef.current) return;
+
+      const nextIdx = index + 1;
+      if (nextIdx < sentences.length) {
+        // Update perkiraan progres waktu sesuai persentase kalimat selesai
+        const progress = nextIdx / sentences.length;
+        setCurrentTime(Math.min(totalDuration - 1, Math.round(progress * totalDuration)));
+
+        // Beri jeda napas penyiar (~200ms) sebelum kalimat selanjutnya
+        nextSentenceTimeoutRef.current = setTimeout(() => {
+          if (isPlayingRef.current) {
+            speakSentence(nextIdx, rate);
+          }
+        }, 200);
+      } else {
+        // TUNTAS! Seluruh naskah sampai kalimat terakhir selesai
+        isPlayingRef.current = false;
+        setIsPlaying(false);
+        setCurrentTime(totalDuration);
+        currentSentenceIdxRef.current = 0;
+      }
     };
 
     utterance.onerror = (e) => {
       if (e.error !== 'interrupted' && e.error !== 'canceled') {
-        console.warn('Speech synthesis event:', e.error);
+        console.warn('Speech synthesis event notice:', e.error);
       }
     };
 
     window.speechSynthesis.speak(utterance);
-  };
+  }, [availableVoice, extractSentences, playbackRate, totalDuration]);
 
+  // 4. Timer Visual Progres Pemutaran (Hanya mengikuti progres, TIDAK PERNAH membatalkan audio)
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying) {
-      const intervalMs = 50;
+      const intervalMs = 200;
       interval = setInterval(() => {
         setCurrentTime(prev => {
           const next = prev + (intervalMs / 1000) * playbackRate;
-          if (next >= totalDuration) {
-            setIsPlaying(false);
-            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-              window.speechSynthesis.cancel();
-            }
-            return 0;
+          // Batasi di totalDuration - 0.5s selama belum ada sinyal onend dari kalimat terakhir
+          if (next >= totalDuration - 0.5) {
+            return Math.max(0, totalDuration - 0.5);
           }
           return next;
         });
@@ -108,10 +300,27 @@ export function ArticleDetailView({ id }: { id: string }) {
     return () => clearInterval(interval);
   }, [isPlaying, totalDuration, playbackRate]);
 
+  // 5. Anti-Cutoff Heartbeat Khusus Browser Chrome (Mencegah Audio Macet di Latar Belakang)
+  useEffect(() => {
+    let heartbeat: NodeJS.Timeout;
+    if (isPlaying) {
+      heartbeat = setInterval(() => {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking) {
+          window.speechSynthesis.pause();
+          window.speechSynthesis.resume();
+        }
+      }, 10000);
+    }
+    return () => clearInterval(heartbeat);
+  }, [isPlaying]);
+
   useEffect(() => {
     return () => {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.cancel();
+      }
+      if (nextSentenceTimeoutRef.current) {
+        clearTimeout(nextSentenceTimeoutRef.current);
       }
     };
   }, []);
@@ -131,23 +340,35 @@ export function ArticleDetailView({ id }: { id: string }) {
   const handlePlayToggle = () => {
     if (!isAudioActive) {
       setIsAudioActive(true);
-      setIsPlaying(true);
-      startSpeech(0);
+      setIsLoadingAudio(true);
+
+      const sentences = extractSentences();
+      sentencesRef.current = sentences;
+
+      // Beri waktu loading audio & inisialisasi suara
+      setTimeout(() => {
+        setIsLoadingAudio(false);
+        isPlayingRef.current = true;
+        setIsPlaying(true);
+        speakSentence(currentSentenceIdxRef.current || 0);
+      }, 300);
     } else {
       if (isPlaying) {
+        // Jeda tanpa mereset posisi baca!
+        isPlayingRef.current = false;
         setIsPlaying(false);
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          window.speechSynthesis.pause();
+          window.speechSynthesis.cancel();
+        }
+        if (nextSentenceTimeoutRef.current) {
+          clearTimeout(nextSentenceTimeoutRef.current);
+          nextSentenceTimeoutRef.current = null;
         }
       } else {
+        // Lanjutkan dari posisi kalimat terakhir yang tersimpan
+        isPlayingRef.current = true;
         setIsPlaying(true);
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          if (window.speechSynthesis.paused) {
-            window.speechSynthesis.resume();
-          } else {
-            startSpeech(currentTime);
-          }
-        }
+        speakSentence(currentSentenceIdxRef.current);
       }
     }
   };
@@ -158,8 +379,31 @@ export function ArticleDetailView({ id }: { id: string }) {
     const newProgress = Math.max(0, Math.min(1, clickX / rect.width));
     const newTime = Math.round(newProgress * totalDuration);
     setCurrentTime(newTime);
-    if (isPlaying) {
-      startSpeech(newTime);
+
+    const sentences = sentencesRef.current.length > 0 ? sentencesRef.current : extractSentences();
+    sentencesRef.current = sentences;
+    if (sentences.length > 0) {
+      const targetIdx = Math.min(sentences.length - 1, Math.floor(newProgress * sentences.length));
+      currentSentenceIdxRef.current = targetIdx;
+      if (isPlayingRef.current) {
+        speakSentence(targetIdx, playbackRate);
+      }
+    }
+  };
+
+  const handleSkipTime = (deltaSeconds: number) => {
+    const nextTime = Math.max(0, Math.min(totalDuration, currentTime + deltaSeconds));
+    setCurrentTime(nextTime);
+
+    const sentences = sentencesRef.current.length > 0 ? sentencesRef.current : extractSentences();
+    sentencesRef.current = sentences;
+    if (sentences.length > 0) {
+      const newProgress = totalDuration > 0 ? nextTime / totalDuration : 0;
+      const targetIdx = Math.min(sentences.length - 1, Math.max(0, Math.floor(newProgress * sentences.length)));
+      currentSentenceIdxRef.current = targetIdx;
+      if (isPlayingRef.current) {
+        speakSentence(targetIdx, playbackRate);
+      }
     }
   };
 
@@ -168,19 +412,68 @@ export function ArticleDetailView({ id }: { id: string }) {
     const nextIdx = (rates.indexOf(playbackRate) + 1) % rates.length;
     const nextRate = rates[nextIdx];
     setPlaybackRate(nextRate);
-    if (isPlaying) {
-      startSpeech(currentTime, nextRate);
+    if (isPlayingRef.current) {
+      speakSentence(currentSentenceIdxRef.current, nextRate);
     }
   };
 
   const handleCloseAudio = () => {
+    isPlayingRef.current = false;
     setIsAudioActive(false);
     setIsPlaying(false);
+    setIsLoadingAudio(false);
     setCurrentTime(0);
+    currentSentenceIdxRef.current = 0;
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+    if (nextSentenceTimeoutRef.current) {
+      clearTimeout(nextSentenceTimeoutRef.current);
+      nextSentenceTimeoutRef.current = null;
+    }
   };
+
+  // 6. Media Session API (Integrasi Kontrol Play/Pause/Skip di Layar Kunci & Notifikasi HP)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
+
+    if (isAudioActive) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: article.title,
+          artist: 'Jurnal Vibes',
+          album: article.categoryLabel || 'Berita Sukabumi',
+          artwork: [
+            { src: article.imageUrl || '/logo-white.png', sizes: '512x512', type: 'image/jpeg' },
+          ],
+        });
+
+        navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+        navigator.mediaSession.setActionHandler('play', () => {
+          handlePlayToggle();
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          handlePlayToggle();
+        });
+        navigator.mediaSession.setActionHandler('seekbackward', () => {
+          handleSkipTime(-10);
+        });
+        navigator.mediaSession.setActionHandler('seekforward', () => {
+          handleSkipTime(10);
+        });
+        navigator.mediaSession.setActionHandler('stop', () => {
+          handleCloseAudio();
+        });
+      } catch (err) {
+        console.warn('MediaSession notice:', err);
+      }
+    } else {
+      try {
+        navigator.mediaSession.playbackState = 'none';
+      } catch {}
+    }
+  }, [isAudioActive, isPlaying, article.title, article.categoryLabel, article.imageUrl]);
 
   useEffect(() => {
     async function loadData() {
@@ -286,7 +579,67 @@ export function ArticleDetailView({ id }: { id: string }) {
     });
   };
 
-  const relatedArticles = allArticles.filter(a => a.id !== article.id).slice(0, 3);
+  // Algoritma Rekomendasi Berita Terkait Cerdas (Smart Related Articles)
+  const relatedArticles = useMemo(() => {
+    if (!allArticles || allArticles.length === 0 || !article) return [];
+
+    const currentTags = (article.tags || []).map(t => t.toLowerCase().replace(/^#/, '').trim()).filter(Boolean);
+    const currentCategory = (article.category || '').toLowerCase().trim();
+    const currentSubCategory = (article.subCategory || '').toLowerCase().trim();
+
+    // Kata kunci judul penting (abaikan stopwords umum bahasa Indonesia)
+    const stopWords = new Set([
+      'yang', 'dan', 'dari', 'untuk', 'akan', 'pada', 'dengan', 'atau', 'ini',
+      'itu', 'bisa', 'oleh', 'juga', 'saat', 'para', 'ke', 'di', 'ada', 'tak'
+    ]);
+    const titleKeywords = (article.title || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length >= 4 && !stopWords.has(w));
+
+    const scored = allArticles
+      .filter(a => a.id !== article.id && a.slug !== article.slug)
+      .map(candidate => {
+        let score = 0;
+
+        // 1. Kesamaan Tagar (+4 poin per tagar yang cocok)
+        const candidateTags = (candidate.tags || []).map(t => t.toLowerCase().replace(/^#/, '').trim());
+        currentTags.forEach(tag => {
+          if (candidateTags.includes(tag)) {
+            score += 4;
+          }
+        });
+
+        // 2. Kesamaan SubKategori (+3 poin)
+        const candSub = (candidate.subCategory || '').toLowerCase().trim();
+        if (candSub && currentSubCategory && candSub === currentSubCategory) {
+          score += 3;
+        }
+
+        // 3. Kesamaan Kategori Induk (+2 poin)
+        const candCat = (candidate.category || '').toLowerCase().trim();
+        if (candCat && currentCategory && candCat === currentCategory) {
+          score += 2;
+        }
+
+        // 4. Kesamaan Kata Kunci Judul (+1 poin)
+        const candTitle = (candidate.title || '').toLowerCase();
+        titleKeywords.forEach(kw => {
+          if (candTitle.includes(kw)) {
+            score += 1;
+          }
+        });
+
+        return { article: candidate, score };
+      });
+
+    // Urutkan berdasarkan skor relevansi tertinggi
+    scored.sort((a, b) => b.score - a.score);
+
+    // Ambil top 3 artikel paling relevan
+    return scored.slice(0, 3).map(item => item.article);
+  }, [article, allArticles]);
 
   return (
     <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-6 lg:px-gutter pt-stack-lg pb-6 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
@@ -431,14 +784,18 @@ export function ArticleDetailView({ id }: { id: string }) {
               className="inline-flex items-center gap-2.5 py-1 text-on-surface hover:text-primary text-xs sm:text-sm font-semibold transition-colors cursor-pointer group"
             >
               <span className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                {isPlaying ? (
+                {isLoadingAudio ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : isPlaying ? (
                   <Pause className="w-3 h-3 fill-current" />
                 ) : (
                   <Play className="w-3 h-3 fill-current ml-0.5" />
                 )}
               </span>
               <span className="flex items-center min-h-[20px]">
-                {isAudioActive ? (
+                {isLoadingAudio ? (
+                  <span className="text-primary font-medium text-xs">Menyiapkan Audio...</span>
+                ) : isAudioActive ? (
                   isPlaying ? (
                     <div className="flex items-center h-5 gap-[3px] mx-1" title="Sedang Memutar">
                       <style>{`
@@ -642,24 +999,48 @@ export function ArticleDetailView({ id }: { id: string }) {
 
       {/* Floating Bottom Mini Player (Simple Capsule - Positioned above BottomNav on mobile) */}
       {isAudioActive && (
-        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full shadow-2xl border border-outline-variant/80 dark:border-slate-800 px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-lg bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full shadow-2xl border border-outline-variant/80 dark:border-slate-800 px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-center gap-2 sm:gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+          {/* Rewind 10s */}
+          <button
+            type="button"
+            onClick={() => handleSkipTime(-10)}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-variant/50 transition-colors cursor-pointer shrink-0"
+            title="Mundur 10 detik"
+            aria-label="Mundur 10 detik"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+
           {/* Play/Pause Button */}
           <button
             type="button"
             onClick={handlePlayToggle}
-            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-dark text-white flex items-center justify-center shrink-0 shadow-sm hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-            title={isPlaying ? 'Jeda' : 'Putar'}
-            aria-label={isPlaying ? 'Jeda' : 'Putar'}
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary hover:bg-primary-dark text-white flex items-center justify-center shrink-0 shadow-sm hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+            title={isLoadingAudio ? 'Mempersiapkan audio...' : isPlaying ? 'Jeda' : 'Putar'}
+            aria-label={isLoadingAudio ? 'Mempersiapkan audio...' : isPlaying ? 'Jeda' : 'Putar'}
           >
-            {isPlaying ? (
+            {isLoadingAudio ? (
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
+            ) : isPlaying ? (
               <Pause className="w-4 h-4 fill-current" />
             ) : (
               <Play className="w-4 h-4 fill-current ml-0.5" />
             )}
           </button>
 
+          {/* Forward 10s */}
+          <button
+            type="button"
+            onClick={() => handleSkipTime(10)}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-variant/50 transition-colors cursor-pointer shrink-0"
+            title="Maju 10 detik"
+            aria-label="Maju 10 detik"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+          </button>
+
           {/* Scrubbing Bar & Time */}
-          <div className="flex items-center gap-2.5 flex-grow min-w-0">
+          <div className="flex items-center gap-2 flex-grow min-w-0">
             <span className="text-[11px] font-mono text-on-surface-variant/80 shrink-0 select-none">
               {formatTime(currentTime)}
             </span>
@@ -691,7 +1072,7 @@ export function ArticleDetailView({ id }: { id: string }) {
               type="button"
               onClick={handleSpeedToggle}
               title="Kecepatan pemutaran"
-              className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-surface-variant/80 hover:bg-surface-variant text-on-surface dark:text-gray-200 cursor-pointer border border-outline-variant/60 transition-colors"
+              className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-surface-variant/80 hover:bg-surface-variant text-on-surface dark:text-gray-200 cursor-pointer border border-outline-variant/60 transition-colors"
             >
               {playbackRate}x
             </button>
