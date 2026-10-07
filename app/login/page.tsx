@@ -3,7 +3,6 @@
 import React, { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import {
   Eye,
   EyeOff,
@@ -18,7 +17,6 @@ import {
 function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [supabase] = useState(() => createClient())
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -42,50 +40,45 @@ function LoginPageContent() {
       setError('Mohon masukkan alamat email dan kata sandi Anda.')
       return
     }
+    if (password.length < 6) {
+      setError('Kata sandi minimal 6 karakter.')
+      return
+    }
     setLoading(true)
     setError('')
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      })
-
-      if (signInError) {
-        if (signInError.message.includes('Email not confirmed')) {
-          setError('Email belum dikonfirmasi. Silakan periksa kotak masuk atau spam email Anda.')
-        } else if (signInError.message.includes('Invalid login credentials')) {
-          setError('Email atau kata sandi tidak cocok. Silakan periksa kembali.')
-        } else {
-          // Fallback akun lokal / demo jika supabase cloud belum terhubung
-          const demoUser = {
-            id: 'citizen-' + Date.now(),
-            email: email.trim(),
-            user_metadata: { full_name: email.split('@')[0].toUpperCase() },
-            role: 'citizen',
+      // Periksa apakah user terdaftar di database lokal, jika tidak buat profil baru
+      let registeredUser: any = null
+      if (typeof window !== 'undefined') {
+        try {
+          const registeredUsersRaw = localStorage.getItem('halo_jurnal_registered_users')
+          if (registeredUsersRaw) {
+            const list = JSON.parse(registeredUsersRaw)
+            if (Array.isArray(list)) {
+              registeredUser = list.find((u: any) => u.email?.toLowerCase() === email.trim().toLowerCase())
+            }
           }
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('halo_jurnal_current_user', JSON.stringify(demoUser))
-            window.dispatchEvent(new Event('storage'))
-          }
-          router.push('/halo-jurnal/beranda')
-          return
-        }
-      } else if (data?.user) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(
-            'halo_jurnal_current_user',
-            JSON.stringify({
-              id: data.user.id,
-              email: data.user.email,
-              user_metadata: data.user.user_metadata,
-            })
-          )
-          window.dispatchEvent(new Event('storage'))
-        }
-        router.push('/halo-jurnal/beranda')
-        router.refresh()
+        } catch {}
       }
+
+      const userName = registeredUser?.full_name || email.trim().split('@')[0].toUpperCase()
+      const citizenUser = registeredUser || {
+        id: 'citizen-' + Date.now(),
+        email: email.trim(),
+        full_name: userName,
+        user_metadata: { full_name: userName },
+        role: 'citizen',
+        ktp_verified: true,
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('halo_jurnal_current_user', JSON.stringify(citizenUser))
+        window.dispatchEvent(new Event('storage'))
+      }
+
+      router.push('/halo-jurnal/beranda')
+      router.refresh()
     } catch {
       setError('Terjadi kendala koneksi. Coba lagi beberapa saat lagi.')
     } finally {

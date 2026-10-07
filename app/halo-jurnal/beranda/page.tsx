@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import {
   Search,
   PlusCircle,
@@ -57,24 +56,23 @@ const TRACKER_STEPS = [
 
 export default function HaloJurnalBerandaPage() {
   const router = useRouter()
-  const supabase = createClient()
 
   // State
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [userReports, setUserReports] = useState<any[]>([])
   const [copiedTicket, setCopiedTicket] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Sync user and reports from Supabase & LocalStorage
+  // Sync user and reports from LocalStorage
   const syncDashboardData = async () => {
     try {
-      // 1. Check Supabase auth
-      const { data } = await supabase.auth.getUser()
-      let currentUser: any = data?.user || null
+      let currentUser: any = null
 
-      // Fallback to localStorage login
-      if (!currentUser && typeof window !== 'undefined') {
+      if (typeof window !== 'undefined') {
         const storedUser = localStorage.getItem('halo_jurnal_current_user')
         if (storedUser) {
           try {
@@ -97,45 +95,14 @@ export default function HaloJurnalBerandaPage() {
 
       setUser(currentUser)
 
-      // Fetch profile
-      if (currentUser.id && currentUser.id !== 'demo-user-id') {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('full_name, role')
-          .eq('id', currentUser.id)
-          .single()
-        if (prof) {
-          setProfile(prof)
-        } else {
-          setProfile({
-            full_name: currentUser.full_name || currentUser.user_metadata?.full_name || 'Warga Sukabumi',
-            role: currentUser.role || 'citizen',
-          })
-        }
-      } else {
-        setProfile({
-          full_name: currentUser.full_name || currentUser.user_metadata?.full_name || 'Warga Sukabumi',
-          role: currentUser.role || 'citizen',
-        })
-      }
+      setProfile({
+        full_name: currentUser.full_name || currentUser.user_metadata?.full_name || 'Warga Sukabumi',
+        role: currentUser.role || 'citizen',
+      })
 
       // 2. Fetch reports for this user
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let baseReports: any[] = []
-
-      // Try Supabase first if real user
-      if (currentUser.id && currentUser.id !== 'demo-user-id') {
-        try {
-          const { data: dbData } = await supabase
-            .from('laporan')
-            .select('*, laporan_lampiran(file_url), chat_messages(count)')
-            .eq('user_id', currentUser.id)
-            .order('created_at', { ascending: false })
-
-          if (dbData && dbData.length > 0) {
-            baseReports = dbData
-          }
-        } catch {}
-      }
 
       // Fallback / merge with localStorage reports
       if (typeof window !== 'undefined') {

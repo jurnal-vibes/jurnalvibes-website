@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
   Search,
@@ -28,10 +27,12 @@ import {
 } from '@/data/haloJurnalCategories'
 
 export default function HaloJurnalLaporanSayaPage() {
-  const supabase = createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [allReports, setAllReports] = useState<any[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [displayedReports, setDisplayedReports] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null)
 
   // Filters & sorting
@@ -42,13 +43,17 @@ export default function HaloJurnalLaporanSayaPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      if (data?.user) {
-        setUser(data.user)
-      } else {
-        setUser({ id: 'demo-user-id', user_metadata: { full_name: 'Warga Sukabumi' } })
+    const checkUser = () => {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('halo_jurnal_current_user')
+        if (stored) {
+          try {
+            setUser(JSON.parse(stored))
+            return
+          } catch {}
+        }
       }
+      setUser({ id: 'demo-user-id', user_metadata: { full_name: 'Warga Sukabumi' } })
     }
     checkUser()
 
@@ -75,31 +80,7 @@ export default function HaloJurnalLaporanSayaPage() {
 
   const fetchAllUserReports = async () => {
     setLoading(true)
-    let supabaseData: any[] | null = null
-
-    try {
-      let query = supabase
-        .from('laporan')
-        .select('*, laporan_lampiran(file_url), chat_messages(count)')
-        .order('created_at', { ascending: false })
-
-      if (user && user.id !== 'demo-user-id') {
-        query = query.eq('user_id', user.id)
-      }
-
-      const { data, error } = await query
-      if (!error && data && data.length > 0) {
-        supabaseData = data
-      }
-    } catch {
-      // Fallback silent
-    }
-
     let baseReports: any[] = []
-
-    if (supabaseData && supabaseData.length > 0) {
-      baseReports = supabaseData
-    } else {
       let localUserReports: any[] = []
       try {
         if (typeof window !== 'undefined') {
@@ -114,7 +95,6 @@ export default function HaloJurnalLaporanSayaPage() {
         localUserReports.length > 0
           ? localUserReports
           : DUMMY_REPORTS.slice(0, 4)
-    }
 
     // Terapkan override dari admin secara realtime
     if (typeof window !== 'undefined') {

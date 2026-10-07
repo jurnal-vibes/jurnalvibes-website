@@ -12,7 +12,7 @@ import { HalloJurnalBanner } from '@/components/cards/HalloJurnalBanner';
 import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 import { DUMMY_POLL, DUMMY_REELS } from '@/data/dummyPolls';
-import { fetchArticlesFromSupabase } from '@/lib/supabase';
+import { fetchArticles } from '@/lib/wordpress';
 
 export function HomeClient() {
   const [articles, setArticles] = useState<Article[]>(() => {
@@ -45,9 +45,9 @@ export function HomeClient() {
         } catch {}
       }
 
-      // 2. Fetch from Supabase if online
+      // 2. Fetch from WordPress if online
       try {
-        const data = await fetchArticlesFromSupabase();
+        const data = await fetchArticles();
         if (data && data.length > 0) {
           setArticles(data);
         }

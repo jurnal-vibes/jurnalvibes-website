@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
-import { fetchArticlesFromSupabase } from '@/lib/supabase';
+import { fetchArticles } from '@/lib/wordpress';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jurnalvibes.com';
@@ -33,9 +33,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic Article Pages
   let articles = DUMMY_ARTICLES;
   try {
-    const supabaseData = await fetchArticlesFromSupabase();
-    if (supabaseData && supabaseData.length > 0) {
-      articles = supabaseData;
+    const wpData = await fetchArticles();
+    if (wpData && wpData.length > 0) {
+      articles = wpData;
     }
   } catch (err) {
     console.warn('Error fetching articles for sitemap, using fallback:', err);

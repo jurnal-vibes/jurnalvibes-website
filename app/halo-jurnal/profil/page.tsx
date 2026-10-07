@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import UserAvatar from '@/components/halo-jurnal/UserAvatar'
 import LogoutButton from '@/components/halo-jurnal/LogoutButton'
@@ -25,7 +24,6 @@ import {
 } from 'lucide-react'
 
 export default function HaloJurnalProfilPage() {
-  const supabase = createClient()
 
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -67,11 +65,7 @@ export default function HaloJurnalProfilPage() {
   const fetchProfile = async () => {
     setLoading(true)
     try {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser()
-
-      // Ambil session dari localStorage jika ada
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let localUser: any = null
       if (typeof window !== 'undefined') {
         const stored = localStorage.getItem('halo_jurnal_current_user')
@@ -82,8 +76,7 @@ export default function HaloJurnalProfilPage() {
         }
       }
 
-      if (!authUser && !localUser) {
-        // Fallback warga demo resmi jika kosong sama sekali
+      if (!localUser) {
         localUser = {
           id: 'demo-user-id',
           email: 'warga@sukabumi.com',
@@ -99,41 +92,16 @@ export default function HaloJurnalProfilPage() {
         }
       }
 
-      const activeUser = authUser || localUser
-      setUser(activeUser)
-
-      if (authUser) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', authUser.id)
-          .single()
-
-        if (prof) {
-          setProfile(prof)
-          setFullName(prof.full_name || authUser.user_metadata?.full_name || '')
-          setPhone(prof.phone_number || '')
-        } else {
-          setProfile({
-            full_name: authUser.user_metadata?.full_name || 'Warga Sukabumi',
-            phone_number: authUser.user_metadata?.phone || '',
-            nik: authUser.user_metadata?.nik || '3202112409890003',
-            ktp_verified: true,
-          })
-          setFullName(authUser.user_metadata?.full_name || 'Warga Sukabumi')
-          setPhone(authUser.user_metadata?.phone || '')
-        }
-      } else {
-        setProfile({
-          full_name: localUser.full_name || localUser.user_metadata?.full_name || 'Warga Sukabumi',
-          phone_number: localUser.phone_number || localUser.phone || localUser.user_metadata?.phone || '081234567890',
-          nik: localUser.nik || localUser.user_metadata?.nik || '3202112409890003',
-          ktp_verified: localUser.ktp_verified ?? true,
-          ktp_photo_url: localUser.ktp_photo_url || null,
-        })
-        setFullName(localUser.full_name || localUser.user_metadata?.full_name || 'Warga Sukabumi')
-        setPhone(localUser.phone_number || localUser.phone || localUser.user_metadata?.phone || '081234567890')
-      }
+      setUser(localUser)
+      setProfile({
+        full_name: localUser.full_name || localUser.user_metadata?.full_name || 'Warga Sukabumi',
+        phone_number: localUser.phone_number || localUser.phone || localUser.user_metadata?.phone || '081234567890',
+        nik: localUser.nik || localUser.user_metadata?.nik || '3202112409890003',
+        ktp_verified: localUser.ktp_verified ?? true,
+        ktp_photo_url: localUser.ktp_photo_url || null,
+      })
+      setFullName(localUser.full_name || localUser.user_metadata?.full_name || 'Warga Sukabumi')
+      setPhone(localUser.phone_number || localUser.phone || localUser.user_metadata?.phone || '081234567890')
     } catch (err) {
       console.error('Fetch profile error:', err)
     } finally {
@@ -151,18 +119,25 @@ export default function HaloJurnalProfilPage() {
 
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
+      const updatedUser = {
+        ...(user || {}),
+        full_name: fullName,
+        phone: phone,
+        phone_number: phone,
+        user_metadata: {
+          ...(user?.user_metadata || {}),
           full_name: fullName,
-          phone_number: phone,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
-
-      if (error) throw error
-
+          phone: phone,
+        },
+      }
+      setUser(updatedUser)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setProfile((prev: any) => ({ ...prev, full_name: fullName, phone_number: phone }))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('halo_jurnal_current_user', JSON.stringify(updatedUser))
+        window.dispatchEvent(new Event('storage'))
+      }
+
       setEditing(false)
       setKtpNotice('Informasi profil berhasil diperbarui!')
       setTimeout(() => setKtpNotice(null), 4000)
@@ -256,72 +231,40 @@ export default function HaloJurnalProfilPage() {
     setKtpError(null)
 
     try {
-      // Demo session fallback
-      if (!user || user.id === 'demo-user-id') {
-        const reader = new FileReader()
-        reader.onload = () => {
-          const base64Url = reader.result as string
-          setProfile((prev: any) => ({
-            ...prev,
-            ktp_photo_url: base64Url,
-            ktp_verified: false,
-          }))
-          setShowUploadKtpModal(false)
-          setKtpFile(null)
-          setKtpPreviewUrl(null)
-          setKtpNotice('Foto KTP demo berhasil diperbarui! Status diubah menjadi "Menunggu Verifikasi".')
-          setTimeout(() => setKtpNotice(null), 5000)
-        }
-        reader.readAsDataURL(ktpFile)
-        return
-      }
-
-      // Real Supabase storage upload
-      const fileExt = ktpFile.name.split('.').pop() || 'jpg'
-      const filePath = `${user.id}/ktp_${Date.now()}.${fileExt}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('ktp-photos')
-        .upload(filePath, ktpFile, {
-          cacheControl: '3600',
-          upsert: true,
-        })
-
-      if (uploadError) throw uploadError
-
-      const { data: publicUrlData } = supabase.storage
-        .from('ktp-photos')
-        .getPublicUrl(filePath)
-
-      const newKtpUrl = publicUrlData.publicUrl
-
-      // Update profiles database record: reset verified to false for re-review
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          ktp_photo_url: newKtpUrl,
+      const reader = new FileReader()
+      reader.onload = () => {
+        const base64Url = reader.result as string
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setProfile((prev: any) => ({
+          ...prev,
+          ktp_photo_url: base64Url,
           ktp_verified: false,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
+        }))
 
-      if (profileError) throw profileError
+        if (typeof window !== 'undefined') {
+          try {
+            const stored = localStorage.getItem('halo_jurnal_current_user')
+            if (stored) {
+              const parsed = JSON.parse(stored)
+              parsed.ktp_photo_url = base64Url
+              parsed.ktp_verified = false
+              localStorage.setItem('halo_jurnal_current_user', JSON.stringify(parsed))
+              window.dispatchEvent(new Event('storage'))
+            }
+          } catch {}
+        }
 
-      setProfile((prev: any) => ({
-        ...prev,
-        ktp_photo_url: newKtpUrl,
-        ktp_verified: false,
-      }))
-
-      setShowUploadKtpModal(false)
-      setKtpFile(null)
-      setKtpPreviewUrl(null)
-      setKtpNotice('Foto KTP berhasil diperbarui! Dokumen Anda sedang menunggu verifikasi ulang oleh tim redaksi.')
-      setTimeout(() => setKtpNotice(null), 6000)
+        setShowUploadKtpModal(false)
+        setKtpFile(null)
+        setKtpPreviewUrl(null)
+        setKtpNotice('Foto KTP berhasil diperbarui! Dokumen Anda sedang menunggu verifikasi ulang oleh tim redaksi.')
+        setTimeout(() => setKtpNotice(null), 5000)
+        setUploadingKtp(false)
+      }
+      reader.readAsDataURL(ktpFile)
     } catch (err: any) {
       console.error('Upload KTP error:', err)
       setKtpError(`Gagal mengunggah foto KTP: ${err.message || 'Terjadi kesalahan sistem'}`)
-    } finally {
       setUploadingKtp(false)
     }
   }

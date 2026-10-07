@@ -23,7 +23,7 @@ import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { NewsCard } from '@/components/cards/NewsCard';
 import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
-import { fetchArticlesFromSupabase, fetchArticleByIdFromSupabase } from '@/lib/supabase';
+import { fetchArticles, fetchArticleById } from '@/lib/wordpress';
 
 type FontSize = 'sm' | 'md' | 'lg';
 
@@ -479,8 +479,8 @@ export function ArticleDetailView({ id }: { id: string }) {
     async function loadData() {
       try {
         const [singleData, listData] = await Promise.all([
-          fetchArticleByIdFromSupabase(id),
-          fetchArticlesFromSupabase()
+          fetchArticleById(id),
+          fetchArticles()
         ]);
         if (singleData) {
           setArticle(singleData);
@@ -489,7 +489,7 @@ export function ArticleDetailView({ id }: { id: string }) {
           setAllArticles(listData);
         }
       } catch (err) {
-        console.error('Error fetching article detail from Supabase:', err);
+        console.error('Error fetching article detail from WordPress/fallback:', err);
       }
     }
     loadData();

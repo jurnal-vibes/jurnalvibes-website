@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -32,7 +31,6 @@ export default function HaloJurnalLaporanDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params?.id as string
-  const supabase = createClient()
 
   const [loading, setLoading] = useState(true)
   const [report, setReport] = useState<any>(null)
@@ -56,11 +54,8 @@ export default function HaloJurnalLaporanDetailPage() {
   }
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      if (data?.user) {
-        setUser(data.user)
-      } else if (typeof window !== 'undefined') {
+    const checkUser = () => {
+      if (typeof window !== 'undefined') {
         const stored = localStorage.getItem('halo_jurnal_current_user')
         if (stored) {
           try {
@@ -81,6 +76,7 @@ export default function HaloJurnalLaporanDetailPage() {
       try {
         const localList = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
         const isOwner = localList.some(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id
         )
         setIsLocalAuthor(isOwner)
@@ -97,87 +93,20 @@ export default function HaloJurnalLaporanDetailPage() {
     }
   }, [id, user])
 
-  // Realtime subscription for chat messages
-  useEffect(() => {
-    if (!id) return
-
-    const channel = supabase
-      .channel(`chat_messages:${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `laporan_id=eq.${id}`,
-        },
-        async (payload: any) => {
-          const newMsg = payload.new
-          if (!newMsg) return
-
-          const { data: fullMsg } = await supabase
-            .from('chat_messages')
-            .select(`*, profiles:sender_id(full_name, role)`)
-            .eq('id', newMsg.id)
-            .single()
-
-          const msgToAdd = fullMsg || newMsg
-
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === msgToAdd.id)) {
-              return prev
-            }
-            return [...prev, msgToAdd]
-          })
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [id, supabase])
-
   useEffect(() => {
     if (showChatSimulation || (user && report && (report.user_id === user.id || isLocalAuthor))) {
       scrollToBottom()
     }
   }, [messages, showChatSimulation])
 
-  const fetchChatMessages = async () => {
-    try {
-      const { data: chatData, error } = await supabase
-        .from('chat_messages')
-        .select(`*, profiles:sender_id(full_name, role)`)
-        .eq('laporan_id', id)
-        .order('created_at', { ascending: true })
-
-      let merged = chatData || []
-      if (typeof window !== 'undefined') {
-        const local = JSON.parse(
-          localStorage.getItem(`halo_jurnal_chat_${id}`) ||
-          (report?.nomor_tiket ? localStorage.getItem(`halo_jurnal_chat_${report.nomor_tiket}`) : null) ||
-          '[]'
-        )
-        const map = new Map<string, any>()
-        merged.forEach((m: any) => map.set(m.id, m))
-        local.forEach((m: any) => {
-          if (!map.has(m.id)) map.set(m.id, m)
-        })
-        merged = Array.from(map.values()).sort(
-          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        )
-      }
-      setMessages(merged)
-    } catch {
-      if (typeof window !== 'undefined') {
-        const local = JSON.parse(
-          localStorage.getItem(`halo_jurnal_chat_${id}`) ||
-          (report?.nomor_tiket ? localStorage.getItem(`halo_jurnal_chat_${report.nomor_tiket}`) : null) ||
-          '[]'
-        )
-        setMessages(local)
-      }
+  const fetchChatMessages = () => {
+    if (typeof window !== 'undefined') {
+      const local = JSON.parse(
+        localStorage.getItem(`halo_jurnal_chat_${id}`) ||
+        (report?.nomor_tiket ? localStorage.getItem(`halo_jurnal_chat_${report.nomor_tiket}`) : null) ||
+        '[]'
+      )
+      setMessages(local)
     }
   }
 
@@ -191,86 +120,40 @@ export default function HaloJurnalLaporanDetailPage() {
     }
   }, [id, report?.nomor_tiket])
 
-  const fetchReportDetail = async () => {
+  const fetchReportDetail = () => {
     setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('laporan')
-        .select(`
-          *,
-          laporan_lampiran(*),
-          status_log(*)
-        `)
-        .eq('id', id)
-        .single()
-
-      if (error || !data) {
-        let found = DUMMY_REPORTS.find((r) => r.id === id || r.nomor_tiket === id)
-        if (!found && typeof window !== 'undefined') {
-          try {
-            const localList = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
-            found = localList.find((r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id)
-          } catch {}
-        }
-
-        // Terapkan override status dari admin jika ada
-        if (found && typeof window !== 'undefined') {
-          try {
-            const overrides = JSON.parse(localStorage.getItem('halo_jurnal_status_overrides') || '{}')
-            const saved = overrides[found.id] || (found.nomor_tiket ? overrides[found.nomor_tiket] : null)
-            if (saved) {
-              found = {
-                ...found,
-                status: saved.status || found.status,
-                is_public: saved.is_public !== undefined ? saved.is_public : found.is_public,
-                status_log: saved.status_log || found.status_log,
-              }
-            }
-          } catch {}
-        }
-
-        setReport(found || null)
-      } else {
-        setReport(data)
-        if (user) {
-          const { data: likeData } = await supabase
-            .from('dukungan')
-            .select('id')
-            .eq('laporan_id', id)
-            .eq('user_id', user.id)
-            .single()
-          setHasLiked(!!likeData)
-        }
-      }
-    } catch {
-      let found = DUMMY_REPORTS.find((r) => r.id === id || r.nomor_tiket === id)
-      if (!found && typeof window !== 'undefined') {
-        try {
-          const localList = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
-          found = localList.find((r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id)
-        } catch {}
-      }
-
-      // Terapkan override status dari admin jika ada
-      if (found && typeof window !== 'undefined') {
-        try {
-          const overrides = JSON.parse(localStorage.getItem('halo_jurnal_status_overrides') || '{}')
-          const saved = overrides[found.id] || (found.nomor_tiket ? overrides[found.nomor_tiket] : null)
-          if (saved) {
-            found = {
-              ...found,
-              status: saved.status || found.status,
-              is_public: saved.is_public !== undefined ? saved.is_public : found.is_public,
-              status_log: saved.status_log || found.status_log,
-            }
-          }
-        } catch {}
-      }
-
-      setReport(found || null)
-    } finally {
-      setLoading(false)
+    let found = DUMMY_REPORTS.find((r) => r.id === id || r.nomor_tiket === id)
+    if (!found && typeof window !== 'undefined') {
+      try {
+        const localList = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        found = localList.find((r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id)
+      } catch {}
     }
+
+    if (found && typeof window !== 'undefined') {
+      try {
+        const overrides = JSON.parse(localStorage.getItem('halo_jurnal_status_overrides') || '{}')
+        const saved = overrides[found.id] || (found.nomor_tiket ? overrides[found.nomor_tiket] : null)
+        if (saved) {
+          found = {
+            ...found,
+            status: saved.status || found.status,
+            is_public: saved.is_public !== undefined ? saved.is_public : found.is_public,
+            status_log: saved.status_log || found.status_log,
+          }
+        }
+      } catch {}
+    }
+
+    setReport(found || null)
+    if (typeof window !== 'undefined') {
+      try {
+        const storedLikes: string[] = JSON.parse(localStorage.getItem('halo_jurnal_user_likes') || '[]')
+        setHasLiked(storedLikes.includes(id))
+      } catch {}
+    }
+    setLoading(false)
   }
 
   const handleLike = async () => {
@@ -290,17 +173,18 @@ export default function HaloJurnalLaporanDetailPage() {
         : Math.max(0, (prev?.dukungan_count || 0) - 1),
     }))
 
-    try {
-      if (nextLiked) {
-        await supabase.from('dukungan').insert({ laporan_id: id, user_id: user.id })
-      } else {
-        await supabase.from('dukungan').delete().eq('laporan_id', id).eq('user_id', user.id)
-      }
-    } catch (err) {
-      console.error('Error toggling like:', err)
-    } finally {
-      setIsLiking(false)
+    if (typeof window !== 'undefined') {
+      try {
+        const storedLikes: string[] = JSON.parse(
+          localStorage.getItem('halo_jurnal_user_likes') || '[]'
+        )
+        const nextLikes = nextLiked
+          ? [...storedLikes, id]
+          : storedLikes.filter((item) => item !== id)
+        localStorage.setItem('halo_jurnal_user_likes', JSON.stringify(nextLikes))
+      } catch {}
     }
+    setIsLiking(false)
   }
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -325,60 +209,30 @@ export default function HaloJurnalLaporanDetailPage() {
 
     setIsSendingChat(true)
     try {
-      let fileUrl = null
-      let fileType = null
+      let fileUrl: string | null = null
+      let fileType: string | null = null
 
       if (chatFile) {
-        const fileExt = chatFile.name.split('.').pop()
-        const fileName = `${id}-${Date.now()}.${fileExt}`
-        const filePath = `${activeUser?.id || 'demo'}/${fileName}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('laporan-lampiran')
-          .upload(filePath, chatFile)
-
-        if (!uploadError) {
-          const { data: publicUrlData } = supabase.storage
-            .from('laporan-lampiran')
-            .getPublicUrl(filePath)
-          fileUrl = publicUrlData.publicUrl
-          fileType = chatFile.type
-        }
+        fileType = chatFile.type
+        fileUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.readAsDataURL(chatFile)
+        })
       }
 
-      let sentMsg = null
-      try {
-        const { data: newMsg, error } = await supabase
-          .from('chat_messages')
-          .insert({
-            laporan_id: id,
-            sender_id: user.id,
-            message: chatMessage.trim() || 'Mengirim lampiran berkas',
-            file_url: fileUrl,
-            file_type: fileType,
-          })
-          .select(`*, profiles:sender_id(full_name, role)`)
-          .single()
-
-        if (!error && newMsg) {
-          sentMsg = newMsg
-        }
-      } catch {}
-
-      if (!sentMsg) {
-        sentMsg = {
-          id: `chat-citizen-${Date.now()}`,
-          laporan_id: id,
-          sender_id: user.id,
-          message: chatMessage.trim() || 'Mengirim berkas',
-          file_url: fileUrl,
-          file_type: fileType,
-          created_at: new Date().toISOString(),
-          profiles: {
-            full_name: user?.user_metadata?.full_name || 'Warga Pelapor',
-            role: 'citizen',
-          },
-        }
+      const sentMsg = {
+        id: `chat-citizen-${Date.now()}`,
+        laporan_id: id,
+        sender_id: activeUser?.id || 'citizen',
+        message: chatMessage.trim() || 'Mengirim berkas',
+        file_url: fileUrl,
+        file_type: fileType,
+        created_at: new Date().toISOString(),
+        profiles: {
+          full_name: activeUser?.user_metadata?.full_name || activeUser?.full_name || 'Warga Pelapor',
+          role: 'citizen',
+        },
       }
 
       setMessages((prev) => {

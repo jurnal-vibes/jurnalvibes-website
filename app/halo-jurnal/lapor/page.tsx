@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import LocationPicker from '@/components/halo-jurnal/LocationPicker'
 import {
@@ -116,7 +115,6 @@ const jenisInformasiList = REPORT_CATEGORIES_BY_TYPE.informasi
 function LaporForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [supabase] = useState(() => createClient())
 
   const rawType = searchParams.get('type') || 'pengaduan'
   const initialType: ReportType = ['pengaduan', 'aspirasi', 'informasi', 'inspirasi'].includes(rawType)
@@ -159,16 +157,20 @@ function LaporForm() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      if (data?.user) {
-        setUser(data.user)
-      } else {
-        setUser({ id: 'demo-user-id', email: 'warga@sukabumi.com' })
+    const checkUser = () => {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('halo_jurnal_current_user')
+        if (stored) {
+          try {
+            setUser(JSON.parse(stored))
+            return
+          } catch {}
+        }
       }
+      setUser({ id: 'demo-user-id', email: 'warga@sukabumi.com' })
     }
     checkUser()
-  }, [supabase])
+  }, [])
 
   const handleTabChange = (newType: ReportType) => {
     setActiveType(newType)
@@ -239,27 +241,6 @@ function LaporForm() {
 
     setLoading(true)
     try {
-      // 0. Ensure user profile exists
-      if (user.id !== 'demo-user-id') {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single()
-
-        if (!profile) {
-          await supabase.from('profiles').upsert(
-            {
-              id: user.id,
-              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Warga Sukabumi',
-              role: 'citizen',
-              ktp_verified: false,
-            },
-            { onConflict: 'id', ignoreDuplicates: true }
-          )
-        }
-      }
-
       // Generate ticket number: JS-YYYYMMDD-XXXX
       const date = new Date()
       const yyyy = date.getFullYear()
@@ -310,63 +291,6 @@ function LaporForm() {
           localStorage.setItem('halo_jurnal_user_reports', JSON.stringify([newReportData, ...prev]))
         }
       } catch {}
-
-      // 1. Coba kirim ke Supabase jika tabel tersedia di cloud
-      try {
-        const { data: laporan, error: laporanError } = await supabase
-          .from('laporan')
-          .insert({
-            ticket_number: ticketNumber,
-            user_id: user.id,
-            jenis: reportType,
-            kategori: finalKategori,
-            judul: title,
-            deskripsi: description,
-            lokasi: locationData.address || (reportType === 'inspirasi' ? 'Sukabumi' : ''),
-            latitude: locationData.lat,
-            longitude: locationData.lng,
-            instansi_tujuan: reportType === 'informasi' ? instansi : null,
-            jenis_informasi: reportType === 'informasi' ? jenisInformasi : null,
-            status: 'diterima',
-            is_public: true,
-            dukungan_count: 0,
-          })
-          .select()
-          .single()
-
-        // 2. Upload Lampiran jika laporan berhasil diinsert ke Supabase
-        if (!laporanError && laporan && file) {
-          const fileExt = file.name.split('.').pop()
-          const fileName = `${laporan.id}-${Math.random().toString(36).substring(7)}.${fileExt}`
-          const filePath = `${user.id}/${fileName}`
-
-          const { error: uploadError } = await supabase.storage
-            .from('laporan-lampiran')
-            .upload(filePath, file)
-
-          if (!uploadError) {
-            const { data: publicUrlData } = supabase.storage
-              .from('laporan-lampiran')
-              .getPublicUrl(filePath)
-
-            await supabase.from('laporan_lampiran').insert({
-              laporan_id: laporan.id,
-              file_url: publicUrlData.publicUrl,
-              file_type: file.type,
-            })
-          }
-
-          // 3. Insert Status Log
-          await supabase.from('status_log').insert({
-            laporan_id: laporan.id,
-            status: 'diterima',
-            catatan: 'Laporan baru diterima oleh sistem Halo Jurnal',
-            changed_by: user.id,
-          })
-        }
-      } catch (cloudErr) {
-        console.warn('Supabase cloud insert notice:', cloudErr)
-      }
 
       alert(`Laporan berhasil dikirim! Nomor Tiket Anda: ${ticketNumber}`)
       router.push('/halo-jurnal/laporan-saya')

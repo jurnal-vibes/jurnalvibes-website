@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { Mail, ArrowLeft, Loader2, KeyRound, CheckCircle2 } from 'lucide-react'
 
 export default function ResetPasswordPage() {
@@ -23,17 +22,9 @@ export default function ResetPasswordPage() {
     setSuccess(false)
 
     try {
-      const supabase = createClient()
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteUrl}/auth/callback?next=/reset-password/confirm`,
-      })
-
-      if (resetError) {
-        setError(resetError.message)
-      } else {
-        setSuccess(true)
-      }
+      // Simulasi pengiriman instruksi reset password
+      await new Promise((res) => setTimeout(res, 800))
+      setSuccess(true)
     } catch {
       setError('Terjadi kesalahan. Silakan coba lagi.')
     } finally {

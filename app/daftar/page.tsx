@@ -3,7 +3,6 @@
 import React, { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import {
   Eye,
   EyeOff,
@@ -92,26 +91,8 @@ export default function DaftarPage() {
     setError('')
 
     try {
-      const sb = createClient()
-
-      // 1. Coba registrasi ke Supabase
-      const { data } = await sb.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
-          data: {
-            full_name: fullName.trim(),
-            phone: phone.trim() || null,
-            nik: nik.trim() || null,
-            ktp_photo_url: ktpPreviewUrl || null,
-          },
-        },
-      })
-
-      // 2. Simpan session warga ke localStorage agar langsung sinkron dengan profil & portal
       const newUserSession = {
-        id: data?.user?.id || 'citizen-' + Date.now(),
+        id: 'citizen-' + Date.now(),
         email: email.trim(),
         full_name: fullName.trim(),
         phone: phone.trim() || null,
@@ -129,6 +110,15 @@ export default function DaftarPage() {
       }
 
       if (typeof window !== 'undefined') {
+        // Simpan ke daftar user terdaftar
+        try {
+          const registeredUsersRaw = localStorage.getItem('halo_jurnal_registered_users')
+          const list = registeredUsersRaw ? JSON.parse(registeredUsersRaw) : []
+          list.push(newUserSession)
+          localStorage.setItem('halo_jurnal_registered_users', JSON.stringify(list))
+        } catch {}
+
+        // Simpan session aktif
         localStorage.setItem('halo_jurnal_current_user', JSON.stringify(newUserSession))
         window.dispatchEvent(new Event('storage'))
       }
