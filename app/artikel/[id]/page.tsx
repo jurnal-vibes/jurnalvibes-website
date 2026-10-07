@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { ArticleDetailView } from './ArticleDetailView';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
-import { fetchArticleByIdFromSupabase } from '@/lib/supabase';
+import { fetchArticleById } from '@/lib/wordpress';
 
 interface ArticleDetailPageProps {
   params: Promise<{ id: string }>;
@@ -12,9 +12,9 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
   let article = DUMMY_ARTICLES.find(a => a.id === id || a.slug === id);
 
   try {
-    const supabaseArticle = await fetchArticleByIdFromSupabase(id);
-    if (supabaseArticle) {
-      article = supabaseArticle;
+    const wpArticle = await fetchArticleById(id);
+    if (wpArticle) {
+      article = wpArticle;
     }
   } catch {
     // Fallback to dummy article

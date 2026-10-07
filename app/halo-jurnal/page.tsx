@@ -1,51 +1,14 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import CategoryCards from '@/components/halo-jurnal/CategoryCards'
 import { Search, Calendar, MapPin, ArrowRight, ShieldCheck, Clock, CheckCircle2 } from 'lucide-react'
 import { DUMMY_REPORTS } from '@/data/dummyReports'
 import RecentPublicReports from '@/components/halo-jurnal/RecentPublicReports'
 
-export const dynamic = 'force-dynamic'
-
-export default async function HaloJurnalLandingPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (user) {
-    redirect('/halo-jurnal/beranda')
-  }
-
-  // Fetch recent public reports
-  const { data: dbRecentReports } = await supabase
-    .from('laporan')
-    .select('*, laporan_lampiran(file_url)')
-    .eq('is_public', true)
-    .order('created_at', { ascending: false })
-    .limit(4)
-
-  const recentReports = dbRecentReports && dbRecentReports.length > 0 ? dbRecentReports : DUMMY_REPORTS.slice(0, 4)
-
-  const { count: countTotal } = await supabase
-    .from('laporan')
-    .select('*', { count: 'exact', head: true })
-
-  const { count: countTuntas } = await supabase
-    .from('laporan')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'selesai')
-
-  const { count: countProses } = await supabase
-    .from('laporan')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'diproses')
-
-  const totalLaporan = countTotal || DUMMY_REPORTS.length
-  const tuntasLaporan = countTuntas || DUMMY_REPORTS.filter((r) => r.status === 'selesai').length
-  const prosesLaporan = countProses || DUMMY_REPORTS.filter((r) => r.status === 'diproses').length
+export default function HaloJurnalLandingPage() {
+  const recentReports = DUMMY_REPORTS.slice(0, 4)
+  const totalLaporan = DUMMY_REPORTS.length
+  const tuntasLaporan = DUMMY_REPORTS.filter((r) => r.status === 'selesai').length
+  const prosesLaporan = DUMMY_REPORTS.filter((r) => r.status === 'diproses').length
 
   return (
     <main className="w-full">

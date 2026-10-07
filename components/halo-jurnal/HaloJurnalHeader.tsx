@@ -9,7 +9,6 @@ import {
   Menu,
   X,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import LogoutButton from './LogoutButton'
 
 export default function HaloJurnalHeader() {
@@ -31,21 +30,9 @@ export default function HaloJurnalHeader() {
   }
 
   useEffect(() => {
-    const checkUser = async () => {
+    const checkUser = () => {
       try {
-        const supabase = createClient()
-        const { data } = await supabase.auth.getUser()
-        if (data?.user) {
-          setUser(data.user)
-          const { data: prof } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', data.user.id)
-            .single()
-          if (prof?.full_name) {
-            setFullName(prof.full_name)
-          }
-        } else if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined') {
           const stored = localStorage.getItem('halo_jurnal_current_user')
           if (stored) {
             try {

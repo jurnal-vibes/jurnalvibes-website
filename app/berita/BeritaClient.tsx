@@ -6,7 +6,7 @@ import { FilterChips } from '@/components/ui/FilterChips';
 import { NewsCard } from '@/components/cards/NewsCard';
 import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
-import { fetchArticlesFromSupabase } from '@/lib/supabase';
+import { fetchArticles } from '@/lib/wordpress';
 
 export function BeritaClient() {
   const [articles, setArticles] = useState<Article[]>(DUMMY_ARTICLES);
@@ -16,7 +16,7 @@ export function BeritaClient() {
   useEffect(() => {
     async function loadArticles() {
       try {
-        const data = await fetchArticlesFromSupabase();
+        const data = await fetchArticles();
         if (data && data.length > 0) {
           setArticles(data);
         }

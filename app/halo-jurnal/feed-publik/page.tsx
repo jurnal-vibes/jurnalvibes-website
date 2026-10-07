@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
   Search,
@@ -56,7 +55,6 @@ function getRelativeTime(dateString: string) {
 const ITEMS_PER_PAGE = 5
 
 function FeedPublikContent() {
-  const supabase = createClient()
   const searchParams = useSearchParams()
   const feedTopRef = useRef<HTMLDivElement>(null)
 
@@ -118,10 +116,14 @@ function FeedPublikContent() {
   const jenisOptions = ['Semua Jenis', 'Pengaduan', 'Aspirasi', 'Informasi', 'Inspirasi']
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      if (data?.user) {
-        setUser(data.user)
+    const checkUser = () => {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('halo_jurnal_current_user')
+        if (stored) {
+          try {
+            setUser(JSON.parse(stored))
+          } catch {}
+        }
       }
     }
     checkUser()
@@ -144,78 +146,24 @@ function FeedPublikContent() {
   }, [selectedCategories, selectedStatus, selectedJenis, selectedWilayah, searchQuery])
 
   useEffect(() => {
-    if (user && reports.length > 0) {
+    if (reports.length > 0) {
       fetchUserLikes()
     }
-  }, [user, reports])
+  }, [reports])
 
-  const fetchUserLikes = async () => {
-    if (!user) return
-    const reportIds = reports.map((r) => r.id)
-    const { data } = await supabase
-      .from('dukungan')
-      .select('laporan_id')
-      .eq('user_id', user.id)
-      .in('laporan_id', reportIds)
-
-    if (data) {
-      setLikedReports(new Set(data.map((d: { laporan_id: string }) => d.laporan_id)))
+  const fetchUserLikes = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('halo_jurnal_user_likes') || '[]')
+        setLikedReports(new Set(stored))
+      } catch {}
     }
   }
 
   const fetchReports = async () => {
     setLoading(true)
-    let query = supabase
-      .from('laporan')
-      .select('*, laporan_lampiran(file_url), chat_messages(count)')
-      .eq('is_public', true)
-      .order('created_at', { ascending: false })
-
-    if (selectedCategories.length > 0) {
-      query = query.in('kategori', selectedCategories)
-    }
-
-    if (selectedStatus && selectedStatus !== 'Semua Laporan') {
-      const statusMap: Record<string, string> = {
-        Diterima: 'diterima',
-        Diproses: 'diproses',
-        Selesai: 'selesai',
-      }
-      if (statusMap[selectedStatus]) {
-        query = query.eq('status', statusMap[selectedStatus])
-      }
-    }
-
-    if (selectedJenis && selectedJenis !== 'Semua Jenis') {
-      query = query.eq('jenis', selectedJenis.toLowerCase())
-    }
-
-    if (selectedWilayah && selectedWilayah !== SEMUA_WILAYAH_LABEL) {
-      if (selectedWilayah === 'Kota Sukabumi') {
-        query = query.or(
-          'lokasi.ilike.%Kota Sukabumi%,lokasi.ilike.%Cikole%,lokasi.ilike.%Citamiang%,lokasi.ilike.%Warudoyong%,lokasi.ilike.%Baros%,lokasi.ilike.%Lembursitu%,lokasi.ilike.%Gunungpuyuh%,lokasi.ilike.%Cibeureum%'
-        )
-      } else if (selectedWilayah === 'Kab. Sukabumi') {
-        query = query.ilike('lokasi', '%Kab%')
-      } else {
-        const cleanWilayah = selectedWilayah.replace(/^Kec\.\s*/i, '').trim().toLowerCase()
-        query = query.ilike('lokasi', `%${cleanWilayah}%`)
-      }
-    }
-
-    if (searchQuery.trim()) {
-      query = query.or(`judul.ilike.%${searchQuery}%,deskripsi.ilike.%${searchQuery}%,lokasi.ilike.%${searchQuery}%`)
-    }
-
     try {
-      const { data, error } = await query
-      let baseReports: any[] = []
-
-      if (!error && data && data.length > 0) {
-        baseReports = data
-      } else {
-        baseReports = [...DUMMY_REPORTS]
-      }
+      let baseReports: any[] = [...DUMMY_REPORTS]
 
       // Gabungkan laporan warga dari localStorage (yang dibuat via Buat Laporan / Laporan Saya)
       if (typeof window !== 'undefined') {
@@ -378,14 +326,17 @@ function FeedPublikContent() {
     })
 
     try {
-      if (isCurrentlyLiked) {
-        await supabase.from('dukungan').delete().eq('laporan_id', reportId).eq('user_id', user.id)
-      } else {
-        await supabase.from('dukungan').insert({ laporan_id: reportId, user_id: user.id })
+      if (typeof window !== 'undefined') {
+        const storedLikes: string[] = JSON.parse(
+          localStorage.getItem('halo_jurnal_user_likes') || '[]'
+        )
+        const nextLikes = isCurrentlyLiked
+          ? storedLikes.filter((id) => id !== reportId)
+          : [...storedLikes, reportId]
+        localStorage.setItem('halo_jurnal_user_likes', JSON.stringify(nextLikes))
       }
     } catch (err) {
-      console.error('Error toggling support:', err)
-      fetchReports()
+      console.error('Error saving like locally:', err)
     } finally {
       setLikingReports((prev) => {
         const next = new Set(prev)

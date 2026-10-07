@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { LogOut, Loader2 } from 'lucide-react'
 
 export default function LogoutButton({ className = '' }: { className?: string }) {
@@ -15,8 +14,6 @@ export default function LogoutButton({ className = '' }: { className?: string })
         localStorage.removeItem('halo_jurnal_current_user')
         window.dispatchEvent(new Event('storage'))
       }
-      const supabase = createClient()
-      await supabase.auth.signOut()
       window.location.href = '/halo-jurnal'
     } catch (err) {
       console.error(err)

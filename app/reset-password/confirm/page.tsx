@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Lock, Eye, EyeOff, CheckCircle2, Loader2 } from 'lucide-react'
 
 export default function ConfirmResetPasswordPage() {
@@ -29,20 +28,12 @@ export default function ConfirmResetPasswordPage() {
     setLoading(true)
     setError('')
 
-    const supabase = createClient()
-    const { error: updateError } = await supabase.auth.updateUser({ password })
+    await new Promise((res) => setTimeout(res, 600))
+    setSuccessMsg('Kata sandi berhasil diubah! Mengalihkan ke login...')
 
-    if (updateError) {
-      setError(updateError.message)
-      setLoading(false)
-    } else {
-      setSuccessMsg('Kata sandi berhasil diubah! Mengalihkan ke login...')
-      await supabase.auth.signOut()
-
-      setTimeout(() => {
-        router.push('/login')
-      }, 1800)
-    }
+    setTimeout(() => {
+      router.push('/login')
+    }, 1800)
   }
 
   return (

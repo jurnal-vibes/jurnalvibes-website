@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Search, TrendingUp, ChevronRight } from 'lucide-react';
 import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
-import { fetchArticlesFromSupabase } from '@/lib/supabase';
+import { fetchArticles } from '@/lib/wordpress';
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
   useEffect(() => {
     async function loadArticles() {
       try {
-        const data = await fetchArticlesFromSupabase();
+        const data = await fetchArticles();
         if (data && data.length > 0) {
           setArticles(data);
         }
