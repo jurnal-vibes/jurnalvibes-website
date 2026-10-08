@@ -42,10 +42,10 @@ export const metadata: Metadata = {
     description: 'Portal berita, lifestyle, loker, otomotif, tech, dan informasi harian Sukabumi.',
     images: [
       {
-        url: '/logo.webp',
+        url: '/logo_jurnal_wave.webp',
         width: 1200,
         height: 630,
-        alt: 'Jurnal Vibes Logo',
+        alt: 'Jurnal Wave Logo',
       },
     ],
   },
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Jurnal Vibes - Portal Berita & Lifestyle Sukabumi',
     description: 'Portal berita, lifestyle, loker, otomotif, tech, dan informasi harian Sukabumi.',
-    images: ['/logo.webp'],
+    images: ['/logo_jurnal_wave.webp'],
   },
   robots: {
     index: true,
