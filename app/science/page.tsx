@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Science & Environment',
   description: 'Riset ilmiah, sains populer, dan isu lingkungan terkini seputar Sukabumi.',
   openGraph: {
-    title: 'Science & Environment | Jurnal Vibes',
+    title: 'Science & Environment | Jurnal Wave',
     description: 'Riset ilmiah, sains populer, dan isu lingkungan terkini seputar Sukabumi.',
   },
 };

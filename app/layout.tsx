@@ -21,24 +21,24 @@ const montserrat = Montserrat({
   display: 'swap',
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jurnalvibes.com';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jurnalwave.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Jurnal Vibes - Portal Berita & Lifestyle Sukabumi',
-    template: '%s | Jurnal Vibes',
+    default: 'Jurnal Wave - Portal Berita & Lifestyle Sukabumi',
+    template: '%s | Jurnal Wave',
   },
   description: 'Portal berita, lifestyle, loker, otomotif, tech, dan informasi harian Sukabumi.',
-  authors: [{ name: 'Redaksi Jurnal Vibes' }],
-  creator: 'Jurnal Vibes',
-  publisher: 'Jurnal Vibes Media',
+  authors: [{ name: 'Redaksi Jurnal Wave' }],
+  creator: 'Jurnal Wave',
+  publisher: 'Jurnal Wave Media',
   openGraph: {
     type: 'website',
     locale: 'id_ID',
     url: siteUrl,
-    siteName: 'Jurnal Vibes',
-    title: 'Jurnal Vibes - Portal Berita & Lifestyle Sukabumi',
+    siteName: 'Jurnal Wave',
+    title: 'Jurnal Wave - Portal Berita & Lifestyle Sukabumi',
     description: 'Portal berita, lifestyle, loker, otomotif, tech, dan informasi harian Sukabumi.',
     images: [
       {
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Jurnal Vibes - Portal Berita & Lifestyle Sukabumi',
+    title: 'Jurnal Wave - Portal Berita & Lifestyle Sukabumi',
     description: 'Portal berita, lifestyle, loker, otomotif, tech, dan informasi harian Sukabumi.',
     images: ['/logo_jurnal_wave.webp'],
   },

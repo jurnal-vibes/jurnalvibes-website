@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Health & Wellness',
   description: 'Tips kesehatan harian, medis, pola hidup seimbang, dan kebugaran.',
   openGraph: {
-    title: 'Health & Wellness | Jurnal Vibes',
+    title: 'Health & Wellness | Jurnal Wave',
     description: 'Tips kesehatan harian, medis, pola hidup seimbang, dan kebugaran.',
   },
 };

@@ -5,10 +5,10 @@ import { CuacaView } from '@/components/weather/CuacaView';
 import { fetchLiveSukabumiWeather } from '@/lib/weather';
 
 export const metadata: Metadata = {
-  title: 'Cuaca Sukabumi Hari Ini | Jurnal Vibes',
+  title: 'Cuaca Sukabumi Hari Ini | Jurnal Wave',
   description: 'Prakiraan cuaca satelit terkini dan estimasi 7 hari ke depan untuk wilayah Kota Sukabumi, Palabuhanratu, Cisaat, dan Cibadak.',
   openGraph: {
-    title: 'Cuaca Sukabumi Hari Ini | Jurnal Vibes',
+    title: 'Cuaca Sukabumi Hari Ini | Jurnal Wave',
     description: 'Prakiraan cuaca satelit terkini dan estimasi 7 hari ke depan untuk wilayah Sukabumi.',
   },
 };

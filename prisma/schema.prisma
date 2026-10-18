@@ -1,0 +1,129 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Model Berita (Jurnal Wave CMS)
+model Article {
+  id            String   @id @default(cuid())
+  title         String   @db.VarChar(255)
+  slug          String   @unique @db.VarChar(255)
+  excerpt       String   @db.Text
+  content       String   @db.Text
+  category      String   @default("berita") @db.VarChar(50)
+  categoryLabel String?  @db.VarChar(50)
+  imageUrl      String   @db.Text
+  imageAlt      String?  @db.VarChar(255)
+  author        String   @default("Tim Redaksi") @db.VarChar(100)
+  reporter      String?  @db.VarChar(100)
+  redaktur      String?  @db.VarChar(100)
+  readTime      String?  @default("5 min read") @db.VarChar(50)
+  isHero        Boolean  @default(false)
+  isEditorsPick Boolean  @default(false)
+  badge         String?  @db.VarChar(50)
+  publishedDate String?  @db.VarChar(50)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("articles")
+}
+
+// 2. Model Laporan Warga (Halo Jurnal)
+model Report {
+  id           String             @id @default(cuid())
+  ticketNumber String             @unique @db.VarChar(50)
+  title        String             @db.VarChar(255)
+  description  String             @db.Text
+  reportType   String             @default("infrastruktur") @db.VarChar(50)
+  address      String?            @db.Text
+  latitude     Float?
+  longitude    Float?
+  pelaporName  String             @default("Warga Sukabumi") @db.VarChar(100)
+  pelaporPhone String?            @db.VarChar(50)
+  pelaporEmail String?            @db.VarChar(100)
+  status       String             @default("diterima") @db.VarChar(50)
+  isPublic     Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  attachments  ReportAttachment[]
+  statusLogs   ReportStatusLog[]
+
+  @@map("reports")
+}
+
+// 3. Lampiran Berkas / Foto Laporan
+model ReportAttachment {
+  id        String   @id @default(cuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  fileUrl   String   @db.Text
+  fileType  String?  @db.VarChar(50)
+  createdAt DateTime @default(now())
+
+  @@index([reportId])
+  @@map("report_attachments")
+}
+
+// 4. Log Riwayat Perubahan Status Laporan
+model ReportStatusLog {
+  id        String   @id @default(cuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  status    String   @db.VarChar(50)
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([reportId])
+  @@map("report_status_logs")
+}
+
+// 5. Verifikasi KTP Warga
+model KtpVerification {
+  id           String   @id @default(cuid())
+  nik          String   @db.VarChar(50)
+  name         String   @db.VarChar(100)
+  phone        String?  @db.VarChar(50)
+  email        String?  @db.VarChar(100)
+  photoUrl     String   @db.Text
+  detectedName String?  @db.VarChar(100)
+  detectedNik  String?  @db.VarChar(50)
+  aiConfidence Int      @default(70)
+  aiNotes      String?  @db.Text
+  status       String   @default("pending") @db.VarChar(50)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("ktp_verifications")
+}
+
+// 6. Percakapan / Chat Warga (Realtime Two-Way Chat)
+model ChatMessage {
+  id           String   @id @default(cuid())
+  ticketNumber String   @db.VarChar(50)
+  senderId     String   @db.VarChar(100)
+  senderName   String   @db.VarChar(100)
+  role         String   @default("warga") @db.VarChar(50)
+  message      String   @db.Text
+  createdAt    DateTime @default(now())
+
+  @@index([ticketNumber])
+  @@map("chat_messages")
+}
+
+// 7. Pengguna Admin & Staf Redaksi
+model AdminUser {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(100)
+  email     String   @unique @db.VarChar(100)
+  role      String   @default("editor") @db.VarChar(50)
+  avatarUrl String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_users")
+}

@@ -596,7 +596,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
       </div>
 
-      {/* MODAL "PILIH AREA" (TEMA PUTIH-MERAH JURNAL VIBES) */}
+      {/* MODAL "PILIH AREA" (TEMA PUTIH-MERAH JURNAL WAVE) */}
       {isAreaModalOpen && (
         <div 
           className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"

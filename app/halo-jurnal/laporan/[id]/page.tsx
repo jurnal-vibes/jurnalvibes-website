@@ -192,10 +192,10 @@ export default function HaloJurnalLaporanDetailPage() {
     let activeUser = user
     if (!activeUser && typeof window !== 'undefined') {
       activeUser = {
-        id: 'citizen-demo-sukabumi',
+        id: 'warga-demo-sukabumi',
         email: 'warga@sukabumi.com',
         full_name: 'Warga Sukabumi',
-        role: 'citizen',
+        role: 'warga',
         nik: '3202112345670001',
         ktp_verified: true,
         user_metadata: { full_name: 'Warga Sukabumi' },
@@ -222,16 +222,16 @@ export default function HaloJurnalLaporanDetailPage() {
       }
 
       const sentMsg = {
-        id: `chat-citizen-${Date.now()}`,
+        id: `chat-warga-${Date.now()}`,
         laporan_id: id,
-        sender_id: activeUser?.id || 'citizen',
+        sender_id: activeUser?.id || 'warga',
         message: chatMessage.trim() || 'Mengirim berkas',
         file_url: fileUrl,
         file_type: fileType,
         created_at: new Date().toISOString(),
         profiles: {
           full_name: activeUser?.user_metadata?.full_name || activeUser?.full_name || 'Warga Pelapor',
-          role: 'citizen',
+          role: 'warga',
         },
       }
 

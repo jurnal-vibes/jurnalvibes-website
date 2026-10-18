@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
   }
 
   const currentArticle = article || DUMMY_ARTICLES[0];
-  const title = `${currentArticle.title} - Jurnal Vibes`;
+  const title = `${currentArticle.title} - Jurnal Wave`;
   const description =
     currentArticle.excerpt || currentArticle.content.slice(0, 160).replace(/\n/g, ' ');
   const imageUrl = currentArticle.imageUrl;

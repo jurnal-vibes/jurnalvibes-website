@@ -15,20 +15,7 @@ import { DUMMY_POLL, DUMMY_REELS } from '@/data/dummyPolls';
 import { fetchArticles } from '@/lib/wordpress';
 
 export function HomeClient() {
-  const [articles, setArticles] = useState<Article[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('jurnal_wave_articles');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
-          }
-        }
-      } catch {}
-    }
-    return DUMMY_ARTICLES;
-  });
+  const [articles, setArticles] = useState<Article[]>(DUMMY_ARTICLES);
 
   useEffect(() => {
     async function loadArticles() {

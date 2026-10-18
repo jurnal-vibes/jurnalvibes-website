@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Lifestyle & Culture',
   description: 'Gaya hidup, tempat nongkrong, kuliner, dan tren terbaru pemuda Sukabumi.',
   openGraph: {
-    title: 'Lifestyle & Culture Sukabumi | Jurnal Vibes',
+    title: 'Lifestyle & Culture Sukabumi | Jurnal Wave',
     description: 'Gaya hidup, tempat nongkrong, kuliner, dan tren terbaru pemuda Sukabumi.',
   },
 };

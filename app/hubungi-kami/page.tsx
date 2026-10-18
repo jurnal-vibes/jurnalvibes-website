@@ -3,10 +3,10 @@ import { HubungiKamiClient } from './HubungiKamiClient';
 
 export const metadata: Metadata = {
   title: 'Hubungi Kami',
-  description: 'Saluran komunikasi resmi redaksi, pengaduan pemberitaan, dan layanan kemitraan Jurnal Vibes Sukabumi.',
+  description: 'Saluran komunikasi resmi redaksi, pengaduan pemberitaan, dan layanan kemitraan Jurnal Wave Sukabumi.',
   openGraph: {
-    title: 'Hubungi Kami | Jurnal Vibes',
-    description: 'Saluran komunikasi resmi redaksi, pengaduan pemberitaan, dan layanan kemitraan Jurnal Vibes Sukabumi.',
+    title: 'Hubungi Kami | Jurnal Wave',
+    description: 'Saluran komunikasi resmi redaksi, pengaduan pemberitaan, dan layanan kemitraan Jurnal Wave Sukabumi.',
   },
 };
 

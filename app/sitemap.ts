@@ -3,7 +3,7 @@ import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 import { fetchArticles } from '@/lib/wordpress';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jurnalvibes.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jurnalwave.com';
 
   // Static Pages
   const staticRoutes: MetadataRoute.Sitemap = [
