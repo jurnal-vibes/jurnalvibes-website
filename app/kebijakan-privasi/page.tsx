@@ -6,10 +6,10 @@ import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 
 export const metadata: Metadata = {
   title: 'Kebijakan Privasi',
-  description: 'Kebijakan privasi Jurnal Vibes — informasi pengumpulan data, cookie, dan perlindungan privasi pengunjung.',
+  description: 'Kebijakan privasi Jurnal Wave — informasi pengumpulan data, cookie, dan perlindungan privasi pengunjung.',
   openGraph: {
-    title: 'Kebijakan Privasi | Jurnal Vibes',
-    description: 'Kebijakan privasi Jurnal Vibes — informasi pengumpulan data, cookie, dan perlindungan privasi pengunjung.',
+    title: 'Kebijakan Privasi | Jurnal Wave',
+    description: 'Kebijakan privasi Jurnal Wave — informasi pengumpulan data, cookie, dan perlindungan privasi pengunjung.',
   },
 };
 

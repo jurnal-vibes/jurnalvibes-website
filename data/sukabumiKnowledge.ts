@@ -1,7 +1,7 @@
 /**
  * SUKABUMI KNOWLEDGE BASE (MASTER DATA LOKAL SUKABUMI)
  * Basis pengetahuan otentik, faktual, dan mendalam seputar Kota dan Kabupaten Sukabumi.
- * Digunakan oleh Jurnal Vibes AI agar bebas halusinasi dan memiliki pemahaman wilayah yang presisi.
+ * Digunakan oleh Jurnal Wave AI agar bebas halusinasi dan memiliki pemahaman wilayah yang presisi.
  */
 
 export interface CafeSpot {

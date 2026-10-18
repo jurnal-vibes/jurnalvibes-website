@@ -92,7 +92,7 @@ export default function DaftarPage() {
 
     try {
       const newUserSession = {
-        id: 'citizen-' + Date.now(),
+        id: 'warga-' + Date.now(),
         email: email.trim(),
         full_name: fullName.trim(),
         phone: phone.trim() || null,
@@ -104,7 +104,7 @@ export default function DaftarPage() {
           nik: nik.trim() || null,
           ktp_photo_url: ktpPreviewUrl || null,
         },
-        role: 'citizen',
+        role: 'warga',
         ktp_verified: true,
         ktp_photo_url: ktpPreviewUrl || null,
       }

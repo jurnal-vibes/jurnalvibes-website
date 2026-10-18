@@ -42,7 +42,7 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
       { id: 'c5', user: 'siti_nurhaliza', text: 'Sukabumi makin banyak hidden gem ya!', time: '1j lalu' }
     ],
     'reel-3': [
-      { id: 'c6', user: 'rendi_kurnia', text: 'Mantap Jurnal Vibes selalu update info lokal!', time: '4j lalu' }
+      { id: 'c6', user: 'rendi_kurnia', text: 'Mantap Jurnal Wave selalu update info lokal!', time: '4j lalu' }
     ]
   });
 
@@ -353,13 +353,13 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
               <div className="absolute inset-x-0 bottom-0 z-20 p-5 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col gap-2 pointer-events-none">
                 <div className="pointer-events-auto flex items-center gap-2 flex-wrap">
                   <a
-                    href={reel.socialUrl || (reel.platform === 'tiktok' ? `https://www.tiktok.com/@${(reel.creator || 'jurnalvibes').replace('@', '')}` : `https://www.instagram.com/${(reel.creator || 'jurnalvibes').replace('@', '')}`)}
+                    href={reel.socialUrl || (reel.platform === 'tiktok' ? `https://www.tiktok.com/@${(reel.creator || 'jurnalwave').replace('@', '')}` : `https://www.instagram.com/${(reel.creator || 'jurnalwave').replace('@', '')}`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-bold text-sm text-white hover:underline cursor-pointer flex items-center gap-1 group"
-                    title={`Buka akun ${reel.creator || '@jurnalvibes'} di media sosial`}
+                    title={`Buka akun ${reel.creator || '@jurnalwave'} di media sosial`}
                   >
-                    <span>{reel.creator || '@jurnalvibes'}</span>
+                    <span>{reel.creator || '@jurnalwave'}</span>
                     <ExternalLink className="w-3 h-3 text-white/70 group-hover:text-white transition-colors" />
                   </a>
                   {reel.category && (
@@ -368,7 +368,7 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
                     </span>
                   )}
                   <a
-                    href={reel.socialUrl || (reel.platform === 'tiktok' ? `https://www.tiktok.com/@${(reel.creator || 'jurnalvibes').replace('@', '')}` : `https://www.instagram.com/${(reel.creator || 'jurnalvibes').replace('@', '')}`)}
+                    href={reel.socialUrl || (reel.platform === 'tiktok' ? `https://www.tiktok.com/@${(reel.creator || 'jurnalwave').replace('@', '')}` : `https://www.instagram.com/${(reel.creator || 'jurnalwave').replace('@', '')}`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/90 hover:text-white bg-white/15 hover:bg-white/25 backdrop-blur-xs px-2.5 py-0.5 rounded-full transition-colors pointer-events-auto cursor-pointer"
@@ -393,7 +393,7 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
                 <div className="flex items-center gap-2 text-xs text-gray-300 pointer-events-auto mt-1">
                   <Music className="w-3.5 h-3.5 shrink-0 text-white/80" />
                   <span className="truncate max-w-[200px]">
-                    {reel.location ? `${reel.location} • Suara Asli` : 'Suara Asli - Jurnal Vibes Sukabumi'}
+                    {reel.location ? `${reel.location} • Suara Asli` : 'Suara Asli - Jurnal Wave Sukabumi'}
                   </span>
                 </div>
               </div>

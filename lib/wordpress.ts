@@ -59,26 +59,55 @@ export function mapWordPressPost(post: any): Article {
  * Fallbacks to localStorage ('jurnal_wave_articles') or DUMMY_ARTICLES if WordPress is not yet connected or offline.
  */
 export async function fetchArticlesFromWordPress(): Promise<Article[]> {
-  if (WORDPRESS_URL) {
+  // 1. Server-side fetch from MySQL via Prisma
+  if (typeof window === 'undefined') {
     try {
-      const cleanUrl = WORDPRESS_URL.replace(/\/+$/, '');
-      const response = await fetch(`${cleanUrl}/wp-json/wp/v2/posts?_embed=1&per_page=20`, {
-        next: { revalidate: 60 },
+      const { prisma } = await import('@/lib/prisma');
+      const dbPosts = await prisma.article.findMany({
+        orderBy: { createdAt: 'desc' },
       });
-
-      if (response.ok) {
-        const posts = await response.json();
-        if (Array.isArray(posts) && posts.length > 0) {
-          return posts.map(mapWordPressPost);
-        }
+      if (dbPosts.length > 0) {
+        return dbPosts.map((item) => ({
+          id: item.id,
+          title: item.title,
+          slug: item.slug,
+          excerpt: item.excerpt,
+          content: item.content,
+          category: (item.category as ArticleCategory) || 'berita',
+          categoryLabel: item.categoryLabel || item.category?.toUpperCase() || 'BERITA',
+          imageUrl: item.imageUrl,
+          imageAlt: item.imageAlt || item.title,
+          author: item.author || 'Tim Redaksi',
+          reporter: item.reporter || 'Redaksi Jurnal Wave',
+          redaktur: item.redaktur || 'Redaksi Pelaksana',
+          readTime: item.readTime || '5 min read',
+          isHero: Boolean(item.isHero),
+          isEditorsPick: Boolean(item.isEditorsPick),
+          badge: item.badge || undefined,
+          isSaved: false,
+          publishedDate: item.publishedDate || new Date(item.createdAt).toLocaleDateString('id-ID'),
+          createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+        }));
       }
     } catch (err) {
-      console.warn('WordPress API connection notice:', err);
+      console.warn('MySQL server-side article fetch notice:', err);
     }
   }
 
-  // Client-side fallback to localStorage first
+  // 2. Client-side fetch from /api/articles (MySQL API)
   if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch('/api/articles');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
+          return json.data;
+        }
+      }
+    } catch {}
+
+    // Client-side fallback to localStorage
     try {
       const saved = localStorage.getItem('jurnal_wave_articles');
       if (saved) {
@@ -94,35 +123,59 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
 }
 
 /**
- * Fetches a single article by ID or slug from WordPress REST API.
+ * Fetches a single article by ID or slug from MySQL API / Prisma with fallbacks.
  */
 export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<Article> {
-  if (WORDPRESS_URL) {
+  // 1. Server-side fetch from MySQL via Prisma
+  if (typeof window === 'undefined') {
     try {
-      const cleanUrl = WORDPRESS_URL.replace(/\/+$/, '');
-      const isNumeric = /^\d+$/.test(idOrSlug);
-      const url = isNumeric
-        ? `${cleanUrl}/wp-json/wp/v2/posts/${idOrSlug}?_embed=1`
-        : `${cleanUrl}/wp-json/wp/v2/posts?slug=${encodeURIComponent(idOrSlug)}&_embed=1`;
-
-      const response = await fetch(url, {
-        next: { revalidate: 60 },
+      const { prisma } = await import('@/lib/prisma');
+      const item = await prisma.article.findFirst({
+        where: {
+          OR: [{ id: idOrSlug }, { slug: idOrSlug }],
+        },
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        const post = Array.isArray(data) ? data[0] : data;
-        if (post) {
-          return mapWordPressPost(post);
-        }
+      if (item) {
+        return {
+          id: item.id,
+          title: item.title,
+          slug: item.slug,
+          excerpt: item.excerpt,
+          content: item.content,
+          category: (item.category as ArticleCategory) || 'berita',
+          categoryLabel: item.categoryLabel || item.category?.toUpperCase() || 'BERITA',
+          imageUrl: item.imageUrl,
+          imageAlt: item.imageAlt || item.title,
+          author: item.author || 'Tim Redaksi',
+          reporter: item.reporter || 'Redaksi Jurnal Wave',
+          redaktur: item.redaktur || 'Redaksi Pelaksana',
+          readTime: item.readTime || '5 min read',
+          isHero: Boolean(item.isHero),
+          isEditorsPick: Boolean(item.isEditorsPick),
+          badge: item.badge || undefined,
+          isSaved: false,
+          publishedDate: item.publishedDate || new Date(item.createdAt).toLocaleDateString('id-ID'),
+          createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+        };
       }
     } catch (err) {
-      console.warn('WordPress single article lookup notice:', err);
+      console.warn('MySQL server-side single article lookup notice:', err);
     }
   }
 
-  // Fallback to local storage if running in browser
+  // 2. Client-side fetch from /api/articles?slug=...
   if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch(`/api/articles?slug=${encodeURIComponent(idOrSlug)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          return json.data;
+        }
+      }
+    } catch {}
+
+    // Fallback to local storage if running in browser
     try {
       const saved = localStorage.getItem('jurnal_wave_articles');
       if (saved) {

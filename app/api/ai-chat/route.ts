@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { DUMMY_ARTICLES } from '@/data/dummyArticles'
 import { findRelevantSukabumiKnowledge } from '@/data/sukabumiKnowledge'
 
-const SYSTEM_PROMPT = `Anda adalah "Jurnal Vibes AI", asisten virtual resmi untuk portal berita Jurnal Vibes dan layanan pengaduan warga Halo Jurnal Sukabumi.
+const SYSTEM_PROMPT = `Anda adalah "Jurnal Wave AI", asisten virtual resmi untuk portal berita Jurnal Wave dan layanan pengaduan warga Halo Jurnal Sukabumi.
 
 Aturan Penting Format & Gaya Menjawab:
 1. DILARANG KERAS menggunakan simbol bintang (*) sama sekali. Jangan gunakan tanda bintang tunggal (*) maupun ganda (**) untuk mencetak tebal, miring, atau penanda daftar. Tulis teks secara bersih dan mengalir natural.
@@ -20,7 +20,7 @@ Aturan Penting Format & Gaya Menjawab:
      • Mokopi Sukabumi: Berada di area perkotaan/jalan protokol (seperti Jalan Bhayangkara dan Jalan Tipar), BUKAN di kawasan Cikole. Jika ditanya apakah ada Mokopi di Cikole, jelaskan dengan jujur bahwa tidak ada Mokopi di Cikole.
      • Kawasan Dago Sukabumi (Jl. Ir. H. Juanda): Pusat jajanan/street food di pusat kota.
      • Kuliner Legendaris: Mochi Lampion di Gang Kaswari, Bubur Ayam Bunut di Jalan Siliwangi.
-   - Jika Anda tidak yakin dengan lokasi cabang suatu tempat, katakan dengan jujur dan sarankan memeriksa Google Maps atau artikel di Jurnal Vibes. JANGAN MENGARANG LOKASI PALSU.
+   - Jika Anda tidak yakin dengan lokasi cabang suatu tempat, katakan dengan jujur dan sarankan memeriksa Google Maps atau artikel di Jurnal Wave. JANGAN MENGARANG LOKASI PALSU.
 6. Pengetahuan Layanan:
    - Info lowongan kerja Sukabumi ada di menu /loker.
    - Pengaduan fasilitas umum (jalan rusak, sampah, lampu PJU mati) di Halo Jurnal: pandu warga melapor di /halo-jurnal/lapor dan cek status di /halo-jurnal/laporan-saya.`
@@ -35,11 +35,11 @@ function generateSmartFallback(query: string): string {
   }
 
   if (lower.includes('kopi') || lower.includes('cikole') || lower.includes('kuliner') || lower.includes('makan') || lower.includes('nongkrong')) {
-    return '☕ **Rekomendasi Kuliner & Ngopi di Sukabumi:**\n\n• **Kawasan Cikole & Dago Sukabumi:** Pusat kafe hits kekinian dengan konsep industrial & outdoor yang nyaman untuk kerja atau kumpul santai.\n• **Kuliner Khas Legendaris:** Jangan lewatkan Mochi Lampion Kaswari, Bubur Ayam Bunut Siliwangi, dan Mie Goreng Sukabumi.\n\nCek ulasan lengkap dan resep kuliner di kategori **Lifestyle** Jurnal Vibes!'
+    return '☕ **Rekomendasi Kuliner & Ngopi di Sukabumi:**\n\n• **Kawasan Cikole & Dago Sukabumi:** Pusat kafe hits kekinian dengan konsep industrial & outdoor yang nyaman untuk kerja atau kumpul santai.\n• **Kuliner Khas Legendaris:** Jangan lewatkan Mochi Lampion Kaswari, Bubur Ayam Bunut Siliwangi, dan Mie Goreng Sukabumi.\n\nCek ulasan lengkap dan resep kuliner di kategori **Lifestyle** Jurnal Wave!'
   }
 
   if (lower.includes('loker') || lower.includes('kerja') || lower.includes('lowongan') || lower.includes('karir')) {
-    return '💼 **Info Lowongan Kerja Sukabumi:**\n\nJurnal Vibes rutin memperbarui informasi lowongan kerja di area Sukabumi dan sekitarnya (mulai dari F&B, Staff Digital, hingga Desain Grafis).\n\nKamu bisa melihat daftar lowongan terbaru dan kualifikasinya langsung di menu **/loker**!'
+    return '💼 **Info Lowongan Kerja Sukabumi:**\n\nJurnal Wave rutin memperbarui informasi lowongan kerja di area Sukabumi dan sekitarnya (mulai dari F&B, Staff Digital, hingga Desain Grafis).\n\nKamu bisa melihat daftar lowongan terbaru dan kualifikasinya langsung di menu **/loker**!'
   }
 
   if (lower.includes('wisata') || lower.includes('liburan') || lower.includes('ciletuh') || lower.includes('pantai') || lower.includes('curug') || lower.includes('gunung')) {
@@ -51,14 +51,14 @@ function generateSmartFallback(query: string): string {
   }
 
   if (lower.includes('berita') || lower.includes('terkini') || lower.includes('hari ini') || lower.includes('update')) {
-    return '📰 **Berita Terkini Sukabumi & Nasional:**\n\nJurnal Vibes menyajikan liputan hangat dari berbagai kategori: **Tech, Science, Sport, Lifestyle, Otomotif, dan Health**. Telusuri beranda kami untuk membaca laporan investigasi dan berita terbaru hari ini!'
+    return '📰 **Berita Terkini Sukabumi & Nasional:**\n\nJurnal Wave menyajikan liputan hangat dari berbagai kategori: **Tech, Science, Sport, Lifestyle, Otomotif, dan Health**. Telusuri beranda kami untuk membaca laporan investigasi dan berita terbaru hari ini!'
   }
 
   if (lower.includes('halo') || lower.includes('hai') || lower.includes('pagi') || lower.includes('siang') || lower.includes('malam') || lower.includes('sampurasun')) {
-    return 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Vibes AI. Ada yang bisa saya bantu terkait berita Sukabumi, kuliner hits, info loker, atau cara lapor aduan di Halo Jurnal?'
+    return 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada yang bisa saya bantu terkait berita Sukabumi, kuliner hits, info loker, atau cara lapor aduan di Halo Jurnal?'
   }
 
-  return `✨ Terima kasih atas pertanyaannya! Saya adalah asisten cerdas Jurnal Vibes. 
+  return `✨ Terima kasih atas pertanyaannya! Saya adalah asisten cerdas Jurnal Wave. 
 
 Kamu bisa menanyakan berbagai hal seputar:
 • 📰 **Berita Terkini & Kategori Populer**
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
 
 ${localKnowledge ? `Wawasan Lokal Sukabumi Terverifikasi Khusus untuk Pertanyaan Ini:\n${localKnowledge}\n` : ''}
 
-Daftar Berita & Artikel Terkini yang Sedang Tayang di Jurnal Vibes:
+Daftar Berita & Artikel Terkini yang Sedang Tayang di Jurnal Wave:
 ${recentArticlesList}
 
 (Bila pengunjung bertanya tentang berita terbaru, update hari ini, atau topik yang terkait berita di atas, sebutkan judul artikel dan berikan link rujukan /artikel/[id] agar pembaca bisa langsung membacanya).`

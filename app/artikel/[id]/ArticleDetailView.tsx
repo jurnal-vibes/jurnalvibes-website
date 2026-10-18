@@ -34,7 +34,7 @@ const FONT_SIZE_CLASSES: Record<FontSize, string> = {
 };
 
 // Kamus Fonetik Istilah Serapan / Bahasa Inggris agar Dilafalkan Alami & Pas oleh TTS Bahasa Indonesia
-// Berlaku otomatis untuk seluruh artikel berita di situs Jurnal Vibes
+// Berlaku otomatis untuk seluruh artikel berita di situs Jurnal Wave
 const LOANWORD_PHONETICS: [RegExp, string][] = [
   // Musik & Event
   [/\bline[- ]?up\b/gi, 'lain ap'],
@@ -441,7 +441,7 @@ export function ArticleDetailView({ id }: { id: string }) {
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: article.title,
-          artist: 'Jurnal Vibes',
+          artist: 'Jurnal Wave',
           album: article.categoryLabel || 'Berita Sukabumi',
           artwork: [
             { src: article.imageUrl || '/logo-white.png', sizes: '512x512', type: 'image/jpeg' },
@@ -904,11 +904,11 @@ export function ArticleDetailView({ id }: { id: string }) {
             if (!trimmed) return null;
 
             if (idx === 0) {
-              const cleanFirst = trimmed.replace(/^(JURNALVIBES\.COM|JURNAL VIBES)(\s*[-–—]\s*)/i, '');
+              const cleanFirst = trimmed.replace(/^(JURNALWAVE\.COM|JURNAL WAVE|JURNALVIBES\.COM|JURNAL VIBES)(\s*[-–—]\s*)/i, '');
               return (
                 <p key={idx}>
                   <span className="text-red-600 dark:text-red-500">
-                    JURNALVIBES.COM
+                    JURNALWAVE.COM
                   </span>{' '}
                   – {cleanFirst}
                 </p>
@@ -940,7 +940,7 @@ export function ArticleDetailView({ id }: { id: string }) {
               : [
                   article.categoryLabel || article.category,
                   article.subCategory || 'Sukabumi',
-                  'JurnalVibes',
+                  'JurnalWave',
                   'Trending'
                 ]
             ).map((tag, idx) => {

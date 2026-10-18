@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Technology & Innovation',
   description: 'Kabar dunia teknologi, AI, gadget terbaru, dan lanskap startup digital Sukabumi.',
   openGraph: {
-    title: 'Technology & Innovation | Jurnal Vibes',
+    title: 'Technology & Innovation | Jurnal Wave',
     description: 'Kabar dunia teknologi, AI, gadget terbaru, dan lanskap startup digital Sukabumi.',
   },
 };

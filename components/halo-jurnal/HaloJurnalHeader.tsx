@@ -150,10 +150,10 @@ export default function HaloJurnalHeader() {
           <Link
             href="/"
             className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-outline-variant/60 hover:border-primary/40 bg-surface-container-low hover:bg-surface-variant/80 text-on-surface text-xs font-semibold tracking-tight transition-all duration-200 cursor-pointer shadow-2xs group"
-            title="Kembali ke Portal Jurnal Vibes"
+            title="Kembali ke Portal Jurnal Wave"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-primary group-hover:-translate-x-0.5 transition-transform" />
-            <span>Portal Jurnal Vibes</span>
+            <span>Portal Jurnal Wave</span>
           </Link>
 
           {/* Auth Button / Profile */}
@@ -219,7 +219,7 @@ export default function HaloJurnalHeader() {
             className="flex items-center gap-2 p-3 rounded-2xl bg-surface-container-low border border-outline-variant text-xs font-bold text-primary mb-3"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>← Kembali ke Portal Jurnal Vibes</span>
+            <span>← Kembali ke Portal Jurnal Wave</span>
           </Link>
 
           {/* Main nav */}

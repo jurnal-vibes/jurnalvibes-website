@@ -285,10 +285,38 @@ function LaporForm() {
         ],
       }
 
+      // 1. Kirim laporan ke database MySQL XAMPP via API
+      try {
+        await fetch('/api/reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ticketNumber,
+            title,
+            description,
+            reportType,
+            address: locationData.address || '',
+            latitude: locationData.lat || null,
+            longitude: locationData.lng || null,
+            pelaporName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Warga Sukabumi',
+            nama_pelapor: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Warga Sukabumi',
+            pelaporPhone: user.phone || '',
+            telepon: user.phone || '',
+            pelaporEmail: user.email || '',
+            email: user.email || '',
+            previewUrl: previewUrl || '',
+          }),
+        })
+      } catch (err) {
+        console.warn('Gagal simpan ke MySQL, tetap menyimpan ke local cache:', err)
+      }
+
+      // 2. Sinkronkan ke local storage untuk tracking instan di perangkat pelapor
       try {
         if (typeof window !== 'undefined') {
           const prev = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
           localStorage.setItem('halo_jurnal_user_reports', JSON.stringify([newReportData, ...prev]))
+          window.dispatchEvent(new Event('storage'))
         }
       } catch {}
 

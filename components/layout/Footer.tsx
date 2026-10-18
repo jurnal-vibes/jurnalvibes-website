@@ -96,7 +96,7 @@ export const Footer: React.FC = () => {
             </nav>
 
             <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-3 text-center md:text-right">
-              © 2026 Jurnal Vibes. All rights reserved.
+              © 2026 Jurnal Wave. All rights reserved.
             </p>
           </div>
 

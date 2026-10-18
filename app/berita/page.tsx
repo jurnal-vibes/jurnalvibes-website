@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Berita Terkini',
   description: 'Informasi terhangat seputar Sukabumi dan sekitarnya — kampus, sekolah, komunitas, dan event lokal.',
   openGraph: {
-    title: 'Berita Terkini Sukabumi | Jurnal Vibes',
+    title: 'Berita Terkini Sukabumi | Jurnal Wave',
     description: 'Informasi terhangat seputar Sukabumi dan sekitarnya — kampus, sekolah, komunitas, dan event lokal.',
   },
 };

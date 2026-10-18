@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Tentang Kami',
   description: 'Profil media, susunan redaksi, dan legalitas badan hukum PT Media Jurnal Sukabumi.',
   openGraph: {
-    title: 'Tentang Kami | Jurnal Vibes',
+    title: 'Tentang Kami | Jurnal Wave',
     description: 'Profil media, susunan redaksi, dan legalitas badan hukum PT Media Jurnal Sukabumi.',
   },
 };
@@ -55,7 +55,7 @@ export default function TentangKamiPage() {
         {/* Konten Redaksional */}
         <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-4">
           <p>
-            Portal berita <strong>Jurnal Vibes</strong> berada di bawah naungan <strong>PT. Media Jurnal Sukabumi</strong>. Jurnal Vibes hadir di tengah menjamurnya beragam media siber untuk menyajikan informasi yang independen, faktual, dan mendalam seputar Kota dan Kabupaten Sukabumi.
+            Portal berita <strong>Jurnal Wave</strong> berada di bawah naungan <strong>PT. Media Jurnal Sukabumi</strong>. Jurnal Wave hadir di tengah menjamurnya beragam media siber untuk menyajikan informasi yang independen, faktual, dan mendalam seputar Kota dan Kabupaten Sukabumi.
           </p>
           <p>
             Dibidani oleh jurnalis profesional yang konsisten pada kode etik pers, kami berkomitmen menyuarakan aspirasi warga. Sebagai wujud nyata komitmen tersebut, kami juga mengoperasikan <strong>Halo Jurnal</strong>—platform interaktif pelaporan dan pengaduan warga untuk transparansi fasilitas serta layanan publik di Sukabumi.

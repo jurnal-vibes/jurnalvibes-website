@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Otomotif',
   description: 'Ulasan kendaraan, modifikasi, touring, dan berita dunia otomotif Sukabumi.',
   openGraph: {
-    title: 'Otomotif | Jurnal Vibes',
+    title: 'Otomotif | Jurnal Wave',
     description: 'Ulasan kendaraan, modifikasi, touring, dan berita dunia otomotif Sukabumi.',
   },
 };

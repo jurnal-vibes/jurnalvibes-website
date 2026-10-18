@@ -299,7 +299,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
               Tips Aman Lamar Kerja
             </h5>
             <p className="text-xs text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
-              Harap waspada &amp; laporkan ke tim kami jika ada lowongan yang memintamu untuk transfer uang. Seluruh proses rekrutmen di Jurnal Vibes tidak dipungut biaya apa pun.
+              Harap waspada &amp; laporkan ke tim kami jika ada lowongan yang memintamu untuk transfer uang. Seluruh proses rekrutmen di Jurnal Wave tidak dipungut biaya apa pun.
             </p>
           </div>
         </div>
@@ -307,7 +307,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
         {/* Laporkan Lowongan */}
         <div className="flex items-center justify-start pb-12">
           <button
-            onClick={() => alert('Terima kasih. Laporan lowongan Anda telah kami terima dan akan segera ditinjau oleh tim moderator Jurnal Vibes.')}
+            onClick={() => alert('Terima kasih. Laporan lowongan Anda telah kami terima dan akan segera ditinjau oleh tim moderator Jurnal Wave.')}
             className="inline-flex items-center gap-2 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors cursor-pointer"
           >
             <Flag className="w-4 h-4" />

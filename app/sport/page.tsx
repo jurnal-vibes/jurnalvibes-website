@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Sport & E-Sport',
   description: 'Kabar seputar olahraga, kompetisi lokal, dan turnamen E-Sport Sukabumi.',
   openGraph: {
-    title: 'Sport & E-Sport | Jurnal Vibes',
+    title: 'Sport & E-Sport | Jurnal Wave',
     description: 'Kabar seputar olahraga, kompetisi lokal, dan turnamen E-Sport Sukabumi.',
   },
 };

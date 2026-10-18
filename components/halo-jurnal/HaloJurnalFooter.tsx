@@ -11,7 +11,7 @@ export default function HaloJurnalFooter() {
           {/* Sisi Kiri (Desktop) / Bawah (Mobile): Copyright */}
           <div className="text-center md:text-left">
             <p className="text-xs text-secondary">
-              © 2026 Jurnal Vibes. All rights reserved.
+              © 2026 Jurnal Wave. All rights reserved.
             </p>
           </div>
 

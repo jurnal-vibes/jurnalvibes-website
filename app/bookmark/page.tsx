@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Artikel Tersimpan',
   description: 'Daftar berita, ulasan, dan artikel menarik yang telah Anda tandai untuk dibaca nanti.',
   openGraph: {
-    title: 'Artikel Tersimpan | Jurnal Vibes',
+    title: 'Artikel Tersimpan | Jurnal Wave',
     description: 'Daftar berita, ulasan, dan artikel menarik yang telah Anda tandai untuk dibaca nanti.',
   },
   robots: {

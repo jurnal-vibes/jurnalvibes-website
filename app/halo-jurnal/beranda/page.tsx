@@ -81,13 +81,13 @@ export default function HaloJurnalBerandaPage() {
         }
       }
 
-      // Default demo citizen if completely empty
+      // Default demo warga if completely empty
       if (!currentUser) {
         currentUser = {
           id: 'demo-user-id',
           email: 'warga@sukabumi.com',
           full_name: 'Warga Sukabumi',
-          role: 'citizen',
+          role: 'warga',
           nik: '3202112345670001',
           ktp_verified: true,
         }
@@ -97,7 +97,7 @@ export default function HaloJurnalBerandaPage() {
 
       setProfile({
         full_name: currentUser.full_name || currentUser.user_metadata?.full_name || 'Warga Sukabumi',
-        role: currentUser.role || 'citizen',
+        role: currentUser.role || 'warga',
       })
 
       // 2. Fetch reports for this user
@@ -226,7 +226,7 @@ export default function HaloJurnalBerandaPage() {
 
   return (
     <main className="w-full min-h-screen bg-surface-container-lowest text-on-surface">
-      {/* 1. CITIZEN GREETING HEADER */}
+      {/* 1. WARGA GREETING HEADER */}
       <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 pt-5 pb-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
           {/* Left: Avatar Inisial & Teks Selamat Datang */}

@@ -63,17 +63,17 @@ function LoginPageContent() {
       }
 
       const userName = registeredUser?.full_name || email.trim().split('@')[0].toUpperCase()
-      const citizenUser = registeredUser || {
-        id: 'citizen-' + Date.now(),
+      const wargaUser = registeredUser || {
+        id: 'warga-' + Date.now(),
         email: email.trim(),
         full_name: userName,
         user_metadata: { full_name: userName },
-        role: 'citizen',
+        role: 'warga',
         ktp_verified: true,
       }
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('halo_jurnal_current_user', JSON.stringify(citizenUser))
+        localStorage.setItem('halo_jurnal_current_user', JSON.stringify(wargaUser))
         window.dispatchEvent(new Event('storage'))
       }
 

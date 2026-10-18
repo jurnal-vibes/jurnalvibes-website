@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Vibes Reels Sukabumi',
   description: 'Kumpulan video pendek seputar kuliner, wisata, dan sudut menarik Kota & Kabupaten Sukabumi.',
   openGraph: {
-    title: 'Vibes Reels Sukabumi | Jurnal Vibes',
+    title: 'Vibes Reels Sukabumi | Jurnal Wave',
     description: 'Kumpulan video pendek seputar kuliner, wisata, dan sudut menarik Kota & Kabupaten Sukabumi.',
   },
 };

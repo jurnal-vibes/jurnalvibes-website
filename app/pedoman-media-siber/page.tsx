@@ -6,10 +6,10 @@ import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 
 export const metadata: Metadata = {
   title: 'Pedoman Media Siber',
-  description: 'Pedoman pemberitaan media siber Jurnal Vibes sesuai Kode Etik Jurnalistik dan UU Pers.',
+  description: 'Pedoman pemberitaan media siber Jurnal Wave sesuai Kode Etik Jurnalistik dan UU Pers.',
   openGraph: {
-    title: 'Pedoman Media Siber | Jurnal Vibes',
-    description: 'Pedoman pemberitaan media siber Jurnal Vibes sesuai Kode Etik Jurnalistik dan UU Pers.',
+    title: 'Pedoman Media Siber | Jurnal Wave',
+    description: 'Pedoman pemberitaan media siber Jurnal Wave sesuai Kode Etik Jurnalistik dan UU Pers.',
   },
 };
 
