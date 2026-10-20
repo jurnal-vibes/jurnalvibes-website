@@ -79,24 +79,21 @@ export default function AdminDashboardPage() {
     return item.status === filterStatus
   }).slice(0, 6)
 
-  // Status badge styling (Ghost Minimalist Linear-Style - Clean Neutral Typography)
+  // Status badge styling (Harmonisasi Monokrom Redaksi - Pembeda Kurung Bersih)
   const getStatusBadge = (status: DummyReport['status']) => {
-    switch (status) {
-      case 'diterima':
-        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Diterima</span>
-      case 'diproses':
-        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Diproses</span>
-      case 'ditindaklanjuti':
-        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Ditindaklanjuti</span>
-      case 'selesai':
-        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Selesai</span>
-      default:
-        return (
-          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-            {status}
-          </span>
-        )
+    const labels: Record<string, string> = {
+      diterima: '[Menunggu Review]',
+      diproses: '[Diproses]',
+      ditindaklanjuti: '[Ditindaklanjuti]',
+      selesai: '[Ditayangkan]',
+      ditolak: '[Ditolak]',
     }
+    const label = labels[status] || `[${status}]`
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
+        {label}
+      </span>
+    )
   }
 
   return (
@@ -169,23 +166,17 @@ export default function AdminDashboardPage() {
             <ShieldCheck className="w-4 h-4" />
           </div>
           <p className="text-slate-800 leading-snug">
-            <strong>Antrean Tindakan:</strong> Ada <strong>1 aduan baru</strong> belum ditinjau dan{' '}
-            <strong>2 berkas KTP</strong> ditandai butuh verifikasi manual redaksi.
+            <strong>Antrean Tindakan Redaksi:</strong> Ada <strong>{laporanDiterima} aduan baru</strong> yang menunggu peninjauan berkas bukti & verifikasi kelayakan tayang.
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            href="/halo-jurnal/admin/verifikasi-ktp"
-            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold transition shadow-2xs"
-          >
-            Tinjau KTP (2)
-          </Link>
-          <Link
             href="/halo-jurnal/admin/laporan"
-            className="px-3 py-1.5 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white font-semibold transition shadow-2xs"
+            className="px-3.5 py-1.5 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white font-semibold transition shadow-2xs flex items-center gap-1.5"
           >
-            Buka Aduan Baru
+            <span>Tinjau Aduan Baru ({laporanDiterima})</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
@@ -355,7 +346,7 @@ export default function AdminDashboardPage() {
 
           <ol className="space-y-1.5 text-xs text-slate-700 list-decimal list-inside">
             <li>Validasi foto barang bukti dan kejelasan titik koordinat lokasi.</li>
-            <li>Pastikan identitas warga terverifikasi (KTP valid).</li>
+            <li>Pastikan data kontak warga valid dan pernyataan hukum telah disetujui.</li>
             <li>Tulis tanggapan resmi dan teruskan ke instansi terkait untuk tindak lanjut.</li>
           </ol>
         </div>

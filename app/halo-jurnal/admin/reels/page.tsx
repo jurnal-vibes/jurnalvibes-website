@@ -19,7 +19,6 @@ import {
   List,
   Upload,
   Share2,
-  Sparkles,
 } from 'lucide-react'
 import { DUMMY_REELS } from '@/data/dummyPolls'
 import { Reel } from '@/types'

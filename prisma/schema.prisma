@@ -82,26 +82,7 @@ model ReportStatusLog {
   @@map("report_status_logs")
 }
 
-// 5. Verifikasi KTP Warga
-model KtpVerification {
-  id           String   @id @default(cuid())
-  nik          String   @db.VarChar(50)
-  name         String   @db.VarChar(100)
-  phone        String?  @db.VarChar(50)
-  email        String?  @db.VarChar(100)
-  photoUrl     String   @db.Text
-  detectedName String?  @db.VarChar(100)
-  detectedNik  String?  @db.VarChar(50)
-  aiConfidence Int      @default(70)
-  aiNotes      String?  @db.Text
-  status       String   @default("pending") @db.VarChar(50)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@map("ktp_verifications")
-}
-
-// 6. Percakapan / Chat Warga (Realtime Two-Way Chat)
+// 5. Percakapan / Chat Warga (Realtime Two-Way Chat)
 model ChatMessage {
   id           String   @id @default(cuid())
   ticketNumber String   @db.VarChar(50)

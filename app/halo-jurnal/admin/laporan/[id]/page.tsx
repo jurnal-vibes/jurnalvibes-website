@@ -18,6 +18,7 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronUp,
+  Phone,
 } from 'lucide-react'
 import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
 
@@ -319,32 +320,35 @@ export default function AdminDetailLaporanPage() {
     return cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase()
   }
 
-  // Helper warna badge status (Clean Neutral Typography & Subtle Slate Tint)
+  // Helper warna badge status (Harmonisasi Monokrom Redaksi - Pembeda Kurung Bersih)
   const getStatusBadgeConfig = (status: string) => {
     switch (status) {
       case 'selesai':
+      case 'ditayangkan':
         return {
-          label: 'Selesai',
+          label: '[Ditayangkan]',
           bg: 'bg-slate-100 text-slate-800 border border-slate-200',
-          dot: 'bg-slate-700',
+        }
+      case 'diproses':
+      case 'konfirmasi':
+        return {
+          label: '[Diproses]',
+          bg: 'bg-slate-100 text-slate-800 border border-slate-200',
         }
       case 'ditindaklanjuti':
         return {
-          label: 'Ditindaklanjuti',
+          label: '[Ditindaklanjuti]',
           bg: 'bg-slate-100 text-slate-800 border border-slate-200',
-          dot: 'bg-slate-700',
         }
-      case 'diproses':
+      case 'ditolak':
         return {
-          label: 'Diproses',
+          label: '[Ditolak]',
           bg: 'bg-slate-100 text-slate-800 border border-slate-200',
-          dot: 'bg-slate-700',
         }
       default:
         return {
-          label: 'Diterima',
+          label: '[Menunggu Review]',
           bg: 'bg-slate-100 text-slate-800 border border-slate-200',
-          dot: 'bg-slate-700',
         }
     }
   }
@@ -484,31 +488,72 @@ export default function AdminDetailLaporanPage() {
             </div>
 
             {/* Identitas Pelapor Terintegrasi */}
-            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold shrink-0 border border-slate-200">
-                  <User className="w-3.5 h-3.5 text-slate-500" />
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-slate-900">
-                    {(report as any).is_anonim ? 'Pelapor Anonim' : 'Warga Sukabumi Terverifikasi'}
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                    <ShieldCheck className="w-3 h-3 text-slate-700" />
-                    KTP Sah
-                  </span>
-                  <span className="text-slate-400">•</span>
-                  <span className="font-mono text-slate-500 text-[11px]">{residentPhone}</span>
-                </div>
-              </div>
+            {(() => {
+              const rawPhone = (report as any)?.phone || (report as any)?.pelaporPhone || (report as any)?.telepon || '081234567890'
+              const cleanWaNumber = rawPhone.replace(/[^0-9]/g, '').replace(/^0/, '62')
+              const pelaporNama = (report as any)?.pelaporName || (report as any)?.nama_pelapor || 'Warga Sukabumi'
+              const waUrl = `https://wa.me/${cleanWaNumber}?text=Halo%20${encodeURIComponent(pelaporNama)},%20kami%20dari%20Tim%20Redaksi%20Jurnal%20Sukabumi%20ingin%20mengonfirmasi%20laporan%20nomor%20${encodeURIComponent(report.nomor_tiket)}.`
 
-              <Link
-                href="/halo-jurnal/admin/verifikasi-ktp"
-                className="text-[11px] font-semibold text-[#c00015] hover:underline self-start sm:self-auto"
-              >
-                Cek Berkas KTP &rarr;
-              </Link>
-            </div>
+              return (
+                <div className="pt-3 border-t border-slate-100 space-y-3 text-xs">
+                  {/* Info Identitas Pelapor */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold shrink-0 border border-slate-200 mt-0.5">
+                      <User className="w-4 h-4 text-slate-600" />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-slate-900 text-sm">
+                          {pelaporNama}
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                          <ShieldCheck className="w-3.5 h-3.5 text-slate-600" />
+                          Warga Terverifikasi
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                          Identitas Otomatis Dirahasiakan di Publik
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
+                        <span>Alamat: {(report as any).alamat_domisili || (report as any).domisili || (report as any).address || 'Sukabumi, Jawa Barat'}</span>
+                        <span>•</span>
+                        <span>Kontak WA: <strong>{rawPhone}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tombol Aksi Komunikasi Redaksi: Bersih, Rapi, Sejajar & Tidak Terpotong */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <a
+                      href={waUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs whitespace-nowrap transition shadow-2xs cursor-pointer"
+                      title="Buka WhatsApp Pelapor"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>Hubungi via WhatsApp</span>
+                    </a>
+                    <a
+                      href={`/halo-jurnal/admin/chat?ticket=${report.nomor_tiket || report.id}`}
+                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs border border-slate-200 whitespace-nowrap transition shadow-2xs cursor-pointer"
+                      title="Buka Ruang Obrolan Web"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Buka Chat di Web</span>
+                    </a>
+                  </div>
+
+                  {/* Status Pernyataan Hukum */}
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 text-[11px] text-amber-900 flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Pernyataan Pertanggungjawaban Hukum Sah:</strong> Pelapor telah menyetujui pernyataan siap hadir dan bertanggung jawab secara hukum atas kebenaran laporan ini.
+                    </span>
+                  </div>
+                </div>
+              )
+            })()}
 
             {/* Galeri Foto Bukti Lampiran */}
             <div className="space-y-2 pt-3 border-t border-slate-100">
@@ -576,28 +621,32 @@ export default function AdminDetailLaporanPage() {
             </h3>
 
             <form onSubmit={handleSaveAction} className="space-y-4">
-              {/* 1. Tahapan Penanganan (Segmented Bar Ramping & Elegan) */}
+              {/* 1. Tahapan Penanganan (Grid 2 Kolom Rapi & Lega, Bebas Tumpang Tindih) */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-800">
                   Tahap Penanganan
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 p-1 rounded-lg bg-slate-100 border border-slate-200 gap-1 text-xs">
+                <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
                   {[
-                    { key: 'diterima', label: 'Diterima' },
+                    { key: 'diterima', label: 'Menunggu Review' },
                     { key: 'diproses', label: 'Diproses' },
                     { key: 'ditindaklanjuti', label: 'Ditindaklanjuti' },
-                    { key: 'selesai', label: 'Selesai' },
-                  ].map((st) => {
+                    { key: 'selesai', label: 'Ditayangkan' },
+                    { key: 'ditolak', label: 'Ditolak / Arsip' },
+                  ].map((st, idx) => {
                     const isSelected = currentStatus === st.key
+                    const isFull = idx === 4
                     return (
                       <button
                         key={st.key}
                         type="button"
                         onClick={() => setCurrentStatus(st.key as DummyReport['status'])}
-                        className={`py-2 px-1 text-center rounded-md font-semibold text-xs transition cursor-pointer flex items-center justify-center ${
+                        className={`py-2 px-2 text-center rounded-lg font-semibold text-xs transition cursor-pointer flex items-center justify-center whitespace-nowrap ${
+                          isFull ? 'col-span-2' : 'col-span-1'
+                        } ${
                           isSelected
                             ? 'bg-[#c00015] text-white shadow-2xs'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                            : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs'
                         }`}
                       >
                         {st.label}
@@ -613,14 +662,14 @@ export default function AdminDetailLaporanPage() {
                   Hak Tayang Feed Warga
                 </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 p-1 rounded-lg bg-slate-100 border border-slate-200 gap-1 text-xs">
+                <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
                   <button
                     type="button"
                     onClick={() => setIsPublic(true)}
-                    className={`py-1.5 px-3 rounded-md font-semibold text-xs transition cursor-pointer text-center ${
+                    className={`py-2 px-2 rounded-lg font-semibold text-xs transition cursor-pointer text-center whitespace-nowrap ${
                       isPublic
                         ? 'bg-[#c00015] text-white shadow-2xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs'
                     }`}
                   >
                     Tayang di Feed Publik
@@ -629,10 +678,10 @@ export default function AdminDetailLaporanPage() {
                   <button
                     type="button"
                     onClick={() => setIsPublic(false)}
-                    className={`py-1.5 px-3 rounded-md font-semibold text-xs transition cursor-pointer text-center ${
+                    className={`py-2 px-2 rounded-lg font-semibold text-xs transition cursor-pointer text-center whitespace-nowrap ${
                       !isPublic
                         ? 'bg-[#c00015] text-white shadow-2xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs'
                     }`}
                   >
                     Privat (Arsip Redaksi)

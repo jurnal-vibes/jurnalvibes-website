@@ -838,11 +838,14 @@ function FeedPublikContent() {
                       key={report.id}
                       className="bg-surface border border-outline-variant/80 hover:border-primary/50 rounded-2xl p-4 sm:p-6 shadow-2xs transition-all duration-200"
                     >
-                      {/* Header Card: Pelapor Terenkripsi & Waktu / Alamat */}
+                      {/* Header Card: Pelapor Dilindungi (Anonim) & Waktu / Alamat */}
                       <div className="mb-3">
-                        <span className="block font-bold text-xs sm:text-sm text-on-surface leading-tight">
-                          Pelapor Terenkripsi
-                        </span>
+                        <div className="flex items-center gap-1.5 text-secondary">
+                          <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-secondary/80" />
+                          <span className="font-bold text-xs sm:text-sm text-on-surface leading-tight">
+                            Identitas Pelapor Dilindungi (Anonim)
+                          </span>
+                        </div>
                         <span className="block text-[11px] text-secondary mt-0.5 leading-snug line-clamp-1">
                           {getRelativeTime(report.created_at)} &bull; {report.lokasi || 'Sukabumi, Jawa Barat'}
                         </span>

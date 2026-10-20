@@ -120,18 +120,21 @@ export default function AdminModerasiFeedPublikPage() {
   const totalPublik = reportsList.filter((r) => r.is_public !== false).length
   const totalPrivat = reportsList.filter((r) => r.is_public === false).length
 
-  // Helper warna badge status penanganan (Ghost Minimalist Linear-Style - Clean Neutral Typography)
+  // Helper badge status penanganan (Harmonisasi Monokrom Redaksi - Pembeda Kurung Bersih)
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'selesai':
-        return <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">Selesai</span>
-      case 'ditindaklanjuti':
-        return <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">Ditindaklanjuti</span>
-      case 'diproses':
-        return <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">Diproses</span>
-      default:
-        return <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">Diterima</span>
+    const labels: Record<string, string> = {
+      diterima: '[Menunggu Review]',
+      diproses: '[Diproses]',
+      ditindaklanjuti: '[Ditindaklanjuti]',
+      selesai: '[Ditayangkan]',
+      ditolak: '[Ditolak]',
     }
+    const label = labels[status] || `[${status}]`
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
+        {label}
+      </span>
+    )
   }
 
   return (
@@ -280,33 +283,34 @@ export default function AdminModerasiFeedPublikPage() {
             <p className="text-xs text-slate-400">Coba sesuaikan filter atau kata kunci pencarian.</p>
           </div>
         ) : (
-          <div className="w-full overflow-x-auto">
-            <table className="w-full min-w-[680px] md:min-w-0 table-fixed text-left text-xs">
+          <div className="w-full overflow-x-auto [scrollbar-width:thin]">
+            <table className="w-full min-w-[850px] table-fixed text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
                 <tr>
-                  <th className="py-3 pl-4 pr-3 whitespace-nowrap w-[135px]">No. Tiket</th>
-                  <th className="py-3 px-3">Judul &amp; Lokasi Aduan</th>
-                  <th className="py-3 px-2.5 whitespace-nowrap w-[95px]">Status</th>
-                  <th className="py-3 px-2.5 whitespace-nowrap w-[95px]">Visibilitas</th>
-                  <th className="py-3 px-2 whitespace-nowrap w-[85px] text-center">Dukungan</th>
-                  <th className="py-3 pl-2 pr-4 whitespace-nowrap w-[125px] text-center">Aksi</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[140px]">No. Tiket</th>
+                  <th className="py-3.5 px-4 min-w-[220px]">Judul &amp; Lokasi Aduan</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[160px]">Status</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[110px]">Visibilitas</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[100px] text-center">Dukungan</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[125px] text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredReports.map((report) => (
                   <tr key={report.id} className="hover:bg-slate-50/70 transition-colors">
                     {/* No. Tiket */}
-                    <td className="py-3 px-3.5 whitespace-nowrap align-middle">
+                    <td className="py-3.5 px-4 whitespace-nowrap align-middle">
                       <span className="font-mono text-xs font-semibold text-slate-700">
                         {report.nomor_tiket}
                       </span>
                     </td>
 
                     {/* Judul & Lokasi */}
-                    <td className="py-3 px-3.5 align-middle min-w-0">
+                    <td className="py-3.5 px-4 align-middle min-w-0 overflow-hidden">
                       <Link
                         href={`/halo-jurnal/admin/laporan/${report.id}`}
-                        className="font-semibold text-slate-900 hover:text-[#c00015] transition truncate block"
+                        className="font-semibold text-slate-900 hover:text-[#c00015] transition truncate block text-xs"
+                        title={report.judul}
                       >
                         {report.judul}
                       </Link>
@@ -314,12 +318,12 @@ export default function AdminModerasiFeedPublikPage() {
                     </td>
 
                     {/* Status Penanganan */}
-                    <td className="py-3 px-2 whitespace-nowrap align-middle">
+                    <td className="py-3.5 px-4 whitespace-nowrap align-middle">
                       {getStatusBadge(report.status)}
                     </td>
 
                     {/* Status Visibilitas (Ghost Minimalist) */}
-                    <td className="py-3 px-2 whitespace-nowrap align-middle">
+                    <td className="py-3.5 px-4 whitespace-nowrap align-middle">
                       {report.is_public !== false ? (
                         <span className="text-xs font-semibold text-slate-700">
                           Publik
@@ -332,12 +336,12 @@ export default function AdminModerasiFeedPublikPage() {
                     </td>
 
                     {/* Dukungan */}
-                    <td className="py-3 px-2 whitespace-nowrap align-middle text-center text-slate-700 font-semibold text-xs">
+                    <td className="py-3.5 px-4 whitespace-nowrap align-middle text-center text-slate-700 font-semibold text-xs">
                       {report.dukungan_count || 0} suara
                     </td>
 
                     {/* Aksi Moderasi */}
-                    <td className="py-3 pl-2 pr-4 whitespace-nowrap align-middle text-center">
+                    <td className="py-3.5 px-4 whitespace-nowrap align-middle text-center">
                       <div className="inline-flex items-center justify-center gap-1">
                         {report.is_public !== false ? (
                           <button

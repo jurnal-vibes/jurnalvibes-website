@@ -5,12 +5,12 @@ import {
   Menu,
   Search,
   Bell,
-  Sparkles,
   Plus,
   MessageSquare,
   X,
   ExternalLink,
   LogOut,
+  AlertCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -209,9 +209,6 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     if (pathname === '/halo-jurnal/admin/laporan') {
       return { section: 'Halo Jurnal', page: 'Laporan Warga', sectionHref: '/halo-jurnal/admin/laporan' }
     }
-    if (pathname === '/halo-jurnal/admin/verifikasi-ktp') {
-      return { section: 'Halo Jurnal', page: 'Verifikasi KTP', sectionHref: '/halo-jurnal/admin/verifikasi-ktp' }
-    }
     if (pathname === '/halo-jurnal/admin/chat') {
       return { section: 'Halo Jurnal', page: 'Pusat Chat Warga', sectionHref: '/halo-jurnal/admin/chat' }
     }
@@ -250,11 +247,11 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     },
     {
       id: 'notif-2',
-      title: 'Verifikasi Berkas KTP',
-      desc: '1 KTP membutuhkan tinjauan manual.',
-      time: '35 menit lalu',
+      title: 'Pesan Warga Masuk',
+      desc: 'Warga membalas percakapan di Meja Redaksi.',
+      time: '25 menit lalu',
       type: 'warning',
-      href: '/halo-jurnal/admin/verifikasi-ktp',
+      href: '/halo-jurnal/admin/chat',
     },
     {
       id: 'notif-3',
@@ -457,7 +454,7 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
                             {n.type === 'warning' && (
-                              <Sparkles className="w-3 h-3 text-amber-500" />
+                              <AlertCircle className="w-3 h-3 text-amber-600" />
                             )}
                             {n.title}
                           </span>

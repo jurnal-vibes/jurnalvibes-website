@@ -94,7 +94,7 @@ export default function AdminLayout({
             <span>Memverifikasi Hak Akses Redaksi...</span>
           </div>
           <p className="text-[11px] text-slate-400">
-            Jurnal Wave &amp; Halo Jurnal — Portal Meja Redaksi
+            Jurnal Sukabumi — Meja Redaksi Halo Jurnal &amp; Wave
           </p>
         </div>
       </div>
@@ -122,9 +122,8 @@ export default function AdminLayout({
 
         {/* Footer Kecil Admin */}
         <footer className="px-6 py-4 border-t border-slate-200 text-center text-xs text-slate-500 bg-white/50">
-          © 2026 <strong className="text-slate-800 font-semibold">Jurnal Wave</strong> &amp;{' '}
-          <strong className="text-slate-800 font-semibold">Halo Jurnal</strong> — Portal Redaksi &amp;
-          Pusat Kendali Laporan Warga.
+          © 2026 <strong className="text-slate-800 font-semibold">Jurnal Sukabumi</strong> — Meja Redaksi &amp;
+          Pusat Kendali Halo Jurnal / Jurnal Wave.
         </footer>
       </div>
     </div>

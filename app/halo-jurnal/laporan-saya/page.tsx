@@ -53,7 +53,7 @@ export default function HaloJurnalLaporanSayaPage() {
           } catch {}
         }
       }
-      setUser({ id: 'demo-user-id', user_metadata: { full_name: 'Warga Sukabumi' } })
+      setUser(null)
     }
     checkUser()
 
@@ -69,9 +69,7 @@ export default function HaloJurnalLaporanSayaPage() {
   }, [])
 
   useEffect(() => {
-    if (user) {
-      fetchAllUserReports()
-    }
+    fetchAllUserReports()
   }, [user])
 
   useEffect(() => {
@@ -80,21 +78,38 @@ export default function HaloJurnalLaporanSayaPage() {
 
   const fetchAllUserReports = async () => {
     setLoading(true)
-    let baseReports: any[] = []
-      let localUserReports: any[] = []
-      try {
-        if (typeof window !== 'undefined') {
-          const stored = localStorage.getItem('halo_jurnal_user_reports')
-          if (stored) {
-            localUserReports = JSON.parse(stored)
-          }
+    let localUserReports: any[] = []
+    try {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('halo_jurnal_user_reports')
+        if (stored) {
+          localUserReports = JSON.parse(stored)
         }
-      } catch {}
+      }
+    } catch {}
 
-      baseReports =
-        localUserReports.length > 0
-          ? localUserReports
-          : DUMMY_REPORTS.slice(0, 4)
+    // Ambil data user aktif saat ini
+    let activeUser = user
+    if (!activeUser && typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('halo_jurnal_current_user')
+        if (storedUser) activeUser = JSON.parse(storedUser)
+      } catch {}
+    }
+
+    const currentUserId = activeUser?.id
+    const currentUserEmail = (activeUser?.email || '').toLowerCase().trim()
+
+    // Isolasi ketat per sesi akun: HANYA tampilkan laporan milik akun yang sedang login!
+    let baseReports = localUserReports.filter((r: any) => {
+      if (!currentUserId && !currentUserEmail) return false
+      const reportUserId = r.user_id || r.userId
+      const reportEmail = (r.email || r.user_email || r.pelaporEmail || r.pelapor_email || '').toLowerCase().trim()
+
+      if (currentUserId && reportUserId && String(reportUserId) === String(currentUserId)) return true
+      if (currentUserEmail && reportEmail && reportEmail === currentUserEmail) return true
+      return false
+    })
 
     // Terapkan override dari admin secara realtime
     if (typeof window !== 'undefined') {
@@ -240,7 +255,35 @@ export default function HaloJurnalLaporanSayaPage() {
         </Link>
       </div>
 
-      {/* 2. Stat Cards Summary */}
+      {!user && !loading ? (
+        <div className="text-center py-14 bg-surface rounded-2xl border border-outline-variant/70 p-6 sm:p-10 shadow-2xs max-w-lg mx-auto my-8">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
+            <ShieldCheck className="w-7 h-7" />
+          </div>
+          <h2 className="font-heading font-bold text-lg text-on-surface mb-2">
+            Masuk untuk Memantau Laporan Anda
+          </h2>
+          <p className="text-xs sm:text-sm text-secondary mb-6 leading-relaxed">
+            Riwayat laporan bersifat privat dan terikat khusus dengan akun Anda agar aman dan tidak dapat diakses oleh pengguna lain.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/login?redirect=/halo-jurnal/laporan-saya"
+              className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-semibold transition-all shadow-xs"
+            >
+              Masuk ke Akun
+            </Link>
+            <Link
+              href="/daftar"
+              className="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs sm:text-sm font-semibold transition-all border border-outline-variant/60"
+            >
+              Daftar Akun Baru
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* 2. Stat Cards Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
         {[
           {
@@ -594,6 +637,8 @@ export default function HaloJurnalLaporanSayaPage() {
             )}
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   )

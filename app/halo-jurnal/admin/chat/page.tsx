@@ -29,7 +29,7 @@ function ChatDeskContent() {
     initialTicketParam || DUMMY_REPORTS[0]?.nomor_tiket || DUMMY_REPORTS[0]?.id
   )
   const [searchQuery, setSearchQuery] = useState('')
-  const [filterType, setFilterType] = useState<'semua' | 'belum_dibalas' | 'ktp_sah'>('semua')
+  const [filterType, setFilterType] = useState<'semua' | 'belum_dibalas' | 'sudah_respon'>('semua')
   const [messages, setMessages] = useState<any[]>([])
   const [inputText, setInputText] = useState('')
   const [isSending, setIsSending] = useState(false)
@@ -289,8 +289,8 @@ function ChatDeskContent() {
     if (filterType === 'belum_dibalas') {
       return meta?.isWaitingAdmin || (meta?.unreadCount || 0) > 0
     }
-    if (filterType === 'ktp_sah') {
-      return !(rep as any).is_anonim
+    if (filterType === 'sudah_respon') {
+      return !meta?.isWaitingAdmin && (meta?.messageCount || 0) > 0
     }
     return true
   })
@@ -346,8 +346,8 @@ function ChatDeskContent() {
             <div className="flex items-center gap-1 text-xs">
               {[
                 { key: 'semua', label: 'Semua' },
-                { key: 'belum_dibalas', label: 'Belum Dibalas' },
-                { key: 'ktp_sah', label: 'KTP Sah' },
+                { key: 'belum_dibalas', label: 'Perlu Balasan' },
+                { key: 'sudah_respon', label: 'Sudah Direspons' },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -466,17 +466,13 @@ function ChatDeskContent() {
                       </span>
                       <span>•</span>
                       <span>
-                        {(currentReport as any).is_anonim ? 'Pelapor Anonim' : 'Warga Sukabumi'}
+                        {(currentReport as any).pelaporName || (currentReport as any).nama_pelapor || 'Warga Sukabumi'}
                       </span>
-                      {!(currentReport as any).is_anonim && (
-                        <>
-                          <span>•</span>
-                          <span className="inline-flex items-center gap-0.5 text-slate-700 font-semibold">
-                            <ShieldCheck className="w-3 h-3 text-slate-600" />
-                            KTP Sah
-                          </span>
-                        </>
-                      )}
+                      <span>•</span>
+                      <span className="inline-flex items-center gap-1 text-slate-600 font-medium">
+                        <ShieldCheck className="w-3 h-3 text-slate-500" />
+                        Identitas Dirahasiakan di Publik
+                      </span>
                       <span>•</span>
                       <span className="truncate flex items-center gap-0.5 text-slate-400">
                         <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
