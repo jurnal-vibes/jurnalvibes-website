@@ -17,6 +17,7 @@ import {
   Check,
   FileText,
   UserCheck,
+  ShieldCheck,
 } from 'lucide-react'
 import UserAvatar from '@/components/halo-jurnal/UserAvatar'
 import CategoryCards from '@/components/halo-jurnal/CategoryCards'
@@ -88,8 +89,8 @@ export default function HaloJurnalBerandaPage() {
           email: 'warga@sukabumi.com',
           full_name: 'Warga Sukabumi',
           role: 'warga',
-          nik: '3202112345670001',
-          ktp_verified: true,
+          phone: '081234567890',
+          is_verified: true,
         }
       }
 
@@ -167,8 +168,8 @@ export default function HaloJurnalBerandaPage() {
     user?.user_metadata?.full_name ||
     (user?.email && user.email.includes('@') ? user.email.split('@')[0] : 'Warga Sukabumi')
 
-  const userNik = user?.nik || '3202••••••••0001'
-  const isKtpVerified = user?.ktp_verified ?? true
+  const userPhone = user?.phone || user?.phone_number || '081234567890'
+  const isVerified = user?.is_verified ?? true
 
   // Report statistics
   const totalReportsCount = userReports.length
@@ -242,9 +243,9 @@ export default function HaloJurnalBerandaPage() {
                 Selamat Datang, {displayName}
               </h1>
               <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-secondary font-medium">
-                {isKtpVerified ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/80 text-secondary text-[11px] sm:text-xs font-semibold">
-                    <UserCheck className="w-3.5 h-3.5 text-primary" />
+                {isVerified ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/80 text-on-surface text-[11px] sm:text-xs font-semibold">
+                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
                     Warga Terverifikasi
                   </span>
                 ) : (
@@ -254,7 +255,7 @@ export default function HaloJurnalBerandaPage() {
                 )}
                 <span className="text-outline-variant">•</span>
                 <span className="font-mono text-[11px] sm:text-xs text-secondary/80">
-                  NIK: {userNik}
+                  WA: {userPhone}
                 </span>
                 <span className="text-outline-variant">•</span>
                 <span className="text-[11px] sm:text-xs text-secondary">

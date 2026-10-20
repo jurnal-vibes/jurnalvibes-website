@@ -82,8 +82,8 @@ const LOANWORD_PHONETICS: [RegExp, string][] = [
   [/\bRp\s*([\d.,]+)/gi, '$1 rupiah'],
 ];
 
-export function ArticleDetailView({ id }: { id: string }) {
-  const initialArticle = DUMMY_ARTICLES.find(a => a.id === id || a.slug === id) || DUMMY_ARTICLES[0];
+export function ArticleDetailView({ id, initialData }: { id: string; initialData?: Article }) {
+  const initialArticle = initialData || DUMMY_ARTICLES.find(a => a.id === id || a.slug === id) || DUMMY_ARTICLES[0];
 
   const [article, setArticle] = useState<Article>(initialArticle);
   const [allArticles, setAllArticles] = useState<Article[]>(DUMMY_ARTICLES);
@@ -642,10 +642,8 @@ export function ArticleDetailView({ id }: { id: string }) {
   }, [article, allArticles]);
 
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-6 lg:px-gutter pt-stack-lg pb-6 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
-      <LeftSidebar articles={allArticles} />
-
-      <main className="w-full md:w-3/4 flex flex-col gap-stack-lg pr-0 md:pr-6 lg:pr-12">
+    <div className="flex-grow w-full max-w-4xl mx-auto px-margin-mobile md:px-6 pt-stack-lg pb-6 md:pb-stack-lg flex flex-col relative">
+      <main className="w-full flex flex-col gap-stack-lg">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-[11px] text-on-surface-variant/70 mb-2">
           <Link href="/" className="hover:text-primary transition-colors">
@@ -767,8 +765,8 @@ export function ArticleDetailView({ id }: { id: string }) {
             <div className="rounded-2xl overflow-hidden shadow-sm aspect-video border border-outline-variant/40">
               {/* eslint-disable-next-img-element */}
               <img
-                src={article.imageUrl}
-                alt={article.imageAlt || article.title}
+                src={article?.imageUrl || '/logo_jurnal_wave.webp'}
+                alt={article?.imageAlt || article?.title || 'Jurnal Wave'}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -899,7 +897,7 @@ export function ArticleDetailView({ id }: { id: string }) {
 
         {/* Article Body, Reporter & Tags (Uniform Gap) */}
         <div className={`font-body-lg text-on-surface dark:text-gray-100 flex flex-col gap-3.5 transition-all duration-200 ${FONT_SIZE_CLASSES[fontSize]}`}>
-          {article.content.split('\n\n').map((paragraph, idx) => {
+          {(article?.content || '').split('\n\n').map((paragraph, idx) => {
             const trimmed = paragraph.trim();
             if (!trimmed) return null;
 

@@ -17,7 +17,6 @@ import {
   Star,
   Calendar,
   User,
-  Sparkles,
   Layers,
   ArrowRight,
   Save,

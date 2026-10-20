@@ -9,13 +9,22 @@ interface RecentPublicReportsProps {
   initialReports?: any[]
 }
 
-export default function RecentPublicReports({ initialReports = [] }: RecentPublicReportsProps) {
-  // Ambil hanya laporan yang publik dari awal
-  const getFilteredPublicReports = () => {
-    let source = initialReports && initialReports.length > 0 ? initialReports : DUMMY_REPORTS
+const DEFAULT_INITIAL_REPORTS: any[] = []
 
-    if (typeof window !== 'undefined') {
+export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_REPORTS }: RecentPublicReportsProps) {
+  // 1. Data awal yang identik 100% antara Server dan Client (bebas hydration error)
+  const getInitialReports = () => {
+    const source = initialReports && initialReports.length > 0 ? initialReports : DUMMY_REPORTS
+    return source.filter((r: any) => r.is_public !== false).slice(0, 4)
+  }
+
+  const [reports, setReports] = useState<any[]>(getInitialReports)
+
+  // 2. Baca localStorage secara aman HANYA di client setelah hydration selesai (useEffect)
+  useEffect(() => {
+    const syncReports = () => {
       try {
+        const source = initialReports && initialReports.length > 0 ? initialReports : DUMMY_REPORTS
         const overrides = JSON.parse(
           localStorage.getItem('halo_jurnal_status_overrides') || '{}'
         )
@@ -46,26 +55,20 @@ export default function RecentPublicReports({ initialReports = [] }: RecentPubli
           return r
         })
 
-        // Filter ketat: HANYA yang berstatus publik (is_public !== false) - Ambil 4 agar sejajar sempurna 4 kolom
-        return allReports.filter((r) => r.is_public !== false).slice(0, 4)
+        // Ambil 4 laporan publik terbaru
+        const nextReports = allReports.filter((r) => r.is_public !== false).slice(0, 4)
+        setReports((prev) => {
+          const prevKeys = prev.map((p) => `${p.id}-${p.status}`).join(',')
+          const nextKeys = nextReports.map((p) => `${p.id}-${p.status}`).join(',')
+          if (prevKeys === nextKeys) return prev
+          return nextReports
+        })
       } catch (err) {
         console.error('Error loading public reports on client:', err)
       }
     }
 
-    // SSR fallback: pastikan hanya is_public !== false
-    return source.filter((r: any) => r.is_public !== false).slice(0, 4)
-  }
-
-  const [reports, setReports] = useState<any[]>(getFilteredPublicReports())
-
-  // Sinkronisasi realtime saat beralih tab dari Admin atau saat storage berubah
-  useEffect(() => {
-    const syncReports = () => {
-      setReports(getFilteredPublicReports())
-    }
-
-    // Eksekusi langsung saat mount untuk membaca localStorage
+    // Eksekusi langsung setelah browser mount
     syncReports()
 
     window.addEventListener('storage', syncReports)

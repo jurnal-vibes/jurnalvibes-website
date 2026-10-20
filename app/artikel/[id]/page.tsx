@@ -55,5 +55,17 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
 
 export default async function ArticleDetailPage({ params }: ArticleDetailPageProps) {
   const { id } = await params;
-  return <ArticleDetailView id={id} />;
+  let article = DUMMY_ARTICLES.find(a => a.id === id || a.slug === id);
+
+  try {
+    const wpArticle = await fetchArticleById(id);
+    if (wpArticle) {
+      article = wpArticle;
+    }
+  } catch {
+    // Fallback to dummy article
+  }
+
+  const initialArticle = article || DUMMY_ARTICLES[0];
+  return <ArticleDetailView id={id} initialData={initialArticle} />;
 }

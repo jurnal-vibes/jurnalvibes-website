@@ -20,6 +20,8 @@ import {
   MapPin,
   Eye,
   Image as ImageIcon,
+  User,
+  ShieldCheck,
 } from 'lucide-react'
 
 type ReportType = 'pengaduan' | 'aspirasi' | 'informasi' | 'inspirasi'
@@ -155,6 +157,8 @@ function LaporForm() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isAnonymous, setIsAnonymous] = useState(true)
+  const [legalAgreed, setLegalAgreed] = useState(false)
 
   useEffect(() => {
     const checkUser = () => {
@@ -215,9 +219,14 @@ function LaporForm() {
     e.preventDefault()
     if (!user) return
 
-    // Upload foto/video hanya wajib untuk jenis Pengaduan
-    if (reportType === 'pengaduan' && !file) {
-      alert('Foto/Video bukti pendukung wajib dilampirkan khusus untuk laporan Pengaduan.')
+    // Upload bukti pendukung WAJIB minimal 1 file untuk semua laporan
+    if (!file) {
+      alert('Bukti pendukung (foto/video/dokumen) wajib dilampirkan minimal 1 berkas.')
+      return
+    }
+
+    if (!legalAgreed) {
+      alert('Anda wajib mencentang Pernyataan Pertanggungjawaban Hukum sebelum mengirim laporan.')
       return
     }
 
@@ -251,13 +260,25 @@ function LaporForm() {
 
       const finalKategori = reportType === 'informasi' ? jenisInformasi : category
 
-      // Simpan ke localStorage agar selalu muncul di Laporan Saya meskipun Supabase offline / schema belum termigrasi
       const newReportId = `lap-sukabumi-${Date.now()}`
+      const pelaporDisplayName = user?.user_metadata?.full_name || user?.full_name || user?.email?.split('@')[0] || 'Warga Sukabumi'
+      const pelaporDomisili = user?.alamat_domisili || user?.detail_alamat || (reportType === 'inspirasi' ? 'Sukabumi' : '')
+
       const newReportData = {
         id: newReportId,
         ticket_number: ticketNumber,
         nomor_tiket: ticketNumber,
-        user_id: user.id,
+        user_id: user?.id || 'warga-anon',
+        user_email: user?.email || '',
+        email: user?.email || '',
+        pelaporEmail: user?.email || '',
+        pelapor_email: user?.email || '',
+        pelaporName: pelaporDisplayName,
+        alamat_domisili: pelaporDomisili,
+        is_anonim: isAnonymous,
+        is_anonymous: isAnonymous,
+        legal_agreement: true,
+        legal_agreed_at: new Date().toISOString(),
         jenis: reportType,
         kategori: finalKategori,
         judul: title,
@@ -279,7 +300,7 @@ function LaporForm() {
           {
             id: `log-${Date.now()}`,
             status: 'diterima',
-            catatan: 'Laporan baru diterima oleh sistem Halo Jurnal',
+            catatan: 'Laporan baru diterima oleh sistem (Menunggu Review Redaksi)',
             created_at: new Date().toISOString(),
           },
         ],
@@ -298,20 +319,23 @@ function LaporForm() {
             address: locationData.address || '',
             latitude: locationData.lat || null,
             longitude: locationData.lng || null,
-            pelaporName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Warga Sukabumi',
-            nama_pelapor: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Warga Sukabumi',
-            pelaporPhone: user.phone || '',
-            telepon: user.phone || '',
-            pelaporEmail: user.email || '',
-            email: user.email || '',
+            pelaporName: pelaporDisplayName,
+            nama_pelapor: pelaporDisplayName,
+            pelaporPhone: user?.phone || user?.phone_number || '',
+            telepon: user?.phone || user?.phone_number || '',
+            pelaporEmail: user?.email || '',
+            email: user?.email || '',
             previewUrl: previewUrl || '',
+            isAnonymous,
+            legalAgreement: true,
+            domisili: pelaporDomisili,
           }),
         })
       } catch (err) {
-        console.warn('Gagal simpan ke MySQL, tetap menyimpan ke local cache:', err)
+        console.warn('Gagal simpan ke database, tetap menyimpan ke local cache:', err)
       }
 
-      // 2. Sinkronkan ke local storage untuk tracking instan di perangkat pelapor
+      // 2. Sinkronkan ke local storage
       try {
         if (typeof window !== 'undefined') {
           const prev = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
@@ -320,12 +344,28 @@ function LaporForm() {
         }
       } catch {}
 
-      alert(`Laporan berhasil dikirim! Nomor Tiket Anda: ${ticketNumber}`)
-      router.push('/halo-jurnal/laporan-saya')
+      // 3. Buat sesi ruang chat aktif & kirim pesan sambutan otomatis dari Redaksi
+      try {
+        const welcomeMessage = {
+          id: `msg-welcome-${Date.now()}`,
+          ticketNumber,
+          sender: 'Redaksi Halo Jurnal',
+          sender_name: 'Redaksi Halo Jurnal',
+          role: 'admin',
+          avatar: '/logo-white.png',
+          message: `Halo ${pelaporDisplayName}, laporan Anda dengan Nomor Tiket #${ticketNumber} telah diterima oleh Redaksi Halo Jurnal. Tim kami sedang memverifikasi laporan Anda. Anda dapat berkoordinasi langsung dengan kami di ruang chat ini.`,
+          created_at: new Date().toISOString(),
+          timestamp: 'Baru saja',
+          isSystem: true,
+        }
+        localStorage.setItem(`halo_jurnal_chat_${ticketNumber}`, JSON.stringify([welcomeMessage]))
+        localStorage.setItem(`halo_jurnal_chat_${newReportId}`, JSON.stringify([welcomeMessage]))
+      } catch {}
+
+      // Transisi langsung tanpa alert popup bawaan browser
+      router.push(`/halo-jurnal/laporan/${newReportId}?sukses=1#chat`)
     } catch (error: any) {
       console.error(error)
-      alert(`Terjadi kesalahan: ${error.message}`)
-    } finally {
       setLoading(false)
     }
   }
@@ -557,11 +597,81 @@ function LaporForm() {
               </div>
             </div>
 
+            {/* Seksi Legalitas & Identitas Pelapor */}
+            <div className="rounded-2xl border border-outline-variant/80 bg-surface-container-low/80 overflow-hidden text-xs">
+              {/* Header Box */}
+              <div className="px-4 py-3 bg-surface-container border-b border-outline-variant/60 flex items-center justify-between">
+                <div className="flex items-center gap-2 font-semibold text-on-surface">
+                  <User className="w-4 h-4 text-primary" />
+                  <span>Identitas Pelapor Terdaftar</span>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/80 text-on-surface text-[11px] font-semibold">
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                  Warga Terverifikasi
+                </span>
+              </div>
+
+              {/* Data Pelapor */}
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-secondary border-b border-outline-variant/50">
+                <div>
+                  <span className="block text-[11px] text-secondary">Nama Lengkap:</span>
+                  <span className="text-on-surface font-semibold text-xs">{user?.user_metadata?.full_name || user?.full_name || 'Warga Sukabumi'}</span>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-secondary">No. WhatsApp / HP:</span>
+                  <span className="text-on-surface font-semibold text-xs">{user?.phone || user?.phone_number || '-'}</span>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-secondary">Alamat Email:</span>
+                  <span className="text-on-surface font-semibold text-xs">{user?.email || '-'}</span>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-secondary">Alamat Domisili:</span>
+                  <span className="text-on-surface font-semibold text-xs">{user?.alamat_domisili || user?.detail_alamat || 'Sukabumi'}</span>
+                </div>
+              </div>
+
+              {/* Ketentuan Privasi & Checkbox Legal */}
+              <div className="p-4 space-y-3 bg-surface-container-lowest">
+                {/* Jaminan Perlindungan Privasi Pelapor (Otomatis Anonim di Publik) */}
+                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-surface-container-low/80 border border-outline-variant/60">
+                  <ShieldCheck className="w-4 h-4 text-secondary/80 shrink-0 mt-0.5" />
+                  <div className="text-xs">
+                    <span className="font-bold text-on-surface block">
+                      Identitas Anda Otomatis Dilindungi (Anonim di Publik)
+                    </span>
+                    <span className="text-[11px] text-secondary block mt-0.5 leading-relaxed">
+                      Sesuai standar perlindungan pelapor (UU PDP), data akun dan kontak Anda hanya disimpan secara privat oleh Tim Redaksi untuk verifikasi. Di publik, identitas Anda otomatis dirahasiakan.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Checkbox Wajib: Pernyataan Pertanggungjawaban Hukum */}
+                <label className="flex items-start gap-2.5 text-xs text-on-surface cursor-pointer select-none pt-2.5 border-t border-outline-variant/40">
+                  <input
+                    type="checkbox"
+                    checked={legalAgreed}
+                    onChange={(e) => setLegalAgreed(e.target.checked)}
+                    className="mt-0.5 rounded border-outline-variant text-primary focus:ring-primary shrink-0"
+                    required
+                  />
+                  <div>
+                    <span className="font-bold text-on-surface">
+                      Pernyataan Pertanggungjawaban Hukum <span className="text-primary">*</span>
+                    </span>
+                    <span className="text-[11px] text-secondary block mt-0.5 leading-relaxed">
+                      Saya menyatakan identitas, informasi, dan bukti yang saya lampirkan adalah benar. Saya bersedia dihubungi tim redaksi serta siap hadir memberikan keterangan dan pertanggungjawaban apabila laporan ini ditindaklanjuti.
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-3.5 px-6 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm tracking-tight shadow-xs hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              disabled={loading || !file || !legalAgreed}
+              className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (
                 <>
@@ -575,6 +685,16 @@ function LaporForm() {
                 </>
               )}
             </button>
+            {!file && (
+              <p className="text-[11px] text-center text-primary font-medium">
+                * Wajib mengunggah minimal 1 file foto/video bukti untuk membuka tombol kirim.
+              </p>
+            )}
+            {file && !legalAgreed && (
+              <p className="text-[11px] text-center text-amber-600 dark:text-amber-400 font-medium">
+                * Wajib mencentang kotak pernyataan hukum di atas untuk mengirim laporan.
+              </p>
+            )}
           </form>
         </div>
 

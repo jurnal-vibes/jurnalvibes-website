@@ -34,26 +34,25 @@ export default function AdminLaporanPage() {
     if (lower.includes('kesehatan') || lower.includes('medis')) return 'Kesehatan'
     if (lower.includes('pendidikan') || lower.includes('sekolah')) return 'Pendidikan'
     if (lower.includes('pelayanan') || lower.includes('layanan')) return 'Layanan Publik'
-    if (clean === clean.toUpperCase() && clean.length > 2) {
-      return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase()
-    }
-    return clean
+    // Selalu format menjadi Title Case rapi
+    return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase()
   }
 
-  // Status badge styling (Ghost Minimalist Linear-Style - Clean Neutral Typography)
+  // Status badge styling (Harmonisasi Monokrom Redaksi - Pembeda Kurung Bersih)
   const getStatusBadge = (status: DummyReport['status']) => {
-    switch (status) {
-      case 'diterima':
-        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Diterima</span>
-      case 'diproses':
-        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Diproses</span>
-      case 'ditindaklanjuti':
-        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Ditindaklanjuti</span>
-      case 'selesai':
-        return <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Selesai</span>
-      default:
-        return <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{status}</span>
+    const labels: Record<string, string> = {
+      diterima: '[Menunggu Review]',
+      diproses: '[Diproses]',
+      ditindaklanjuti: '[Ditindaklanjuti]',
+      selesai: '[Ditayangkan]',
+      ditolak: '[Ditolak]',
     }
+    const label = labels[status] || `[${status}]`
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
+        {label}
+      </span>
+    )
   }
 
   // Format tanggal rapi
@@ -296,10 +295,10 @@ export default function AdminLaporanPage() {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {[
           { key: 'semua', label: 'Semua Laporan', count: statusCounts.semua },
-          { key: 'diterima', label: 'Diterima', count: statusCounts.diterima },
+          { key: 'diterima', label: 'Menunggu Review', count: statusCounts.diterima },
           { key: 'diproses', label: 'Diproses', count: statusCounts.diproses },
           { key: 'ditindaklanjuti', label: 'Ditindaklanjuti', count: statusCounts.ditindaklanjuti },
-          { key: 'selesai', label: 'Selesai', count: statusCounts.selesai },
+          { key: 'selesai', label: 'Ditayangkan', count: statusCounts.selesai },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -422,16 +421,16 @@ export default function AdminLaporanPage() {
           </div>
         ) : (
           /* Tabel Data Tabular Simpel & Rapi (Desktop Pas, Mobile Scrollable) */
-          <div className="w-full overflow-x-auto">
-            <table className="w-full min-w-[720px] md:min-w-0 table-fixed text-left text-xs">
+          <div className="w-full overflow-x-auto [scrollbar-width:thin]">
+            <table className="w-full min-w-[850px] table-fixed text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
                 <tr>
-                  <th className="py-3 pl-4 pr-3 whitespace-nowrap w-[155px]">No. Tiket &amp; Tanggal</th>
-                  <th className="py-3 px-3">Judul Aduan &amp; Lokasi</th>
-                  <th className="py-3 px-3 whitespace-nowrap w-[120px]">Kategori</th>
-                  <th className="py-3 px-3 whitespace-nowrap w-[110px]">Status</th>
-                  <th className="py-3 px-2 whitespace-nowrap w-[85px] text-center">Dukungan</th>
-                  <th className="py-3 pl-2 pr-4 whitespace-nowrap w-[130px] text-center">Aksi</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[155px]">No. Tiket &amp; Tanggal</th>
+                  <th className="py-3.5 px-4 min-w-[220px]">Judul Aduan &amp; Lokasi</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[130px]">Kategori</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[160px]">Status</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[100px] text-center">Dukungan</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[120px] text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -444,7 +443,7 @@ export default function AdminLaporanPage() {
                   return (
                     <tr key={report.id} className="hover:bg-slate-50/70 transition-colors">
                       {/* No. Tiket, Tanggal & Badge Publik/Privat Rapi Sejajar */}
-                      <td className="py-3 pl-4 pr-3 whitespace-nowrap align-middle">
+                      <td className="py-3.5 px-4 whitespace-nowrap align-middle">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded-md">
                             {report.nomor_tiket}
@@ -474,10 +473,11 @@ export default function AdminLaporanPage() {
                       </td>
 
                       {/* Judul & Lokasi */}
-                      <td className="py-3 px-3 align-middle min-w-0">
+                      <td className="py-3.5 px-4 align-middle min-w-0 overflow-hidden">
                         <Link
                           href={`/halo-jurnal/admin/laporan/${report.id}`}
-                          className="font-heading font-semibold text-slate-900 hover:text-[#c00015] transition-colors truncate block"
+                          className="font-heading font-semibold text-slate-900 hover:text-[#c00015] transition-colors truncate block text-xs"
+                          title={report.judul}
                         >
                           {report.judul}
                         </Link>
@@ -488,7 +488,7 @@ export default function AdminLaporanPage() {
                       </td>
 
                       {/* Kategori Rapi (Ghost Plain Text) */}
-                      <td className="py-3 px-3 whitespace-nowrap align-middle min-w-0">
+                      <td className="py-3.5 px-4 whitespace-nowrap align-middle min-w-0 overflow-hidden">
                         <span
                           className="text-xs font-medium text-slate-700 truncate inline-block"
                           title={report.kategori}
@@ -498,17 +498,17 @@ export default function AdminLaporanPage() {
                       </td>
 
                       {/* Status Penanganan */}
-                      <td className="py-3 px-3 whitespace-nowrap align-middle">
+                      <td className="py-3.5 px-4 whitespace-nowrap align-middle">
                         {getStatusBadge(report.status)}
                       </td>
 
                       {/* Dukungan Warga */}
-                      <td className="py-3 px-2 whitespace-nowrap align-middle text-center text-slate-700 font-semibold text-xs">
+                      <td className="py-3.5 px-4 whitespace-nowrap align-middle text-center text-slate-700 font-semibold text-xs">
                         {report.dukungan_count || 0} suara
                       </td>
 
                       {/* Tombol Aksi Bersih & Simetris */}
-                      <td className="py-3 pl-2 pr-4 whitespace-nowrap text-center align-middle">
+                      <td className="py-3.5 px-4 whitespace-nowrap text-center align-middle">
                         <div className="inline-flex items-center justify-center gap-1.5">
                           <Link
                             href={`/halo-jurnal/laporan/${report.id}`}

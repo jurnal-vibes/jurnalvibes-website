@@ -33,15 +33,14 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [adminUser, setAdminUser] = useState({
-    name: 'Super Admin',
-    email: 'admin@jurnalwave.com',
+    name: 'Redaksi Jurnal Sukabumi',
+    email: 'redaksi@jurnalsukabumi.com',
   })
 
   // Dynamic badge counts
   const [counts, setCounts] = useState({
     pendingReports: 1,
     unreadChat: 0,
-    flaggedKtp: 2,
     articles: 10,
     reels: 8,
   })
@@ -95,15 +94,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             }
           }
 
-          // 3. KTP Flagged
-          const ktpSaved = JSON.parse(
-            localStorage.getItem('halo_jurnal_ktp_verifications') || '[]'
-          )
-          const flagged = Array.isArray(ktpSaved) && ktpSaved.length > 0
-            ? ktpSaved.filter((k: any) => k.status === 'flagged').length
-            : 2
-
-          // 4. Articles count
+          // 3. Articles count
           const artSaved = JSON.parse(
             localStorage.getItem('jurnal_wave_articles') || '[]'
           )
@@ -111,7 +102,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             ? artSaved.length
             : DUMMY_ARTICLES.length
 
-          // 5. Reels count
+          // 4. Reels count
           const reelsSaved = JSON.parse(
             localStorage.getItem('jurnal_wave_reels') || '[]'
           )
@@ -122,7 +113,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           setCounts({
             pendingReports: pending,
             unreadChat: unreadChatCount,
-            flaggedKtp: flagged,
             articles: totalArticles,
             reels: totalReels,
           })
@@ -133,8 +123,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             const parsed = JSON.parse(savedUser)
             if (parsed.name || parsed.email) {
               setAdminUser({
-                name: parsed.name || 'Super Admin',
-                email: parsed.email || 'admin@jurnalwave.com',
+                name: parsed.name || 'Redaksi Jurnal Sukabumi',
+                email: parsed.email || 'redaksi@jurnalsukabumi.com',
               })
             }
           }
@@ -152,10 +142,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   }, [])
 
   const handleLogout = async () => {
-    if (typeof window !== 'undefined' && !confirm('Apakah Anda yakin ingin keluar dari sesi administrator?')) {
-      return
-    }
-
     setIsLoggingOut(true)
     try {
       await fetch('/api/admin/auth', { method: 'DELETE' })
@@ -198,13 +184,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           icon: MessageSquare,
           badge: counts.unreadChat > 0 ? String(counts.unreadChat) : null,
           badgeColor: 'bg-emerald-500/10 text-emerald-800',
-        },
-        {
-          name: 'Verifikasi KTP',
-          href: '/halo-jurnal/admin/verifikasi-ktp',
-          icon: ShieldCheck,
-          badge: counts.flaggedKtp > 0 ? String(counts.flaggedKtp) : null,
-          badgeColor: 'bg-amber-500/10 text-amber-800',
         },
         {
           name: 'Feed Publik',
@@ -286,20 +265,20 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <Link href="/halo-jurnal/admin" className="flex items-center gap-2.5">
             <img
               src="/halo-jurnal-icon.webp"
-              alt="Halo Jurnal Logo"
+              alt="Jurnal Sukabumi"
               className="w-8 h-8 object-contain shrink-0"
             />
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5 leading-none">
                 <span className="font-heading font-extrabold text-base tracking-tight text-slate-900">
-                  Jurnal<span className="text-[#c00015]">Wave</span>
+                  Jurnal<span className="text-[#c00015]">Sukabumi</span>
                 </span>
-                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                  Admin
+                <span className="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded uppercase tracking-wider">
+                  Redaksi
                 </span>
               </div>
               <span className="text-[10px] text-slate-500 font-medium mt-0.5">
-                Portal Redaksi &amp; Halo Jurnal
+                Pusat Kendali Halo Jurnal &amp; Wave
               </span>
             </div>
           </Link>
@@ -381,7 +360,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200">
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-7 h-7 rounded-full bg-red-50 text-[#c00015] flex items-center justify-center font-bold text-xs shrink-0 border border-red-100">
-                JV
+                JS
               </div>
               <div className="min-w-0 leading-tight">
                 <p className="text-xs font-semibold text-slate-800 truncate">{adminUser.name}</p>

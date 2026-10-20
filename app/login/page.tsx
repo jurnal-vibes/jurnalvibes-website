@@ -69,7 +69,7 @@ function LoginPageContent() {
         full_name: userName,
         user_metadata: { full_name: userName },
         role: 'warga',
-        ktp_verified: true,
+        is_verified: true,
       }
 
       if (typeof window !== 'undefined') {

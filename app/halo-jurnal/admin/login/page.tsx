@@ -109,14 +109,14 @@ export default function AdminLoginPage() {
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5 leading-none">
               <span className="font-heading font-extrabold text-base tracking-tight text-slate-900">
-                Jurnal<span className="text-[#c00015]">Wave</span>
+                Jurnal<span className="text-[#c00015]">Sukabumi</span>
               </span>
-              <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                Admin
+              <span className="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded uppercase tracking-wider">
+                Redaksi
               </span>
             </div>
             <span className="text-[10px] text-slate-500 font-medium mt-0.5">
-              Portal Redaksi &amp; Halo Jurnal
+              Pusat Kendali Halo Jurnal &amp; Wave
             </span>
           </div>
         </Link>
@@ -242,9 +242,8 @@ export default function AdminLoginPage() {
 
       {/* Footer Bawah */}
       <footer className="text-center text-xs text-slate-400 py-4">
-        © 2026 <strong className="text-slate-600 font-semibold">Jurnal Wave</strong> &amp;{' '}
-        <strong className="text-slate-600 font-semibold">Halo Jurnal</strong> — Portal Redaksi &amp;
-        Pusat Kendali Laporan Warga.
+        © 2026 <strong className="text-slate-600 font-semibold">Jurnal Sukabumi</strong> — Meja Redaksi &amp;
+        Pusat Kendali Halo Jurnal / Jurnal Wave.
       </footer>
     </div>
   )
