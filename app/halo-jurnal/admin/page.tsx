@@ -53,12 +53,26 @@ export default function AdminDashboardPage() {
   }
 
   useEffect(() => {
-    syncReports()
-    window.addEventListener('storage', syncReports)
-    window.addEventListener('focus', syncReports)
+    const loadLiveReports = async () => {
+      try {
+        const res = await fetch('/api/reports', { cache: 'no-store' })
+        const json = await res.json()
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setReportsList(json.data)
+          return
+        }
+      } catch (err) {
+        console.warn('Gagal memuat laporan live admin:', err)
+      }
+      syncReports()
+    }
+
+    loadLiveReports()
+    window.addEventListener('storage', loadLiveReports)
+    window.addEventListener('focus', loadLiveReports)
     return () => {
-      window.removeEventListener('storage', syncReports)
-      window.removeEventListener('focus', syncReports)
+      window.removeEventListener('storage', loadLiveReports)
+      window.removeEventListener('focus', loadLiveReports)
     }
   }, [])
 

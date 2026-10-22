@@ -113,7 +113,7 @@ export default function AdminLaporanPage() {
   React.useEffect(() => {
     const loadReports = async () => {
       try {
-        const res = await fetch('/api/reports')
+        const res = await fetch('/api/reports', { cache: 'no-store' })
         if (res.ok) {
           const json = await res.json()
           if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -122,7 +122,7 @@ export default function AdminLaporanPage() {
           }
         }
       } catch (err) {
-        console.warn('Gagal memuat laporan dari MySQL, menggunakan fallback lokal:', err)
+        console.warn('Gagal memuat laporan live admin:', err)
       }
 
       // Fallback lokal jika offline

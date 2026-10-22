@@ -1,14 +1,53 @@
 import Link from 'next/link'
 import CategoryCards from '@/components/halo-jurnal/CategoryCards'
 import { Search, Calendar, MapPin, ArrowRight, ShieldCheck, Clock, CheckCircle2 } from 'lucide-react'
+import { prisma } from '@/lib/prisma'
 import { DUMMY_REPORTS } from '@/data/dummyReports'
 import RecentPublicReports from '@/components/halo-jurnal/RecentPublicReports'
 
-export default function HaloJurnalLandingPage() {
-  const recentReports = DUMMY_REPORTS.slice(0, 4)
-  const totalLaporan = DUMMY_REPORTS.length
-  const tuntasLaporan = DUMMY_REPORTS.filter((r) => r.status === 'selesai').length
-  const prosesLaporan = DUMMY_REPORTS.filter((r) => r.status === 'diproses').length
+export default async function HaloJurnalLandingPage() {
+  let totalLaporan = 0
+  let tuntasLaporan = 0
+  let prosesLaporan = 0
+  let recentReports: any[] = []
+
+  try {
+    const dbReports = await prisma.report.findMany({
+      orderBy: { createdAt: 'desc' },
+    })
+    if (dbReports.length > 0) {
+      totalLaporan = dbReports.length
+      tuntasLaporan = dbReports.filter((r) => r.status === 'selesai').length
+      prosesLaporan = dbReports.filter((r) => r.status === 'diproses').length
+      recentReports = dbReports
+        .filter((r) => r.isPublic !== false)
+        .slice(0, 4)
+        .map((item) => ({
+          id: item.id,
+          nomor_tiket: item.ticketNumber,
+          ticket_number: item.ticketNumber,
+          ticketNumber: item.ticketNumber,
+          judul: item.title,
+          deskripsi: item.description,
+          kategori: item.reportType,
+          lokasi: item.address,
+          status: item.status,
+          is_public: Boolean(item.isPublic),
+          created_at: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+          laporan_lampiran: [],
+        }))
+    } else {
+      totalLaporan = DUMMY_REPORTS.length
+      tuntasLaporan = DUMMY_REPORTS.filter((r) => r.status === 'selesai').length
+      prosesLaporan = DUMMY_REPORTS.filter((r) => r.status === 'diproses').length
+      recentReports = DUMMY_REPORTS.slice(0, 4)
+    }
+  } catch {
+    totalLaporan = DUMMY_REPORTS.length
+    tuntasLaporan = DUMMY_REPORTS.filter((r) => r.status === 'selesai').length
+    prosesLaporan = DUMMY_REPORTS.filter((r) => r.status === 'diproses').length
+    recentReports = DUMMY_REPORTS.slice(0, 4)
+  }
 
   return (
     <main className="w-full">
