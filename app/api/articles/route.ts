@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { DUMMY_ARTICLES } from '@/data/dummyArticles'
+import { getAdminSession } from '@/lib/auth'
 
 // Helper format artikel dari Prisma ke format Frontend
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,7 +28,7 @@ function mapArticleFromDb(item: any) {
   }
 }
 
-// 1. GET: Ambil semua artikel dari MySQL
+// 1. GET: Ambil semua artikel dari database
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
     if (dbArticles.length > 0) {
       return NextResponse.json({
         success: true,
-        source: 'mysql',
+        source: 'database',
         data: dbArticles.map(mapArticleFromDb),
       })
     }
@@ -84,9 +85,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 2. POST: Tambah artikel baru ke MySQL
+// 2. POST: Tambah artikel baru ke database (Wajib Login Admin)
 export async function POST(request: NextRequest) {
   try {
+    const session = await getAdminSession(request)
+    if (!session) {
+      return NextResponse.json(
+        { success: false, message: 'Akses ditolak: Anda harus login sebagai admin untuk menerbitkan berita.' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
 
     if (!body.title || !body.title.trim()) {
@@ -134,7 +143,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Berita berhasil disimpan ke database MySQL XAMPP!',
+        message: 'Berita berhasil disimpan ke database!',
         data: mapArticleFromDb(created),
       },
       { status: 201 }
@@ -148,9 +157,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// 3. PUT: Edit / Perbarui artikel di MySQL
+// 3. PUT: Edit / Perbarui artikel di database (Wajib Login Admin)
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getAdminSession(request)
+    if (!session) {
+      return NextResponse.json(
+        { success: false, message: 'Akses ditolak: Anda harus login sebagai admin untuk mengedit berita.' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
 
     if (!body.id) {
@@ -174,7 +191,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Berita berhasil diperbarui di database MySQL!',
+      message: 'Berita berhasil diperbarui!',
       data: mapArticleFromDb(updated),
     })
   } catch (error: any) {
@@ -186,9 +203,17 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// 4. DELETE: Hapus artikel dari MySQL
+// 4. DELETE: Hapus artikel dari database (Wajib Login Admin)
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getAdminSession(request)
+    if (!session) {
+      return NextResponse.json(
+        { success: false, message: 'Akses ditolak: Anda harus login sebagai admin untuk menghapus berita.' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -202,7 +227,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Berita berhasil dihapus dari database MySQL!',
+      message: 'Berita berhasil dihapus!',
     })
   } catch (error: any) {
     console.error('API Articles DELETE error:', error)

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
-import { ShieldAlert, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 export default function AdminLayout({
   children,
@@ -28,39 +28,26 @@ export default function AdminLayout({
     let isMounted = true
 
     const verifyAdmin = async () => {
-      // 1. Cek cepat via localStorage untuk menghindari delay UI
-      const localAuth =
-        typeof window !== 'undefined' &&
-        localStorage.getItem('jurnal_wave_admin_authenticated') === 'true'
-
-      if (localAuth) {
-        if (isMounted) setIsAuthenticated(true)
-      }
-
-      // 2. Verifikasi status sesi resmi via API / Cookie
       try {
-        const res = await fetch('/api/admin/auth')
+        // Verifikasi status sesi resmi server via HTTP-Only Cookie
+        const res = await fetch('/api/admin/auth', {
+          method: 'GET',
+          cache: 'no-store',
+        })
         const data = await res.json()
 
         if (!isMounted) return
 
         if (data.authenticated) {
           setIsAuthenticated(true)
-          if (typeof window !== 'undefined' && !localAuth) {
-            localStorage.setItem('jurnal_wave_admin_authenticated', 'true')
-          }
-        } else if (!localAuth) {
-          setIsAuthenticated(false)
-          router.replace('/halo-jurnal/admin/login')
-        }
-      } catch (err) {
-        if (!isMounted) return
-        if (localAuth) {
-          setIsAuthenticated(true)
         } else {
           setIsAuthenticated(false)
           router.replace('/halo-jurnal/admin/login')
         }
+      } catch {
+        if (!isMounted) return
+        setIsAuthenticated(false)
+        router.replace('/halo-jurnal/admin/login')
       }
     }
 
@@ -71,7 +58,7 @@ export default function AdminLayout({
     }
   }, [pathname, isLoginPage, router])
 
-  // Jika di halaman login, tampilkan halaman login utuh (full screen dark layout)
+  // Jika di halaman login, tampilkan halaman login utuh
   if (isLoginPage) {
     return <>{children}</>
   }

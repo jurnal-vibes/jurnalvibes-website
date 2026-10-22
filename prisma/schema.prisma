@@ -108,3 +108,19 @@ model AdminUser {
 
   @@map("admin_users")
 }
+
+// 8. Pengguna Warga (Halo Jurnal)
+model CitizenUser {
+  id         String   @id @default(cuid())
+  email      String   @unique @db.VarChar(100)
+  fullName   String   @db.VarChar(100)
+  phone      String   @db.VarChar(50)
+  domisili   String?  @db.Text
+  password   String?  @db.Text
+  isVerified Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("citizen_users")
+}
+

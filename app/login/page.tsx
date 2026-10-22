@@ -48,26 +48,23 @@ function LoginPageContent() {
     setError('')
 
     try {
-      // Periksa apakah user terdaftar di database lokal, jika tidak buat profil baru
-      let registeredUser: any = null
-      if (typeof window !== 'undefined') {
-        try {
-          const registeredUsersRaw = localStorage.getItem('halo_jurnal_registered_users')
-          if (registeredUsersRaw) {
-            const list = JSON.parse(registeredUsersRaw)
-            if (Array.isArray(list)) {
-              registeredUser = list.find((u: any) => u.email?.toLowerCase() === email.trim().toLowerCase())
-            }
-          }
-        } catch {}
+      const res = await fetch('/api/auth/citizen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', email: email.trim(), password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        setError(data.message || 'Kombinasi email atau kata sandi tidak cocok.')
+        return
       }
 
-      const userName = registeredUser?.full_name || email.trim().split('@')[0].toUpperCase()
-      const wargaUser = registeredUser || {
+      const wargaUser = data.user || {
         id: 'warga-' + Date.now(),
         email: email.trim(),
-        full_name: userName,
-        user_metadata: { full_name: userName },
+        full_name: email.trim().split('@')[0].toUpperCase(),
         role: 'warga',
         is_verified: true,
       }
@@ -80,7 +77,7 @@ function LoginPageContent() {
       router.push('/halo-jurnal/beranda')
       router.refresh()
     } catch {
-      setError('Terjadi kendala koneksi. Coba lagi beberapa saat lagi.')
+      setError('Terjadi kendala koneksi ke server. Coba lagi beberapa saat lagi.')
     } finally {
       setLoading(false)
     }

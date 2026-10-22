@@ -163,9 +163,25 @@ function FeedPublikContent() {
   const fetchReports = async () => {
     setLoading(true)
     try {
-      let baseReports: any[] = [...DUMMY_REPORTS]
+      let baseReports: any[] = []
 
-      // Gabungkan laporan warga dari localStorage (yang dibuat via Buat Laporan / Laporan Saya)
+      // 1. Ambil data laporan resmi dari database Neon DB via API
+      try {
+        const res = await fetch('/api/reports', { cache: 'no-store' })
+        const json = await res.json()
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          baseReports = json.data
+        }
+      } catch (err) {
+        console.warn('Gagal memuat laporan dari API database, menggunakan cache:', err)
+      }
+
+      // Jika database kosong / sedang offline, sediakan fallback data dummy
+      if (baseReports.length === 0) {
+        baseReports = [...DUMMY_REPORTS]
+      }
+
+      // 2. Gabungkan dengan laporan lokal warga (jika ada data baru di localStorage)
       if (typeof window !== 'undefined') {
         try {
           const userReports = JSON.parse(
@@ -179,7 +195,7 @@ function FeedPublikContent() {
           const combined = [...userReports, ...baseReports]
           const uniqueMap = new Map<string, any>()
           combined.forEach((item) => {
-            const key = item.id || item.nomor_tiket || item.ticket_number
+            const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
             if (key && !uniqueMap.has(key)) {
               uniqueMap.set(key, item)
             }
@@ -189,7 +205,8 @@ function FeedPublikContent() {
             const saved =
               overrides[r.id] ||
               (r.nomor_tiket ? overrides[r.nomor_tiket] : null) ||
-              (r.ticket_number ? overrides[r.ticket_number] : null)
+              (r.ticket_number ? overrides[r.ticket_number] : null) ||
+              (r.ticketNumber ? overrides[r.ticketNumber] : null)
             if (saved) {
               return {
                 ...r,

@@ -99,15 +99,40 @@ export default function HaloJurnalLaporanSayaPage() {
 
     const currentUserId = activeUser?.id
     const currentUserEmail = (activeUser?.email || '').toLowerCase().trim()
+    const currentUserPhone = (activeUser?.phone || activeUser?.phone_number || '').trim()
 
-    // Isolasi ketat per sesi akun: HANYA tampilkan laporan milik akun yang sedang login!
-    let baseReports = localUserReports.filter((r: any) => {
-      if (!currentUserId && !currentUserEmail) return false
+    // 1. Ambil laporan resmi dari API database Neon DB
+    let dbReports: any[] = []
+    try {
+      const res = await fetch('/api/reports', { cache: 'no-store' })
+      const json = await res.json()
+      if (json.success && Array.isArray(json.data)) {
+        dbReports = json.data
+      }
+    } catch (err) {
+      console.warn('Gagal memuat laporan database di Laporan Saya:', err)
+    }
+
+    // Gabungkan laporan dari database dan local storage
+    const allCombined = [...localUserReports, ...dbReports]
+    const uniqueMap = new Map<string, any>()
+    allCombined.forEach((item) => {
+      const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
+      if (key && !uniqueMap.has(key)) {
+        uniqueMap.set(key, item)
+      }
+    })
+
+    // Saring laporan milik akun yang sedang login
+    let baseReports = Array.from(uniqueMap.values()).filter((r: any) => {
+      if (!currentUserId && !currentUserEmail && !currentUserPhone) return false
       const reportUserId = r.user_id || r.userId
       const reportEmail = (r.email || r.user_email || r.pelaporEmail || r.pelapor_email || '').toLowerCase().trim()
+      const reportPhone = (r.telepon || r.phone || r.pelaporPhone || r.citizenPhone || '').trim()
 
       if (currentUserId && reportUserId && String(reportUserId) === String(currentUserId)) return true
       if (currentUserEmail && reportEmail && reportEmail === currentUserEmail) return true
+      if (currentUserPhone && reportPhone && reportPhone === currentUserPhone) return true
       return false
     })
 
@@ -121,7 +146,8 @@ export default function HaloJurnalLaporanSayaPage() {
           const saved =
             overrides[r.id] ||
             (r.nomor_tiket ? overrides[r.nomor_tiket] : null) ||
-            (r.ticket_number ? overrides[r.ticket_number] : null)
+            (r.ticket_number ? overrides[r.ticket_number] : null) ||
+            (r.ticketNumber ? overrides[r.ticketNumber] : null)
           if (saved) {
             return {
               ...r,
@@ -138,6 +164,7 @@ export default function HaloJurnalLaporanSayaPage() {
 
     setAllReports(baseReports)
     setLoading(false)
+
   }
 
   const filterAndSortReports = () => {
