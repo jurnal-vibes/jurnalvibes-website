@@ -20,8 +20,23 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
 
   const [reports, setReports] = useState<any[]>(getInitialReports)
 
-  // 2. Baca localStorage secara aman HANYA di client setelah hydration selesai (useEffect)
+  // 2. Muat laporan live dari Neon DB via /api/reports
   useEffect(() => {
+    const fetchLiveReports = async () => {
+      try {
+        const res = await fetch('/api/reports', { cache: 'no-store' })
+        const json = await res.json()
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const publicReports = json.data.filter((r: any) => r.is_public !== false).slice(0, 4)
+          setReports(publicReports)
+          return
+        }
+      } catch (err) {
+        console.warn('Gagal memuat laporan live beranda:', err)
+      }
+      syncReports()
+    }
+
     const syncReports = () => {
       try {
         const source = initialReports && initialReports.length > 0 ? initialReports : DUMMY_REPORTS
@@ -32,7 +47,6 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
           localStorage.getItem('halo_jurnal_user_reports') || '[]'
         )
 
-        // Gabungkan semua laporan
         const combined = [...userReports, ...source]
         const uniqueMap = new Map<string, any>()
         combined.forEach((item) => {
@@ -55,7 +69,6 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
           return r
         })
 
-        // Ambil 4 laporan publik terbaru
         const nextReports = allReports.filter((r) => r.is_public !== false).slice(0, 4)
         setReports((prev) => {
           const prevKeys = prev.map((p) => `${p.id}-${p.status}`).join(',')
@@ -68,15 +81,14 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
       }
     }
 
-    // Eksekusi langsung setelah browser mount
-    syncReports()
+    fetchLiveReports()
 
-    window.addEventListener('storage', syncReports)
-    window.addEventListener('focus', syncReports)
+    window.addEventListener('storage', fetchLiveReports)
+    window.addEventListener('focus', fetchLiveReports)
 
     return () => {
-      window.removeEventListener('storage', syncReports)
-      window.removeEventListener('focus', syncReports)
+      window.removeEventListener('storage', fetchLiveReports)
+      window.removeEventListener('focus', fetchLiveReports)
     }
   }, [])
 
