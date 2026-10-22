@@ -50,31 +50,48 @@ function ChatDeskContent() {
     >
   >({})
 
-  // Muat daftar laporan lengkap (DUMMY + user created)
+  // Muat daftar laporan lengkap (Database Neon DB + DUMMY + user created)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const loadAllReports = async () => {
+      let liveList: DummyReport[] = []
       try {
-        const userReports = JSON.parse(
-          localStorage.getItem('halo_jurnal_user_reports') || '[]'
-        )
-        const combined = [...userReports, ...DUMMY_REPORTS]
-        const map = new Map<string, any>()
-        combined.forEach((item) => {
-          const key = item.nomor_tiket || item.id || item.ticket_number
-          if (key && !map.has(key)) map.set(key, item)
-        })
-        const allList = Array.from(map.values())
-        setReports(allList)
-
-        if (initialTicketParam) {
-          setSelectedTicketId(initialTicketParam)
-        } else if (allList.length > 0 && !selectedTicketId) {
-          setSelectedTicketId(allList[0].nomor_tiket || allList[0].id)
+        const res = await fetch('/api/reports', { cache: 'no-store' })
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            liveList = json.data
+          }
         }
       } catch (err) {
-        console.error('Error loading reports in chat desk:', err)
+        console.warn('Gagal memuat live reports chat:', err)
+      }
+
+      if (typeof window !== 'undefined') {
+        try {
+          const userReports = JSON.parse(
+            localStorage.getItem('halo_jurnal_user_reports') || '[]'
+          )
+          const combined = [...liveList, ...userReports, ...DUMMY_REPORTS]
+          const map = new Map<string, any>()
+          combined.forEach((item) => {
+            const key = item.nomor_tiket || item.id || item.ticket_number
+            if (key && !map.has(key)) map.set(key, item)
+          })
+          const allList = Array.from(map.values())
+          setReports(allList)
+
+          if (initialTicketParam) {
+            setSelectedTicketId(initialTicketParam)
+          } else if (allList.length > 0 && !selectedTicketId) {
+            setSelectedTicketId(allList[0].nomor_tiket || allList[0].id)
+          }
+        } catch (err) {
+          console.error('Error loading reports in chat desk:', err)
+        }
       }
     }
+
+    loadAllReports()
   }, [initialTicketParam])
 
   // Scan metadata percakapan untuk seluruh tiket
@@ -154,9 +171,20 @@ function ChatDeskContent() {
     const targetId = activeReport?.id || selectedTicketId
     const targetTicket = activeReport?.nomor_tiket
 
-    let chatData: any = null
+    let dbMessages: any[] = []
+    try {
+      const res = await fetch(`/api/chat?ticketNumber=${encodeURIComponent(targetTicket || targetId)}`, {
+        cache: 'no-store',
+      })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          dbMessages = json.data
+        }
+      }
+    } catch {}
 
-    let merged = chatData || []
+    let merged = dbMessages
     if (typeof window !== 'undefined') {
       const local = JSON.parse(
         localStorage.getItem(`halo_jurnal_chat_${targetId}`) ||

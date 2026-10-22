@@ -81,7 +81,10 @@ export async function GET(request: NextRequest) {
       where.status = status
     }
     if (ticket) {
-      where.ticketNumber = ticket
+      where.OR = [
+        { ticketNumber: ticket },
+        { id: ticket },
+      ]
     }
 
     const dbReports = await prisma.report.findMany({
@@ -103,6 +106,18 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Jika mencari tiket/ID spesifik dan tidak ditemukan di DB, jangan kembalikan semua dummy!
+    if (ticket) {
+      const matchedDummy = DUMMY_REPORTS.filter(
+        (r) => r.id === ticket || r.nomor_tiket === ticket
+      )
+      return NextResponse.json({
+        success: true,
+        source: 'fallback',
+        data: matchedDummy,
+      })
+    }
+
     return NextResponse.json({
       success: true,
       source: 'fallback',
@@ -110,10 +125,15 @@ export async function GET(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('API Reports GET error:', error)
+    const ticketParam = new URL(request.url).searchParams.get('ticket')
+    const fallbackData = ticketParam
+      ? DUMMY_REPORTS.filter((r) => r.id === ticketParam || r.nomor_tiket === ticketParam)
+      : DUMMY_REPORTS
+
     return NextResponse.json({
       success: true,
       source: 'fallback',
-      data: DUMMY_REPORTS,
+      data: fallbackData,
       warning: 'Menggunakan data cadangan: ' + error.message,
     })
   }

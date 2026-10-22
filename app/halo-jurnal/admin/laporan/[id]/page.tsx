@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronUp,
   Phone,
+  Loader2,
 } from 'lucide-react'
 import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
 
@@ -26,11 +27,12 @@ export default function AdminDetailLaporanPage() {
   const params = useParams()
   const id = params?.id as string
 
-  // Ambil data laporan awal
+  // Ambil data laporan awal jika ada di dummy
   const initialReport = DUMMY_REPORTS.find(
     (r) => r.id === id || r.nomor_tiket === id
   )
 
+  const [loading, setLoading] = useState(true)
   const [report, setReport] = useState<DummyReport | null>(initialReport || null)
   const [currentStatus, setCurrentStatus] = useState<DummyReport['status']>(
     initialReport?.status || 'diterima'
@@ -63,54 +65,123 @@ export default function AdminDetailLaporanPage() {
     ]
   )
 
-  // Muat override dari localStorage saat halaman dibuka
+  // Muat data laporan dari database Neon DB via /api/reports (dengan fallback dummy & localStorage)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    let isMounted = true
+
+    const loadReportDetail = async () => {
+      setLoading(true)
+      let found: DummyReport | null = null
+
+      // 1. Fetch langsung dari Neon DB via /api/reports?ticket=${encodeURIComponent(id)}
       try {
-        let currentTarget = initialReport
-        if (!currentTarget) {
-          const userReports = JSON.parse(
-            localStorage.getItem('halo_jurnal_user_reports') || '[]'
-          )
-          currentTarget = userReports.find(
-            (r: any) => r.id === id || r.nomor_tiket === id || r.ticket_number === id
-          )
-        }
-
-        const overrides = JSON.parse(
-          localStorage.getItem('halo_jurnal_status_overrides') || '{}'
-        )
-        const saved =
-          overrides[id] ||
-          (currentTarget?.id ? overrides[currentTarget.id] : null) ||
-          (currentTarget?.nomor_tiket ? overrides[currentTarget.nomor_tiket] : null)
-
-        if (currentTarget) {
-          const merged: DummyReport = {
-            ...currentTarget,
-            status: saved?.status || currentTarget.status,
-            is_public: saved?.is_public !== undefined ? saved.is_public : currentTarget.is_public,
-            status_log: saved?.status_log || currentTarget.status_log || statusLogs,
+        const res = await fetch(`/api/reports?ticket=${encodeURIComponent(id)}`, {
+          cache: 'no-store',
+        })
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            found = json.data[0]
           }
-          setReport(merged)
-          setCurrentStatus(merged.status)
-          setIsPublic(merged.is_public)
-          if (merged.status_log) setStatusLogs(merged.status_log)
         }
       } catch (err) {
-        console.error('Error loading overrides:', err)
+        console.warn('Gagal memuat detail laporan dari API:', err)
       }
+
+      // 2. Fallback: DUMMY_REPORTS & localStorage jika offline / DB tidak mengembalikan
+      if (!found) {
+        const dummy = DUMMY_REPORTS.find(
+          (r) => r.id === id || r.nomor_tiket === id
+        )
+        if (dummy) {
+          found = dummy
+        } else if (typeof window !== 'undefined') {
+          try {
+            const userReports = JSON.parse(
+              localStorage.getItem('halo_jurnal_user_reports') || '[]'
+            )
+            const local = userReports.find(
+              (r: any) => r.id === id || r.nomor_tiket === id || r.ticket_number === id
+            )
+            if (local) found = local
+          } catch {}
+        }
+      }
+
+      // 3. Gabungkan dengan localStorage status overrides jika ada
+      if (found && typeof window !== 'undefined') {
+        try {
+          const overrides = JSON.parse(
+            localStorage.getItem('halo_jurnal_status_overrides') || '{}'
+          )
+          const saved =
+            overrides[id] ||
+            (found.id ? overrides[found.id] : null) ||
+            (found.nomor_tiket ? overrides[found.nomor_tiket] : null)
+
+          if (saved) {
+            found = {
+              ...found,
+              status: saved.status || found.status,
+              is_public: saved.is_public !== undefined ? saved.is_public : found.is_public,
+              status_log: saved.status_log || found.status_log,
+            }
+          }
+        } catch {}
+      }
+
+      if (isMounted) {
+        if (found) {
+          setReport(found)
+          setCurrentStatus(found.status || 'diterima')
+          setIsPublic(found.is_public !== undefined ? found.is_public : true)
+          if (found.status_log && found.status_log.length > 0) {
+            setStatusLogs(found.status_log)
+          } else {
+            setStatusLogs([
+              {
+                id: 'log-001',
+                status: found.status || 'diterima',
+                catatan: 'Laporan warga diterima oleh sistem redaksi.',
+                created_at: found.created_at || new Date().toISOString(),
+              },
+            ])
+          }
+        } else {
+          setReport(null)
+        }
+        setLoading(false)
+      }
+    }
+
+    if (id) {
+      loadReportDetail()
+    }
+
+    return () => {
+      isMounted = false
     }
   }, [id])
 
   // Sinkronisasi pesan chat dua arah dengan pelapor
   const syncChatMessages = async () => {
-    const targetId = report?.id || initialReport?.id || id
-    const targetTicket = report?.nomor_tiket || initialReport?.nomor_tiket
+    const targetTicket = report?.nomor_tiket || id
+    const targetId = report?.id || id
+    let dbMessages: any[] = []
 
-    let chatData: any = null
+    try {
+      const res = await fetch(`/api/chat?ticketNumber=${encodeURIComponent(targetTicket)}`, {
+        cache: 'no-store',
+      })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          dbMessages = json.data
+        }
+      }
+    } catch {}
 
-    let merged = chatData || []
+    let merged = dbMessages
     if (typeof window !== 'undefined') {
       const local = JSON.parse(
         localStorage.getItem(`halo_jurnal_chat_${targetId}`) ||
@@ -141,6 +212,22 @@ export default function AdminDetailLaporanPage() {
       window.removeEventListener('focus', handleStorageChange)
     }
   }, [report?.id, report?.nomor_tiket, id])
+
+  if (loading) {
+    return (
+      <div className="py-24 text-center space-y-4">
+        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mx-auto text-[#c00015]">
+          <Loader2 className="w-6 h-6 animate-spin" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-sm font-bold text-slate-900">Memuat Detail Investigasi Laporan...</h2>
+          <p className="text-xs text-slate-500">
+            Sedang menghubungkan ke basis data redaksi untuk tiket <code>{id}</code>
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   if (!report) {
     return (

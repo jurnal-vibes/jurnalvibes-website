@@ -20,51 +20,87 @@ export default function AdminModerasiFeedPublikPage() {
   const [tabFilter, setTabFilter] = useState<'semua' | 'publik' | 'privat'>('publik')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
-  // Muat status dan override dari localStorage
+  // Muat status dan laporan dari database / localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const loadReports = async () => {
       try {
-        const overrides = JSON.parse(
-          localStorage.getItem('halo_jurnal_status_overrides') || '{}'
-        )
-        const userReports = JSON.parse(
-          localStorage.getItem('halo_jurnal_user_reports') || '[]'
-        )
-        const combined = [...userReports, ...DUMMY_REPORTS]
-        const unique = new Map<string, any>()
-        combined.forEach((item) => {
-          const key = item.id || item.nomor_tiket || item.ticket_number
-          if (key && !unique.has(key)) {
-            unique.set(key, item)
+        const res = await fetch('/api/reports', { cache: 'no-store' })
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setReportsList(json.data)
+            return
           }
-        })
-        const updated = Array.from(unique.values()).map((r) => {
-          const saved = overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
-          if (saved) {
-            return {
-              ...r,
-              status: saved.status || r.status,
-              is_public: saved.is_public !== undefined ? saved.is_public : r.is_public,
-              status_log: saved.status_log || r.status_log,
-            }
-          }
-          return r
-        })
-        setReportsList(updated)
+        }
       } catch (err) {
-        console.error('Error loading reports in moderasi feed:', err)
+        console.warn('Gagal memuat live reports moderasi:', err)
+      }
+
+      if (typeof window !== 'undefined') {
+        try {
+          const overrides = JSON.parse(
+            localStorage.getItem('halo_jurnal_status_overrides') || '{}'
+          )
+          const userReports = JSON.parse(
+            localStorage.getItem('halo_jurnal_user_reports') || '[]'
+          )
+          const combined = [...userReports, ...DUMMY_REPORTS]
+          const unique = new Map<string, any>()
+          combined.forEach((item) => {
+            const key = item.id || item.nomor_tiket || item.ticket_number
+            if (key && !unique.has(key)) {
+              unique.set(key, item)
+            }
+          })
+          const updated = Array.from(unique.values()).map((r) => {
+            const saved = overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
+            if (saved) {
+              return {
+                ...r,
+                status: saved.status || r.status,
+                is_public: saved.is_public !== undefined ? saved.is_public : r.is_public,
+                status_log: saved.status_log || r.status_log,
+              }
+            }
+            return r
+          })
+          setReportsList(updated)
+        } catch (err) {
+          console.error('Error loading reports in moderasi feed:', err)
+        }
       }
     }
+
+    loadReports()
   }, [])
 
   // Helper simpan perubahan visibilitas
-  const handleToggleVisibility = (id: string, targetVisibility: boolean) => {
+  const handleToggleVisibility = async (id: string, targetVisibility: boolean) => {
     const updated = reportsList.map((r) =>
       r.id === id || r.nomor_tiket === id ? { ...r, is_public: targetVisibility } : r
     )
     setReportsList(updated)
 
     const target = updated.find((r) => r.id === id || r.nomor_tiket === id)
+
+    // Simpan ke database via API
+    try {
+      await fetch('/api/reports', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: target?.id || id,
+          ticketNumber: target?.nomor_tiket,
+          status: target?.status || 'diterima',
+          is_public: targetVisibility,
+          catatan: targetVisibility
+            ? 'Laporan ditayangkan ke Feed Publik oleh admin.'
+            : 'Laporan ditarik dari Feed Publik (diubah menjadi privat) oleh admin.',
+        }),
+      })
+    } catch (err) {
+      console.warn('Gagal update visibilitas ke database:', err)
+    }
 
     if (typeof window !== 'undefined') {
       try {
