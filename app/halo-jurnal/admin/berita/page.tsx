@@ -282,7 +282,7 @@ export default function AdminBeritaPage() {
     setNewIsHero(false)
     setNewIsEditorsPick(false)
 
-    setToastMessage('Berita berhasil disimpan ke database MySQL XAMPP!')
+    setToastMessage('Berita berhasil diterbitkan ke database!')
     setTimeout(() => setToastMessage(null), 3500)
   }
 
@@ -292,7 +292,7 @@ export default function AdminBeritaPage() {
     setIsEditModalOpen(true)
   }
 
-  // Handle Simpan Hasil Edit ke MySQL
+  // Handle Simpan Hasil Edit ke Database
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingArticle || !editingArticle.title.trim()) return
@@ -304,7 +304,7 @@ export default function AdminBeritaPage() {
         body: JSON.stringify(editingArticle),
       })
     } catch (err) {
-      console.warn('Gagal update ke MySQL:', err)
+      console.warn('Gagal update ke database:', err)
     }
 
     const updated = articles.map((a) =>
@@ -326,11 +326,11 @@ export default function AdminBeritaPage() {
     setIsEditModalOpen(false)
     setEditingArticle(null)
 
-    setToastMessage(`Perubahan artikel "${editingArticle.title}" berhasil disimpan ke MySQL!`)
+    setToastMessage(`Perubahan artikel "${editingArticle.title}" berhasil disimpan ke database!`)
     setTimeout(() => setToastMessage(null), 3500)
   }
 
-  // Handle Hapus Berita dari MySQL
+  // Handle Hapus Berita dari Database
   const handleDeleteArticle = async (id: string, title: string) => {
     if (confirm(`Yakin ingin menghapus artikel: "${title}"?`)) {
       try {
@@ -338,45 +338,74 @@ export default function AdminBeritaPage() {
           method: 'DELETE',
         })
       } catch (err) {
-        console.warn('Gagal menghapus dari MySQL:', err)
+        console.warn('Gagal menghapus dari database:', err)
       }
 
       const updated = articles.filter((a) => a.id !== id)
       persistArticles(updated)
-      setToastMessage('Artikel berhasil dihapus dari database MySQL!')
+      setToastMessage('Artikel berhasil dihapus dari database!')
       setTimeout(() => setToastMessage(null), 3500)
     }
   }
 
-  // Handle Cepat: Toggle Headline / Hero
-  const handleToggleHero = (id: string) => {
+  // Handle Cepat: Toggle Headline / Hero ke Database
+  const handleToggleHero = async (id: string) => {
+    const target = articles.find((a) => a.id === id)
+    if (!target) return
+    const newHeroState = !target.isHero
+
     const updated = articles.map((a) =>
-      a.id === id ? { ...a, isHero: !a.isHero } : a
+      a.id === id ? { ...a, isHero: newHeroState } : a
     )
     persistArticles(updated)
-    const target = updated.find((a) => a.id === id)
+
+    try {
+      await fetch('/api/articles', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isHero: newHeroState }),
+      })
+    } catch (err) {
+      console.warn('Gagal sinkron status Hero ke database:', err)
+    }
+
     setToastMessage(
-      target?.isHero
+      newHeroState
         ? 'Artikel dijadikan Headline Utama (Hero)!'
         : 'Status Headline Utama dicabut.'
     )
     setTimeout(() => setToastMessage(null), 3000)
   }
 
-  // Handle Cepat: Toggle Pilihan Redaksi
-  const handleToggleEditorsPick = (id: string) => {
+  // Handle Cepat: Toggle Pilihan Redaksi ke Database
+  const handleToggleEditorsPick = async (id: string) => {
+    const target = articles.find((a) => a.id === id)
+    if (!target) return
+    const newEditorsState = !target.isEditorsPick
+
     const updated = articles.map((a) =>
-      a.id === id ? { ...a, isEditorsPick: !a.isEditorsPick } : a
+      a.id === id ? { ...a, isEditorsPick: newEditorsState } : a
     )
     persistArticles(updated)
-    const target = updated.find((a) => a.id === id)
+
+    try {
+      await fetch('/api/articles', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isEditorsPick: newEditorsState }),
+      })
+    } catch (err) {
+      console.warn('Gagal sinkron Pilihan Redaksi ke database:', err)
+    }
+
     setToastMessage(
-      target?.isEditorsPick
+      newEditorsState
         ? 'Artikel ditambahkan ke Pilihan Redaksi!'
         : 'Artikel dicabut dari Pilihan Redaksi.'
     )
     setTimeout(() => setToastMessage(null), 3000)
   }
+
 
   return (
     <div className="space-y-6">

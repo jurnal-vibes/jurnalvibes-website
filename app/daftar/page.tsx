@@ -143,48 +143,64 @@ export default function DaftarPage() {
     }
 
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
+    const fullDomisili = `${detailAlamat.trim()}, RT/RW ${rtRw.trim()}, Kel. ${kelurahan.trim()}, Kec. ${kecamatan.trim()}, Sukabumi`
 
-      const fullDomisili = `${detailAlamat.trim()}, RT/RW ${rtRw.trim()}, Kel. ${kelurahan.trim()}, Kec. ${kecamatan.trim()}, Sukabumi`
-
-      const newUserSession = {
-        id: 'warga-' + Date.now(),
+    // Simpan akun ke database Neon DB via API
+    fetch('/api/auth/citizen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'register',
         email: email.trim().toLowerCase(),
-        full_name: fullName.trim(),
-        name: fullName.trim(),
+        fullName: fullName.trim(),
         phone: phone.trim(),
-        phone_number: phone.trim(),
-        kecamatan: kecamatan.trim(),
-        kelurahan: kelurahan.trim(),
-        rt_rw: rtRw.trim(),
-        detail_alamat: detailAlamat.trim(),
-        alamat_domisili: fullDomisili,
-        user_metadata: {
+        domisili: fullDomisili,
+        password,
+      }),
+    })
+      .then((res) => res.json())
+      .catch((err) => console.warn('Gagal sinkron akun warga ke DB:', err))
+      .finally(() => {
+        setLoading(false)
+
+        const newUserSession = {
+          id: 'warga-' + Date.now(),
+          email: email.trim().toLowerCase(),
           full_name: fullName.trim(),
+          name: fullName.trim(),
           phone: phone.trim(),
+          phone_number: phone.trim(),
+          kecamatan: kecamatan.trim(),
+          kelurahan: kelurahan.trim(),
+          rt_rw: rtRw.trim(),
+          detail_alamat: detailAlamat.trim(),
           alamat_domisili: fullDomisili,
+          user_metadata: {
+            full_name: fullName.trim(),
+            phone: phone.trim(),
+            alamat_domisili: fullDomisili,
+            is_verified: true,
+          },
+          role: 'warga',
           is_verified: true,
-        },
-        role: 'warga',
-        is_verified: true,
-        otp_verified_at: new Date().toISOString(),
-      }
+          otp_verified_at: new Date().toISOString(),
+        }
 
-      if (typeof window !== 'undefined') {
-        try {
-          const registeredUsersRaw = localStorage.getItem('halo_jurnal_registered_users')
-          const list = registeredUsersRaw ? JSON.parse(registeredUsersRaw) : []
-          list.push(newUserSession)
-          localStorage.setItem('halo_jurnal_registered_users', JSON.stringify(list))
-        } catch {}
+        if (typeof window !== 'undefined') {
+          try {
+            const registeredUsersRaw = localStorage.getItem('halo_jurnal_registered_users')
+            const list = registeredUsersRaw ? JSON.parse(registeredUsersRaw) : []
+            list.push(newUserSession)
+            localStorage.setItem('halo_jurnal_registered_users', JSON.stringify(list))
+          } catch {}
 
-        localStorage.setItem('halo_jurnal_current_user', JSON.stringify(newUserSession))
-        window.dispatchEvent(new Event('storage'))
-      }
+          localStorage.setItem('halo_jurnal_current_user', JSON.stringify(newUserSession))
+          window.dispatchEvent(new Event('storage'))
+        }
 
-      setStep(3)
-    }, 600)
+        setStep(3)
+      })
+
   }
 
   return (

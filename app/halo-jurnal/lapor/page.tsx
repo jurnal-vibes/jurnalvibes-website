@@ -184,15 +184,55 @@ function LaporForm() {
     router.push(`/halo-jurnal/lapor?type=${newType}`, { scroll: false })
   }
 
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let { width, height } = img
+          const maxDimension = 1200
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width)
+              width = maxDimension
+            } else {
+              width = Math.round((width * maxDimension) / height)
+              height = maxDimension
+            }
+          }
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height)
+            resolve(canvas.toDataURL('image/jpeg', 0.8))
+          } else {
+            resolve(e.target?.result as string)
+          }
+        }
+        img.onerror = () => reject(new Error('Gagal memproses berkas gambar'))
+        img.src = e.target?.result as string
+      }
+      reader.onerror = () => reject(new Error('Gagal membaca berkas'))
+      reader.readAsDataURL(file)
+    })
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0]
       setFile(selectedFile)
 
       if (selectedFile.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = (ev) => setPreviewUrl(ev.target?.result as string)
-        reader.readAsDataURL(selectedFile)
+        compressImage(selectedFile)
+          .then((compressed) => setPreviewUrl(compressed))
+          .catch(() => {
+            const reader = new FileReader()
+            reader.onload = (ev) => setPreviewUrl(ev.target?.result as string)
+            reader.readAsDataURL(selectedFile)
+          })
       } else {
         setPreviewUrl(null)
       }
@@ -206,14 +246,19 @@ function LaporForm() {
       const selectedFile = e.dataTransfer.files[0]
       setFile(selectedFile)
       if (selectedFile.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = (ev) => setPreviewUrl(ev.target?.result as string)
-        reader.readAsDataURL(selectedFile)
+        compressImage(selectedFile)
+          .then((compressed) => setPreviewUrl(compressed))
+          .catch(() => {
+            const reader = new FileReader()
+            reader.onload = (ev) => setPreviewUrl(ev.target?.result as string)
+            reader.readAsDataURL(selectedFile)
+          })
       } else {
         setPreviewUrl(null)
       }
     }
   }
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -289,7 +334,7 @@ function LaporForm() {
         instansi_tujuan: reportType === 'informasi' ? instansi : null,
         jenis_informasi: reportType === 'informasi' ? jenisInformasi : null,
         status: 'diterima',
-        is_public: true,
+        is_public: false,
         dukungan_count: 0,
         komentar_count: 0,
         created_at: new Date().toISOString(),

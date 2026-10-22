@@ -25,12 +25,23 @@ export default function AdminLoginPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
-  // Jika sudah terautentikasi, langsung arahkan ke dashboard
+  // Jika sudah terautentikasi di server, langsung arahkan ke dashboard
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (localStorage.getItem('jurnal_wave_admin_authenticated') === 'true') {
-        router.replace('/halo-jurnal/admin')
+    let isMounted = true
+    const checkExistingAuth = async () => {
+      try {
+        const res = await fetch('/api/admin/auth', { method: 'GET', cache: 'no-store' })
+        const json = await res.json()
+        if (isMounted && json.authenticated) {
+          router.replace('/halo-jurnal/admin')
+        }
+      } catch {
+        // Abaikan jika server belum terjangkau
       }
+    }
+    checkExistingAuth()
+    return () => {
+      isMounted = false
     }
   }, [router])
 
@@ -56,7 +67,6 @@ export default function AdminLoginPage() {
       if (res.ok && json.success) {
         setSuccessMsg(json.message || 'Login berhasil! Mengalihkan ke dashboard...')
         if (typeof window !== 'undefined') {
-          localStorage.setItem('jurnal_wave_admin_authenticated', 'true')
           localStorage.setItem(
             'jurnal_wave_admin_user',
             JSON.stringify(json.user || { name: 'Admin', email })
@@ -65,31 +75,12 @@ export default function AdminLoginPage() {
         setTimeout(() => {
           router.push('/halo-jurnal/admin')
           router.refresh()
-        }, 600)
+        }, 500)
       } else {
         setErrorMsg(json.message || 'Email atau kata sandi admin salah.')
       }
     } catch (err: any) {
-      // Fallback lokal jika terjadi kendala jaringan sementara
-      if (
-        (email.trim().toLowerCase() === 'admin@jurnalwave.com' ||
-          email.trim().toLowerCase() === 'redaksi@jurnalwave.com') &&
-        password === 'admin123'
-      ) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('jurnal_wave_admin_authenticated', 'true')
-          localStorage.setItem(
-            'jurnal_wave_admin_user',
-            JSON.stringify({ name: 'Super Admin Jurnal Wave', email })
-          )
-        }
-        setSuccessMsg('Login berhasil. Mengalihkan...')
-        setTimeout(() => {
-          router.push('/halo-jurnal/admin')
-        }, 600)
-      } else {
-        setErrorMsg('Gagal terhubung ke server autentikasi: ' + err.message)
-      }
+      setErrorMsg('Gagal terhubung ke server autentikasi: ' + (err?.message || 'Koneksi bermasalah'))
     } finally {
       setLoading(false)
     }

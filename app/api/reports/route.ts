@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { DUMMY_REPORTS } from '@/data/dummyReports'
+import { getAdminSession } from '@/lib/auth'
+import { z } from 'zod'
+
+// Skema validasi masukan laporan aduan warga
+const ReportInputSchema = z.object({
+  title: z.string().min(3, 'Judul laporan minimal 3 karakter').max(200, 'Judul laporan maksimal 200 karakter'),
+  description: z.string().optional(),
+  reportType: z.string().optional(),
+  address: z.string().optional(),
+  latitude: z.union([z.number(), z.string(), z.null()]).optional(),
+  longitude: z.union([z.number(), z.string(), z.null()]).optional(),
+  pelaporName: z.string().optional(),
+  pelaporPhone: z.string().optional(),
+  pelaporEmail: z.string().optional(),
+  ticketNumber: z.string().optional(),
+  previewUrl: z.string().optional(),
+  imageUrl: z.string().optional(),
+  attachments: z.array(z.any()).optional(),
+  isPublic: z.boolean().optional(),
+})
 
 // Helper format laporan dari database ke format kompatibel frontend
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,7 +68,7 @@ function mapReportFromDb(item: any) {
   }
 }
 
-// 1. GET: Ambil semua laporan warga dari MySQL
+// 1. GET: Ambil semua laporan warga dari database
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -78,7 +98,7 @@ export async function GET(request: NextRequest) {
     if (dbReports.length > 0) {
       return NextResponse.json({
         success: true,
-        source: 'mysql',
+        source: 'database',
         data: dbReports.map(mapReportFromDb),
       })
     }
@@ -99,29 +119,44 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 2. POST: Kirim pengaduan baru warga ke MySQL
+// 2. POST: Kirim pengaduan baru warga ke database
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const title = body.title || body.judul
-    const description = body.description || body.deskripsi
-
-    if (!title || !title.trim()) {
-      return NextResponse.json({ success: false, message: 'Judul laporan wajib diisi' }, { status: 400 })
+    // Normalisasi input untuk Zod
+    const normalizedData = {
+      ...body,
+      title: (body.title || body.judul || '').trim(),
+      description: (body.description || body.deskripsi || '').trim(),
+      reportType: body.reportType || body.jenis || body.kategori || 'infrastruktur',
+      address: body.address || body.lokasi || 'Sukabumi',
+      pelaporName: body.pelaporName || body.nama_pelapor || body.citizenName || body.nama || 'Warga Sukabumi',
+      pelaporPhone: body.pelaporPhone || body.citizenPhone || body.telepon || undefined,
+      pelaporEmail: body.pelaporEmail || body.citizenEmail || body.email || undefined,
     }
+
+    const validation = ReportInputSchema.safeParse(normalizedData)
+    if (!validation.success) {
+      const errorMsg = validation.error.issues[0]?.message || 'Data laporan tidak valid'
+      return NextResponse.json({ success: false, message: errorMsg }, { status: 400 })
+    }
+
+    const data = validation.data
+    const title = data.title
+    const description = data.description || title
 
     // Nomor tiket unik
     const ticketNumber =
-      body.ticketNumber ||
+      data.ticketNumber ||
       body.ticket_number ||
       body.nomor_tiket ||
       `TKT-SKB-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
 
     // Lampiran foto jika ada
     const attachmentUrls: string[] = []
-    if (body.previewUrl) attachmentUrls.push(body.previewUrl)
-    if (body.imageUrl) attachmentUrls.push(body.imageUrl)
+    if (data.previewUrl) attachmentUrls.push(data.previewUrl)
+    if (data.imageUrl) attachmentUrls.push(data.imageUrl)
     if (Array.isArray(body.attachments)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       body.attachments.forEach((a: any) => {
@@ -133,17 +168,17 @@ export async function POST(request: NextRequest) {
     const created = await prisma.report.create({
       data: {
         ticketNumber,
-        title: title.trim(),
-        description: description?.trim() || title.trim(),
-        reportType: body.reportType || body.jenis || body.kategori || 'infrastruktur',
-        address: body.address || body.lokasi || 'Sukabumi',
-        latitude: body.latitude ? parseFloat(body.latitude) : null,
-        longitude: body.longitude ? parseFloat(body.longitude) : null,
-        pelaporName: body.pelaporName || body.nama_pelapor || body.citizenName || body.nama || 'Warga Sukabumi',
-        pelaporPhone: body.pelaporPhone || body.citizenPhone || body.telepon || null,
-        pelaporEmail: body.pelaporEmail || body.citizenEmail || body.email || null,
+        title,
+        description,
+        reportType: data.reportType || 'infrastruktur',
+        address: data.address || 'Sukabumi',
+        latitude: data.latitude ? parseFloat(String(data.latitude)) : null,
+        longitude: data.longitude ? parseFloat(String(data.longitude)) : null,
+        pelaporName: data.pelaporName || 'Warga Sukabumi',
+        pelaporPhone: data.pelaporPhone || null,
+        pelaporEmail: data.pelaporEmail || null,
         status: 'diterima',
-        isPublic: body.isPublic !== undefined ? Boolean(body.isPublic) : true,
+        isPublic: data.isPublic !== undefined ? Boolean(data.isPublic) : false,
         attachments: {
           create: attachmentUrls.map((url) => ({
             fileUrl: url,
@@ -154,7 +189,7 @@ export async function POST(request: NextRequest) {
           create: [
             {
               status: 'diterima',
-              note: 'Laporan baru diterima oleh sistem Halo Jurnal',
+              note: 'Laporan baru diterima oleh sistem Halo Jurnal (Menunggu Review Redaksi)',
             },
           ],
         },
@@ -168,7 +203,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Laporan berhasil disimpan ke database MySQL XAMPP!',
+        message: 'Laporan berhasil disimpan ke database!',
         ticketNumber: created.ticketNumber,
         data: mapReportFromDb(created),
       },
@@ -183,9 +218,21 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// 3. PUT: Update status laporan warga di MySQL (Diterima -> Diproses -> Selesai / Ditolak)
+// 3. PUT: Update status laporan warga (Diterima -> Diproses -> Selesai / Ditolak)
 export async function PUT(request: NextRequest) {
   try {
+    // Verifikasi hak akses admin sebelum mengubah status laporan
+    const session = await getAdminSession(request)
+    if (!session) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Akses ditolak: Anda harus login sebagai admin untuk memperbarui laporan warga.',
+        },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const id = body.id || body.ticketNumber || body.nomor_tiket
 

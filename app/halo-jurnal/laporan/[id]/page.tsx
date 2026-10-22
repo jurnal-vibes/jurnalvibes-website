@@ -115,7 +115,40 @@ export default function HaloJurnalLaporanDetailPage() {
     }
   }, [messages, showChatSimulation])
 
-  const fetchChatMessages = () => {
+  const fetchChatMessages = async () => {
+    const ticketNum = report?.nomor_tiket || report?.ticket_number || report?.ticketNumber || id
+    if (!ticketNum) return
+
+    let dbMessages: any[] = []
+    try {
+      const res = await fetch(`/api/chat?ticketNumber=${encodeURIComponent(ticketNum)}`, {
+        cache: 'no-store',
+      })
+      const json = await res.json()
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        dbMessages = json.data.map((m: any) => ({
+          id: m.id,
+          sender: m.sender_name || 'Redaksi',
+          sender_name: m.sender_name || 'Redaksi',
+          role: m.role || 'warga',
+          message: m.message,
+          created_at: m.created_at,
+          profiles: {
+            full_name: m.sender_name,
+            role: m.role,
+          },
+        }))
+      }
+    } catch (err) {
+      console.warn('Gagal memuat chat dari API:', err)
+    }
+
+    if (dbMessages.length > 0) {
+      setMessages(dbMessages)
+      return
+    }
+
+    // Fallback ke localStorage jika chat belum ada di database
     if (typeof window !== 'undefined') {
       const chatKey = report?.nomor_tiket || report?.ticket_number || id
       let local = JSON.parse(
@@ -124,7 +157,7 @@ export default function HaloJurnalLaporanDetailPage() {
         '[]'
       )
       if (local.length === 0 && report) {
-        const ticketNum = report.nomor_tiket || report.ticket_number || id
+        const ticket = report.nomor_tiket || report.ticket_number || id
         const pelapor = (report as any).pelaporName || (report as any).nama_pelapor || 'Warga'
         const initialSystemMessage = {
           id: `sys-${Date.now()}`,
@@ -132,38 +165,58 @@ export default function HaloJurnalLaporanDetailPage() {
           sender_name: 'Redaksi Halo Jurnal',
           role: 'admin',
           avatar: '/logo-white.png',
-          message: `Halo ${pelapor}, laporan Anda dengan Nomor Tiket #${ticketNum} telah diterima oleh Redaksi Halo Jurnal. Tim kami sedang memverifikasi laporan Anda. Anda dapat berkoordinasi langsung dengan tim redaksi melalui ruang obrolan ini.`,
+          message: `Halo ${pelapor}, laporan Anda dengan Nomor Tiket #${ticket} telah diterima oleh Redaksi Halo Jurnal. Tim kami sedang memverifikasi laporan Anda. Anda dapat berkoordinasi langsung dengan tim redaksi melalui ruang obrolan ini.`,
           created_at: new Date().toISOString(),
           timestamp: 'Baru saja',
           isSystem: true,
         }
         local = [initialSystemMessage]
-        localStorage.setItem(`halo_jurnal_chat_${chatKey}`, JSON.stringify(local))
-        localStorage.setItem(`halo_jurnal_chat_${id}`, JSON.stringify(local))
       }
       setMessages(local)
     }
   }
 
+  // Polling chat otomatis setiap 5 detik agar percakapan dua arah selalu ter-update
   useEffect(() => {
     fetchChatMessages()
+    const interval = setInterval(() => {
+      fetchChatMessages()
+    }, 5000)
+
     window.addEventListener('storage', fetchChatMessages)
     window.addEventListener('focus', fetchChatMessages)
     return () => {
+      clearInterval(interval)
       window.removeEventListener('storage', fetchChatMessages)
       window.removeEventListener('focus', fetchChatMessages)
     }
-  }, [id, report?.nomor_tiket])
+  }, [id, report?.nomor_tiket, report?.ticketNumber])
 
-  const fetchReportDetail = () => {
+  const fetchReportDetail = async () => {
     setLoading(true)
-    let found = DUMMY_REPORTS.find((r) => r.id === id || r.nomor_tiket === id)
-    if (!found && typeof window !== 'undefined') {
-      try {
-        const localList = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        found = localList.find((r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id)
-      } catch {}
+    let found: any = null
+
+    // 1. Coba ambil langsung dari database Neon DB via API
+    try {
+      const res = await fetch(`/api/reports?ticket=${encodeURIComponent(id)}`, { cache: 'no-store' })
+      const json = await res.json()
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        found = json.data[0]
+      }
+    } catch (err) {
+      console.warn('Gagal fetch laporan dari API database:', err)
+    }
+
+    // 2. Jika tidak ada di DB, cari di dummy & localStorage
+    if (!found) {
+      found = DUMMY_REPORTS.find((r) => r.id === id || r.nomor_tiket === id || (r as any).ticketNumber === id)
+      if (!found && typeof window !== 'undefined') {
+        try {
+          const localList = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          found = localList.find((r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id)
+        } catch {}
+      }
     }
 
     if (found && typeof window !== 'undefined') {
@@ -256,16 +309,37 @@ export default function HaloJurnalLaporanDetailPage() {
         })
       }
 
+      const ticketNum = report?.nomor_tiket || report?.ticket_number || report?.ticketNumber || id
+      const textMsg = chatMessage.trim() || 'Mengirim berkas'
+      const senderDisplayName = activeUser?.user_metadata?.full_name || activeUser?.full_name || 'Warga Pelapor'
+
+      // 1. Kirim pesan ke API database Neon DB
+      try {
+        await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ticketNumber: ticketNum,
+            message: textMsg,
+            senderName: senderDisplayName,
+            senderId: activeUser?.id || 'warga',
+            role: 'warga',
+          }),
+        })
+      } catch (apiErr) {
+        console.warn('Gagal kirim chat ke database via API:', apiErr)
+      }
+
       const sentMsg = {
         id: `chat-warga-${Date.now()}`,
         laporan_id: id,
         sender_id: activeUser?.id || 'warga',
-        message: chatMessage.trim() || 'Mengirim berkas',
+        message: textMsg,
         file_url: fileUrl,
         file_type: fileType,
         created_at: new Date().toISOString(),
         profiles: {
-          full_name: activeUser?.user_metadata?.full_name || activeUser?.full_name || 'Warga Pelapor',
+          full_name: senderDisplayName,
           role: 'warga',
         },
       }
@@ -290,6 +364,7 @@ export default function HaloJurnalLaporanDetailPage() {
     } finally {
       setIsSendingChat(false)
     }
+
   }
 
   // Format date helper matching: "4 Sep 2026, 15.31"
