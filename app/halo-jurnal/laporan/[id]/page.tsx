@@ -587,45 +587,49 @@ export default function HaloJurnalLaporanDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Column: Report Details & Riwayat Status */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-8 shadow-xs">
             {/* Header: Category Badge + Status Badge + Dukung Button */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <div className="flex items-center gap-2">
-                <span className="bg-surface-container-high border border-outline-variant/80 text-secondary font-bold text-[11px] tracking-wider px-3 py-1 rounded-lg uppercase">
+                <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-[11px] tracking-wider px-3 py-1 rounded-full uppercase">
                   {normalizeCategoryName(report.kategori) || report.jenis || 'Umum'}
                 </span>
                 {report.is_public === false ? (
-                  <span className="inline-flex items-center gap-1 bg-surface-container-high text-secondary text-[11px] font-medium px-2.5 py-1 rounded-lg border border-outline-variant/60">
-                    <Lock className="w-3 h-3 text-secondary" />
+                  <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-200/60 dark:border-slate-700">
+                    <Lock className="w-3 h-3 text-slate-500" />
                     <span>Privat</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 bg-surface-container-high text-secondary text-[11px] font-medium px-2.5 py-1 rounded-lg border border-outline-variant/60">
-                    <Globe className="w-3 h-3 text-secondary" />
+                  <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[11px] font-medium px-2.5 py-1 rounded-full border border-slate-200/60 dark:border-slate-700">
+                    <Globe className="w-3 h-3 text-slate-500" />
                     <span>Publik</span>
                   </span>
                 )}
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5">
-                {/* Status */}
+                {/* Status Editorial Pill (After UX style) */}
                 {report.status === 'selesai' && (
-                  <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/40 text-[11px] font-semibold tracking-tight">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                     Selesai
                   </span>
                 )}
                 {report.status === 'ditindaklanjuti' && (
-                  <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/40 text-[11px] font-semibold tracking-tight">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
                     Ditindaklanjuti
                   </span>
                 )}
                 {report.status === 'diproses' && (
-                  <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/40 text-[11px] font-semibold tracking-tight">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
                     Diproses
                   </span>
                 )}
                 {report.status === 'diterima' && (
-                  <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/40 text-[11px] font-semibold tracking-tight">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
                     Diterima
                   </span>
                 )}
@@ -802,27 +806,28 @@ export default function HaloJurnalLaporanDetailPage() {
 
         {/* Right Column: Chat Langsung Redaksi (Selalu Aktif & Terbuka) */}
         {/* Right Column: Chat Langsung Redaksi (Privat & Dilindungi Enkripsi) */}
+        {/* Right Column: Chat Langsung Redaksi (Privat & Dilindungi Enkripsi - After UX Style) */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs">
             {/* Header Chat */}
-            <div className="pb-3 mb-4 border-b border-outline-variant/60 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <MessageSquare className="w-4 h-4" />
+            <div className="pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0">
+                  <MessageSquare className="w-4 h-4 stroke-[2px]" />
                 </div>
                 <div>
-                  <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface">
+                  <h3 className="font-heading font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 tracking-tight">
                     Chat Langsung Redaksi
                   </h3>
-                  <p className="text-[11px] text-secondary">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     {canAccessChat ? 'Ruang privat pelapor & admin' : 'Saluran privat terenkripsi'}
                   </p>
                 </div>
               </div>
 
               {!canAccessChat && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-secondary bg-surface-container-high px-2 py-0.5 rounded-full border border-outline-variant/60">
-                  <Lock className="w-3 h-3 text-primary" />
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-200/60 dark:border-slate-700">
+                  <Lock className="w-3 h-3 text-[#c00015]" />
                   <span>Terkunci</span>
                 </span>
               )}
@@ -988,64 +993,66 @@ export default function HaloJurnalLaporanDetailPage() {
                 </form>
               </>
             ) : (
-              /* KARTU PRIVASI RESMI TERKUNCI (UNTUK PENGUNJUNG UMUM / NON-PEMILIK) */
-              <div className="text-center py-6 px-2 space-y-4">
-                <div className="w-13 h-13 rounded-2xl bg-surface-container-high border border-outline-variant/80 text-primary flex items-center justify-center mx-auto shadow-2xs">
-                  <Lock className="w-6 h-6 text-primary" />
+              /* KARTU PRIVASI RESMI TERKUNCI (AFTER UX STYLE: CLEAN, MODERN & SLEEK) */
+              <div className="text-center py-7 px-3 space-y-4">
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center mx-auto shadow-2xs">
+                  <Lock className="w-5 h-5 text-slate-700 dark:text-slate-300 stroke-[2px]" />
                 </div>
 
-                <div className="space-y-1.5 max-w-xs mx-auto">
-                  <h4 className="font-heading font-bold text-sm text-on-surface">
+                <div className="space-y-1 max-w-xs mx-auto">
+                  <h4 className="font-heading font-bold text-sm text-slate-900 dark:text-slate-100 tracking-tight">
                     Ruang Koordinasi Privat Terkunci
                   </h4>
-                  <p className="text-xs text-secondary leading-relaxed">
-                    Percakapan langsung dengan tim redaksi bersifat rahasia dan dilindungi enkripsi demi menjaga data pribadi warga (UU PDP).
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Percakapan langsung dengan tim redaksi bersifat rahasia dan dilindungi enkripsi (UU PDP).
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/60 text-[11px] text-secondary text-left space-y-1.5">
-                  <div className="flex items-center gap-1.5 font-semibold text-on-surface">
-                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                <div className="py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 text-left text-xs text-slate-600 dark:text-slate-300 space-y-2">
+                  <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200 text-[11px] uppercase tracking-wider">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#c00015]" />
                     <span>Akses Dibatasi Khusus:</span>
                   </div>
-                  <ul className="text-secondary/80 space-y-1 pl-1">
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary/70 shrink-0" />
+                  <ul className="space-y-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#c00015] shrink-0" />
                       <span>Pemilik akun yang mengirim laporan ini</span>
                     </li>
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary/70 shrink-0" />
-                      <span>Tim Redaksi Halo Jurnal bertugas</span>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#c00015] shrink-0" />
+                      <span>Tim Redaksi Jurnal Sukabumi yang bertugas</span>
                     </li>
                   </ul>
                 </div>
 
                 {!user ? (
-                  <div className="pt-2">
+                  <div className="pt-1 space-y-2">
                     <Link
                       href={`/login?redirect=/halo-jurnal/laporan/${id}#chat`}
-                      className="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-2.5 px-4 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white font-heading font-semibold text-xs transition-colors shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Lock className="w-3.5 h-3.5" />
                       <span>Masuk sebagai Pemilik Laporan</span>
                     </Link>
-                    <p className="text-[10px] text-secondary mt-2">
+                    <p className="text-[11px] text-slate-400">
                       Belum punya akun?{' '}
-                      <Link href="/daftar" className="text-primary font-semibold hover:underline">
+                      <Link href="/daftar" className="text-[#c00015] font-semibold hover:underline">
                         Daftar Akun Baru
                       </Link>
                     </p>
                   </div>
                 ) : (
-                  <div className="pt-2 space-y-2">
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
-                      Akun Anda saat ini (<strong>{user.email}</strong>) bukan pemilik nomor tiket laporan ini.
-                    </p>
+                  <div className="pt-1 space-y-2.5">
+                    <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-left">
+                      <p className="text-[11px] text-amber-900 dark:text-amber-300 leading-snug">
+                        Akun aktif: <strong>{user.email}</strong>. Ruang obrolan ini khusus pemilik tiket laporan ini.
+                      </p>
+                    </div>
                     <Link
                       href="/halo-jurnal/lapor"
-                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/70 text-on-surface text-xs font-semibold transition"
+                      className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
                     >
-                      Buat Laporan Baru Anda Sendiri
+                      <span>Ajukan Laporan Baru Anda Sendiri</span>
                     </Link>
                   </div>
                 )}
