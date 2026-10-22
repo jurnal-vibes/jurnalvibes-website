@@ -221,7 +221,7 @@ export default function AdminLaporanPage() {
     }
   }, [reportsList])
 
-  const PAGE_SIZE = 5
+  const PAGE_SIZE = 10
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   // Reset pagination saat filter atau pencarian berubah

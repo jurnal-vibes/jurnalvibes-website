@@ -39,35 +39,40 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   // Dynamic badge counts
   const [counts, setCounts] = useState({
-    pendingReports: 1,
+    pendingReports: 2,
     unreadChat: 0,
-    articles: 10,
+    articles: 3,
     reels: 8,
   })
 
   useEffect(() => {
-    const updateCounts = () => {
+    let isMounted = true
+
+    const updateCounts = async () => {
+      let pending = 2
+      let totalArticles = 3
+
+      try {
+        const [resReports, resArticles] = await Promise.all([
+          fetch('/api/reports', { cache: 'no-store' }),
+          fetch('/api/articles', { cache: 'no-store' }),
+        ])
+        if (resReports.ok) {
+          const jsonReports = await resReports.json()
+          if (jsonReports.success && Array.isArray(jsonReports.data)) {
+            pending = jsonReports.data.filter((r: any) => r.status === 'diterima').length
+          }
+        }
+        if (resArticles.ok) {
+          const jsonArticles = await resArticles.json()
+          if (jsonArticles.success && Array.isArray(jsonArticles.data)) {
+            totalArticles = jsonArticles.data.length
+          }
+        }
+      } catch {}
+
       if (typeof window !== 'undefined') {
         try {
-          // 1. Laporan Warga yang menunggu verifikasi (status === 'diterima')
-          const overrides = JSON.parse(
-            localStorage.getItem('halo_jurnal_status_overrides') || '{}'
-          )
-          const userReports = JSON.parse(
-            localStorage.getItem('halo_jurnal_user_reports') || '[]'
-          )
-          const combined = [...userReports, ...DUMMY_REPORTS]
-          const unique = new Map<string, any>()
-          combined.forEach((item) => {
-            const key = item.id || item.nomor_tiket || item.ticket_number
-            if (key && !unique.has(key)) unique.set(key, item)
-          })
-          const allReports = Array.from(unique.values()).map((r) => {
-            const saved = overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
-            return saved?.status ? { ...r, status: saved.status } : r
-          })
-          const pending = allReports.filter((r) => r.status === 'diterima').length
-
           // 2. Chat Warga Belum Dibaca
           const readSet = new Set<string>(
             JSON.parse(localStorage.getItem('halo_jurnal_read_chats') || '[]')
@@ -94,14 +99,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             }
           }
 
-          // 3. Articles count
-          const artSaved = JSON.parse(
-            localStorage.getItem('jurnal_wave_articles') || '[]'
-          )
-          const totalArticles = Array.isArray(artSaved) && artSaved.length > 0
-            ? artSaved.length
-            : DUMMY_ARTICLES.length
-
           // 4. Reels count
           const reelsSaved = JSON.parse(
             localStorage.getItem('jurnal_wave_reels') || '[]'
@@ -110,22 +107,24 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             ? reelsSaved.length
             : DUMMY_REELS.length
 
-          setCounts({
-            pendingReports: pending,
-            unreadChat: unreadChatCount,
-            articles: totalArticles,
-            reels: totalReels,
-          })
+          if (isMounted) {
+            setCounts({
+              pendingReports: pending,
+              unreadChat: unreadChatCount,
+              articles: totalArticles,
+              reels: totalReels,
+            })
 
-          // Baca data profil admin yang sedang login
-          const savedUser = localStorage.getItem('jurnal_wave_admin_user')
-          if (savedUser) {
-            const parsed = JSON.parse(savedUser)
-            if (parsed.name || parsed.email) {
-              setAdminUser({
-                name: parsed.name || 'Redaksi Jurnal Sukabumi',
-                email: parsed.email || 'redaksi@jurnalsukabumi.com',
-              })
+            // Baca data profil admin yang sedang login
+            const savedUser = localStorage.getItem('jurnal_wave_admin_user')
+            if (savedUser) {
+              const parsed = JSON.parse(savedUser)
+              if (parsed.name || parsed.email) {
+                setAdminUser({
+                  name: parsed.name || 'Redaksi Jurnal Sukabumi',
+                  email: parsed.email || 'redaksi@jurnalsukabumi.com',
+                })
+              }
             }
           }
         } catch {}
@@ -134,8 +133,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
     updateCounts()
     window.addEventListener('storage', updateCounts)
-    window.addEventListener('focus', updateCounts)
     return () => {
+      isMounted = false
       window.removeEventListener('storage', updateCounts)
       window.removeEventListener('focus', updateCounts)
     }
