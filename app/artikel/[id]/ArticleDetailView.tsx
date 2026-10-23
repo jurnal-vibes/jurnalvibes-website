@@ -642,6 +642,23 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     return scored.slice(0, 3).map(item => item.article);
   }, [article, allArticles]);
 
+  // Rekomendasi Khusus untuk Kotak "BACA JUGA" di Sela-Sela Paragraf
+  const inlineRecommendedArticles = useMemo(() => {
+    if (relatedArticles.length > 0) return relatedArticles;
+    const others = (allArticles || []).filter(
+      (a) => a.id !== article.id && a.slug !== article.slug
+    );
+    return others.length > 0 ? others : DUMMY_ARTICLES.filter((a) => a.id !== article.id);
+  }, [relatedArticles, allArticles, article.id, article.slug]);
+
+  // Ekstraksi Paragraf Artikel untuk Penataan Konten & Sisipan "BACA JUGA"
+  const contentParagraphs = useMemo(() => {
+    const raw = article?.content || '';
+    const parts = raw.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(Boolean);
+    if (parts.length > 0) return parts;
+    return raw.split(/\r?\n/).map(p => p.trim()).filter(Boolean);
+  }, [article?.content]);
+
   return (
     <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
@@ -665,10 +682,19 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         </nav>
 
         {/* Article Header (Beri Jarak dengan Judul & Rapet ke Gambar) */}
-        <header className="flex flex-col gap-7 -mb-5">
+        <header className="flex flex-col gap-5 -mb-4">
           <h1 className="font-headline-xl text-xl sm:text-2xl md:text-[26px] lg:text-[28px] font-bold text-on-surface dark:text-white leading-snug tracking-tight">
             {article.title}
           </h1>
+
+          {/* Lead / Subjudul / Standfirst (Ringkasan Intisari Artikel di Bawah Judul) */}
+          {article.excerpt && (
+            <div className="border-l-[3.5px] border-slate-900 dark:border-slate-100 pl-4 py-1 -mt-1">
+              <p className="font-serif italic text-sm sm:text-[15.5px] leading-relaxed text-slate-700 dark:text-slate-300">
+                {article.excerpt}
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Penulis & Tanggal (Kiri) */}
@@ -908,23 +934,77 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
 
         {/* Article Body, Reporter & Tags (Uniform Gap) */}
         <div className={`font-body-lg text-on-surface dark:text-gray-100 flex flex-col gap-3.5 transition-all duration-200 ${FONT_SIZE_CLASSES[fontSize]}`}>
-          {(article?.content || '').split('\n\n').map((paragraph, idx) => {
-            const trimmed = paragraph.trim();
-            if (!trimmed) return null;
+          {contentParagraphs.map((paragraph, idx) => {
+            const isFirst = idx === 0;
+            const cleanFirst = isFirst
+              ? paragraph.replace(/^(JURNALWAVE\.COM|JURNAL WAVE|JURNALVIBES\.COM|JURNAL VIBES)(\s*[-–—]\s*)/i, '')
+              : paragraph;
 
-            if (idx === 0) {
-              const cleanFirst = trimmed.replace(/^(JURNALWAVE\.COM|JURNAL WAVE|JURNALVIBES\.COM|JURNAL VIBES)(\s*[-–—]\s*)/i, '');
-              return (
-                <p key={idx}>
-                  <span className="text-red-600 dark:text-red-500">
-                    JURNALWAVE.COM
-                  </span>{' '}
-                  – {cleanFirst}
-                </p>
-              );
-            }
+            // Posisi sisipan BACA JUGA (paragraf ke-2 atau ke-3)
+            const insertFirstAt = contentParagraphs.length >= 4 ? 2 : (contentParagraphs.length >= 2 ? 1 : 0);
+            const insertSecondAt = contentParagraphs.length >= 7 ? 5 : -1;
 
-            return <p key={idx}>{trimmed}</p>;
+            const rec1 = inlineRecommendedArticles[0];
+            const rec2 = inlineRecommendedArticles[1];
+
+            return (
+              <React.Fragment key={idx}>
+                {isFirst ? (
+                  <p>
+                    <span className="text-red-600 dark:text-red-500 font-bold">
+                      JURNALWAVE.COM
+                    </span>{' '}
+                    – {cleanFirst}
+                  </p>
+                ) : (
+                  <p>{paragraph}</p>
+                )}
+
+                {/* Sisipan Kotak BACA JUGA Pertama (Gaya Murni SukabumiUpdate) */}
+                {idx === insertFirstAt && rec1 && (
+                  <div className="not-prose my-3 sm:my-4 p-3 sm:p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all duration-200">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                      <div className="w-1 self-stretch min-h-[1.5rem] bg-[#c00015] rounded-full shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          href={`/artikel/${rec1.id}`}
+                          className="group flex flex-wrap items-baseline gap-1.5 text-xs sm:text-[13.5px] leading-snug"
+                        >
+                          <span className="text-[#c00015] font-extrabold tracking-wider uppercase shrink-0">
+                            BACA JUGA:
+                          </span>
+                          <span className="font-heading font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#c00015] transition-colors line-clamp-2">
+                            {rec1.title}
+                          </span>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sisipan Kotak BACA JUGA Kedua (Jika Naskah Panjang) */}
+                {idx === insertSecondAt && rec2 && (
+                  <div className="not-prose my-3 sm:my-4 p-3 sm:p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all duration-200">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                      <div className="w-1 self-stretch min-h-[1.5rem] bg-[#c00015] rounded-full shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          href={`/artikel/${rec2.id}`}
+                          className="group flex flex-wrap items-baseline gap-1.5 text-xs sm:text-[13.5px] leading-snug"
+                        >
+                          <span className="text-[#c00015] font-extrabold tracking-wider uppercase shrink-0">
+                            BACA JUGA:
+                          </span>
+                          <span className="font-heading font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#c00015] transition-colors line-clamp-2">
+                            {rec2.title}
+                          </span>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
+            );
           })}
 
           {/* Reporter & Redaktur Credit Line */}
