@@ -17,13 +17,43 @@ import {
   Volume2,
   Loader2
 } from 'lucide-react';
-import { FaFacebookF, FaXTwitter, FaWhatsapp } from 'react-icons/fa6';
-import { FaTelegramPlane } from 'react-icons/fa';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { NewsCard } from '@/components/cards/NewsCard';
 import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 import { fetchArticles, fetchArticleById } from '@/lib/wordpress';
+
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  );
+}
+
+function TwitterXIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12.031 2C6.495 2 2 6.495 2 12.031c0 1.97.57 3.805 1.558 5.356L2 22l4.757-1.523A9.97 9.97 0 0 0 12.031 22C17.567 22 22 17.505 22 12.031 22 6.495 17.567 2 12.031 2zm0 18.232c-1.636 0-3.153-.456-4.453-1.247l-.319-.19-2.943.942.96-2.868-.208-.33a8.214 8.214 0 0 1-1.267-4.508c0-4.542 3.69-8.232 8.23-8.232s8.23 3.69 8.23 8.232c0 4.541-3.688 8.232-8.23 8.232zm4.515-6.171c-.247-.124-1.464-.722-1.691-.805-.227-.082-.392-.124-.557.124-.165.247-.64 1.805-.784.97-.144.165-.288.185-.535.062-.247-.124-1.043-.385-1.986-1.226-.734-.655-1.23-1.464-1.374-1.711-.144-.247-.015-.38.109-.503.111-.111.247-.288.371-.433.124-.144.165-.247.247-.412.082-.165.041-.309-.021-.433-.062-.124-.557-1.34-.763-1.835-.2-.484-.402-.418-.557-.426l-.474-.008c-.165 0-.433.062-.66.309-.227.247-.866.845-.866 2.062 0 1.216.886 2.392 1.01 2.557.124.165 1.742 2.66 4.22 3.732.59.255 1.05.408 1.41.522.592.188 1.13.161 1.555.098.474-.071 1.464-.598 1.67-1.175.206-.577.206-1.072.144-1.175-.062-.103-.227-.165-.474-.288z" />
+    </svg>
+  );
+}
+
+function TelegramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+    </svg>
+  );
+}
 
 type FontSize = 'sm' | 'md' | 'lg';
 
@@ -690,7 +720,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
                 aria-label="Bagikan ke Facebook"
                 className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               >
-                <FaFacebookF className="w-3.5 h-3.5" />
+                <FacebookIcon className="w-3.5 h-3.5" />
               </button>
 
               {/* X / Twitter */}
@@ -701,7 +731,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
                 aria-label="Bagikan ke X"
                 className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-black text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               >
-                <FaXTwitter className="w-3.5 h-3.5" />
+                <TwitterXIcon className="w-3.5 h-3.5" />
               </button>
 
               {/* WhatsApp */}
@@ -712,7 +742,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
                 aria-label="Bagikan ke WhatsApp"
                 className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#25D366] text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               >
-                <FaWhatsapp className="w-4 h-4" />
+                <WhatsAppIcon className="w-4 h-4" />
               </button>
 
               {/* Telegram */}
@@ -723,7 +753,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
                 aria-label="Bagikan ke Telegram"
                 className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#229ED9] text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer"
               >
-                <FaTelegramPlane className="w-3.5 h-3.5 mr-0.5" />
+                <TelegramIcon className="w-3.5 h-3.5 mr-0.5" />
               </button>
 
               {/* Salin Link */}
