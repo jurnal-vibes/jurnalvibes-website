@@ -54,6 +54,48 @@ export function mapWordPressPost(post: any): Article {
   };
 }
 
+export function normalizeArticleCategory(category?: string, categoryLabel?: string): { category: ArticleCategory; categoryLabel: string } {
+  const cat = (category || '').toLowerCase().trim();
+  const rawLabel = (categoryLabel || '').trim();
+  const upperLabel = rawLabel.toUpperCase();
+
+  // Kategori aduan dari Halo Jurnal (infrastruktur, lingkungan, dll) harus dinormalisasi ke BERITA
+  if (cat === 'infrastruktur' || upperLabel === 'INFRASTRUKTUR' || cat === 'lingkungan' || cat === 'pelayanan' || !cat) {
+    return {
+      category: 'berita',
+      categoryLabel: 'BERITA',
+    };
+  }
+
+  const validCategories: Record<string, string> = {
+    berita: 'BERITA',
+    lifestyle: 'LIFESTYLE',
+    kuliner: 'KULINER',
+    wisata: 'WISATA',
+    otomotif: 'OTOMOTIF',
+    sport: 'SPORT',
+    loker: 'LOKER',
+    hiburan: 'HIBURAN',
+    tech: 'TEKNOLOGI',
+    science: 'SAINS',
+    health: 'KESEHATAN',
+  };
+
+  if (validCategories[cat]) {
+    return {
+      category: cat as ArticleCategory,
+      categoryLabel: upperLabel && upperLabel !== 'INFRASTRUKTUR' ? rawLabel : validCategories[cat],
+    };
+  }
+
+  return {
+    category: 'berita',
+    categoryLabel: upperLabel && upperLabel !== 'INFRASTRUKTUR' ? rawLabel : 'BERITA',
+  };
+}
+
+const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80';
+
 /**
  * Fetches all articles from WordPress REST API (/wp-json/wp/v2/posts?_embed=1).
  * Fallbacks to localStorage ('jurnal_wave_articles') or DUMMY_ARTICLES if WordPress is not yet connected or offline.
@@ -67,27 +109,30 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
         orderBy: { createdAt: 'desc' },
       });
       if (dbPosts.length > 0) {
-        return dbPosts.map((item) => ({
-          id: item.id,
-          title: item.title,
-          slug: item.slug,
-          excerpt: item.excerpt,
-          content: item.content,
-          category: (item.category as ArticleCategory) || 'berita',
-          categoryLabel: item.categoryLabel || item.category?.toUpperCase() || 'BERITA',
-          imageUrl: item.imageUrl,
-          imageAlt: item.imageAlt || item.title,
-          author: item.author || 'Tim Redaksi',
-          reporter: item.reporter || 'Redaksi Jurnal Wave',
-          redaktur: item.redaktur || 'Redaksi Pelaksana',
-          readTime: item.readTime || '5 min read',
-          isHero: Boolean(item.isHero),
-          isEditorsPick: Boolean(item.isEditorsPick),
-          badge: item.badge || undefined,
-          isSaved: false,
-          publishedDate: item.publishedDate || new Date(item.createdAt).toLocaleDateString('id-ID'),
-          createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
-        }));
+        return dbPosts.map((item) => {
+          const { category, categoryLabel } = normalizeArticleCategory(item.category, item.categoryLabel || undefined);
+          return {
+            id: item.id,
+            title: item.title,
+            slug: item.slug,
+            excerpt: item.excerpt,
+            content: item.content,
+            category,
+            categoryLabel,
+            imageUrl: item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/')) ? item.imageUrl : DEFAULT_FALLBACK_IMAGE,
+            imageAlt: item.imageAlt || item.title,
+            author: item.author || 'Tim Redaksi',
+            reporter: item.reporter || 'Redaksi Jurnal Wave',
+            redaktur: item.redaktur || 'Redaksi Pelaksana',
+            readTime: item.readTime || '5 min read',
+            isHero: Boolean(item.isHero),
+            isEditorsPick: Boolean(item.isEditorsPick),
+            badge: item.badge || undefined,
+            isSaved: false,
+            publishedDate: item.publishedDate || new Date(item.createdAt).toLocaleDateString('id-ID'),
+            createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+          };
+        });
       }
     } catch (err) {
       console.warn('MySQL server-side article fetch notice:', err);
@@ -101,8 +146,17 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
-          return json.data;
+          const sanitized = json.data.map((item: Article) => {
+            const { category, categoryLabel } = normalizeArticleCategory(item.category, item.categoryLabel);
+            return {
+              ...item,
+              category,
+              categoryLabel,
+              imageUrl: item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/')) ? item.imageUrl : DEFAULT_FALLBACK_IMAGE,
+            };
+          });
+          localStorage.setItem('jurnal_wave_articles', JSON.stringify(sanitized));
+          return sanitized;
         }
       }
     } catch {}
@@ -113,7 +167,15 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return parsed.map((item: Article) => {
+            const { category, categoryLabel } = normalizeArticleCategory(item.category, item.categoryLabel);
+            return {
+              ...item,
+              category,
+              categoryLabel,
+              imageUrl: item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/')) ? item.imageUrl : DEFAULT_FALLBACK_IMAGE,
+            };
+          });
         }
       }
     } catch {}
@@ -136,15 +198,16 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
         },
       });
       if (item) {
+        const { category, categoryLabel } = normalizeArticleCategory(item.category, item.categoryLabel || undefined);
         return {
           id: item.id,
           title: item.title,
           slug: item.slug,
           excerpt: item.excerpt,
           content: item.content,
-          category: (item.category as ArticleCategory) || 'berita',
-          categoryLabel: item.categoryLabel || item.category?.toUpperCase() || 'BERITA',
-          imageUrl: item.imageUrl,
+          category,
+          categoryLabel,
+          imageUrl: item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/')) ? item.imageUrl : DEFAULT_FALLBACK_IMAGE,
           imageAlt: item.imageAlt || item.title,
           author: item.author || 'Tim Redaksi',
           reporter: item.reporter || 'Redaksi Jurnal Wave',
@@ -170,7 +233,13 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
-          return json.data;
+          const { category, categoryLabel } = normalizeArticleCategory(json.data.category, json.data.categoryLabel);
+          return {
+            ...json.data,
+            category,
+            categoryLabel,
+            imageUrl: json.data.imageUrl && (json.data.imageUrl.startsWith('http') || json.data.imageUrl.startsWith('/')) ? json.data.imageUrl : DEFAULT_FALLBACK_IMAGE,
+          };
         }
       }
     } catch {}
@@ -185,7 +254,15 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
           const foundInLocal = parsed.find(
             (a: any) => String(a.id) === String(idOrSlug) || a.slug === idOrSlug
           );
-          if (foundInLocal) return foundInLocal;
+          if (foundInLocal) {
+            const { category, categoryLabel } = normalizeArticleCategory(foundInLocal.category, foundInLocal.categoryLabel);
+            return {
+              ...foundInLocal,
+              category,
+              categoryLabel,
+              imageUrl: foundInLocal.imageUrl && (foundInLocal.imageUrl.startsWith('http') || foundInLocal.imageUrl.startsWith('/')) ? foundInLocal.imageUrl : DEFAULT_FALLBACK_IMAGE,
+            };
+          }
         }
       }
     } catch {}

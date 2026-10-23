@@ -657,7 +657,11 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
             Berita
           </Link>
           <ChevronRight className="w-3 h-3 opacity-50" />
-          <span className="text-on-surface font-medium">{article.categoryLabel}</span>
+          <span className="text-on-surface font-medium">
+            {(article.categoryLabel || article.category || 'BERITA').toUpperCase() === 'INFRASTRUKTUR'
+              ? 'BERITA'
+              : (article.categoryLabel || article.category || 'BERITA')}
+          </span>
         </nav>
 
         {/* Article Header (Beri Jarak dengan Judul & Rapet ke Gambar) */}
@@ -765,11 +769,15 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         {/* Featured Image & Baris Utilitas Baca (Rapet ke Gambar) */}
         <div className="flex flex-col gap-3">
           <figure>
-            <div className="rounded-2xl overflow-hidden shadow-sm aspect-video border border-outline-variant/40">
+            <div className="rounded-2xl overflow-hidden shadow-sm aspect-video border border-outline-variant/40 bg-slate-100 dark:bg-slate-800">
               {/* eslint-disable-next-img-element */}
               <img
-                src={article?.imageUrl || '/logo_jurnal_wave.webp'}
+                src={article?.imageUrl || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'}
                 alt={article?.imageAlt || article?.title || 'Jurnal Wave'}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80';
+                }}
                 className="w-full h-full object-cover"
               />
             </div>

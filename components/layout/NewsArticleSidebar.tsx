@@ -10,6 +10,9 @@ interface NewsArticleSidebarProps {
   allArticles: Article[];
 }
 
+const FALLBACK_SIDEBAR_IMAGE =
+  'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80';
+
 export function NewsArticleSidebar({
   currentArticleId,
   allArticles,
@@ -85,34 +88,44 @@ export function NewsArticleSidebar({
         </div>
 
         <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/70">
-          {popularArticles.map((item) => (
-            <Link
-              key={item.id}
-              href={`/artikel/${item.id}`}
-              className="group py-3 first:pt-0 last:pb-0 flex items-start gap-3 transition-colors"
-            >
-              {/* Thumbnail di Kiri */}
-              {item.imageUrl && (
+          {popularArticles.map((item) => {
+            const rawLabel = (item.categoryLabel || item.category || 'BERITA').toUpperCase();
+            const displayCategory = rawLabel === 'INFRASTRUKTUR' ? 'BERITA' : rawLabel;
+            const validImg =
+              item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/'))
+                ? item.imageUrl
+                : FALLBACK_SIDEBAR_IMAGE;
+
+            return (
+              <Link
+                key={item.id}
+                href={`/artikel/${item.id}`}
+                className="group py-3 first:pt-0 last:pb-0 flex items-start gap-3 transition-colors"
+              >
+                {/* Thumbnail di Kiri */}
                 <div className="w-20 h-14 rounded overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-800">
                   <img
-                    src={item.imageUrl}
+                    src={validImg}
                     alt={item.title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = FALLBACK_SIDEBAR_IMAGE;
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
-              )}
 
-              {/* Teks Berita */}
-              <div className="flex-1 min-w-0">
-                <span className="text-[10px] font-bold tracking-wider uppercase text-[#c00015] block mb-0.5">
-                  {item.categoryLabel || item.category || 'Sukabumi'}
-                </span>
-                <h4 className="font-heading font-semibold text-xs text-slate-800 dark:text-slate-200 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug">
-                  {item.title}
-                </h4>
-              </div>
-            </Link>
-          ))}
+                {/* Teks Berita */}
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-[#c00015] block mb-0.5">
+                    {displayCategory}
+                  </span>
+                  <h4 className="font-heading font-semibold text-xs text-slate-800 dark:text-slate-200 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug">
+                    {item.title}
+                  </h4>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -139,6 +152,9 @@ export function NewsArticleSidebar({
                 <img
                   src={vid.thumbnail}
                   alt={vid.title}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = FALLBACK_SIDEBAR_IMAGE;
+                  }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">
