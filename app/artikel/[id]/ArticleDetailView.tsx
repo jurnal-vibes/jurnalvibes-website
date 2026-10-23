@@ -20,6 +20,7 @@ import {
 import { FaFacebookF, FaXTwitter, FaWhatsapp } from 'react-icons/fa6';
 import { FaTelegramPlane } from 'react-icons/fa';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
+import { NewsArticleSidebar } from '@/components/layout/NewsArticleSidebar';
 import { NewsCard } from '@/components/cards/NewsCard';
 import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
@@ -642,8 +643,10 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
   }, [article, allArticles]);
 
   return (
-    <div className="flex-grow w-full max-w-4xl mx-auto px-margin-mobile md:px-6 pt-stack-lg pb-6 md:pb-stack-lg flex flex-col relative">
-      <main className="w-full flex flex-col gap-stack-lg">
+    <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+        {/* Kolom Kiri: Konten Utama Artikel (8 dari 12 Kolom) */}
+        <main className="lg:col-span-8 flex flex-col gap-stack-lg min-w-0">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-[11px] text-on-surface-variant/70 mb-2">
           <Link href="/" className="hover:text-primary transition-colors">
@@ -994,6 +997,15 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
           </div>
         </section>
       </main>
+
+      {/* Kolom Kanan: Sidebar Khas Portal Berita (4 dari 12 Kolom) */}
+      <div className="lg:col-span-4 sticky top-24 pt-2">
+        <NewsArticleSidebar
+          currentArticleId={article.id}
+          allArticles={allArticles}
+        />
+      </div>
+    </div>
 
       {/* Floating Bottom Mini Player (Simple Capsule - Positioned above BottomNav on mobile) */}
       {isAudioActive && (
