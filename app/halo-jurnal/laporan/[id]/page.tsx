@@ -632,28 +632,28 @@ export default function HaloJurnalLaporanDetailPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                {/* Status Micro-Badge (Linear / GitHub style) */}
+                {/* Status Tag (Linear / Apple Monochromatic Minimalist) */}
                 {report.status === 'selesai' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/8 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold tracking-wide">
-                    <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.2px]" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
                     <span>Selesai</span>
                   </span>
                 )}
                 {report.status === 'ditindaklanjuti' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-500/8 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20 text-xs font-semibold tracking-wide">
-                    <ShieldCheck className="w-3.5 h-3.5 stroke-[2.2px]" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
+                    <ShieldCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
                     <span>Ditindaklanjuti</span>
                   </span>
                 )}
                 {report.status === 'diproses' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/8 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-xs font-semibold tracking-wide">
-                    <Clock className="w-3.5 h-3.5 stroke-[2.2px]" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
+                    <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
                     <span>Diproses</span>
                   </span>
                 )}
                 {report.status === 'diterima' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-500/8 text-sky-700 dark:text-sky-400 border border-sky-500/20 text-xs font-semibold tracking-wide">
-                    <Inbox className="w-3.5 h-3.5 stroke-[2.2px]" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
+                    <Inbox className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
                     <span>Diterima</span>
                   </span>
                 )}
