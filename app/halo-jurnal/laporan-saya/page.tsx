@@ -500,17 +500,17 @@ export default function HaloJurnalLaporanSayaPage() {
                 key={report.id}
                 className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all group"
               >
-                {/* Header: ID, Kategori, Tanggal, Status Pill */}
-                <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3.5">
-                  <div className="flex flex-wrap items-center gap-2">
+                {/* Header: ID, Kategori, Tanggal, Status Pill (Subtle After UX style) */}
+                <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     {/* Ticket ID */}
                     <button
                       type="button"
                       onClick={(e) => handleCopyId(ticketId, e)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-[11px] font-mono font-medium text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 font-mono font-medium hover:text-[#c00015] dark:hover:text-[#ff6b6b] transition-colors cursor-pointer"
                       title="Salin nomor tiket"
                     >
-                      <span>ID: {ticketId}</span>
+                      <span>#{ticketId}</span>
                       {isCopied ? (
                         <Check className="w-3 h-3 text-emerald-500" />
                       ) : (
@@ -518,39 +518,43 @@ export default function HaloJurnalLaporanSayaPage() {
                       )}
                     </button>
 
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+
                     {/* Kategori */}
-                    <span className="inline-block px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">
                       {normalizeCategoryName(report.kategori)}
                     </span>
 
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+
                     {/* Tanggal */}
-                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                    <span className="text-slate-400 dark:text-slate-500">
                       {formatDate(report.created_at)}
                     </span>
                   </div>
 
-                  {/* Status Editorial Pill (After UX style) */}
+                  {/* Status Subtle Pill (After UX style) */}
                   <div>
                     {status === 'selesai' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/40 text-[11px] font-semibold tracking-tight">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                         Selesai
                       </span>
                     )}
                     {status === 'ditindaklanjuti' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/40 text-[11px] font-semibold tracking-tight">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-semibold">
                         <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
                         Ditindaklanjuti
                       </span>
                     )}
                     {status === 'diproses' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/40 text-[11px] font-semibold tracking-tight">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                         Diproses
                       </span>
                     )}
                     {status === 'diterima' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/40 text-[11px] font-semibold tracking-tight">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
                         Diterima
                       </span>

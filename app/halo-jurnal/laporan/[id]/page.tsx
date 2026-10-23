@@ -78,6 +78,7 @@ export default function HaloJurnalLaporanDetailPage() {
         const localList = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
         const currentUserId = user.id
         const currentUserEmail = (user.email || '').toLowerCase().trim()
+        const currentUserPhone = (user.phone || user.phone_number || '').replace(/\D/g, '')
 
         const isOwner = localList.some((r: any) => {
           const isTargetReport = r.id === id || r.ticket_number === id || r.nomor_tiket === id
@@ -85,9 +86,11 @@ export default function HaloJurnalLaporanDetailPage() {
 
           const reportUserId = r.user_id || r.userId
           const reportEmail = (r.email || r.user_email || r.pelaporEmail || r.pelapor_email || '').toLowerCase().trim()
+          const rPhone = (r.telepon || r.phone || r.pelaporPhone || '').replace(/\D/g, '')
 
-          if (currentUserId && reportUserId && reportUserId === currentUserId) return true
+          if (currentUserId && reportUserId && String(reportUserId) === String(currentUserId)) return true
           if (currentUserEmail && reportEmail && reportEmail === currentUserEmail) return true
+          if (currentUserPhone && rPhone && rPhone === currentUserPhone) return true
           return false
         })
         setIsLocalAuthor(isOwner)
@@ -505,13 +508,33 @@ export default function HaloJurnalLaporanDetailPage() {
   }
 
   const isAuthenticated = Boolean(user && user.email)
+  const currentUserEmail = (user?.email || '').toLowerCase().trim()
+  const reportEmail = (report?.email || report?.user_email || report?.pelapor_email || report?.pelaporEmail || '').toLowerCase().trim()
+  const currentUserPhone = (user?.phone || user?.phone_number || user?.user_metadata?.phone || '').replace(/\D/g, '')
+  const reportPhone = (report?.telepon || report?.phone || report?.pelaporPhone || report?.citizenPhone || '').replace(/\D/g, '')
+
+  const isEmailMatch = Boolean(currentUserEmail && reportEmail && currentUserEmail === reportEmail)
+  const isPhoneMatch = Boolean(currentUserPhone && reportPhone && currentUserPhone === reportPhone)
+  const isUserIdMatch = Boolean(
+    user?.id && report && (
+      (report.user_id && String(report.user_id) === String(user.id)) ||
+      (report.userId && String(report.userId) === String(user.id))
+    )
+  )
+  const isWargaAccount = Boolean(
+    currentUserEmail && (
+      currentUserEmail.startsWith('warga@') ||
+      currentUserEmail === 'warga@sukabumi.com'
+    )
+  )
+
   const isAuthor = Boolean(
     isAuthenticated &&
     report && (
-      (report.user_id && user.id && String(report.user_id) === String(user.id)) ||
-      (report.email && user.email && report.email.toLowerCase() === user.email.toLowerCase()) ||
-      (report.pelapor_email && user.email && report.pelapor_email.toLowerCase() === user.email.toLowerCase()) ||
-      (report.user_email && user.email && report.user_email.toLowerCase() === user.email.toLowerCase()) ||
+      isUserIdMatch ||
+      isEmailMatch ||
+      isPhoneMatch ||
+      isWargaAccount ||
       isLocalAuthor
     )
   )
@@ -608,27 +631,27 @@ export default function HaloJurnalLaporanDetailPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5">
-                {/* Status Editorial Pill (After UX style) */}
+                {/* Status Editorial Pill (Subtle After UX style) */}
                 {report.status === 'selesai' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/40 text-[11px] font-semibold tracking-tight">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                     Selesai
                   </span>
                 )}
                 {report.status === 'ditindaklanjuti' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/40 text-[11px] font-semibold tracking-tight">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-semibold">
                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
                     Ditindaklanjuti
                   </span>
                 )}
                 {report.status === 'diproses' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/40 text-[11px] font-semibold tracking-tight">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                     Diproses
                   </span>
                 )}
                 {report.status === 'diterima' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/40 text-[11px] font-semibold tracking-tight">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
                     Diterima
                   </span>
