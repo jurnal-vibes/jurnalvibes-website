@@ -13,7 +13,7 @@ export function getInitials(name?: string | null): string {
 interface UserAvatarProps {
   name?: string | null
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-  bgColor?: 'maroon' | 'gold' | 'primary'
+  bgColor?: 'maroon' | 'gold' | 'primary' | 'slate'
   className?: string
 }
 
@@ -35,9 +35,9 @@ export default function UserAvatar({
 
   const bgClasses = bgColor === 'gold' 
     ? 'bg-gradient-to-tr from-amber-600 to-amber-500 text-white shadow-xs ring-2 ring-amber-500/20'
-    : bgColor === 'maroon'
-    ? 'bg-gradient-to-tr from-[#66000c] to-[#990011] text-white shadow-xs ring-2 ring-[#990011]/20'
-    : 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-700 text-white shadow-xs ring-2 ring-slate-200 dark:ring-slate-700'
+    : bgColor === 'slate'
+    ? 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-700 text-white shadow-xs ring-2 ring-slate-200 dark:ring-slate-700'
+    : 'bg-gradient-to-tr from-[#8e000f] via-[#c00015] to-[#de0a26] text-white shadow-sm ring-2 ring-rose-500/25'
 
   const roundedClass = (size === 'lg' || size === 'xl') ? 'rounded-2xl' : 'rounded-full'
 
