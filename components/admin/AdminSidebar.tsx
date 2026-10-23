@@ -263,7 +263,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         <div className="h-16 px-5 flex items-center justify-between border-b border-slate-200">
           <Link href="/halo-jurnal/admin" className="flex items-center gap-2.5">
             <img
-              src="/halo-jurnal-icon.svg?v=3"
+              src="/halo-jurnal-icon.webp"
               alt="Jurnal Sukabumi"
               className="w-8 h-8 object-contain shrink-0"
             />

@@ -106,7 +106,7 @@ export default function HaloJurnalHeader() {
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shadow-2xs overflow-hidden shrink-0">
               <img
-                src="/halo-jurnal-icon.svg?v=3"
+                src="/halo-jurnal-icon.webp"
                 alt="Halo Jurnal Logo"
                 className="w-full h-full object-contain drop-shadow-xs"
               />
@@ -193,7 +193,7 @@ export default function HaloJurnalHeader() {
         <div className="flex justify-between items-center px-4 h-16 border-b border-outline-variant/60 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0">
-              <img src="/halo-jurnal-icon.svg?v=3" alt="Halo Jurnal Logo" className="w-full h-full object-contain" />
+              <img src="/halo-jurnal-icon.webp" alt="Halo Jurnal Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-bold text-lg leading-none text-on-surface tracking-tight">Halo Jurnal</span>

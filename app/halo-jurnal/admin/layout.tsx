@@ -71,7 +71,7 @@ export default function AdminLayout({
           <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/halo-jurnal-icon.svg?v=3"
+              src="/halo-jurnal-icon.webp"
               alt="Halo Jurnal Logo"
               className="w-7 h-7 object-contain"
             />
