@@ -239,20 +239,20 @@ export default function HaloJurnalBerandaPage() {
               className="w-11 h-11 sm:w-12 sm:h-12 text-sm sm:text-base font-bold shadow-2xs ring-2 ring-primary/15 shrink-0"
             />
             <div className="min-w-0">
-              <h1 className="font-heading font-bold text-lg sm:text-xl text-on-surface tracking-tight truncate">
-                Selamat Datang, {displayName}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-secondary font-medium">
-                {isVerified ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/80 text-on-surface text-[11px] sm:text-xs font-semibold">
-                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                    Warga Terverifikasi
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/60 text-secondary text-[11px] sm:text-xs font-medium">
-                    Warga Terdaftar
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-heading font-bold text-lg sm:text-xl text-on-surface tracking-tight truncate">
+                  Selamat Datang, {displayName}
+                </h1>
+                {isVerified && (
+                  <span title="Warga Terverifikasi Sukabumi" className="inline-flex items-center text-sky-500 shrink-0">
+                    <ShieldCheck className="w-5 h-5 fill-sky-500/15 stroke-[2.2px]" />
                   </span>
                 )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-secondary font-medium">
+                <span className="text-[11px] sm:text-xs text-secondary">
+                  {isVerified ? 'Warga Terverifikasi' : 'Warga Terdaftar'}
+                </span>
                 <span className="text-outline-variant">•</span>
                 <span className="font-mono text-[11px] sm:text-xs text-secondary/80">
                   WA: {userPhone}

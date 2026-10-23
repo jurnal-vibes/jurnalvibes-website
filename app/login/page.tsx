@@ -127,7 +127,7 @@ function LoginPageContent() {
                 <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-2xs">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="/halo-jurnal-icon.webp"
+                    src="/halo-jurnal-icon.svg?v=3"
                     alt="Halo Jurnal Logo"
                     className="w-full h-full object-contain"
                   />

@@ -146,18 +146,20 @@ export default function HaloJurnalProfilPage() {
           <UserAvatar name={user?.full_name || 'Warga Sukabumi'} size="lg" />
 
           <div>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 mb-1">
+            <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
               <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-slate-100 tracking-tight">
                 {user?.full_name || 'Warga Sukabumi'}
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                Warga Terverifikasi
-              </span>
+              <div
+                title="Warga Terverifikasi Sukabumi"
+                className="inline-flex items-center text-sky-500 hover:text-sky-600 transition-colors"
+              >
+                <ShieldCheck className="w-5 h-5 fill-sky-500/15 stroke-[2.2px]" />
+              </div>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">{user?.email}</p>
             <p className="text-slate-400 dark:text-slate-500 text-[11px] mt-0.5">
-              Warga Aktif Halo Jurnal Sukabumi
+              Warga Aktif Terverifikasi Halo Jurnal Sukabumi
             </p>
           </div>
         </div>

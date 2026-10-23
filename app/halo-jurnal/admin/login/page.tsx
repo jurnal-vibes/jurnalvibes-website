@@ -93,7 +93,7 @@ export default function AdminLoginPage() {
         <Link href="/" className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/halo-jurnal-icon.webp"
+            src="/halo-jurnal-icon.svg?v=3"
             alt="Halo Jurnal Logo"
             className="w-8 h-8 object-contain shrink-0"
           />
@@ -128,7 +128,7 @@ export default function AdminLoginPage() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 shadow-2xs mb-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/halo-jurnal-icon.webp"
+              src="/halo-jurnal-icon.svg?v=3"
               alt="Halo Jurnal Logo"
               className="w-7 h-7 object-contain"
             />

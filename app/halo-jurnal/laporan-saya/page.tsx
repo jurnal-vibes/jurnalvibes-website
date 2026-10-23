@@ -533,30 +533,30 @@ export default function HaloJurnalLaporanSayaPage() {
                     </span>
                   </div>
 
-                  {/* Status Subtle Pill (After UX style) */}
-                  <div>
+                  {/* Status Indicator (Linear / Apple style - No AI slop pill) */}
+                  <div className="flex items-center gap-1.5 text-xs">
                     {status === 'selesai' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                        Selesai
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle2 className="w-4 h-4 stroke-[2.2px]" />
+                        <span>Selesai</span>
                       </span>
                     )}
                     {status === 'ditindaklanjuti' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
-                        Ditindaklanjuti
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-purple-600 dark:text-purple-400">
+                        <ShieldCheck className="w-4 h-4 stroke-[2.2px]" />
+                        <span>Ditindaklanjuti</span>
                       </span>
                     )}
                     {status === 'diproses' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                        Diproses
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
+                        <Clock className="w-4 h-4 stroke-[2.2px]" />
+                        <span>Diproses</span>
                       </span>
                     )}
                     {status === 'diterima' && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                        Diterima
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-blue-600 dark:text-blue-400">
+                        <Inbox className="w-4 h-4 stroke-[2.2px]" />
+                        <span>Diterima</span>
                       </span>
                     )}
                   </div>

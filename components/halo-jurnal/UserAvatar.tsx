@@ -34,17 +34,19 @@ export default function UserAvatar({
   }[size]
 
   const bgClasses = bgColor === 'gold' 
-    ? 'bg-amber-500 text-white shadow-xs border border-amber-300/40'
+    ? 'bg-gradient-to-tr from-amber-600 to-amber-500 text-white shadow-xs ring-2 ring-amber-500/20'
     : bgColor === 'maroon'
-    ? 'bg-[#8B1E2C] text-white shadow-xs border border-white/20'
-    : 'bg-primary text-white shadow-xs border border-white/20'
+    ? 'bg-gradient-to-tr from-[#66000c] to-[#990011] text-white shadow-xs ring-2 ring-[#990011]/20'
+    : 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-700 text-white shadow-xs ring-2 ring-slate-200 dark:ring-slate-700'
+
+  const roundedClass = (size === 'lg' || size === 'xl') ? 'rounded-2xl' : 'rounded-full'
 
   return (
     <div
-      className={`rounded-full flex items-center justify-center font-bold font-sans shrink-0 select-none tracking-wider ${sizeClasses} ${bgClasses} ${className}`}
+      className={`${roundedClass} flex items-center justify-center font-bold font-heading shrink-0 select-none tracking-wider shadow-xs ${sizeClasses} ${bgClasses} ${className}`}
       title={name || 'User'}
     >
-      <span>{initials}</span>
+      <span className="leading-none">{initials}</span>
     </div>
   )
 }
