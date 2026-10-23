@@ -58,15 +58,17 @@ export function NewsArticleSidebar({
     },
   ];
 
-  // 3. Tag / Topik Populer Sukabumi
+  // 3. Tag / Topik Populer Jurnal Wave
   const popularTags = [
-    'pemda mandiri insigne sukabumi',
-    'mentan gaji pegawai eselon gaji nasional',
-    'oppo reno 12',
-    'hitung sukabumi',
-    'sarjana penggerak pembangunan indonesia',
-    'kuliner sukabumi',
-    'jalan lingkar selatan',
+    '#KulinerSukabumi',
+    '#WisataSukabumi',
+    '#Lifestyle',
+    '#Otomotif',
+    '#LokerSukabumi',
+    '#HaloJurnal',
+    '#Cikole',
+    '#Palabuhanratu',
+    '#JurnalWave',
   ];
 
   return (
@@ -161,38 +163,34 @@ export function NewsArticleSidebar({
       </section>
 
       {/* ============================================================== */}
-      {/* 3. BALE WARGA (Gaya Murni SukabumiUpdate) */}
+      {/* 3. HALO JURNAL (Aspirasi & Pengaduan Rakyat Sukabumi) */}
       {/* ============================================================== */}
       <section>
         <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
           <div className="w-1 h-4 bg-[#c00015]" />
           <h3 className="font-heading font-extrabold text-sm tracking-wider uppercase text-slate-900 dark:text-slate-100">
-            Bale Warga
+            Halo Jurnal
           </h3>
         </div>
 
-        <Link
-          href="/halo-jurnal"
-          className="group block border border-slate-200 dark:border-slate-800 rounded-lg p-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors bg-white dark:bg-slate-900"
-        >
-          <div className="w-full h-32 rounded overflow-hidden mb-2.5 bg-slate-100 dark:bg-slate-800">
-            <img
-              src="https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80"
-              alt="Bale Warga Halo Jurnal"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-          <span className="text-[10px] font-bold uppercase text-[#c00015] block mb-1">
-            Opini Warga
+        <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3.5 bg-white dark:bg-slate-900">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#c00015] block mb-1">
+            Aspirasi &amp; Pengaduan Warga
           </span>
-          <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug mb-2">
-            Mengapa Wacana Gaji ASN Lewat Koperasi adalah Skandal Besar?
+          <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 leading-snug mb-1.5">
+            Punya Keluhan Fasilitas Publik di Sukabumi?
           </h4>
-          <span className="text-[11px] font-semibold text-[#c00015] inline-flex items-center gap-1 group-hover:underline">
-            Sampaikan Aspirasi di Halo Jurnal
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
+            Laporkan jalan rusak, lampu PJU mati, atau fasilitas publik langsung ke Meja Redaksi Halo Jurnal untuk dikawal bersama.
+          </p>
+          <Link
+            href="/halo-jurnal/lapor"
+            className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-md bg-[#c00015] hover:bg-[#a80012] text-white text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+          >
+            <span>Kirim Laporan Warga</span>
             <ArrowRight className="w-3 h-3" />
-          </span>
-        </Link>
+          </Link>
+        </div>
       </section>
 
       {/* ============================================================== */}
