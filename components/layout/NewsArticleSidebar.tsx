@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Play, Flame, ArrowRight, Tag, MessageSquare, Video } from 'lucide-react';
+import { Play, ArrowRight } from 'lucide-react';
 import { Article } from '@/types';
 
 interface NewsArticleSidebarProps {
@@ -14,180 +14,145 @@ export function NewsArticleSidebar({
   currentArticleId,
   allArticles,
 }: NewsArticleSidebarProps) {
-  // 1. Ambil 5 Berita Terpopuler (selain artikel yang sedang dibuka)
+  // 1. Ambil 5 Berita Terpopuler
   const popularArticles = React.useMemo(() => {
     const list = (allArticles || []).filter(
       (a) => a.id !== currentArticleId && a.slug !== currentArticleId
     );
-    // Prioritaskan artikel dengan badge 'HOT'/'VIRAL' atau urutan awal
     return list.slice(0, 5);
   }, [allArticles, currentArticleId]);
 
-  // 2. Video Populer / Reels Sukabumi
+  // 2. Video Populer
   const popularVideos = [
     {
       id: 'v1',
-      title: 'Kondisi Terkini Aspal Jalur Lingkar Selatan Sukabumi',
-      duration: '01:14',
+      title: 'Kondisi Terkini Aspal Jalur Lingkar Selatan Sukabumi Dikebut',
       thumbnail:
         'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80',
-      views: '12.4K tayang',
+      date: 'Selasa, 22 Okt 2026, 17:07 WIB',
       link: '/reels',
     },
     {
       id: 'v2',
-      title: 'Sensasi Ngopi Pagi di Hutan Pinus Cikole Sukabumi',
-      duration: '00:52',
+      title: 'Sensasi Ngopi di Tengah Hutan Pinus Cikole yang Viral',
       thumbnail:
         'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-      views: '8.7K tayang',
+      date: 'Selasa, 22 Okt 2026, 15:45 WIB',
       link: '/reels',
     },
     {
       id: 'v3',
-      title: 'Pantauan Arus Wisatawan Menuju Pantai Palabuhanratu',
-      duration: '01:45',
+      title: 'Pantauan Arus Wisatawan Menuju Palabuhanratu Akhir Pekan',
       thumbnail:
         'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80',
-      views: '19.2K tayang',
+      date: 'Selasa, 22 Okt 2026, 11:20 WIB',
+      link: '/reels',
+    },
+    {
+      id: 'v4',
+      title: 'Festival Kuliner Sukabumi 2024 Dipadati Ribuan Pengunjung',
+      thumbnail:
+        'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80',
+      date: 'Senin, 21 Okt 2026, 19:10 WIB',
       link: '/reels',
     },
   ];
 
   // 3. Tag / Topik Populer Sukabumi
   const popularTags = [
-    '#Sukabumi',
-    '#KulinerSukabumi',
-    '#JalanRusak',
-    '#Cikole',
-    '#Palabuhanratu',
-    '#Pilkada2026',
-    '#WisataAlam',
-    '#GenZ',
-    '#HaloJurnal',
+    'pemda mandiri insigne sukabumi',
+    'mentan gaji pegawai eselon gaji nasional',
+    'oppo reno 12',
+    'hitung sukabumi',
+    'sarjana penggerak pembangunan indonesia',
+    'kuliner sukabumi',
+    'jalan lingkar selatan',
   ];
 
   return (
-    <aside className="w-full flex flex-col gap-8 select-none">
+    <aside className="w-full flex flex-col gap-9 select-none">
       {/* ============================================================== */}
-      {/* 1. WIDGET BERITA TERPOPULER */}
+      {/* 1. TERPOPULER (Gaya Murni SukabumiUpdate: Tanpa Icon, Garis Merah Kiri) */}
       {/* ============================================================== */}
-      <section className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-[#c00015]/10 text-[#c00015] flex items-center justify-center">
-              <Flame className="w-3.5 h-3.5" />
-            </div>
-            <h3 className="font-heading font-extrabold text-sm text-slate-900 dark:text-slate-100 tracking-wider uppercase">
-              Terpopuler
-            </h3>
-          </div>
-          <div className="w-8 h-[2.5px] bg-[#c00015] rounded-full" />
+      <section>
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+          <div className="w-1 h-4 bg-[#c00015]" />
+          <h3 className="font-heading font-extrabold text-sm tracking-wider uppercase text-slate-900 dark:text-slate-100">
+            Terpopuler
+          </h3>
         </div>
 
-        <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/80">
-          {popularArticles.map((item, index) => {
-            const rank = index + 1;
-            return (
-              <Link
-                key={item.id}
-                href={`/artikel/${item.id}`}
-                className="group py-3.5 first:pt-0 last:pb-0 flex items-start gap-3 transition-colors"
-              >
-                {/* Ranking Number */}
-                <span
-                  className={`text-lg font-heading font-black leading-none shrink-0 w-5 text-center mt-0.5 ${
-                    rank === 1
-                      ? 'text-[#c00015]'
-                      : rank === 2
-                      ? 'text-amber-600'
-                      : rank === 3
-                      ? 'text-slate-700 dark:text-slate-300'
-                      : 'text-slate-400 dark:text-slate-600'
-                  }`}
-                >
-                  {rank}
-                </span>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <span className="text-[10px] font-bold tracking-wider uppercase text-[#c00015] block mb-1">
-                    {item.categoryLabel || item.category || 'Sukabumi'}
-                  </span>
-                  <h4 className="font-heading font-semibold text-xs sm:text-[13px] text-slate-800 dark:text-slate-200 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug">
-                    {item.title}
-                  </h4>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">
-                    {item.publishedDate || 'Hari ini'}
-                  </span>
+        <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/70">
+          {popularArticles.map((item) => (
+            <Link
+              key={item.id}
+              href={`/artikel/${item.id}`}
+              className="group py-3 first:pt-0 last:pb-0 flex items-start gap-3 transition-colors"
+            >
+              {/* Thumbnail di Kiri */}
+              {item.imageUrl && (
+                <div className="w-20 h-14 rounded overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-800">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
+              )}
 
-                {/* Thumbnail Mini */}
-                {item.imageUrl && (
-                  <div className="w-16 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-800">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                )}
-              </Link>
-            );
-          })}
+              {/* Teks Berita */}
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] font-bold tracking-wider uppercase text-[#c00015] block mb-0.5">
+                  {item.categoryLabel || item.category || 'Sukabumi'}
+                </span>
+                <h4 className="font-heading font-semibold text-xs text-slate-800 dark:text-slate-200 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug">
+                  {item.title}
+                </h4>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
       {/* ============================================================== */}
-      {/* 2. WIDGET VIDEO POPULER */}
+      {/* 2. VIDEO POPULER (Gaya Murni SukabumiUpdate) */}
       {/* ============================================================== */}
-      <section className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-[#c00015]/10 text-[#c00015] flex items-center justify-center">
-              <Video className="w-3.5 h-3.5" />
-            </div>
-            <h3 className="font-heading font-extrabold text-sm text-slate-900 dark:text-slate-100 tracking-wider uppercase">
-              Video Populer
-            </h3>
-          </div>
-          <Link
-            href="/reels"
-            className="text-[11px] font-bold text-[#c00015] hover:underline"
-          >
-            Lihat Semua
-          </Link>
+      <section>
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+          <div className="w-1 h-4 bg-[#c00015]" />
+          <h3 className="font-heading font-extrabold text-sm tracking-wider uppercase text-slate-900 dark:text-slate-100">
+            Video Populer
+          </h3>
         </div>
 
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/70">
           {popularVideos.map((vid) => (
             <Link
               key={vid.id}
               href={vid.link}
-              className="group flex gap-3 items-center"
+              className="group py-3 first:pt-0 last:pb-0 flex items-start gap-3"
             >
-              <div className="relative w-24 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+              {/* Thumbnail Video dengan Tombol Play Merah */}
+              <div className="relative w-20 h-14 rounded overflow-hidden shrink-0 bg-slate-900 border border-slate-200/60 dark:border-slate-800">
                 <img
                   src={vid.thumbnail}
                   alt={vid.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 opacity-90"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90"
                 />
-                <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-full bg-[#c00015] text-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                    <Play className="w-3 h-3 fill-white ml-0.5" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                  <div className="w-5 h-5 rounded-full bg-[#c00015] text-white flex items-center justify-center shadow-xs">
+                    <Play className="w-2.5 h-2.5 fill-white ml-0.5" />
                   </div>
                 </div>
-                <span className="absolute bottom-1 right-1 bg-black/75 text-white font-mono text-[9px] px-1 py-0.2 rounded font-semibold">
-                  {vid.duration}
-                </span>
               </div>
 
+              {/* Keterangan Video */}
               <div className="flex-1 min-w-0">
                 <h4 className="font-heading font-semibold text-xs text-slate-800 dark:text-slate-200 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug">
                   {vid.title}
                 </h4>
                 <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">
-                  {vid.views}
+                  {vid.date}
                 </span>
               </div>
             </Link>
@@ -196,55 +161,57 @@ export function NewsArticleSidebar({
       </section>
 
       {/* ============================================================== */}
-      {/* 3. WIDGET SUARA WARGA / HALO JURNAL BANNER */}
+      {/* 3. BALE WARGA (Gaya Murni SukabumiUpdate) */}
       {/* ============================================================== */}
-      <section className="bg-gradient-to-br from-white via-rose-50/30 to-rose-100/20 dark:from-slate-900 dark:via-slate-900 dark:to-rose-950/20 border border-rose-200/70 dark:border-rose-900/40 rounded-2xl p-5 shadow-xs relative overflow-hidden">
-        <div className="flex items-center gap-2 mb-2 text-[#c00015]">
-          <MessageSquare className="w-4 h-4" />
-          <span className="font-heading font-bold text-xs uppercase tracking-wider">
-            Suara Warga Sukabumi
-          </span>
+      <section>
+        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
+          <div className="w-1 h-4 bg-[#c00015]" />
+          <h3 className="font-heading font-extrabold text-sm tracking-wider uppercase text-slate-900 dark:text-slate-100">
+            Bale Warga
+          </h3>
         </div>
 
-        <h4 className="font-heading font-extrabold text-sm text-slate-900 dark:text-slate-100 tracking-tight leading-snug mb-1.5">
-          Punya Keluhan atau Aspirasi di Wilayah Anda?
-        </h4>
-
-        <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-4">
-          Laporkan fasilitas rusak, sampah, atau jalan berlubang langsung ke
-          Redaksi Halo Jurnal untuk diteruskan ke dinas berwenang.
-        </p>
-
         <Link
-          href="/halo-jurnal/lapor"
-          className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-[#c00015] hover:bg-[#a80012] text-white text-xs font-bold transition-all shadow-xs active:scale-95"
+          href="/halo-jurnal"
+          className="group block border border-slate-200 dark:border-slate-800 rounded-lg p-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors bg-white dark:bg-slate-900"
         >
-          <span>Kirim Laporan Warga</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <div className="w-full h-32 rounded overflow-hidden mb-2.5 bg-slate-100 dark:bg-slate-800">
+            <img
+              src="https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80"
+              alt="Bale Warga Halo Jurnal"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+          <span className="text-[10px] font-bold uppercase text-[#c00015] block mb-1">
+            Opini Warga
+          </span>
+          <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug mb-2">
+            Mengapa Wacana Gaji ASN Lewat Koperasi adalah Skandal Besar?
+          </h4>
+          <span className="text-[11px] font-semibold text-[#c00015] inline-flex items-center gap-1 group-hover:underline">
+            Sampaikan Aspirasi di Halo Jurnal
+            <ArrowRight className="w-3 h-3" />
+          </span>
         </Link>
       </section>
 
       {/* ============================================================== */}
-      {/* 4. WIDGET TAG POPULER */}
+      {/* 4. TAG POPULER (Gaya Murni SukabumiUpdate) */}
       {/* ============================================================== */}
-      <section className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center">
-              <Tag className="w-3.5 h-3.5" />
-            </div>
-            <h3 className="font-heading font-extrabold text-sm text-slate-900 dark:text-slate-100 tracking-wider uppercase">
-              Tag Populer
-            </h3>
-          </div>
+      <section>
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+          <div className="w-1 h-4 bg-[#c00015]" />
+          <h3 className="font-heading font-extrabold text-sm tracking-wider uppercase text-slate-900 dark:text-slate-100">
+            Tag Populer
+          </h3>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {popularTags.map((tag) => (
             <Link
               key={tag}
-              href={`/search?q=${encodeURIComponent(tag.replace('#', ''))}`}
-              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-300 text-xs font-medium transition-colors"
+              href={`/search?q=${encodeURIComponent(tag)}`}
+              className="px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-medium transition-colors"
             >
               {tag}
             </Link>
