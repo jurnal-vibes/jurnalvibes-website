@@ -533,29 +533,29 @@ export default function HaloJurnalLaporanSayaPage() {
                     </span>
                   </div>
 
-                  {/* Status Indicator (Linear / Apple style - No AI slop pill) */}
-                  <div className="flex items-center gap-1.5 text-xs">
+                  {/* Status Micro-Badge (Linear / GitHub style) */}
+                  <div>
                     {status === 'selesai' && (
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="w-4 h-4 stroke-[2.2px]" />
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/8 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold tracking-wide">
+                        <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.2px]" />
                         <span>Selesai</span>
                       </span>
                     )}
                     {status === 'ditindaklanjuti' && (
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-purple-600 dark:text-purple-400">
-                        <ShieldCheck className="w-4 h-4 stroke-[2.2px]" />
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-500/8 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20 text-[11px] font-semibold tracking-wide">
+                        <ShieldCheck className="w-3.5 h-3.5 stroke-[2.2px]" />
                         <span>Ditindaklanjuti</span>
                       </span>
                     )}
                     {status === 'diproses' && (
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
-                        <Clock className="w-4 h-4 stroke-[2.2px]" />
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/8 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-[11px] font-semibold tracking-wide">
+                        <Clock className="w-3.5 h-3.5 stroke-[2.2px]" />
                         <span>Diproses</span>
                       </span>
                     )}
                     {status === 'diterima' && (
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-blue-600 dark:text-blue-400">
-                        <Inbox className="w-4 h-4 stroke-[2.2px]" />
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-sky-500/8 text-sky-700 dark:text-sky-400 border border-sky-500/20 text-[11px] font-semibold tracking-wide">
+                        <Inbox className="w-3.5 h-3.5 stroke-[2.2px]" />
                         <span>Diterima</span>
                       </span>
                     )}
