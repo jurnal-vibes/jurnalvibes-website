@@ -55,6 +55,15 @@ const TRACKER_STEPS = [
   },
 ]
 
+function formatDisplayTitle(text?: string): string {
+  if (!text) return ''
+  const trimmed = text.trim()
+  if (trimmed === trimmed.toUpperCase()) {
+    return trimmed.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+  }
+  return trimmed
+}
+
 export default function HaloJurnalBerandaPage() {
   const router = useRouter()
 
@@ -239,20 +248,20 @@ export default function HaloJurnalBerandaPage() {
               className="w-11 h-11 sm:w-12 sm:h-12 text-sm sm:text-base font-bold shadow-2xs ring-2 ring-primary/15 shrink-0"
             />
             <div className="min-w-0">
-              <h1 className="font-heading font-bold text-lg sm:text-xl text-on-surface tracking-tight truncate">
-                Selamat Datang, {displayName}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-secondary font-medium">
-                {isVerified ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/80 text-on-surface text-[11px] sm:text-xs font-semibold">
-                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                    Warga Terverifikasi
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/60 text-secondary text-[11px] sm:text-xs font-medium">
-                    Warga Terdaftar
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-heading font-bold text-lg sm:text-xl text-on-surface tracking-tight truncate">
+                  Selamat Datang, {displayName}
+                </h1>
+                {isVerified && (
+                  <span title="Warga Terverifikasi Sukabumi" className="inline-flex items-center text-sky-500 shrink-0">
+                    <ShieldCheck className="w-5 h-5 fill-sky-500/15 stroke-[2.2px]" />
                   </span>
                 )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-secondary font-medium">
+                <span className="text-[11px] sm:text-xs text-secondary">
+                  {isVerified ? 'Warga Terverifikasi' : 'Warga Terdaftar'}
+                </span>
                 <span className="text-outline-variant">•</span>
                 <span className="font-mono text-[11px] sm:text-xs text-secondary/80">
                   WA: {userPhone}
@@ -396,8 +405,8 @@ export default function HaloJurnalBerandaPage() {
                     </span>
                   </div>
 
-                  <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface line-clamp-1">
-                    {latestReport.judul}
+                  <h3 className="font-heading font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 line-clamp-1">
+                    {formatDisplayTitle(latestReport.judul)}
                   </h3>
 
                   {latestReport.lokasi && (
@@ -538,24 +547,25 @@ export default function HaloJurnalBerandaPage() {
               </div>
 
               {/* Status Explanation Strip */}
-              <div className="bg-surface-container-low/70 rounded-xl px-3.5 py-2 border border-outline-variant/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] sm:text-xs">
-                <div className="flex items-center gap-2 text-secondary flex-wrap">
-                  <span className="font-semibold text-on-surface">Tahap Terkini:</span>
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl px-3.5 py-2 border border-slate-200/60 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] sm:text-xs">
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 flex-wrap">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">Status Terkini:</span>
                   <span className="capitalize font-bold text-primary">{latestStatus}</span>
-                  <span className="hidden sm:inline text-outline-variant">•</span>
-                  <span className="text-secondary">
+                  <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
+                  <span className="text-slate-500 dark:text-slate-400">
                     {latestStatus === 'selesai'
-                      ? 'Laporan telah tuntas ditindaklanjuti dan dikonfirmasi selesai.'
+                      ? 'Laporan telah tuntas ditindaklanjuti.'
                       : latestStatus === 'ditindaklanjuti'
-                      ? 'Laporan diteruskan resmi ke dinas/instansi berwenang.'
+                      ? 'Diteruskan resmi ke dinas / instansi terkait.'
                       : latestStatus === 'diproses'
-                      ? 'Verifikasi fakta dan peninjauan lapangan tim redaksi.'
-                      : 'Laporan tercatat dan dalam antrean verifikasi redaksi.'}
+                      ? 'Sedang ditinjau lapangan oleh tim redaksi.'
+                      : 'Dalam antrean verifikasi tim redaksi.'}
                   </span>
                 </div>
 
-                <div className="text-[10px] sm:text-[11px] text-secondary/80 flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                  <span>Sinkronisasi Real-Time</span>
+                <div className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-medium shrink-0 self-end sm:self-auto">
+                  <span>Sinkronisasi Otomatis</span>
                 </div>
               </div>
             </div>

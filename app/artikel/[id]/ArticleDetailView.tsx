@@ -18,6 +18,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
+import { NewsArticleSidebar } from '@/components/layout/NewsArticleSidebar';
 import { NewsCard } from '@/components/cards/NewsCard';
 import { Article } from '@/types';
 import { DUMMY_ARTICLES } from '@/data/dummyArticles';
@@ -121,239 +122,28 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
   const [headerCopied, setHeaderCopied] = useState<boolean>(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
 
-  // Audio Player State & Sentence Queue Engine (Anti-Cutoff & Non-Destructive Resume)
+  // Audio Player State & Microsoft Edge TTS Streaming Engine (Gadis & Ardi)
   const [isAudioActive, setIsAudioActive] = useState<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
+  const [audioDuration, setAudioDuration] = useState<number>(0);
   const [playbackRate, setPlaybackRate] = useState<number>(1);
-  const [availableVoice, setAvailableVoice] = useState<SpeechSynthesisVoice | null>(null);
 
-  const currentSentenceIdxRef = useRef<number>(0);
-  const sentencesRef = useRef<string[]>([]);
-  const isPlayingRef = useRef<boolean>(false);
-  const nextSentenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Perkiraan durasi membaca / TTS (~115 kata per menit untuk tempo santai berwibawa)
-  const fullArticleSpeechText = `${article?.title || ''} ${article?.content || ''}`.trim();
+  // Perkiraan durasi membaca / TTS (~125 kata per menit) jika durasi asli belum terload
+  const fullArticleSpeechText = `${article?.title || ''} ${article?.excerpt || ''} ${article?.content || ''}`.trim();
   const wordCount = fullArticleSpeechText ? fullArticleSpeechText.split(/\s+/).length : 0;
-  const totalDuration = Math.max(15, Math.round((wordCount / 115) * 60));
+  const estimatedDuration = Math.max(15, Math.round((wordCount / 125) * 60));
+  const totalDuration = audioDuration > 0 ? audioDuration : estimatedDuration;
 
   const formatTime = (secs: number) => {
+    if (isNaN(secs) || secs < 0) return '0:00';
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
-
-  // 1. Ekstrak seluruh unit kalimat berita (Judul Headline + Semua Paragraf Isi)
-  const extractSentences = useCallback(() => {
-    if (!article) return [];
-
-    const cleanTitle = (article.title || '')
-      .replace(/[*_#~`]/g, '')
-      .trim()
-      .replace(/[.?!]+$/, '');
-
-    const paragraphs = (article.content || '')
-      .replace(/<[^>]*>/g, '') // Hapus tag HTML
-      .replace(/[*_#~`]/g, '') // Hapus markdown
-      .replace(/https?:\/\/\S+/g, '') // Hapus link URL
-      .split(/\n\s*\n/)
-      .map(p => p.replace(/\s+/g, ' ').trim())
-      .filter(Boolean);
-
-    const rawList: string[] = [];
-    if (cleanTitle) {
-      rawList.push(`${cleanTitle}.`);
-    }
-
-    paragraphs.forEach(p => {
-      // Pecah paragraf jadi kalimat utuh berdasarkan tanda baca
-      const sList = p.split(/(?<=[.?!])\s+/).map(s => s.trim()).filter(Boolean);
-      sList.forEach(s => {
-        const fullSentence = /[.?!]$/.test(s) ? s : `${s}.`;
-        rawList.push(fullSentence);
-      });
-    });
-
-    // Terapkan kamus fonetik istilah serapan ke setiap kalimat
-    return rawList.map(sentence => {
-      let text = sentence;
-      for (const [pattern, replacement] of LOANWORD_PHONETICS) {
-        text = text.replace(pattern, replacement);
-      }
-      return text;
-    });
-  }, [article]);
-
-  // 2. Deteksi & Prioritaskan Suara Bahasa Indonesia Alami (Microsoft Gadis/Ardi Natural & Google Natural)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    const findIndonesianVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      if (!voices || voices.length === 0) return;
-
-      const idVoices = voices.filter(v =>
-        v.lang.toLowerCase().startsWith('id') ||
-        v.lang.toLowerCase().includes('indonesia') ||
-        v.name.toLowerCase().includes('indonesia')
-      );
-
-      // Prioritas: Suara news anchor online/natural Microsoft (Gadis/Ardi) & Google Natural
-      const natural = idVoices.find(v =>
-        v.name.toLowerCase().includes('gadis') ||
-        v.name.toLowerCase().includes('ardi') ||
-        v.name.toLowerCase().includes('natural') ||
-        v.name.toLowerCase().includes('google') ||
-        v.name.toLowerCase().includes('online')
-      );
-
-      setAvailableVoice(natural || idVoices[0] || null);
-    };
-
-    findIndonesianVoice();
-    window.speechSynthesis.onvoiceschanged = findIndonesianVoice;
-
-    return () => {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.onvoiceschanged = null;
-      }
-    };
-  }, []);
-
-  // 3. Eksekusi Suara Kalimat demi Kalimat (Mencegah Audio Terputus & Menjamin 100% Naskah Tuntas)
-  const speakSentence = useCallback((index: number, rate = playbackRate) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    if (nextSentenceTimeoutRef.current) {
-      clearTimeout(nextSentenceTimeoutRef.current);
-      nextSentenceTimeoutRef.current = null;
-    }
-
-    const sentences = sentencesRef.current.length > 0 ? sentencesRef.current : extractSentences();
-    sentencesRef.current = sentences;
-
-    if (sentences.length === 0) return;
-
-    // Jika seluruh kalimat sudah selesai dibaca sampai akhir
-    if (index >= sentences.length) {
-      isPlayingRef.current = false;
-      setIsPlaying(false);
-      setCurrentTime(totalDuration);
-      currentSentenceIdxRef.current = 0;
-      return;
-    }
-
-    currentSentenceIdxRef.current = index;
-    const textToRead = sentences[index];
-    if (!textToRead) return;
-
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(textToRead);
-    utterance.lang = 'id-ID';
-    // Tempo dan nada disetel khas pembawa berita profesional
-    utterance.rate = Math.round(rate * 0.94 * 100) / 100;
-    utterance.pitch = 0.98;
-
-    let selectedVoice = availableVoice;
-    if (!selectedVoice) {
-      const voices = window.speechSynthesis.getVoices();
-      const idVoices = voices.filter(v =>
-        v.lang.toLowerCase().startsWith('id') ||
-        v.lang.toLowerCase().includes('indonesia') ||
-        v.name.toLowerCase().includes('indonesia')
-      );
-      selectedVoice = idVoices.find(v =>
-        v.name.toLowerCase().includes('gadis') ||
-        v.name.toLowerCase().includes('ardi') ||
-        v.name.toLowerCase().includes('natural') ||
-        v.name.toLowerCase().includes('google') ||
-        v.name.toLowerCase().includes('online')
-      ) || idVoices[0] || null;
-    }
-
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-    }
-
-    utterance.onend = () => {
-      if (!isPlayingRef.current) return;
-
-      const nextIdx = index + 1;
-      if (nextIdx < sentences.length) {
-        // Update perkiraan progres waktu sesuai persentase kalimat selesai
-        const progress = nextIdx / sentences.length;
-        setCurrentTime(Math.min(totalDuration - 1, Math.round(progress * totalDuration)));
-
-        // Beri jeda napas penyiar (~200ms) sebelum kalimat selanjutnya
-        nextSentenceTimeoutRef.current = setTimeout(() => {
-          if (isPlayingRef.current) {
-            speakSentence(nextIdx, rate);
-          }
-        }, 200);
-      } else {
-        // TUNTAS! Seluruh naskah sampai kalimat terakhir selesai
-        isPlayingRef.current = false;
-        setIsPlaying(false);
-        setCurrentTime(totalDuration);
-        currentSentenceIdxRef.current = 0;
-      }
-    };
-
-    utterance.onerror = (e) => {
-      if (e.error !== 'interrupted' && e.error !== 'canceled') {
-        console.warn('Speech synthesis event notice:', e.error);
-      }
-    };
-
-    window.speechSynthesis.speak(utterance);
-  }, [availableVoice, extractSentences, playbackRate, totalDuration]);
-
-  // 4. Timer Visual Progres Pemutaran (Hanya mengikuti progres, TIDAK PERNAH membatalkan audio)
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      const intervalMs = 200;
-      interval = setInterval(() => {
-        setCurrentTime(prev => {
-          const next = prev + (intervalMs / 1000) * playbackRate;
-          // Batasi di totalDuration - 0.5s selama belum ada sinyal onend dari kalimat terakhir
-          if (next >= totalDuration - 0.5) {
-            return Math.max(0, totalDuration - 0.5);
-          }
-          return next;
-        });
-      }, intervalMs);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, totalDuration, playbackRate]);
-
-  // 5. Anti-Cutoff Heartbeat Khusus Browser Chrome (Mencegah Audio Macet di Latar Belakang)
-  useEffect(() => {
-    let heartbeat: NodeJS.Timeout;
-    if (isPlaying) {
-      heartbeat = setInterval(() => {
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking) {
-          window.speechSynthesis.pause();
-          window.speechSynthesis.resume();
-        }
-      }, 10000);
-    }
-    return () => clearInterval(heartbeat);
-  }, [isPlaying]);
-
-  useEffect(() => {
-    return () => {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      if (nextSentenceTimeoutRef.current) {
-        clearTimeout(nextSentenceTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Sync active audio state to document body so floating buttons (like Chatbot) don't obstruct the player
   useEffect(() => {
@@ -367,38 +157,94 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     };
   }, [isAudioActive]);
 
-  const handlePlayToggle = () => {
+  // Preload streaming audio begitu artikel dibuka (Menjamin Play INSTAN tanpa loading lama)
+  useEffect(() => {
+    if (!article?.id) return;
+
+    // Reset status pemutar saat berpindah berita
+    setIsAudioActive(false);
+    setIsPlaying(false);
+    setIsLoadingAudio(false);
+    setCurrentTime(0);
+    setAudioDuration(0);
+
+    const streamUrl = `/api/tts?id=${encodeURIComponent(article.id)}`;
+    const audio = new Audio(streamUrl);
+    audio.preload = 'auto';
+    audio.playbackRate = playbackRate;
+
+    audio.ontimeupdate = () => {
+      setCurrentTime(Math.round(audio.currentTime));
+    };
+
+    audio.onloadedmetadata = () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        setAudioDuration(Math.round(audio.duration));
+      }
+    };
+
+    audio.onplaying = () => {
+      setIsLoadingAudio(false);
+      setIsPlaying(true);
+    };
+
+    audio.onwaiting = () => {
+      setIsLoadingAudio(true);
+    };
+
+    audio.onended = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
+
+    audio.onerror = (e) => {
+      console.warn('Audio streaming notice:', e);
+      setIsLoadingAudio(false);
+      setIsPlaying(false);
+    };
+
+    audioRef.current = audio;
+
+    return () => {
+      audio.pause();
+      audio.src = '';
+    };
+  }, [article?.id]);
+
+  // Eksekusi pemutaran audio INSTAN
+  const handlePlayToggle = async () => {
     if (!isAudioActive) {
       setIsAudioActive(true);
-      setIsLoadingAudio(true);
+    }
 
-      const sentences = extractSentences();
-      sentencesRef.current = sentences;
+    const streamUrl = `/api/tts?id=${encodeURIComponent(article.id)}`;
+    if (!audioRef.current) {
+      const audio = new Audio(streamUrl);
+      audio.preload = 'auto';
+      audioRef.current = audio;
+    }
 
-      // Beri waktu loading audio & inisialisasi suara
-      setTimeout(() => {
-        setIsLoadingAudio(false);
-        isPlayingRef.current = true;
-        setIsPlaying(true);
-        speakSentence(currentSentenceIdxRef.current || 0);
-      }, 300);
+    const audio = audioRef.current;
+    if (!audio.src || audio.src === window.location.href) {
+      audio.src = streamUrl;
+    }
+    audio.playbackRate = playbackRate;
+
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
     } else {
-      if (isPlaying) {
-        // Jeda tanpa mereset posisi baca!
-        isPlayingRef.current = false;
-        setIsPlaying(false);
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
+      try {
+        setIsLoadingAudio(true);
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          await playPromise;
         }
-        if (nextSentenceTimeoutRef.current) {
-          clearTimeout(nextSentenceTimeoutRef.current);
-          nextSentenceTimeoutRef.current = null;
-        }
-      } else {
-        // Lanjutkan dari posisi kalimat terakhir yang tersimpan
-        isPlayingRef.current = true;
         setIsPlaying(true);
-        speakSentence(currentSentenceIdxRef.current);
+      } catch (err) {
+        console.warn('Audio play error, retrying:', err);
+      } finally {
+        setIsLoadingAudio(false);
       }
     }
   };
@@ -410,30 +256,19 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     const newTime = Math.round(newProgress * totalDuration);
     setCurrentTime(newTime);
 
-    const sentences = sentencesRef.current.length > 0 ? sentencesRef.current : extractSentences();
-    sentencesRef.current = sentences;
-    if (sentences.length > 0) {
-      const targetIdx = Math.min(sentences.length - 1, Math.floor(newProgress * sentences.length));
-      currentSentenceIdxRef.current = targetIdx;
-      if (isPlayingRef.current) {
-        speakSentence(targetIdx, playbackRate);
-      }
+    if (audioRef.current && isFinite(audioRef.current.duration)) {
+      audioRef.current.currentTime = newTime;
     }
   };
 
   const handleSkipTime = (deltaSeconds: number) => {
-    const nextTime = Math.max(0, Math.min(totalDuration, currentTime + deltaSeconds));
-    setCurrentTime(nextTime);
-
-    const sentences = sentencesRef.current.length > 0 ? sentencesRef.current : extractSentences();
-    sentencesRef.current = sentences;
-    if (sentences.length > 0) {
-      const newProgress = totalDuration > 0 ? nextTime / totalDuration : 0;
-      const targetIdx = Math.min(sentences.length - 1, Math.max(0, Math.floor(newProgress * sentences.length)));
-      currentSentenceIdxRef.current = targetIdx;
-      if (isPlayingRef.current) {
-        speakSentence(targetIdx, playbackRate);
-      }
+    if (audioRef.current && isFinite(audioRef.current.duration)) {
+      const targetTime = Math.max(0, Math.min(totalDuration, audioRef.current.currentTime + deltaSeconds));
+      audioRef.current.currentTime = targetTime;
+      setCurrentTime(Math.round(targetTime));
+    } else {
+      const targetTime = Math.max(0, Math.min(totalDuration, currentTime + deltaSeconds));
+      setCurrentTime(targetTime);
     }
   };
 
@@ -442,28 +277,25 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     const nextIdx = (rates.indexOf(playbackRate) + 1) % rates.length;
     const nextRate = rates[nextIdx];
     setPlaybackRate(nextRate);
-    if (isPlayingRef.current) {
-      speakSentence(currentSentenceIdxRef.current, nextRate);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = nextRate;
     }
   };
 
   const handleCloseAudio = () => {
-    isPlayingRef.current = false;
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
     setIsAudioActive(false);
     setIsPlaying(false);
     setIsLoadingAudio(false);
     setCurrentTime(0);
-    currentSentenceIdxRef.current = 0;
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    if (nextSentenceTimeoutRef.current) {
-      clearTimeout(nextSentenceTimeoutRef.current);
-      nextSentenceTimeoutRef.current = null;
-    }
   };
 
-  // 6. Media Session API (Integrasi Kontrol Play/Pause/Skip di Layar Kunci & Notifikasi HP)
+  // Media Session API (Integrasi Kontrol Play/Pause di Layar Kunci & Notifikasi HP)
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
 
@@ -481,10 +313,18 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 
         navigator.mediaSession.setActionHandler('play', () => {
-          handlePlayToggle();
+          if (audioRef.current) {
+            audioRef.current.play();
+            setIsPlaying(true);
+          } else {
+            handlePlayToggle();
+          }
         });
         navigator.mediaSession.setActionHandler('pause', () => {
-          handlePlayToggle();
+          if (audioRef.current) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+          }
         });
         navigator.mediaSession.setActionHandler('seekbackward', () => {
           handleSkipTime(-10);
@@ -503,7 +343,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         navigator.mediaSession.playbackState = 'none';
       } catch {}
     }
-  }, [isAudioActive, isPlaying, article.title, article.categoryLabel, article.imageUrl]);
+  }, [isAudioActive, isPlaying, article.title, article.categoryLabel, article.imageUrl, totalDuration]);
 
   useEffect(() => {
     async function loadData() {
@@ -671,27 +511,59 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     return scored.slice(0, 3).map(item => item.article);
   }, [article, allArticles]);
 
-  return (
-    <div className="flex-grow w-full max-w-4xl mx-auto px-margin-mobile md:px-6 pt-stack-lg pb-6 md:pb-stack-lg flex flex-col relative">
-      <main className="w-full flex flex-col gap-stack-lg">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-[11px] text-on-surface-variant/70 mb-2">
-          <Link href="/" className="hover:text-primary transition-colors">
-            Home
-          </Link>
-          <ChevronRight className="w-3 h-3 opacity-50" />
-          <Link href="/berita" className="hover:text-primary transition-colors">
-            Berita
-          </Link>
-          <ChevronRight className="w-3 h-3 opacity-50" />
-          <span className="text-on-surface font-medium">{article.categoryLabel}</span>
-        </nav>
+  // Rekomendasi Khusus untuk Kotak "BACA JUGA" di Sela-Sela Paragraf
+  const inlineRecommendedArticles = useMemo(() => {
+    if (relatedArticles.length > 0) return relatedArticles;
+    const others = (allArticles || []).filter(
+      (a) => a.id !== article.id && a.slug !== article.slug
+    );
+    return others.length > 0 ? others : DUMMY_ARTICLES.filter((a) => a.id !== article.id);
+  }, [relatedArticles, allArticles, article.id, article.slug]);
 
-        {/* Article Header (Beri Jarak dengan Judul & Rapet ke Gambar) */}
-        <header className="flex flex-col gap-7 -mb-5">
+  // Ekstraksi Paragraf Artikel untuk Penataan Konten & Sisipan "BACA JUGA"
+  const contentParagraphs = useMemo(() => {
+    const raw = article?.content || '';
+    const parts = raw.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(Boolean);
+    if (parts.length > 0) return parts;
+    return raw.split(/\r?\n/).map(p => p.trim()).filter(Boolean);
+  }, [article?.content]);
+
+  return (
+    <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
+      {/* Breadcrumb di Atas Grid (Gaya SukabumiUpdate: Home / Kategori) */}
+      <nav className="flex items-center gap-1.5 text-xs text-on-surface-variant/70 mb-3.5">
+        <Link href="/" className="hover:text-primary transition-colors">
+          Home
+        </Link>
+        <span className="text-slate-400">/</span>
+        <Link href="/berita" className="hover:text-primary transition-colors">
+          Berita
+        </Link>
+        <span className="text-slate-400">/</span>
+        <span className="text-[#c00015] font-bold">
+          {(article.categoryLabel || article.category || 'BERITA').toUpperCase() === 'INFRASTRUKTUR'
+            ? 'BERITA'
+            : (article.categoryLabel || article.category || 'BERITA')}
+        </span>
+      </nav>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+        {/* Kolom Kiri: Konten Utama Artikel - Langsung diawali Judul Berita */}
+        <main className="lg:col-span-8 flex flex-col gap-stack-lg min-w-0">
+          {/* Article Header (Sejajar langsung secara horizontal dengan TERPOPULER di kolom kanan) */}
+          <header className="flex flex-col gap-5 -mb-4">
           <h1 className="font-headline-xl text-xl sm:text-2xl md:text-[26px] lg:text-[28px] font-bold text-on-surface dark:text-white leading-snug tracking-tight">
             {article.title}
           </h1>
+
+          {/* Lead / Subjudul / Standfirst (Ringkasan Intisari Artikel di Bawah Judul) */}
+          {article.excerpt && (
+            <div className="border-l-[3.5px] border-slate-900 dark:border-slate-100 pl-4 py-1 -mt-1">
+              <p className="font-serif italic text-sm sm:text-[15.5px] leading-relaxed text-slate-700 dark:text-slate-300">
+                {article.excerpt}
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Penulis & Tanggal (Kiri) */}
@@ -792,11 +664,15 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         {/* Featured Image & Baris Utilitas Baca (Rapet ke Gambar) */}
         <div className="flex flex-col gap-3">
           <figure>
-            <div className="rounded-2xl overflow-hidden shadow-sm aspect-video border border-outline-variant/40">
+            <div className="rounded-2xl overflow-hidden shadow-sm aspect-video border border-outline-variant/40 bg-slate-100 dark:bg-slate-800">
               {/* eslint-disable-next-img-element */}
               <img
-                src={article?.imageUrl || '/logo_jurnal_wave.webp'}
+                src={article?.imageUrl || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'}
                 alt={article?.imageAlt || article?.title || 'Jurnal Wave'}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80';
+                }}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -927,23 +803,77 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
 
         {/* Article Body, Reporter & Tags (Uniform Gap) */}
         <div className={`font-body-lg text-on-surface dark:text-gray-100 flex flex-col gap-3.5 transition-all duration-200 ${FONT_SIZE_CLASSES[fontSize]}`}>
-          {(article?.content || '').split('\n\n').map((paragraph, idx) => {
-            const trimmed = paragraph.trim();
-            if (!trimmed) return null;
+          {contentParagraphs.map((paragraph, idx) => {
+            const isFirst = idx === 0;
+            const cleanFirst = isFirst
+              ? paragraph.replace(/^(JURNALWAVE\.COM|JURNAL WAVE|JURNALVIBES\.COM|JURNAL VIBES)(\s*[-–—]\s*)/i, '')
+              : paragraph;
 
-            if (idx === 0) {
-              const cleanFirst = trimmed.replace(/^(JURNALWAVE\.COM|JURNAL WAVE|JURNALVIBES\.COM|JURNAL VIBES)(\s*[-–—]\s*)/i, '');
-              return (
-                <p key={idx}>
-                  <span className="text-red-600 dark:text-red-500">
-                    JURNALWAVE.COM
-                  </span>{' '}
-                  – {cleanFirst}
-                </p>
-              );
-            }
+            // Posisi sisipan BACA JUGA (paragraf ke-2 atau ke-3)
+            const insertFirstAt = contentParagraphs.length >= 4 ? 2 : (contentParagraphs.length >= 2 ? 1 : 0);
+            const insertSecondAt = contentParagraphs.length >= 7 ? 5 : -1;
 
-            return <p key={idx}>{trimmed}</p>;
+            const rec1 = inlineRecommendedArticles[0];
+            const rec2 = inlineRecommendedArticles[1];
+
+            return (
+              <React.Fragment key={idx}>
+                {isFirst ? (
+                  <p>
+                    <span className="text-red-600 dark:text-red-500 font-bold">
+                      JURNALWAVE.COM
+                    </span>{' '}
+                    – {cleanFirst}
+                  </p>
+                ) : (
+                  <p>{paragraph}</p>
+                )}
+
+                {/* Sisipan Kotak BACA JUGA Pertama (Gaya Murni SukabumiUpdate) */}
+                {idx === insertFirstAt && rec1 && (
+                  <div className="not-prose my-3 sm:my-4 p-3 sm:p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all duration-200">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                      <div className="w-1 self-stretch min-h-[1.5rem] bg-[#c00015] rounded-full shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          href={`/artikel/${rec1.id}`}
+                          className="group flex flex-wrap items-baseline gap-1.5 text-xs sm:text-[13.5px] leading-snug"
+                        >
+                          <span className="text-[#c00015] font-extrabold tracking-wider uppercase shrink-0">
+                            BACA JUGA:
+                          </span>
+                          <span className="font-heading font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#c00015] transition-colors line-clamp-2">
+                            {rec1.title}
+                          </span>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sisipan Kotak BACA JUGA Kedua (Jika Naskah Panjang) */}
+                {idx === insertSecondAt && rec2 && (
+                  <div className="not-prose my-3 sm:my-4 p-3 sm:p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all duration-200">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                      <div className="w-1 self-stretch min-h-[1.5rem] bg-[#c00015] rounded-full shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          href={`/artikel/${rec2.id}`}
+                          className="group flex flex-wrap items-baseline gap-1.5 text-xs sm:text-[13.5px] leading-snug"
+                        >
+                          <span className="text-[#c00015] font-extrabold tracking-wider uppercase shrink-0">
+                            BACA JUGA:
+                          </span>
+                          <span className="font-heading font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#c00015] transition-colors line-clamp-2">
+                            {rec2.title}
+                          </span>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
+            );
           })}
 
           {/* Reporter & Redaktur Credit Line */}
@@ -1024,6 +954,15 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
           </div>
         </section>
       </main>
+
+      {/* Kolom Kanan: Sidebar Khas Portal Berita (4 dari 12 Kolom) - Sejajar langsung dengan Judul di Kiri */}
+      <div className="lg:col-span-4 sticky top-20">
+        <NewsArticleSidebar
+          currentArticleId={article.id}
+          allArticles={allArticles}
+        />
+      </div>
+    </div>
 
       {/* Floating Bottom Mini Player (Simple Capsule - Positioned above BottomNav on mobile) */}
       {isAudioActive && (

@@ -310,112 +310,103 @@ export default function HaloJurnalLaporanSayaPage() {
         </div>
       ) : (
         <>
-          {/* 2. Stat Cards Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
-        {[
-          {
-            key: 'Semua Status',
-            label: 'Total Laporan',
-            count: totalCount,
-            icon: ClipboardList,
-            iconColor: 'bg-primary/10 text-primary border border-primary/20',
-            activeBorder: 'border-primary ring-1 ring-primary/25 shadow-2xs',
-            hoverBorder: 'hover:border-primary/40',
-            colSpan: '',
-          },
-          {
-            key: 'Diterima',
-            label: 'Diterima',
-            count: diterimaCount,
-            icon: Inbox,
-            iconColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
-            activeBorder: 'border-blue-500 ring-1 ring-blue-500/25 shadow-2xs',
-            hoverBorder: 'hover:border-blue-400/50',
-            colSpan: '',
-          },
-          {
-            key: 'Diproses',
-            label: 'Diproses',
-            count: diprosesCount,
-            icon: Clock,
-            iconColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
-            activeBorder: 'border-amber-500 ring-1 ring-amber-500/25 shadow-2xs',
-            hoverBorder: 'hover:border-amber-400/50',
-            colSpan: '',
-          },
-          {
-            key: 'Ditindaklanjuti',
-            label: 'Ditindaklanjuti',
-            count: ditindaklanjutiCount,
-            icon: ShieldCheck,
-            iconColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20',
-            activeBorder: 'border-purple-500 ring-1 ring-purple-500/25 shadow-2xs',
-            hoverBorder: 'hover:border-purple-400/50',
-            colSpan: '',
-          },
-          {
-            key: 'Selesai',
-            label: 'Selesai',
-            count: selesaiCount,
-            icon: CheckCircle2,
-            iconColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
-            activeBorder: 'border-emerald-500 ring-1 ring-emerald-500/25 shadow-2xs',
-            hoverBorder: 'hover:border-emerald-400/50',
-            colSpan: 'col-span-2 sm:col-span-1',
-          },
-        ].map((tab) => {
-          const Icon = tab.icon
-          const isActive =
-            statusFilter === tab.key || (tab.key === 'Semua Status' && statusFilter === 'TOTAL')
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setStatusFilter(tab.key)}
-              className={`p-4 rounded-xl flex flex-col justify-between transition-all cursor-pointer text-left border ${tab.colSpan} ${
-                isActive
-                  ? `bg-surface ${tab.activeBorder}`
-                  : `bg-surface hover:bg-surface-container-low border-outline-variant/70 ${tab.hoverBorder}`
-              }`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${tab.iconColor}`}
-                >
-                  <Icon className="w-4 h-4 stroke-[2.2px]" />
-                </div>
-              </div>
-              <div>
-                <span className="font-heading font-bold text-2xl text-on-surface leading-none block mb-1">
-                  {tab.count}
-                </span>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
-                  {tab.label}
-                </span>
-              </div>
-            </button>
-          )
-        })}
-      </div>
+          {/* 2. Stat Control Bar (Unified After UX Style) */}
+          <div className="bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl p-1.5 mb-6 shadow-2xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
+              {[
+                {
+                  key: 'Semua Status',
+                  label: 'Total Laporan',
+                  count: totalCount,
+                  icon: ClipboardList,
+                  colSpan: '',
+                },
+                {
+                  key: 'Diterima',
+                  label: 'Diterima',
+                  count: diterimaCount,
+                  icon: Inbox,
+                  colSpan: '',
+                },
+                {
+                  key: 'Diproses',
+                  label: 'Diproses',
+                  count: diprosesCount,
+                  icon: Clock,
+                  colSpan: '',
+                },
+                {
+                  key: 'Ditindaklanjuti',
+                  label: 'Ditindaklanjuti',
+                  count: ditindaklanjutiCount,
+                  icon: ShieldCheck,
+                  colSpan: '',
+                },
+                {
+                  key: 'Selesai',
+                  label: 'Selesai',
+                  count: selesaiCount,
+                  icon: CheckCircle2,
+                  colSpan: 'col-span-2 sm:col-span-1',
+                },
+              ].map((tab) => {
+                const Icon = tab.icon
+                const isActive =
+                  statusFilter === tab.key || (tab.key === 'Semua Status' && statusFilter === 'TOTAL')
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setStatusFilter(tab.key)}
+                    className={`py-3 px-3.5 rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer text-left ${tab.colSpan} ${
+                      isActive
+                        ? 'bg-white dark:bg-slate-900 shadow-xs border border-slate-200/90 dark:border-slate-700 text-slate-900 dark:text-white'
+                        : 'hover:bg-white/60 dark:hover:bg-slate-800/70 text-slate-600 dark:text-slate-400 border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                          isActive
+                            ? 'bg-[#c00015]/10 text-[#c00015]'
+                            : 'bg-slate-200/70 dark:bg-slate-700/60 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 stroke-[2px]" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate block">
+                          {tab.label}
+                        </span>
+                        <span className="font-heading font-bold text-lg text-slate-900 dark:text-slate-100 leading-none">
+                          {tab.count}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
-      {/* 3. Search & Filter Bar */}
-      <div className="bg-surface border border-outline-variant/70 rounded-xl p-3 mb-6 shadow-2xs">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      {/* 3. Search & Filter Bar (After UX Style) */}
+      <div className="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl p-2.5 sm:p-3 mb-6 shadow-2xs">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari judul aduan, ID tiket, atau lokasi..."
-              className="w-full pl-9 pr-9 py-2 text-xs sm:text-sm bg-surface-container-lowest border border-outline-variant/60 rounded-lg text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary transition-colors"
+              className="w-full pl-9 pr-9 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#c00015]/20 focus:border-[#c00015] transition-all shadow-2xs"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-on-surface cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -429,7 +420,7 @@ export default function HaloJurnalLaporanSayaPage() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full appearance-none pl-3 pr-7 py-2 text-xs font-medium bg-surface-container-lowest border border-outline-variant/60 rounded-lg text-on-surface focus:outline-none focus:border-primary cursor-pointer"
+                className="w-full appearance-none pl-3 pr-8 py-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-[#c00015] cursor-pointer shadow-2xs"
               >
                 {categoryOptions.map((cat) => (
                   <option key={cat} value={cat}>
@@ -437,7 +428,7 @@ export default function HaloJurnalLaporanSayaPage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-secondary absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             {/* Dropdown Sort */}
@@ -445,12 +436,12 @@ export default function HaloJurnalLaporanSayaPage() {
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
-                className="w-full appearance-none pl-3 pr-7 py-2 text-xs font-medium bg-surface-container-lowest border border-outline-variant/60 rounded-lg text-on-surface focus:outline-none focus:border-primary cursor-pointer"
+                className="w-full appearance-none pl-3 pr-8 py-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-[#c00015] cursor-pointer shadow-2xs"
               >
                 <option value="Terbaru">Terbaru</option>
                 <option value="Terlama">Terlama</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-secondary absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             {/* Reset Button */}
@@ -458,7 +449,7 @@ export default function HaloJurnalLaporanSayaPage() {
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="inline-flex items-center gap-1 px-2.5 py-2 text-xs font-medium text-rose-500 hover:bg-rose-500/10 rounded-lg border border-rose-500/30 transition-colors cursor-pointer shrink-0"
+                className="inline-flex items-center gap-1 px-3 py-2 text-xs font-medium text-[#c00015] hover:bg-[#c00015]/10 rounded-xl border border-[#c00015]/20 transition-colors cursor-pointer shrink-0"
                 title="Reset filter"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -475,14 +466,14 @@ export default function HaloJurnalLaporanSayaPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-surface border border-outline-variant/60 rounded-xl p-5 shadow-2xs animate-pulse"
+              className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs animate-pulse"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="w-28 h-5 bg-surface-container-high rounded" />
-                <div className="w-20 h-5 bg-surface-container-high rounded" />
+                <div className="w-28 h-5 bg-slate-100 dark:bg-slate-800 rounded-full" />
+                <div className="w-20 h-5 bg-slate-100 dark:bg-slate-800 rounded-full" />
               </div>
-              <div className="w-3/4 h-5 bg-surface-container-high rounded mb-2" />
-              <div className="w-full h-4 bg-surface-container-high rounded" />
+              <div className="w-3/4 h-5 bg-slate-100 dark:bg-slate-800 rounded mb-2" />
+              <div className="w-full h-4 bg-slate-100 dark:bg-slate-800 rounded" />
             </div>
           ))}
         </div>
@@ -507,81 +498,89 @@ export default function HaloJurnalLaporanSayaPage() {
             return (
               <div
                 key={report.id}
-                className="bg-surface border border-outline-variant/70 hover:border-outline-variant rounded-xl p-4 sm:p-5 shadow-2xs transition-all group"
+                className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all group"
               >
-                {/* Header: ID, Kategori, Tanggal, Status */}
+                {/* Header: ID, Kategori, Tanggal, Status Pill (Subtle After UX style) */}
                 <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     {/* Ticket ID */}
                     <button
                       type="button"
                       onClick={(e) => handleCopyId(ticketId, e)}
-                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/60 text-[11px] font-mono font-medium text-secondary hover:text-on-surface transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 font-mono font-medium hover:text-[#c00015] dark:hover:text-[#ff6b6b] transition-colors cursor-pointer"
                       title="Salin nomor tiket"
                     >
-                      <span>ID: {ticketId}</span>
+                      <span>#{ticketId}</span>
                       {isCopied ? (
                         <Check className="w-3 h-3 text-emerald-500" />
                       ) : (
-                        <Copy className="w-3 h-3 text-secondary/70" />
+                        <Copy className="w-3 h-3 text-slate-400" />
                       )}
                     </button>
 
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+
                     {/* Kategori */}
-                    <span className="inline-block px-2 py-0.5 rounded bg-surface-container-high text-on-surface text-[11px] font-medium">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">
                       {normalizeCategoryName(report.kategori)}
                     </span>
 
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+
                     {/* Tanggal */}
-                    <span className="text-[11px] text-secondary">
+                    <span className="text-slate-400 dark:text-slate-500">
                       {formatDate(report.created_at)}
                     </span>
                   </div>
 
-                  {/* Status */}
+                  {/* Status Tag (Linear / Apple Monochromatic Minimalist) */}
                   <div>
                     {status === 'selesai' && (
-                      <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
-                        Selesai
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold tracking-wide">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
+                        <span>Selesai</span>
                       </span>
                     )}
                     {status === 'ditindaklanjuti' && (
-                      <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
-                        Ditindaklanjuti
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold tracking-wide">
+                        <ShieldCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
+                        <span>Ditindaklanjuti</span>
                       </span>
                     )}
                     {status === 'diproses' && (
-                      <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
-                        Diproses
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold tracking-wide">
+                        <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
+                        <span>Diproses</span>
                       </span>
                     )}
                     {status === 'diterima' && (
-                      <span className="text-xs font-bold text-secondary dark:text-slate-400 tracking-tight">
-                        Diterima
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold tracking-wide">
+                        <Inbox className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
+                        <span>Diterima</span>
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Content: Title, Description, Location + Photo */}
-                <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-4">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-3">
                   <div className="flex-1 min-w-0">
                     <Link
                       href={`/halo-jurnal/laporan/${report.id}`}
                       className="block group/title"
                     >
-                      <h2 className="font-heading font-bold text-base text-on-surface group-hover/title:text-primary transition-colors leading-snug mb-1.5">
+                      <h2 className="font-heading font-bold text-base text-slate-900 dark:text-slate-100 group-hover/title:text-[#c00015] dark:group-hover/title:text-[#ff6b6b] transition-colors leading-snug mb-1.5 tracking-tight">
                         {report.judul}
                       </h2>
                     </Link>
 
-                    <p className="text-secondary text-xs sm:text-sm line-clamp-2 leading-relaxed mb-2.5">
+                    <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm line-clamp-2 leading-relaxed mb-3">
                       {report.deskripsi}
                     </p>
 
                     {report.lokasi && (
-                      <div className="flex items-center gap-1.5 text-xs text-secondary">
-                        <MapPin className="w-3.5 h-3.5 text-secondary shrink-0" />
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                         <span className="line-clamp-1">{report.lokasi}</span>
                       </div>
                     )}
@@ -590,28 +589,30 @@ export default function HaloJurnalLaporanSayaPage() {
                   {imgUrl && (
                     <Link
                       href={`/halo-jurnal/laporan/${report.id}`}
-                      className="shrink-0 w-full sm:w-36 h-36 sm:h-24 rounded-xl sm:rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant/60 block"
+                      className="shrink-0 w-full sm:w-36 h-36 sm:h-24 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-800 block shadow-2xs"
                       title="Lihat lampiran"
                     >
                       <img
                         src={imgUrl}
                         alt={report.judul}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </Link>
                   )}
                 </div>
 
                 {/* Footer: Chat Admin & Detail Link */}
-                <div className="pt-3 border-t border-outline-variant/60 flex items-center justify-between gap-3 text-xs">
+                <div className="pt-3.5 mt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-3 text-xs">
                   <Link
                     href={`/halo-jurnal/laporan/${report.id}#chat`}
-                    className="inline-flex items-center gap-1.5 text-secondary hover:text-primary font-medium transition-colors"
+                    className="inline-flex items-center gap-2 text-slate-500 hover:text-[#c00015] dark:text-slate-400 dark:hover:text-[#ff6b6b] font-medium transition-colors group/chat"
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>Ruang Chat &amp; Tanggapan</span>
+                    <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover/chat:bg-[#c00015]/10 group-hover/chat:text-[#c00015] transition-colors">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                    </div>
+                    <span>Ruang Koordinasi Redaksi</span>
                     {report.chat_messages && report.chat_messages[0]?.count > 0 && (
-                      <span className="px-1.5 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] font-bold">
+                      <span className="px-1.5 py-0.5 bg-[#c00015]/10 text-[#c00015] rounded-full text-[10px] font-bold">
                         {report.chat_messages[0].count}
                       </span>
                     )}
@@ -619,7 +620,7 @@ export default function HaloJurnalLaporanSayaPage() {
 
                   <Link
                     href={`/halo-jurnal/laporan/${report.id}`}
-                    className="inline-flex items-center gap-1 font-semibold text-primary hover:underline group/cta"
+                    className="inline-flex items-center gap-1 font-semibold text-slate-700 hover:text-[#c00015] dark:text-slate-300 dark:hover:text-white transition-colors group/cta"
                   >
                     <span>Lihat Detail</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover/cta:translate-x-0.5 transition-transform" />

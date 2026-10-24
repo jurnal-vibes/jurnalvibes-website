@@ -3,18 +3,32 @@ import { prisma } from '@/lib/prisma'
 import { DUMMY_ARTICLES } from '@/data/dummyArticles'
 import { getAdminSession } from '@/lib/auth'
 
+const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'
+
 // Helper format artikel dari Prisma ke format Frontend
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapArticleFromDb(item: any) {
+  const cat = (item.category || '').toLowerCase().trim()
+  const rawLabel = (item.categoryLabel || '').trim()
+  const upperLabel = rawLabel.toUpperCase()
+
+  const isInvalid = cat === 'infrastruktur' || upperLabel === 'INFRASTRUKTUR' || cat === 'lingkungan' || cat === 'pelayanan'
+  const finalCategory = isInvalid ? 'berita' : (item.category || 'berita')
+  const finalLabel = isInvalid ? 'BERITA' : (rawLabel && upperLabel !== 'INFRASTRUKTUR' ? rawLabel : finalCategory.toUpperCase())
+
+  const safeImageUrl = item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/'))
+    ? item.imageUrl
+    : DEFAULT_FALLBACK_IMAGE
+
   return {
     id: item.id,
     title: item.title,
     slug: item.slug,
     excerpt: item.excerpt,
     content: item.content,
-    category: item.category,
-    categoryLabel: item.categoryLabel || item.category?.toUpperCase() || 'BERITA',
-    imageUrl: item.imageUrl,
+    category: finalCategory,
+    categoryLabel: finalLabel,
+    imageUrl: safeImageUrl,
     imageAlt: item.imageAlt || item.title,
     author: item.author || 'Tim Redaksi',
     reporter: item.reporter || 'Redaksi Jurnal Wave',
@@ -113,17 +127,27 @@ export async function POST(request: NextRequest) {
       slug = `${slug}-${Date.now().toString().slice(-4)}`
     }
 
+    let rawCategory = (body.category || 'berita').toLowerCase().trim()
+    let rawCategoryLabel = (body.categoryLabel || '').trim()
+
+    if (rawCategory === 'infrastruktur' || rawCategoryLabel.toUpperCase() === 'INFRASTRUKTUR' || !rawCategory) {
+      rawCategory = 'berita'
+      rawCategoryLabel = 'BERITA'
+    } else if (!rawCategoryLabel) {
+      rawCategoryLabel = rawCategory.toUpperCase()
+    }
+
     const created = await prisma.article.create({
       data: {
         title: body.title.trim(),
         slug,
         excerpt: body.excerpt?.trim() || body.title.trim(),
         content: body.content?.trim() || body.excerpt?.trim() || body.title.trim(),
-        category: body.category || 'berita',
-        categoryLabel: body.categoryLabel || (body.category ? body.category.toUpperCase() : 'BERITA'),
+        category: rawCategory,
+        categoryLabel: rawCategoryLabel,
         imageUrl:
           body.imageUrl?.trim() ||
-          'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80',
+          DEFAULT_FALLBACK_IMAGE,
         imageAlt: body.imageAlt || body.title.trim(),
         author: body.author || 'Tim Redaksi',
         reporter: body.reporter?.trim() || 'Redaksi Jurnal Wave',
@@ -174,15 +198,25 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'ID artikel wajib disertakan' }, { status: 400 })
     }
 
+    let editCategory = (body.category || 'berita').toLowerCase().trim()
+    let editCategoryLabel = (body.categoryLabel || '').trim()
+
+    if (editCategory === 'infrastruktur' || editCategoryLabel.toUpperCase() === 'INFRASTRUKTUR') {
+      editCategory = 'berita'
+      editCategoryLabel = 'BERITA'
+    } else if (!editCategoryLabel) {
+      editCategoryLabel = editCategory.toUpperCase()
+    }
+
     const updated = await prisma.article.update({
       where: { id: body.id },
       data: {
         title: body.title,
         excerpt: body.excerpt,
         content: body.content,
-        category: body.category,
-        categoryLabel: body.categoryLabel || body.category?.toUpperCase(),
-        imageUrl: body.imageUrl,
+        category: editCategory,
+        categoryLabel: editCategoryLabel,
+        imageUrl: body.imageUrl?.trim() || DEFAULT_FALLBACK_IMAGE,
         reporter: body.reporter,
         isHero: Boolean(body.isHero),
         isEditorsPick: Boolean(body.isEditorsPick),

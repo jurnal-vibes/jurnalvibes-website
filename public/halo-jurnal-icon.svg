@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DE0A26"/>
+      <stop offset="60%" stop-color="#C00015"/>
+      <stop offset="100%" stop-color="#8E000F"/>
+    </linearGradient>
+    <linearGradient id="topGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="125%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Squircle Base with App-grade styling -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bgGrad)"/>
+  <rect x="24" y="24" width="464" height="232" rx="112" fill="url(#topGlow)" opacity="0.6"/>
+
+  <!-- Crisp Vector Megaphone and Broadcast Waves -->
+  <g transform="translate(100, 116)" filter="url(#subtleShadow)">
+    <!-- Sound Waves -->
+    <path d="M 230 75 A 70 70 0 0 1 230 185" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" opacity="0.95"/>
+    <path d="M 270 45 A 115 115 0 0 1 270 215" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" opacity="0.65"/>
+
+    <!-- Megaphone Cone & Body -->
+    <!-- Handle -->
+    <path d="M 68 185 L 68 235 C 68 245 76 253 86 253 C 96 253 104 245 104 235 L 104 185 Z" fill="#FFFFFF" opacity="0.9"/>
+    
+    <!-- Speaker Body -->
+    <path d="M 38 108 C 38 100 45 93 54 93 L 84 93 L 180 42 C 190 37 202 44 202 55 L 202 205 C 202 216 190 223 180 218 L 84 167 L 54 167 C 45 167 38 160 38 152 Z" fill="#FFFFFF"/>
+    
+    <!-- Front Rim Oval -->
+    <ellipse cx="202" cy="130" rx="14" ry="75" fill="#FFE5E8"/>
+    
+    <!-- Accent Line -->
+    <path d="M 84 95 L 84 165" stroke="#C00015" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+  </g>
+</svg>

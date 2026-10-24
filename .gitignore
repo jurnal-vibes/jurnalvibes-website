@@ -53,3 +53,4 @@ screenshots.zip
 public/screenshots/
 public/screenshots.zip
 scripts/
+.cache/

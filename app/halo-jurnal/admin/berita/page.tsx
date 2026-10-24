@@ -746,11 +746,14 @@ export default function AdminBeritaPage() {
                     className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] capitalize cursor-pointer"
                   >
                     <option value="berita">Berita Utama</option>
-                    <option value="lifestyle">Lifestyle &amp; Wisata</option>
+                    <option value="lifestyle">Lifestyle</option>
+                    <option value="kuliner">Kuliner</option>
+                    <option value="wisata">Wisata</option>
                     <option value="otomotif">Otomotif</option>
                     <option value="sport">Sport</option>
+                    <option value="loker">Loker (Lowongan Kerja)</option>
+                    <option value="hiburan">Hiburan</option>
                     <option value="tech">Teknologi</option>
-                    <option value="science">Sains</option>
                   </select>
                 </div>
 
@@ -990,11 +993,14 @@ export default function AdminBeritaPage() {
                     className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] capitalize cursor-pointer"
                   >
                     <option value="berita">Berita Utama</option>
-                    <option value="lifestyle">Lifestyle &amp; Wisata</option>
+                    <option value="lifestyle">Lifestyle</option>
+                    <option value="kuliner">Kuliner</option>
+                    <option value="wisata">Wisata</option>
                     <option value="otomotif">Otomotif</option>
                     <option value="sport">Sport</option>
+                    <option value="loker">Loker (Lowongan Kerja)</option>
+                    <option value="hiburan">Hiburan</option>
                     <option value="tech">Teknologi</option>
-                    <option value="science">Sains</option>
                   </select>
                 </div>
 

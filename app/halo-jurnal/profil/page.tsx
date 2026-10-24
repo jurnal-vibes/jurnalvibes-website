@@ -140,33 +140,35 @@ export default function HaloJurnalProfilPage() {
         </div>
       )}
 
-      {/* 1. Header Profil Warga (Sleek, Anggun, Tanpa Over-badging) */}
-      <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-xs flex flex-col sm:flex-row items-center sm:items-start justify-between gap-5">
+      {/* 1. Header Profil Warga (Unified After UX Style) */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col sm:flex-row items-center sm:items-start justify-between gap-5">
         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 text-center sm:text-left">
           <UserAvatar name={user?.full_name || 'Warga Sukabumi'} size="lg" />
 
           <div>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 mb-1.5">
-              <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-on-surface">
+            <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+              <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-slate-100 tracking-tight">
                 {user?.full_name || 'Warga Sukabumi'}
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high border border-outline-variant/80 text-on-surface text-[11px] font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                Warga Terverifikasi
-              </span>
+              <div
+                title="Warga Terverifikasi Sukabumi"
+                className="inline-flex items-center text-sky-500 hover:text-sky-600 transition-colors"
+              >
+                <ShieldCheck className="w-5 h-5 fill-sky-500/15 stroke-[2.2px]" />
+              </div>
             </div>
-            <p className="text-secondary text-xs sm:text-sm">{user?.email}</p>
-            <p className="text-secondary/80 text-[11px] mt-0.5">
-              Warga Aktif Halo Jurnal Sukabumi
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">{user?.email}</p>
+            <p className="text-slate-400 dark:text-slate-500 text-[11px] mt-0.5">
+              Warga Aktif Terverifikasi Halo Jurnal Sukabumi
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setEditing(!editing)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/60 text-on-surface text-xs font-semibold transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition cursor-pointer"
           >
             {editing ? (
               <>
@@ -186,77 +188,77 @@ export default function HaloJurnalProfilPage() {
 
       {/* 2. Mode Edit Form */}
       {editing ? (
-        <form onSubmit={handleSave} className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-xs space-y-4">
-          <h2 className="font-heading font-bold text-base text-on-surface pb-3 border-b border-outline-variant/40">
+        <form onSubmit={handleSave} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
+          <h2 className="font-heading font-bold text-base text-slate-900 dark:text-slate-100 pb-3 border-b border-slate-100 dark:border-slate-800">
             Perbarui Informasi Profil
           </h2>
 
           <div>
-            <label className="block text-xs font-semibold text-on-surface mb-1.5">
-              Nama Lengkap <span className="text-secondary font-normal">(Sesuai KTP)</span>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              Nama Lengkap <span className="text-slate-400 font-normal">(Sesuai KTP)</span>
             </label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-surface-container-low border border-outline-variant/80 rounded-lg text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#c00015]/20 focus:border-[#c00015] transition-all"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-on-surface mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Nomor WhatsApp Aktif
             </label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-surface-container-low border border-outline-variant/80 rounded-lg text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#c00015]/20 focus:border-[#c00015] transition-all"
               required
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
             <div>
-              <label className="block text-[11px] font-medium text-secondary mb-1">Kecamatan</label>
+              <label className="block text-[11px] font-medium text-slate-500 mb-1">Kecamatan</label>
               <input
                 type="text"
                 value={kecamatan}
                 onChange={(e) => setKecamatan(e.target.value)}
-                className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant/80 rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#c00015]"
                 required
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-secondary mb-1">Kelurahan / Desa</label>
+              <label className="block text-[11px] font-medium text-slate-500 mb-1">Kelurahan / Desa</label>
               <input
                 type="text"
                 value={kelurahan}
                 onChange={(e) => setKelurahan(e.target.value)}
-                className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant/80 rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#c00015]"
                 required
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-secondary mb-1">RT / RW</label>
+              <label className="block text-[11px] font-medium text-slate-500 mb-1">RT / RW</label>
               <input
                 type="text"
                 value={rtRw}
                 onChange={(e) => setRtRw(e.target.value)}
-                className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant/80 rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#c00015]"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-secondary mb-1">Detail Jalan &amp; Patokan Rumah</label>
+            <label className="block text-[11px] font-medium text-slate-500 mb-1">Detail Jalan &amp; Patokan Rumah</label>
             <textarea
               value={detailAlamat}
               onChange={(e) => setDetailAlamat(e.target.value)}
               rows={2}
-              className="w-full px-3.5 py-2 bg-surface-container-low border border-outline-variant/80 rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary resize-none"
+              className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#c00015] resize-none"
               required
             />
           </div>
@@ -265,14 +267,14 @@ export default function HaloJurnalProfilPage() {
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="px-4 py-2 rounded-lg bg-surface-container text-xs font-semibold text-on-surface cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs cursor-pointer flex items-center gap-1.5"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
               <span>Simpan Perubahan</span>
@@ -280,98 +282,97 @@ export default function HaloJurnalProfilPage() {
           </div>
         </form>
       ) : (
-        /* 3. Tampilan Detail Data Profil Resmi (Bersih, Rapi, Standar Kartu Identitas Digital) */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Kontak & Identitas */}
-          <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="pb-3 border-b border-outline-variant/50 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <User className="w-4 h-4" />
+        /* 3. Tampilan Detail Data Profil Resmi (Unified After UX Card) */
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs space-y-7">
+          {/* Section: Kontak & Identitas */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
+                <User className="w-4 h-4 stroke-[2px]" />
               </div>
               <div>
-                <h2 className="font-heading font-bold text-sm text-on-surface">
+                <h2 className="font-heading font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 tracking-tight">
                   Kontak &amp; Identitas Pelapor
                 </h2>
-                <p className="text-[11px] text-secondary">Data resmi untuk verifikasi pengaduan</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Data resmi untuk verifikasi pengaduan</p>
               </div>
             </div>
 
-            <div className="space-y-3.5 text-xs">
-              <div className="flex flex-col">
-                <span className="text-secondary text-[11px] mb-0.5">Nama Lengkap (Sesuai KTP)</span>
-                <span className="font-semibold text-on-surface text-sm">{user?.full_name || '-'}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-1">Nama Lengkap (KTP)</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm block truncate">{user?.full_name || '-'}</span>
               </div>
 
-              <div className="flex flex-col">
-                <span className="text-secondary text-[11px] mb-0.5">Nomor WhatsApp Aktif</span>
-                <span className="font-mono font-semibold text-on-surface text-sm">
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-1">Nomor WhatsApp</span>
+                <span className="font-mono font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm block">
                   {user?.phone || user?.phone_number || '-'}
                 </span>
               </div>
 
-              <div className="flex flex-col">
-                <span className="text-secondary text-[11px] mb-0.5">Alamat Email</span>
-                <span className="font-semibold text-on-surface text-sm">{user?.email || '-'}</span>
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-1">Alamat Email</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm block truncate">{user?.email || '-'}</span>
               </div>
             </div>
           </div>
 
-          {/* Alamat Domisili */}
-          <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="pb-3 border-b border-outline-variant/50 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <MapPin className="w-4 h-4" />
+          <div className="border-t border-slate-100 dark:border-slate-800/80" />
+
+          {/* Section: Domisili Resmi */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
+                <MapPin className="w-4 h-4 stroke-[2px]" />
               </div>
               <div>
-                <h2 className="font-heading font-bold text-sm text-on-surface">
+                <h2 className="font-heading font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 tracking-tight">
                   Domisili Resmi Pelapor
                 </h2>
-                <p className="text-[11px] text-secondary">Wilayah domisili tempat tinggal saat ini</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Wilayah domisili tempat tinggal saat ini</p>
               </div>
             </div>
 
-            <div className="space-y-3.5 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col">
-                  <span className="text-secondary text-[11px] mb-0.5">Kecamatan</span>
-                  <span className="font-semibold text-on-surface">{user?.kecamatan || 'Cisaat'}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-secondary text-[11px] mb-0.5">Kelurahan / Desa</span>
-                  <span className="font-semibold text-on-surface">{user?.kelurahan || 'Cibatu'}</span>
-                </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 pt-1">
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-0.5">Kecamatan</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">{user?.kecamatan || 'Cisaat'}</span>
               </div>
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-0.5">Kelurahan / Desa</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">{user?.kelurahan || 'Cibatu'}</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 col-span-2 sm:col-span-1">
+                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-0.5">RT / RW</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">{user?.rt_rw || 'RT 02 / RW 05'}</span>
+              </div>
+            </div>
 
-              <div className="flex flex-col">
-                <span className="text-secondary text-[11px] mb-0.5">RT / RW</span>
-                <span className="font-semibold text-on-surface">{user?.rt_rw || 'RT 02 / RW 05'}</span>
-              </div>
-
-              <div className="flex flex-col">
-                <span className="text-secondary text-[11px] mb-0.5">Alamat Lengkap</span>
-                <p className="font-medium text-on-surface leading-relaxed text-xs">
-                  {user?.alamat_domisili || user?.detail_alamat || 'Sukabumi, Jawa Barat'}
-                </p>
-              </div>
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
+              <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-1">Alamat Lengkap</span>
+              <p className="font-medium text-slate-800 dark:text-slate-200 leading-relaxed text-xs sm:text-sm">
+                {user?.alamat_domisili || user?.detail_alamat || 'Sukabumi, Jawa Barat'}
+              </p>
             </div>
           </div>
         </div>
       )}
 
       {/* 4. Menu Cepat */}
-      <div className="flex flex-wrap items-center gap-3 pt-2">
+      <div className="flex flex-wrap items-center gap-3 pt-1">
         <Link
           href="/halo-jurnal/lapor"
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm transition shadow-xs cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white font-heading font-semibold text-xs sm:text-sm transition-colors shadow-2xs cursor-pointer"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Buat Laporan Baru</span>
         </Link>
         <Link
           href="/halo-jurnal/laporan-saya"
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/60 text-on-surface font-heading font-semibold text-xs sm:text-sm transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-heading font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
         >
-          <FileText className="w-4 h-4 text-secondary" />
+          <FileText className="w-4 h-4 text-slate-500" />
           <span>Riwayat Laporan Saya</span>
         </Link>
       </div>
