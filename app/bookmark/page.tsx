@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { BookmarkClient } from './BookmarkClient';
+import { fetchArticles } from '@/lib/wordpress';
 
 export const metadata: Metadata = {
   title: 'Artikel Tersimpan',
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BookmarkPage() {
-  return <BookmarkClient />;
+export default async function BookmarkPage() {
+  const articles = await fetchArticles();
+  return <BookmarkClient initialArticles={articles} />;
 }

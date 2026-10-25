@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { LeftSidebar } from '@/components/layout/LeftSidebar';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 
 export const metadata: Metadata = {
   title: 'Tentang Kami',
@@ -32,10 +30,8 @@ export default function TentangKamiPage() {
   ];
 
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter pt-stack-lg pb-24 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
-      <LeftSidebar articles={DUMMY_ARTICLES} />
-
-      <main className="w-full md:w-3/4 flex flex-col gap-6 pr-0 md:pr-12">
+    <div className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-24 flex flex-col min-w-0">
+      <main className="w-full flex flex-col gap-6">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-on-surface-variant dark:text-gray-400">
           <Link href="/" className="hover:text-primary transition-colors">

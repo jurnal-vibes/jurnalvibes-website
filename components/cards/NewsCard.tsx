@@ -15,9 +15,13 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
   const rawLabel = (article.categoryLabel || article.category || 'BERITA').toUpperCase();
   const displayCategory = rawLabel === 'INFRASTRUKTUR' ? 'BERITA' : rawLabel;
 
-  const validImage = article.imageUrl && (article.imageUrl.startsWith('http') || article.imageUrl.startsWith('/'))
-    ? article.imageUrl
-    : FALLBACK_IMAGE;
+  const validImage =
+    article.imageUrl &&
+    (article.imageUrl.startsWith('http') ||
+      article.imageUrl.startsWith('/') ||
+      article.imageUrl.startsWith('data:image/'))
+      ? article.imageUrl
+      : FALLBACK_IMAGE;
 
   if (variant === 'grid') {
     return (

@@ -20,7 +20,6 @@ import {
   ArrowRight,
   RotateCcw,
 } from 'lucide-react'
-import { DUMMY_REPORTS } from '@/data/dummyReports'
 import {
   ALL_REPORT_CATEGORIES,
   normalizeCategoryName,

@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   haloJurnalName: 'Halo Jurnal Sukabumi',
   tagline: 'Suara Anda, Wadah Kami — Media Aspirasi & Advokasi Publik Sukabumi',
   whatsappHotline: '0821-1165-1470',
-  emailContact: 'redaksi@jurnalsukabumi.com',
+  emailContact: 'redaksi@jurnalwave.com',
   officeAddress: 'Perum Bukit Randu Asri, Blok K No. 14, Cibadak, Kab. Sukabumi 43351',
   announcementText: 'Redaksi Halo Jurnal menerima laporan warga 24 jam. Setiap aduan diverifikasi maksimal 1x24 jam kerja.',
   isAnnouncementActive: true,

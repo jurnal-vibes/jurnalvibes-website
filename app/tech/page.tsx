@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { CategoryTemplate } from '@/components/layout/CategoryTemplate';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+import { fetchArticles } from '@/lib/wordpress';
 
 export const metadata: Metadata = {
   title: 'Technology & Innovation',
@@ -11,12 +11,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function TechPage() {
-  const techArticles = DUMMY_ARTICLES.filter(
+export default async function TechPage() {
+  const allArticles = await fetchArticles();
+  const techArticles = allArticles.filter(
     a =>
       a.category === 'tech' ||
-      a.categoryLabel.toUpperCase() === 'TECH' ||
-      (a.subCategory || '').toUpperCase() === 'TECH'
+      (a.categoryLabel && a.categoryLabel.toUpperCase() === 'TECH') ||
+      ((a.subCategory || '').toUpperCase() === 'TECH')
   );
 
   return (
@@ -25,7 +26,7 @@ export default function TechPage() {
       description="Kabar dunia teknologi, AI, gadget terbaru, dan lanskap startup digital Sukabumi"
       articles={techArticles}
       categoryName="Tech"
-      allArticles={DUMMY_ARTICLES}
+      allArticles={allArticles}
     />
   );
 }

@@ -16,9 +16,7 @@ import {
   Flag,
   ChevronRight
 } from 'lucide-react';
-import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { DUMMY_JOBS } from '@/data/dummyJobs';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 
 interface JobDetailPageProps {
   params: Promise<{ id: string }>;
@@ -28,7 +26,27 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
   const { id } = use(params);
   const [isSaved, setIsSaved] = useState<boolean>(false);
 
-  const job = DUMMY_JOBS.find(j => j.id === id) || DUMMY_JOBS[0];
+  const job = DUMMY_JOBS.find(j => j.id === id);
+
+  if (!job) {
+    return (
+      <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop py-20 text-center">
+        <div className="max-w-md mx-auto flex flex-col items-center">
+          <Briefcase className="w-12 h-12 text-on-surface-variant/50 mb-4" />
+          <h2 className="text-xl font-bold text-on-surface mb-2">Lowongan Tidak Ditemukan</h2>
+          <p className="text-sm text-on-surface-variant mb-6">
+            Lowongan kerja yang Anda cari tidak tersedia atau telah ditutup.
+          </p>
+          <Link
+            href="/loker"
+            className="px-5 py-2.5 rounded-full bg-primary text-on-primary font-bold text-sm"
+          >
+            Kembali ke Daftar Loker
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const handleShare = () => {
     if (typeof window !== 'undefined') {
@@ -73,10 +91,8 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
   ];
 
   return (
-    <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop gap-gutter py-stack-lg">
-      <LeftSidebar articles={DUMMY_ARTICLES} />
-
-      <main className="flex-1 flex flex-col min-w-0 pr-0 md:pr-4 pb-24 md:pb-stack-lg">
+    <div className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-24 flex flex-col min-w-0">
+      <main className="w-full flex flex-col min-w-0">
         {/* Back Link */}
         <div className="mb-4">
           <Link

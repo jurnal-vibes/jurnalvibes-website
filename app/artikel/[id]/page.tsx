@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { ArticleDetailView } from './ArticleDetailView';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 import { fetchArticleById } from '@/lib/wordpress';
 
 interface ArticleDetailPageProps {
@@ -9,22 +9,26 @@ interface ArticleDetailPageProps {
 
 export async function generateMetadata({ params }: ArticleDetailPageProps): Promise<Metadata> {
   const { id } = await params;
-  let article = DUMMY_ARTICLES.find(a => a.id === id || a.slug === id);
+  let article = null;
 
   try {
     const wpArticle = await fetchArticleById(id);
     if (wpArticle) {
       article = wpArticle;
     }
-  } catch {
-    // Fallback to dummy article
+  } catch {}
+
+  if (!article) {
+    return {
+      title: 'Artikel Tidak Ditemukan - Jurnal Wave',
+      description: 'Artikel yang Anda cari tidak ditemukan atau telah dihapus.',
+    };
   }
 
-  const currentArticle = article || DUMMY_ARTICLES[0];
-  const title = `${currentArticle.title} - Jurnal Wave`;
+  const title = `${article.title} - Jurnal Wave`;
   const description =
-    currentArticle.excerpt || currentArticle.content.slice(0, 160).replace(/\n/g, ' ');
-  const imageUrl = currentArticle.imageUrl;
+    article.excerpt || article.content.slice(0, 160).replace(/\n/g, ' ');
+  const imageUrl = article.imageUrl;
 
   return {
     title,
@@ -33,14 +37,14 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
       title,
       description,
       type: 'article',
-      publishedTime: currentArticle.publishedDate,
-      authors: [currentArticle.author || 'Tim Redaksi'],
+      publishedTime: article.publishedDate,
+      authors: [article.author || 'Tim Redaksi'],
       images: [
         {
           url: imageUrl,
           width: 1200,
           height: 630,
-          alt: currentArticle.imageAlt || currentArticle.title,
+          alt: article.imageAlt || article.title,
         },
       ],
     },
@@ -55,17 +59,18 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
 
 export default async function ArticleDetailPage({ params }: ArticleDetailPageProps) {
   const { id } = await params;
-  let article = DUMMY_ARTICLES.find(a => a.id === id || a.slug === id);
+  let article = null;
 
   try {
     const wpArticle = await fetchArticleById(id);
     if (wpArticle) {
       article = wpArticle;
     }
-  } catch {
-    // Fallback to dummy article
+  } catch {}
+
+  if (!article) {
+    notFound();
   }
 
-  const initialArticle = article || DUMMY_ARTICLES[0];
-  return <ArticleDetailView id={id} initialData={initialArticle} />;
+  return <ArticleDetailView id={id} initialData={article} />;
 }

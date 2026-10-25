@@ -25,51 +25,10 @@ interface TeamMember {
   joinedAt: string
 }
 
-const DEFAULT_TEAM: TeamMember[] = [
-  {
-    id: 'usr-1',
-    name: 'Rahmat Sukabumi',
-    email: 'rahmat@jurnalwave.id',
-    role: 'Pemimpin Redaksi',
-    status: 'aktif',
-    joinedAt: 'Jan 2024',
-  },
-  {
-    id: 'usr-2',
-    name: 'Dewi Lestari',
-    email: 'dewi.redaktur@jurnalwave.id',
-    role: 'Redaktur Pelaksana',
-    status: 'aktif',
-    joinedAt: 'Mar 2024',
-  },
-  {
-    id: 'usr-3',
-    name: 'Rian Hidayat',
-    email: 'rian.jurnalis@jurnalwave.id',
-    role: 'Reporter / Jurnalis',
-    status: 'aktif',
-    joinedAt: 'Jun 2024',
-  },
-  {
-    id: 'usr-4',
-    name: 'Admin Halo Jurnal',
-    email: 'admin@halojurnal.id',
-    role: 'Admin Verifikasi',
-    status: 'aktif',
-    joinedAt: 'Agu 2024',
-  },
-  {
-    id: 'usr-5',
-    name: 'Budi Kurniawan',
-    email: 'budi.foto@jurnalwave.id',
-    role: 'Reporter / Jurnalis',
-    status: 'cuti',
-    joinedAt: 'Okt 2024',
-  },
-]
+const DEFAULT_TEAM: TeamMember[] = []
 
 export default function AdminTimRedaksiPage() {
-  const [members, setMembers] = useState<TeamMember[]>(DEFAULT_TEAM)
+  const [members, setMembers] = useState<TeamMember[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -86,12 +45,22 @@ export default function AdminTimRedaksiPage() {
         const saved = localStorage.getItem('jurnal_wave_team_members')
         if (saved) {
           const parsed = JSON.parse(saved)
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setMembers(parsed)
+          if (Array.isArray(parsed)) {
+            const clean = parsed.filter(
+              (m: any) =>
+                !String(m.id || '').startsWith('usr-') &&
+                !String(m.name || '').toLowerCase().includes('rahmat') &&
+                !String(m.name || '').toLowerCase().includes('dewi') &&
+                !String(m.name || '').toLowerCase().includes('rian') &&
+                !String(m.name || '').toLowerCase().includes('budi')
+            )
+            if (clean.length !== parsed.length) {
+              localStorage.setItem('jurnal_wave_team_members', JSON.stringify(clean))
+            }
+            setMembers(clean)
             return
           }
         }
-        localStorage.setItem('jurnal_wave_team_members', JSON.stringify(DEFAULT_TEAM))
       } catch (err) {
         console.error('Error loading team members:', err)
       }

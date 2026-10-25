@@ -3,366 +3,365 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  FileText,
-  ShieldCheck,
-  ChevronRight,
-  Eye,
+  Newspaper,
+  Film,
+  Briefcase,
+  Pin,
+  ExternalLink,
+  Edit,
   ArrowRight,
-  MapPin,
+  Plus,
+  CheckCircle2,
 } from 'lucide-react'
-import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
+import { Article, Job } from '@/types'
+import { DUMMY_JOBS } from '@/data/dummyJobs'
 
-export default function AdminDashboardPage() {
-  const [filterStatus, setFilterStatus] = useState<string>('semua')
-  const [reportsList, setReportsList] = useState<DummyReport[]>(DUMMY_REPORTS)
-
-  const syncReports = () => {
-    if (typeof window !== 'undefined') {
-      try {
-        const overrides = JSON.parse(
-          localStorage.getItem('halo_jurnal_status_overrides') || '{}'
-        )
-        const userReports = JSON.parse(
-          localStorage.getItem('halo_jurnal_user_reports') || '[]'
-        )
-        const combined = [...userReports, ...DUMMY_REPORTS]
-        const unique = new Map<string, any>()
-        combined.forEach((item) => {
-          const key = item.id || item.nomor_tiket || item.ticket_number
-          if (key && !unique.has(key)) {
-            unique.set(key, item)
-          }
-        })
-        const updated = Array.from(unique.values()).map((r) => {
-          const saved = overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
-          if (saved) {
-            return {
-              ...r,
-              status: saved.status || r.status,
-              is_public: saved.is_public !== undefined ? saved.is_public : r.is_public,
-              status_log: saved.status_log || r.status_log,
-            }
-          }
-          return r
-        })
-        setReportsList(updated)
-      } catch (err) {
-        console.error('Error loading overrides in admin dashboard:', err)
-      }
-    }
-  }
+export default function AdminDashboardMediaPage() {
+  const [articlesList, setArticlesList] = useState<Article[]>([])
+  const [reelsCount, setReelsCount] = useState<number>(0)
+  const [jobsList, setJobsList] = useState<Job[]>([])
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    const loadLiveReports = async () => {
+    let isMounted = true
+
+    const loadData = async () => {
+      // 1. Load Articles dari API database
       try {
-        const res = await fetch('/api/reports', { cache: 'no-store' })
-        const json = await res.json()
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          setReportsList(json.data)
-          return
+        const resArticles = await fetch('/api/articles', { cache: 'no-store' })
+        if (resArticles.ok) {
+          const json = await resArticles.json()
+          if (json.success && Array.isArray(json.data) && isMounted) {
+            setArticlesList(json.data)
+          }
         }
       } catch (err) {
-        console.warn('Gagal memuat laporan live admin:', err)
+        console.warn('Gagal memuat artikel dari API:', err)
       }
-      syncReports()
+
+      // 2. Load Reels & Jobs dari localStorage
+      if (typeof window !== 'undefined') {
+        try {
+          const savedReels = JSON.parse(
+            localStorage.getItem('jurnal_wave_reels') || '[]'
+          )
+          if (isMounted) {
+            setReelsCount(Array.isArray(savedReels) ? savedReels.length : 0)
+          }
+
+          const savedJobs = JSON.parse(
+            localStorage.getItem('jurnal_wave_jobs') || '[]'
+          )
+          if (Array.isArray(savedJobs) && savedJobs.length > 0) {
+            if (isMounted) setJobsList(savedJobs)
+          } else {
+            if (isMounted) setJobsList(DUMMY_JOBS)
+          }
+
+          // Fallback articles if API empty
+          if (articlesList.length === 0) {
+            const savedArticles = JSON.parse(
+              localStorage.getItem('jurnal_wave_articles') || '[]'
+            )
+            if (Array.isArray(savedArticles) && savedArticles.length > 0 && isMounted) {
+              setArticlesList(savedArticles)
+            }
+          }
+        } catch {}
+      }
     }
 
-    loadLiveReports()
-    window.addEventListener('storage', loadLiveReports)
-    window.addEventListener('focus', loadLiveReports)
+    loadData()
+    window.addEventListener('storage', loadData)
+    window.addEventListener('focus', loadData)
+
     return () => {
-      window.removeEventListener('storage', loadLiveReports)
-      window.removeEventListener('focus', loadLiveReports)
+      isMounted = false
+      window.removeEventListener('storage', loadData)
+      window.removeEventListener('focus', loadData)
     }
   }, [])
 
-  const formatCategory = (cat?: string) => {
-    if (!cat) return 'Umum'
-    return cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase()
-  }
+  // Metrics
+  const totalBerita = articlesList.length
+  const headlineBerita = articlesList.filter((a) => a.isHero).length
+  const totalJobs = jobsList.length
+  const recentArticles = articlesList.slice(0, 8)
 
-  const totalLaporan = reportsList.length
-  const laporanSelesai = reportsList.filter((r) => r.status === 'selesai').length
-  const laporanDiproses = reportsList.filter(
-    (r) => r.status === 'diproses' || r.status === 'ditindaklanjuti'
-  ).length
-  const laporanDiterima = reportsList.filter((r) => r.status === 'diterima').length
+  // Handle Toggle On/Off Headline Slider langsung dari Dashboard
+  const handleToggleHero = async (id: string) => {
+    const target = articlesList.find((a) => a.id === id)
+    if (!target) return
+    const newHeroState = !target.isHero
 
-  const filteredReports = reportsList.filter((item) => {
-    if (filterStatus === 'semua') return true
-    return item.status === filterStatus
-  }).slice(0, 6)
-
-  // Status badge styling (Harmonisasi Monokrom Redaksi - Pembeda Kurung Bersih)
-  const getStatusBadge = (status: DummyReport['status']) => {
-    const labels: Record<string, string> = {
-      diterima: '[Menunggu Review]',
-      diproses: '[Diproses]',
-      ditindaklanjuti: '[Ditindaklanjuti]',
-      selesai: '[Ditayangkan]',
-      ditolak: '[Ditolak]',
-    }
-    const label = labels[status] || `[${status}]`
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
-        {label}
-      </span>
+    const updated = articlesList.map((a) =>
+      a.id === id ? { ...a, isHero: newHeroState } : a
     )
+    setArticlesList(updated)
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('jurnal_wave_articles', JSON.stringify(updated))
+        window.dispatchEvent(new Event('storage'))
+      } catch {}
+    }
+
+    try {
+      await fetch('/api/articles', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isHero: newHeroState }),
+      })
+    } catch (err) {
+      console.warn('Gagal sinkron status Hero ke database:', err)
+    }
+
+    setToastMessage(
+      newHeroState
+        ? `Artikel "${target.title.slice(0, 32)}..." diaktifkan ke Headline Slider Beranda!`
+        : `Artikel "${target.title.slice(0, 32)}..." dikembalikan ke Berita Feed.`
+    )
+    setTimeout(() => setToastMessage(null), 3000)
   }
 
   return (
     <div className="space-y-6">
-      {/* 1. Header Halaman Bersih */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
+      {/* Toast Notifikasi Sukses Toggle */}
+      {toastMessage && (
+        <div className="p-3 bg-[#c00015] text-white rounded-xl text-xs flex items-center justify-between shadow-md transition-all">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
+            <span className="font-medium">{toastMessage}</span>
+          </div>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="text-white/80 hover:text-white cursor-pointer px-1 font-bold"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      {/* 1. Header Khusus Jurnal Wave CMS (Bersih Tanpa Tombol Berjejer Norak) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
-          <h1 className="text-xl font-heading font-bold text-slate-900 tracking-tight">
-            Dashboard Redaksi &amp; Aduan Warga
+          <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
+            Dashboard Media Jurnal Wave
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Ringkasan operasional penanganan aspirasi publik Halo Jurnal Sukabumi.
+            Pusat kendali operasional penerbitan berita, kurasi Wave Reels, dan bursa lowongan kerja Sukabumi.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
-            href="/halo-jurnal/admin/laporan"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs"
+            href="/halo-jurnal/admin/berita"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs"
           >
-            <FileText className="w-3.5 h-3.5" />
-            <span>Semua Laporan Warga</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Tulis Berita Baru</span>
+          </Link>
+          <Link
+            href="/"
+            target="_blank"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition border border-slate-200"
+          >
+            <span>Buka Web Portal</span>
+            <ExternalLink className="w-3 h-3 text-slate-400" />
           </Link>
         </div>
       </div>
 
-      {/* 2. Empat Kartu Metrik Utama (Monokrom Bersih, Angka Tegas) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Laporan */}
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-medium">Total Aduan</span>
+      {/* 2. Empat Kartu Metrik Jurnal Wave CMS */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <Link
+          href="/halo-jurnal/admin/berita"
+          className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 hover:border-[#c00015]/40 transition group"
+        >
+          <div className="flex items-center justify-between text-slate-400 group-hover:text-[#c00015]">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Artikel Berita
+            </span>
+            <Newspaper className="w-4 h-4" />
           </div>
-          <p className="text-2xl font-bold font-heading text-slate-900">{totalLaporan}</p>
-          <p className="text-[11px] text-slate-500">Semua laporan terdaftar</p>
-        </div>
+          <p className="text-2xl font-extrabold font-heading text-slate-900 group-hover:text-[#c00015]">
+            {totalBerita}
+          </p>
+          <p className="text-[11px] text-slate-500">Artikel tayang aktif</p>
+        </Link>
 
-        {/* Perlu Verifikasi */}
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-medium">Perlu Verifikasi</span>
+        <Link
+          href="/halo-jurnal/admin/kategori"
+          className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 hover:border-[#c00015]/40 transition group"
+        >
+          <div className="flex items-center justify-between text-slate-400 group-hover:text-[#c00015]">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#c00015]">
+              Headline Slider
+            </span>
+            <Pin className="w-4 h-4 text-[#c00015] -rotate-45" />
           </div>
-          <p className="text-2xl font-bold font-heading text-slate-900">{laporanDiterima}</p>
-          <p className="text-[11px] text-slate-500 font-medium">Menunggu respon awal</p>
-        </div>
+          <p className="text-2xl font-extrabold font-heading text-[#c00015]">
+            {headlineBerita}
+          </p>
+          <p className="text-[11px] text-slate-500">Berita aktif di slider beranda</p>
+        </Link>
 
-        {/* Sedang Ditangani */}
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-medium">Dalam Penanganan</span>
+        <Link
+          href="/halo-jurnal/admin/reels"
+          className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 hover:border-slate-400 transition group"
+        >
+          <div className="flex items-center justify-between text-slate-400 group-hover:text-slate-900">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Wave Reels
+            </span>
+            <Film className="w-4 h-4" />
           </div>
-          <p className="text-2xl font-bold font-heading text-slate-900">{laporanDiproses}</p>
-          <p className="text-[11px] text-slate-500">Investigasi &amp; Dinas</p>
-        </div>
+          <p className="text-2xl font-extrabold font-heading text-slate-900">
+            {reelsCount}
+          </p>
+          <p className="text-[11px] text-slate-500">Video 9:16 terkurasi</p>
+        </Link>
 
-        {/* Selesai */}
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-medium">Dituntaskan</span>
+        <Link
+          href="/halo-jurnal/admin/loker"
+          className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 hover:border-slate-400 transition group"
+        >
+          <div className="flex items-center justify-between text-slate-400 group-hover:text-slate-900">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Lowongan Kerja
+            </span>
+            <Briefcase className="w-4 h-4" />
           </div>
-          <p className="text-2xl font-bold font-heading text-slate-900">{laporanSelesai}</p>
-          <p className="text-[11px] text-slate-500 font-medium">Selesai ditangani</p>
-        </div>
+          <p className="text-2xl font-extrabold font-heading text-slate-900">
+            {totalJobs}
+          </p>
+          <p className="text-[11px] text-slate-500">Peluang karir aktif</p>
+        </Link>
       </div>
 
-      {/* 3. Kotak Tindakan Mendesak (Action Queue Ringkas) */}
-      <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-slate-200/80 text-slate-700 flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-4 h-4" />
+      {/* 3. Tabel Artikel Berita Terbaru */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+          <div>
+            <h3 className="font-heading font-bold text-sm text-slate-900">
+              Daftar Artikel Berita Terbaru
+            </h3>
+            <p className="text-[11px] text-slate-500">
+              Status publikasi dan posisi penayangan berita di portal Jurnal Wave.
+            </p>
           </div>
-          <p className="text-slate-800 leading-snug">
-            <strong>Antrean Tindakan Redaksi:</strong> Ada <strong>{laporanDiterima} aduan baru</strong> yang menunggu peninjauan berkas bukti & verifikasi kelayakan tayang.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
           <Link
-            href="/halo-jurnal/admin/laporan"
-            className="px-3.5 py-1.5 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white font-semibold transition shadow-2xs flex items-center gap-1.5"
+            href="/halo-jurnal/admin/berita"
+            className="text-xs font-semibold text-[#c00015] hover:underline flex items-center gap-1"
           >
-            <span>Tinjau Aduan Baru ({laporanDiterima})</span>
+            <span>Buka Semua Berita</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
-      </div>
 
-      {/* 4. Tabel Tabular Laporan Warga (Data Table Asli) */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        {/* Header Tabel & Filter Cepat */}
-        <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-heading font-bold text-slate-900">
-              Daftar Aduan Warga Terbaru
-            </h2>
-            <p className="text-xs text-slate-500">
-              Menampilkan {filteredReports.length} dari total {totalLaporan} laporan masyarakat.
-            </p>
-          </div>
-
-          {/* Filter Status Sederhana */}
-          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-100 text-xs font-medium max-w-full overflow-x-auto no-scrollbar shrink-0">
-            {(['semua', 'diterima', 'diproses', 'selesai'] as const).map((st) => (
-              <button
-                key={st}
-                onClick={() => setFilterStatus(st)}
-                className={`px-3 py-1 rounded-md capitalize text-xs whitespace-nowrap transition cursor-pointer ${
-                  filterStatus === st
-                    ? 'bg-white text-slate-900 font-semibold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Tabel Tabular */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-500 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
               <tr>
-                <th className="py-3.5 px-4 whitespace-nowrap w-36">No. Tiket</th>
-                <th className="py-3.5 px-4 whitespace-nowrap min-w-[240px]">Judul &amp; Uraian Masalah</th>
-                <th className="py-3.5 px-4 whitespace-nowrap w-28">Kategori</th>
-                <th className="py-3.5 px-4 whitespace-nowrap w-36">Status</th>
-                <th className="py-3.5 px-4 whitespace-nowrap w-28">Feed</th>
-                <th className="py-3.5 px-4 whitespace-nowrap w-32 text-center">Aksi</th>
+                <th className="py-3 px-4">Artikel &amp; Thumbnail</th>
+                <th className="py-3 px-4">Kategori Rubrik</th>
+                <th className="py-3 px-4">Penulis / Jurnalis</th>
+                <th className="py-3 px-4">Posisi Tayang</th>
+                <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredReports.map((report) => (
-                <tr key={report.id} className="hover:bg-slate-50/70 transition-colors">
-                  {/* No. Tiket */}
-                  <td className="py-3.5 px-4 whitespace-nowrap align-middle">
-                    <span className="font-mono text-xs font-semibold text-slate-700">
-                      {report.nomor_tiket}
-                    </span>
-                  </td>
-
-                  {/* Judul & Lokasi */}
-                  <td className="py-3.5 px-4 max-w-sm align-middle">
-                    <p className="font-semibold text-slate-900 line-clamp-1">{report.judul}</p>
-                    <p className="text-slate-500 text-[11px] line-clamp-1 mt-0.5 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                      <span>{report.lokasi}</span>
-                    </p>
-                  </td>
-
-                  {/* Kategori (Ghost Plain Text) */}
-                  <td className="py-3.5 px-4 whitespace-nowrap align-middle">
-                    <span className="text-xs font-medium text-slate-700">
-                      {formatCategory(report.kategori)}
-                    </span>
-                  </td>
-
-                  {/* Status */}
-                  <td className="py-3.5 px-4 whitespace-nowrap align-middle">
-                    {getStatusBadge(report.status)}
-                  </td>
-
-                  {/* Feed Publik (Ghost Minimalist) */}
-                  <td className="py-3.5 px-4 whitespace-nowrap align-middle">
-                    {report.is_public ? (
-                      <span className="text-xs font-semibold text-slate-700">
-                        Publik
-                      </span>
-                    ) : (
-                      <span className="text-xs font-medium text-slate-500">
-                        Privat
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Tombol Aksi */}
-                  <td className="py-3.5 px-4 whitespace-nowrap text-center align-middle">
-                    <div className="inline-flex items-center justify-center gap-1.5">
-                      <Link
-                        href={`/halo-jurnal/laporan/${report.id}`}
-                        target="_blank"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition"
-                        title="Tinjau Halaman Publik"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </Link>
-                      <Link
-                        href={`/halo-jurnal/admin/laporan/${report.id}`}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white hover:bg-[#c00015] hover:text-white hover:border-[#c00015] text-slate-700 border border-slate-200 text-xs font-semibold transition shadow-2xs cursor-pointer group"
-                      >
-                        <span>Tinjau</span>
-                        <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-white transition-colors" />
-                      </Link>
-                    </div>
+              {recentArticles.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-10 text-center text-slate-400 space-y-1">
+                    <p className="font-semibold text-slate-700">Belum ada artikel berita yang dimuat</p>
+                    <p className="text-[11px]">Gunakan tombol &quot;Tulis Berita Baru&quot; untuk menerbitkan berita pertama.</p>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                recentArticles.map((art) => {
+                  return (
+                    <tr key={art.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3.5 px-4 max-w-sm">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={art.imageUrl}
+                            alt={art.title}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'
+                            }}
+                            className="w-12 h-9 rounded-md object-cover bg-slate-100 shrink-0 border border-slate-200"
+                          />
+                          <div className="min-w-0">
+                            <h4 className="font-semibold text-slate-900 line-clamp-1">
+                              {art.title}
+                            </h4>
+                            <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+                              {art.excerpt}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 capitalize border border-slate-200/80">
+                          {art.category}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-600">
+                        {art.reporter || art.author}
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleHero(art.id)}
+                          title={
+                            art.isHero
+                              ? 'Headline aktif (Klik untuk matikan / jadikan Berita Feed reguler)'
+                              : 'Klik untuk mengaktifkan ke Headline Slider Beranda'
+                          }
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer select-none active:scale-95 ${
+                            art.isHero
+                              ? 'bg-[#c00015] hover:bg-[#a00012] text-white shadow-2xs'
+                              : 'text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200'
+                          }`}
+                        >
+                          <Pin
+                            className={`w-3 h-3 -rotate-45 ${
+                              art.isHero ? 'text-white' : 'text-slate-400'
+                            }`}
+                          />
+                          <span>{art.isHero ? 'Headline Slider' : 'Berita Feed'}</span>
+                        </button>
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap text-right">
+                        <div className="inline-flex items-center gap-1.5">
+                          <Link
+                            href="/halo-jurnal/admin/berita"
+                            className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
+                            title="Edit Artikel"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </Link>
+                          <Link
+                            href={`/artikel/${art.slug || art.id}`}
+                            target="_blank"
+                            className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                            title="Buka di Portal Warga"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
             </tbody>
           </table>
-        </div>
-
-        {/* Footer Tabel */}
-        <div className="p-3 border-t border-slate-200 bg-slate-50/50 text-center">
-          <Link
-            href="/halo-jurnal/admin/laporan"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[#c00015] hover:underline"
-          >
-            <span>Buka Seluruh Laporan Warga &amp; Filter Wilayah Lengkap</span>
-            <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
-      </div>
-
-      {/* 5. Sebaran Masalah & Catatan Alur Kerja */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Sebaran Masalah */}
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3">
-          <h3 className="text-xs font-heading font-bold text-slate-900 uppercase tracking-wider">
-            Sebaran Kategori Masalah Warga
-          </h3>
-
-          <div className="space-y-2.5">
-            {[
-              { label: 'Infrastruktur & Jalan Rusak', pct: 42, color: 'bg-[#c00015]' },
-              { label: 'Pelayanan Publik & Instansi', pct: 28, color: 'bg-slate-700' },
-              { label: 'Lingkungan & Kebersihan', pct: 18, color: 'bg-slate-500' },
-              { label: 'Anggaran & Pungli', pct: 12, color: 'bg-slate-400' },
-            ].map((item, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-600">{item.label}</span>
-                  <span className="font-semibold text-slate-900">{item.pct}%</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.pct}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Catatan Standar Kerja Redaksi */}
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2.5">
-          <h3 className="text-xs font-heading font-bold text-slate-900 uppercase tracking-wider">
-            Standar Penanganan Aduan Redaksi
-          </h3>
-          <p className="text-xs text-slate-500 leading-relaxed">
-            Panduan verifikasi fakta sebelum aduan diteruskan ke instansi dinas atau diterbitkan:
-          </p>
-
-          <ol className="space-y-1.5 text-xs text-slate-700 list-decimal list-inside">
-            <li>Validasi foto barang bukti dan kejelasan titik koordinat lokasi.</li>
-            <li>Pastikan data kontak warga valid dan pernyataan hukum telah disetujui.</li>
-            <li>Tulis tanggapan resmi dan teruskan ke instansi terkait untuk tindak lanjut.</li>
-          </ol>
         </div>
       </div>
     </div>

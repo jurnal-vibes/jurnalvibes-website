@@ -1,5 +1,4 @@
 import { Article, ArticleCategory } from '@/types';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 import { formatIndoDateTime } from '@/lib/utils';
 
 const WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || '';
@@ -17,7 +16,7 @@ function stripHtml(html: string): string {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mapWordPressPost(post: any): Article {
-  if (!post) return DUMMY_ARTICLES[0];
+  if (!post) return null as any;
 
   // Featured image resolution from _embedded
   const featuredMedia = post._embedded?.['wp:featuredmedia']?.[0];
@@ -96,9 +95,22 @@ export function normalizeArticleCategory(category?: string, categoryLabel?: stri
 
 const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80';
 
+export function getSafeImageUrl(url?: string | null): string {
+  if (!url) return DEFAULT_FALLBACK_IMAGE;
+  const trimmed = url.trim();
+  if (
+    trimmed.startsWith('http') ||
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('data:image/')
+  ) {
+    return trimmed;
+  }
+  return DEFAULT_FALLBACK_IMAGE;
+}
+
 /**
- * Fetches all articles from WordPress REST API (/wp-json/wp/v2/posts?_embed=1).
- * Fallbacks to localStorage ('jurnal_wave_articles') or DUMMY_ARTICLES if WordPress is not yet connected or offline.
+ * Fetches all articles from Database/WordPress.
+ * Fallbacks to localStorage ('jurnal_wave_articles') or empty array [] if not yet populated.
  */
 export async function fetchArticlesFromWordPress(): Promise<Article[]> {
   // 1. Server-side fetch from MySQL via Prisma
@@ -119,7 +131,7 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
             content: item.content,
             category,
             categoryLabel,
-            imageUrl: item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/')) ? item.imageUrl : DEFAULT_FALLBACK_IMAGE,
+            imageUrl: getSafeImageUrl(item.imageUrl),
             imageAlt: item.imageAlt || item.title,
             author: item.author || 'Tim Redaksi',
             reporter: item.reporter || 'Redaksi Jurnal Wave',
@@ -152,7 +164,7 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
               ...item,
               category,
               categoryLabel,
-              imageUrl: item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/')) ? item.imageUrl : DEFAULT_FALLBACK_IMAGE,
+              imageUrl: getSafeImageUrl(item.imageUrl),
             };
           });
           localStorage.setItem('jurnal_wave_articles', JSON.stringify(sanitized));
@@ -173,7 +185,7 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
               ...item,
               category,
               categoryLabel,
-              imageUrl: item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/')) ? item.imageUrl : DEFAULT_FALLBACK_IMAGE,
+              imageUrl: getSafeImageUrl(item.imageUrl),
             };
           });
         }
@@ -181,7 +193,7 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
     } catch {}
   }
 
-  return DUMMY_ARTICLES;
+  return [];
 }
 
 /**
@@ -207,7 +219,7 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
           content: item.content,
           category,
           categoryLabel,
-          imageUrl: item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/')) ? item.imageUrl : DEFAULT_FALLBACK_IMAGE,
+          imageUrl: getSafeImageUrl(item.imageUrl),
           imageAlt: item.imageAlt || item.title,
           author: item.author || 'Tim Redaksi',
           reporter: item.reporter || 'Redaksi Jurnal Wave',
@@ -238,7 +250,7 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
             ...json.data,
             category,
             categoryLabel,
-            imageUrl: json.data.imageUrl && (json.data.imageUrl.startsWith('http') || json.data.imageUrl.startsWith('/')) ? json.data.imageUrl : DEFAULT_FALLBACK_IMAGE,
+            imageUrl: getSafeImageUrl(json.data.imageUrl),
           };
         }
       }
@@ -260,7 +272,7 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
               ...foundInLocal,
               category,
               categoryLabel,
-              imageUrl: foundInLocal.imageUrl && (foundInLocal.imageUrl.startsWith('http') || foundInLocal.imageUrl.startsWith('/')) ? foundInLocal.imageUrl : DEFAULT_FALLBACK_IMAGE,
+              imageUrl: getSafeImageUrl(foundInLocal.imageUrl),
             };
           }
         }
@@ -268,9 +280,7 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
     } catch {}
   }
 
-  // Fallback to local dummy data search
-  const found = DUMMY_ARTICLES.find(a => String(a.id) === String(idOrSlug) || a.slug === idOrSlug);
-  return found || DUMMY_ARTICLES[0];
+  return null as any;
 }
 
 // Aliases for backward compatibility and clean naming

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { DUMMY_REPORTS } from '@/data/dummyReports'
 import { getAdminSession } from '@/lib/auth'
 import { z } from 'zod'
 
@@ -98,44 +97,18 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
-    if (dbReports.length > 0) {
-      return NextResponse.json({
-        success: true,
-        source: 'database',
-        data: dbReports.map(mapReportFromDb),
-      })
-    }
-
-    // Jika mencari tiket/ID spesifik dan tidak ditemukan di DB, jangan kembalikan semua dummy!
-    if (ticket) {
-      const matchedDummy = DUMMY_REPORTS.filter(
-        (r) => r.id === ticket || r.nomor_tiket === ticket
-      )
-      return NextResponse.json({
-        success: true,
-        source: 'fallback',
-        data: matchedDummy,
-      })
-    }
-
     return NextResponse.json({
       success: true,
-      source: 'fallback',
-      data: DUMMY_REPORTS,
+      source: 'database',
+      data: dbReports.map(mapReportFromDb),
     })
   } catch (error: any) {
     console.error('API Reports GET error:', error)
-    const ticketParam = new URL(request.url).searchParams.get('ticket')
-    const fallbackData = ticketParam
-      ? DUMMY_REPORTS.filter((r) => r.id === ticketParam || r.nomor_tiket === ticketParam)
-      : DUMMY_REPORTS
-
     return NextResponse.json({
-      success: true,
-      source: 'fallback',
-      data: fallbackData,
-      warning: 'Menggunakan data cadangan: ' + error.message,
-    })
+      success: false,
+      data: [],
+      error: error.message,
+    }, { status: 500 })
   }
 }
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Layers,
-  Flame,
+  Pin,
   Plus,
   Check,
   Edit,
@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   Trash2,
 } from 'lucide-react'
-import { DUMMY_ARTICLES } from '@/data/dummyArticles'
 import { Article } from '@/types'
 
 interface CategoryMeta {
@@ -30,55 +29,71 @@ const DEFAULT_CATEGORIES: CategoryMeta[] = [
   {
     id: 'cat-1',
     slug: 'berita',
-    name: 'Berita Utama',
-    description: 'Liputan peristiwa aktual, kebijakan publik, dan kabar hangat Sukabumi.',
+    name: 'Berita',
+    description: 'Liputan peristiwa aktual, peristiwa daerah, kampus mahasiswa, dan kabar sekolah.',
     articleCount: 42,
     isActive: true,
   },
   {
     id: 'cat-2',
     slug: 'lifestyle',
-    name: 'Lifestyle & Wisata',
-    description: 'Destinasi wisata alam, kuliner legendaris, dan gaya hidup masyarakat.',
+    name: 'Lifestyle',
+    description: 'Tren gaya hidup, style berpakaian, eksplorasi kuliner, dan destinasi traveling.',
     articleCount: 18,
     isActive: true,
   },
   {
     id: 'cat-3',
-    slug: 'otomotif',
-    name: 'Otomotif',
-    description: 'Review kendaraan, tips berkendara jalur pegunungan, dan modifikasi.',
-    articleCount: 12,
+    slug: 'loker',
+    name: 'Loker',
+    description: 'Bursa lowongan kerja, informasi karir, magang, dan rekrutmen terbaru.',
+    articleCount: 15,
     isActive: true,
   },
   {
     id: 'cat-4',
-    slug: 'sport',
-    name: 'Sport',
-    description: 'Kompetisi sepak bola daerah, prestasi atlet lokal, dan turnamen.',
-    articleCount: 8,
+    slug: 'otomotif',
+    name: 'Otomotif',
+    description: 'Review kendaraan, tips otomotif, dunia modifikasi, dan transportasi.',
+    articleCount: 12,
     isActive: true,
   },
   {
     id: 'cat-5',
-    slug: 'tech',
-    name: 'Teknologi',
-    description: 'Perkembangan gadget, internet pedesaan, dan inovasi digital.',
-    articleCount: 6,
+    slug: 'sport',
+    name: 'Sport',
+    description: 'Kompetisi sepak bola, olahraga lokal & nasional, e-sport, dan prestasi atlet.',
+    articleCount: 8,
     isActive: true,
   },
   {
     id: 'cat-6',
+    slug: 'tech',
+    name: 'Teknologi',
+    description: 'Inovasi digital, gadget terkini, perkembangan AI, dan internet.',
+    articleCount: 6,
+    isActive: true,
+  },
+  {
+    id: 'cat-7',
     slug: 'science',
-    name: 'Sains & Lingkungan',
-    description: 'Konservasi alam Geopark Ciletuh, cuaca, dan sains lingkungan.',
+    name: 'Sains',
+    description: 'Kabar sains, eksplorasi alam, fenomena bumi, astronomi, dan riset lingkungan.',
     articleCount: 5,
+    isActive: true,
+  },
+  {
+    id: 'cat-8',
+    slug: 'health',
+    name: 'Kesehatan',
+    description: 'Gaya hidup sehat, tips nutrisi, medis, dan fasilitas layanan kesehatan.',
+    articleCount: 4,
     isActive: true,
   },
 ]
 
 export default function AdminKategoriHeadlinePage() {
-  const [articles, setArticles] = useState<Article[]>(DUMMY_ARTICLES)
+  const [articles, setArticles] = useState<Article[]>([])
   const [categories, setCategories] = useState<CategoryMeta[]>(DEFAULT_CATEGORIES)
   const [selectedHeroId, setSelectedHeroId] = useState<string>('')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -95,9 +110,6 @@ export default function AdminKategoriHeadlinePage() {
             const currentHero = parsed.find((a: Article) => a.isHero)
             if (currentHero) setSelectedHeroId(currentHero.id)
           }
-        } else {
-          const defaultHero = DUMMY_ARTICLES.find((a) => a.isHero)
-          if (defaultHero) setSelectedHeroId(defaultHero.id)
         }
 
         const savedCats = localStorage.getItem('jurnal_wave_categories')
@@ -138,7 +150,7 @@ export default function AdminKategoriHeadlinePage() {
     }
 
     const chosen = updated.find((a) => a.id === newId)
-    setToastMessage(`Headline Utama berhasil diubah ke: "${chosen?.title}"`)
+    setToastMessage(`Headline Slider berhasil diubah ke: "${chosen?.title}"`)
     setTimeout(() => setToastMessage(null), 3500)
   }
 
@@ -190,17 +202,19 @@ export default function AdminKategoriHeadlinePage() {
         </div>
       )}
 
-      {/* 2. Kartu Penentuan Headline Utama (Hero Slot) */}
+      {/* 2. Kartu Penentuan Headline Beranda (Hero Slider) */}
       <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Flame className="w-5 h-5 text-[#c00015]" />
+            <div className="w-8 h-8 rounded-lg bg-red-50 text-[#c00015] flex items-center justify-center">
+              <Pin className="w-4 h-4 -rotate-45" />
+            </div>
             <div>
               <h2 className="text-sm font-heading font-bold text-slate-900">
-                Headline Utama Beranda (Hero Banner)
+                Headline Beranda (Hero Slider)
               </h2>
               <p className="text-[11px] text-slate-500">
-                Artikel terpilih akan otomatis tampil dengan ukuran terbesar di posisi teratas portal Jurnal Wave.
+                Artikel terpilih akan otomatis tampil di posisi slider utama teratas portal Jurnal Wave. (Untuk memasukkan banyak berita ke dalam slider, kelola langsung di menu Berita &amp; Konten).
               </p>
             </div>
           </div>
@@ -220,8 +234,9 @@ export default function AdminKategoriHeadlinePage() {
             <div className="md:col-span-8 flex flex-col justify-between space-y-3">
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[10px] font-bold bg-[#c00015] text-white px-2 py-0.5 rounded uppercase">
-                    Headline Aktif
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#c00015] text-white px-2 py-0.5 rounded uppercase">
+                    <Pin className="w-2.5 h-2.5 -rotate-45 text-white" />
+                    Headline Slider
                   </span>
                   <span className="text-[10px] font-semibold text-slate-600 capitalize px-2 py-0.5 rounded bg-slate-200/70">
                     {activeHeroArticle.category}
@@ -239,7 +254,7 @@ export default function AdminKategoriHeadlinePage() {
               <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex-1">
                   <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Ganti Headline Utama dengan Artikel Lain:
+                    Pilih Berita untuk Headline Slider Beranda:
                   </label>
                   <select
                     value={activeHeroArticle.id}

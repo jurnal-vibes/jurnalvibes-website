@@ -1,19 +1,40 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Bookmark, Trash2, ArrowRight } from 'lucide-react';
-import { LeftSidebar } from '@/components/layout/LeftSidebar';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+import { Article } from '@/types';
 
-export function BookmarkClient() {
-  const [savedArticles, setSavedArticles] = useState(
-    DUMMY_ARTICLES.filter(a => a.isSaved)
-  );
+export function BookmarkClient({ initialArticles = [] }: { initialArticles?: Article[] }) {
+  const [allArticles] = useState<Article[]>(initialArticles);
+  const [savedArticles, setSavedArticles] = useState<Article[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('Semua');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedIds: string[] = JSON.parse(
+          localStorage.getItem('jurnal_wave_bookmarks') || '[]'
+        );
+        const filtered = allArticles.filter(a => savedIds.includes(a.id));
+        setSavedArticles(filtered);
+      } catch {
+        setSavedArticles([]);
+      }
+    }
+  }, [allArticles]);
 
   const removeBookmark = (id: string) => {
     setSavedArticles(prev => prev.filter(a => a.id !== id));
+    if (typeof window !== 'undefined') {
+      try {
+        const savedIds: string[] = JSON.parse(
+          localStorage.getItem('jurnal_wave_bookmarks') || '[]'
+        );
+        const updated = savedIds.filter(item => item !== id);
+        localStorage.setItem('jurnal_wave_bookmarks', JSON.stringify(updated));
+      } catch {}
+    }
   };
 
   const categories = useMemo(() => {
@@ -42,10 +63,8 @@ export function BookmarkClient() {
   }, [savedArticles, activeCategory]);
 
   return (
-    <div className="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-6 lg:px-gutter pt-stack-lg pb-10 md:pb-stack-lg flex flex-col md:flex-row gap-gutter relative">
-      <LeftSidebar articles={DUMMY_ARTICLES} />
-
-      <main className="w-full md:w-3/4 flex flex-col min-w-0 pr-0 md:pr-6 lg:pr-12">
+    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 flex flex-col min-w-0">
+      <main className="w-full flex flex-col min-w-0">
         <header className="flex flex-col gap-3 mb-6">
           <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
             Artikel Tersimpan
@@ -115,39 +134,40 @@ export function BookmarkClient() {
                     href={`/artikel/${article.id}`}
                     className="relative w-28 sm:w-48 md:w-52 aspect-[4/3] sm:aspect-video rounded-xl sm:rounded-2xl overflow-hidden shrink-0 block"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {/* eslint-disable-next-img-element */}
                     <img
                       src={article.imageUrl}
-                      alt={article.imageAlt || article.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      alt={article.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </Link>
-                  <div className="flex flex-col gap-1 sm:gap-1.5 justify-center flex-1 min-w-0">
-                    <span className="text-primary font-bold text-[11px] sm:text-xs uppercase tracking-wider">
+
+                  <div className="flex flex-col gap-1 sm:gap-1.5 flex-1 min-w-0">
+                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-primary">
                       {article.categoryLabel || article.category}
                     </span>
                     <Link href={`/artikel/${article.id}`}>
-                      <h2 className="text-sm sm:text-lg md:text-xl font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                      <h2 className="text-xs sm:text-base font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2">
                         {article.title}
                       </h2>
                     </Link>
-                    <span className="text-on-surface-variant/70 text-[11px] sm:text-xs font-normal">
-                      {article.createdAt || article.publishedDate}
+                    <p className="text-[11px] sm:text-xs text-on-surface-variant line-clamp-1 hidden sm:block">
+                      {article.excerpt}
+                    </p>
+                    <span className="text-[10px] text-on-surface-variant/80">
+                      {article.publishedDate || '2026'}
                     </span>
                   </div>
                 </div>
 
-                <div className="shrink-0 pl-1 sm:pl-2">
-                  <button
-                    onClick={() => removeBookmark(article.id)}
-                    title="Hapus dari tersimpan"
-                    aria-label="Hapus dari tersimpan"
-                    className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-medium text-on-surface-variant/80 hover:text-red-600 hover:bg-red-500/10 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Hapus</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => removeBookmark(article.id)}
+                  title="Hapus dari tersimpan"
+                  className="p-2 sm:p-2.5 rounded-full hover:bg-surface-variant text-on-surface-variant hover:text-red-500 transition-colors shrink-0 ml-2 cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </article>
             ))
           )}

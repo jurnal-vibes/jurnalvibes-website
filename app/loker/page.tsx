@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { LokerClient } from './LokerClient';
+import { fetchArticles } from '@/lib/wordpress';
 
 export const metadata: Metadata = {
   title: 'Lowongan Kerja Sukabumi',
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function LokerPage() {
-  return <LokerClient />;
+export default async function LokerPage() {
+  const articles = await fetchArticles();
+  return <LokerClient articles={articles} />;
 }

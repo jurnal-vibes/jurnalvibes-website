@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { DUMMY_ARTICLES } from '@/data/dummyArticles'
 import { getAdminSession } from '@/lib/auth'
 
 const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'
@@ -16,9 +15,13 @@ function mapArticleFromDb(item: any) {
   const finalCategory = isInvalid ? 'berita' : (item.category || 'berita')
   const finalLabel = isInvalid ? 'BERITA' : (rawLabel && upperLabel !== 'INFRASTRUKTUR' ? rawLabel : finalCategory.toUpperCase())
 
-  const safeImageUrl = item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/'))
-    ? item.imageUrl
-    : DEFAULT_FALLBACK_IMAGE
+  const safeImageUrl =
+    item.imageUrl &&
+    (item.imageUrl.startsWith('http') ||
+      item.imageUrl.startsWith('/') ||
+      item.imageUrl.startsWith('data:image/'))
+      ? item.imageUrl
+      : DEFAULT_FALLBACK_IMAGE
 
   return {
     id: item.id,
@@ -36,7 +39,19 @@ function mapArticleFromDb(item: any) {
     readTime: item.readTime || '5 min read',
     isHero: Boolean(item.isHero),
     isEditorsPick: Boolean(item.isEditorsPick),
-    badge: item.badge || undefined,
+    badge:
+      item.badge && item.badge !== 'HOT' && item.badge !== 'VIRAL'
+        ? item.badge
+        : undefined,
+    subCategory:
+      item.badge && item.badge !== 'HOT' && item.badge !== 'VIRAL'
+        ? item.badge
+        : item.categoryLabel &&
+          item.categoryLabel.toLowerCase() !== finalCategory.toLowerCase() &&
+          item.categoryLabel !== 'HOT' &&
+          item.categoryLabel !== 'VIRAL'
+        ? item.categoryLabel
+        : undefined,
     publishedDate: item.publishedDate || new Date(item.createdAt).toLocaleDateString('id-ID'),
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
   }
@@ -73,29 +88,18 @@ export async function GET(request: NextRequest) {
       take: limit,
     })
 
-    if (dbArticles.length > 0) {
-      return NextResponse.json({
-        success: true,
-        source: 'database',
-        data: dbArticles.map(mapArticleFromDb),
-      })
-    }
-
-    // Jika tabel masih kosong, kembalikan dummy
     return NextResponse.json({
       success: true,
-      source: 'fallback',
-      data: DUMMY_ARTICLES,
+      source: 'database',
+      data: dbArticles.map(mapArticleFromDb),
     })
   } catch (error: any) {
     console.error('API Articles GET error:', error)
-    // Fallback aman jika database offline/kendala
     return NextResponse.json({
-      success: true,
-      source: 'fallback',
-      data: DUMMY_ARTICLES,
-      warning: 'Menggunakan data cadangan: ' + error.message,
-    })
+      success: false,
+      data: [],
+      error: error.message,
+    }, { status: 500 })
   }
 }
 
@@ -155,7 +159,7 @@ export async function POST(request: NextRequest) {
         readTime: body.readTime || '3 min read',
         isHero: Boolean(body.isHero),
         isEditorsPick: Boolean(body.isEditorsPick),
-        badge: body.badge || (body.isHero ? 'HEADLINE' : undefined),
+        badge: body.subCategory || body.badge || (body.isHero ? 'HEADLINE' : undefined),
         publishedDate: body.publishedDate || new Date().toLocaleDateString('id-ID', {
           day: 'numeric',
           month: 'short',
@@ -198,29 +202,53 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'ID artikel wajib disertakan' }, { status: 400 })
     }
 
-    let editCategory = (body.category || 'berita').toLowerCase().trim()
-    let editCategoryLabel = (body.categoryLabel || '').trim()
+    const updateData: any = {}
 
-    if (editCategory === 'infrastruktur' || editCategoryLabel.toUpperCase() === 'INFRASTRUKTUR') {
-      editCategory = 'berita'
-      editCategoryLabel = 'BERITA'
-    } else if (!editCategoryLabel) {
-      editCategoryLabel = editCategory.toUpperCase()
+    if (typeof body.isHero !== 'undefined') {
+      updateData.isHero = Boolean(body.isHero)
+    }
+    if (typeof body.isEditorsPick !== 'undefined') {
+      updateData.isEditorsPick = Boolean(body.isEditorsPick)
+    }
+    if (typeof body.title === 'string' && body.title.trim()) {
+      updateData.title = body.title.trim()
+    }
+    if (typeof body.excerpt === 'string' && body.excerpt.trim()) {
+      updateData.excerpt = body.excerpt.trim()
+    }
+    if (typeof body.content === 'string' && body.content.trim()) {
+      updateData.content = body.content.trim()
+    }
+    if (typeof body.reporter === 'string') {
+      updateData.reporter = body.reporter.trim()
+    }
+    if (typeof body.redaktur === 'string') {
+      updateData.redaktur = body.redaktur.trim()
+    }
+    if (typeof body.imageUrl === 'string' && body.imageUrl.trim()) {
+      updateData.imageUrl = body.imageUrl.trim()
+    }
+    if (typeof body.badge !== 'undefined') {
+      updateData.badge = body.badge
+    }
+    if (typeof body.category === 'string') {
+      let editCategory = body.category.toLowerCase().trim()
+      let editCategoryLabel = (body.categoryLabel || '').trim()
+
+      if (editCategory === 'infrastruktur' || editCategoryLabel.toUpperCase() === 'INFRASTRUKTUR') {
+        editCategory = 'berita'
+        editCategoryLabel = 'BERITA'
+      } else if (!editCategoryLabel) {
+        editCategoryLabel = editCategory.toUpperCase()
+      }
+
+      updateData.category = editCategory
+      updateData.categoryLabel = editCategoryLabel
     }
 
     const updated = await prisma.article.update({
       where: { id: body.id },
-      data: {
-        title: body.title,
-        excerpt: body.excerpt,
-        content: body.content,
-        category: editCategory,
-        categoryLabel: editCategoryLabel,
-        imageUrl: body.imageUrl?.trim() || DEFAULT_FALLBACK_IMAGE,
-        reporter: body.reporter,
-        isHero: Boolean(body.isHero),
-        isEditorsPick: Boolean(body.isEditorsPick),
-      },
+      data: updateData,
     })
 
     return NextResponse.json({

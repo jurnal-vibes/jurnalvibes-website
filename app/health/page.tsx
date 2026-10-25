@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { CategoryTemplate } from '@/components/layout/CategoryTemplate';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+import { fetchArticles } from '@/lib/wordpress';
 
 export const metadata: Metadata = {
   title: 'Health & Wellness',
@@ -11,12 +11,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HealthPage() {
-  const healthArticles = DUMMY_ARTICLES.filter(
+export default async function HealthPage() {
+  const allArticles = await fetchArticles();
+  const healthArticles = allArticles.filter(
     a =>
       a.category === 'health' ||
-      a.categoryLabel.toUpperCase() === 'HEALTH' ||
-      (a.subCategory || '').toUpperCase() === 'HEALTH'
+      (a.categoryLabel && a.categoryLabel.toUpperCase() === 'HEALTH') ||
+      ((a.subCategory || '').toUpperCase() === 'HEALTH')
   );
 
   return (
@@ -25,7 +26,7 @@ export default function HealthPage() {
       description="Tips kesehatan harian, medis, pola hidup seimbang, dan kebugaran"
       articles={healthArticles}
       categoryName="Health"
-      allArticles={DUMMY_ARTICLES}
+      allArticles={allArticles}
     />
   );
 }

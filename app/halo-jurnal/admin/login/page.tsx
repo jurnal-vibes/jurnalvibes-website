@@ -233,8 +233,8 @@ export default function AdminLoginPage() {
 
       {/* Footer Bawah */}
       <footer className="text-center text-xs text-slate-400 py-4">
-        © 2026 <strong className="text-slate-600 font-semibold">Jurnal Sukabumi</strong> — Meja Redaksi &amp;
-        Pusat Kendali Halo Jurnal / Jurnal Wave.
+        © 2026 <strong className="text-slate-600 font-semibold">Jurnal Wave</strong> — Meja Redaksi &amp;
+        Pusat Kendali Jurnal Wave &amp; Halo Jurnal.
       </footer>
     </div>
   )

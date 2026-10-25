@@ -14,7 +14,7 @@ import {
   MapPin,
   ChevronDown,
 } from 'lucide-react'
-import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
+import { DummyReport } from '@/data/dummyReports'
 
 export default function AdminLaporanPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -38,18 +38,18 @@ export default function AdminLaporanPage() {
     return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase()
   }
 
-  // Status badge styling (Harmonisasi Monokrom Redaksi - Pembeda Kurung Bersih)
+  // Status badge styling bersih tanpa kurung siku
   const getStatusBadge = (status: DummyReport['status']) => {
     const labels: Record<string, string> = {
-      diterima: '[Menunggu Review]',
-      diproses: '[Diproses]',
-      ditindaklanjuti: '[Ditindaklanjuti]',
-      selesai: '[Ditayangkan]',
-      ditolak: '[Ditolak]',
+      diterima: 'Perlu Verifikasi',
+      diproses: 'Diproses',
+      ditindaklanjuti: 'Diproses',
+      selesai: 'Selesai',
+      ditolak: 'Ditolak',
     }
-    const label = labels[status] || `[${status}]`
+    const label = labels[status] || status
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
+      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
         {label}
       </span>
     )
@@ -69,7 +69,7 @@ export default function AdminLaporanPage() {
     }
   }
 
-  const [reportsList, setReportsList] = useState<DummyReport[]>(DUMMY_REPORTS)
+  const [reportsList, setReportsList] = useState<DummyReport[]>([])
   const [chatCounts, setChatCounts] = useState<Record<string, number>>({})
 
   // Scan jumlah pesan chat warga aktif
@@ -134,7 +134,7 @@ export default function AdminLaporanPage() {
           const userReports = JSON.parse(
             localStorage.getItem('halo_jurnal_user_reports') || '[]'
           )
-          const combined = [...userReports, ...DUMMY_REPORTS]
+          const combined = [...userReports]
           const unique = new Map<string, any>()
           combined.forEach((item) => {
             const key = item.id || item.nomor_tiket || item.ticket_number
@@ -215,8 +215,7 @@ export default function AdminLaporanPage() {
     return {
       semua: reportsList.length,
       diterima: reportsList.filter((r) => r.status === 'diterima').length,
-      diproses: reportsList.filter((r) => r.status === 'diproses').length,
-      ditindaklanjuti: reportsList.filter((r) => r.status === 'ditindaklanjuti').length,
+      diproses: reportsList.filter((r) => r.status === 'diproses' || r.status === 'ditindaklanjuti').length,
       selesai: reportsList.filter((r) => r.status === 'selesai').length,
     }
   }, [reportsList])
@@ -271,10 +270,10 @@ export default function AdminLaporanPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h1 className="text-xl font-heading font-bold text-slate-900 tracking-tight">
-            Manajemen Laporan Warga
+            Buku Induk &amp; Arsip Laporan Warga
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Daftar lengkap seluruh pengaduan dan aspirasi warga Sukabumi yang masuk ke redaksi.
+            Database arsip lengkap seluruh riwayat pengaduan dan aspirasi warga Sukabumi yang masuk ke redaksi.
           </p>
         </div>
 
@@ -282,7 +281,7 @@ export default function AdminLaporanPage() {
           {/* Tombol Ekspor CSV Nyata Berfungsi */}
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition shadow-2xs cursor-pointer hover:border-[#c00015]/40 hover:text-[#c00015]"
             title="Unduh data laporan ke format CSV / Excel"
           >
             <Download className="w-3.5 h-3.5 text-slate-500" />
@@ -295,10 +294,9 @@ export default function AdminLaporanPage() {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {[
           { key: 'semua', label: 'Semua Laporan', count: statusCounts.semua },
-          { key: 'diterima', label: 'Menunggu Review', count: statusCounts.diterima },
+          { key: 'diterima', label: 'Perlu Verifikasi', count: statusCounts.diterima },
           { key: 'diproses', label: 'Diproses', count: statusCounts.diproses },
-          { key: 'ditindaklanjuti', label: 'Ditindaklanjuti', count: statusCounts.ditindaklanjuti },
-          { key: 'selesai', label: 'Ditayangkan', count: statusCounts.selesai },
+          { key: 'selesai', label: 'Selesai', count: statusCounts.selesai },
         ].map((tab) => (
           <button
             key={tab.key}

@@ -2,7 +2,6 @@ import Link from 'next/link'
 import CategoryCards from '@/components/halo-jurnal/CategoryCards'
 import { Search, Calendar, MapPin, ArrowRight, ShieldCheck, Clock, CheckCircle2 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import { DUMMY_REPORTS } from '@/data/dummyReports'
 import RecentPublicReports from '@/components/halo-jurnal/RecentPublicReports'
 
 export default async function HaloJurnalLandingPage() {
@@ -36,18 +35,8 @@ export default async function HaloJurnalLandingPage() {
           created_at: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
           laporan_lampiran: [],
         }))
-    } else {
-      totalLaporan = DUMMY_REPORTS.length
-      tuntasLaporan = DUMMY_REPORTS.filter((r) => r.status === 'selesai').length
-      prosesLaporan = DUMMY_REPORTS.filter((r) => r.status === 'diproses').length
-      recentReports = DUMMY_REPORTS.slice(0, 4)
     }
-  } catch {
-    totalLaporan = DUMMY_REPORTS.length
-    tuntasLaporan = DUMMY_REPORTS.filter((r) => r.status === 'selesai').length
-    prosesLaporan = DUMMY_REPORTS.filter((r) => r.status === 'diproses').length
-    recentReports = DUMMY_REPORTS.slice(0, 4)
-  }
+  } catch {}
 
   return (
     <main className="w-full">
@@ -58,7 +47,7 @@ export default async function HaloJurnalLandingPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="w-full h-full object-cover object-center"
-            alt="Halo Jurnal Sukabumi Banner"
+            alt="Halo Jurnal Wave Banner"
             src="/hero-banner.webp"
           />
         </div>
@@ -69,7 +58,7 @@ export default async function HaloJurnalLandingPage() {
           </h1>
 
           <p className="text-white/90 text-xs sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto drop-shadow-sm font-medium">
-            Sampaikan aspirasi, aduan pelayanan publik, dan inspirasi Anda secara langsung dan transparan kepada redaksi Jurnal Sukabumi.
+            Sampaikan aspirasi, aduan pelayanan publik, dan inspirasi Anda secara langsung dan transparan kepada redaksi Jurnal Wave.
           </p>
 
           {/* Search Bar */}
