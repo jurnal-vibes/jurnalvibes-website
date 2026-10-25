@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Calendar, MapPin, CheckCircle2, Clock, ShieldCheck, AlertTriangle, FileText } from 'lucide-react'
-import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
 
 interface RecentPublicReportsProps {
   initialReports?: any[]
@@ -14,7 +13,7 @@ const DEFAULT_INITIAL_REPORTS: any[] = []
 export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_REPORTS }: RecentPublicReportsProps) {
   // 1. Data awal yang identik 100% antara Server dan Client (bebas hydration error)
   const getInitialReports = () => {
-    const source = initialReports && initialReports.length > 0 ? initialReports : DUMMY_REPORTS
+    const source = initialReports && initialReports.length > 0 ? initialReports : []
     return source.filter((r: any) => r.is_public !== false).slice(0, 4)
   }
 
@@ -39,7 +38,7 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
 
     const syncReports = () => {
       try {
-        const source = initialReports && initialReports.length > 0 ? initialReports : DUMMY_REPORTS
+        const source = initialReports && initialReports.length > 0 ? initialReports : []
         const overrides = JSON.parse(
           localStorage.getItem('halo_jurnal_status_overrides') || '{}'
         )

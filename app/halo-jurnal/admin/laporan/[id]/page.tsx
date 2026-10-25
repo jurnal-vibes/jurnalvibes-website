@@ -21,23 +21,16 @@ import {
   Phone,
   Loader2,
 } from 'lucide-react'
-import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
+import { DummyReport } from '@/data/dummyReports'
 
 export default function AdminDetailLaporanPage() {
   const params = useParams()
   const id = params?.id as string
 
-  // Ambil data laporan awal jika ada di dummy
-  const initialReport = DUMMY_REPORTS.find(
-    (r) => r.id === id || r.nomor_tiket === id
-  )
-
   const [loading, setLoading] = useState(true)
-  const [report, setReport] = useState<DummyReport | null>(initialReport || null)
-  const [currentStatus, setCurrentStatus] = useState<DummyReport['status']>(
-    initialReport?.status || 'diterima'
-  )
-  const [isPublic, setIsPublic] = useState<boolean>(initialReport?.is_public ?? true)
+  const [report, setReport] = useState<DummyReport | null>(null)
+  const [currentStatus, setCurrentStatus] = useState<DummyReport['status']>('diterima')
+  const [isPublic, setIsPublic] = useState<boolean>(true)
   const [editorialNote, setEditorialNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [actionSuccess, setActionSuccess] = useState<{
@@ -54,16 +47,9 @@ export default function AdminDetailLaporanPage() {
   const [showAllLogs, setShowAllLogs] = useState(false)
 
   // Status logs
-  const [statusLogs, setStatusLogs] = useState(
-    initialReport?.status_log || [
-      {
-        id: 'log-001',
-        status: initialReport?.status || 'diterima',
-        catatan: 'Laporan warga diterima oleh sistem redaksi.',
-        created_at: initialReport?.created_at || new Date().toISOString(),
-      },
-    ]
-  )
+  const [statusLogs, setStatusLogs] = useState<
+    NonNullable<DummyReport['status_log']>
+  >([])
 
   // Muat data laporan dari database Neon DB via /api/reports (dengan fallback dummy & localStorage)
   useEffect(() => {
@@ -88,24 +74,17 @@ export default function AdminDetailLaporanPage() {
         console.warn('Gagal memuat detail laporan dari API:', err)
       }
 
-      // 2. Fallback: DUMMY_REPORTS & localStorage jika offline / DB tidak mengembalikan
-      if (!found) {
-        const dummy = DUMMY_REPORTS.find(
-          (r) => r.id === id || r.nomor_tiket === id
-        )
-        if (dummy) {
-          found = dummy
-        } else if (typeof window !== 'undefined') {
-          try {
-            const userReports = JSON.parse(
-              localStorage.getItem('halo_jurnal_user_reports') || '[]'
-            )
-            const local = userReports.find(
-              (r: any) => r.id === id || r.nomor_tiket === id || r.ticket_number === id
-            )
-            if (local) found = local
-          } catch {}
-        }
+      // 2. Fallback: localStorage jika DB tidak mengembalikan
+      if (!found && typeof window !== 'undefined') {
+        try {
+          const userReports = JSON.parse(
+            localStorage.getItem('halo_jurnal_user_reports') || '[]'
+          )
+          const local = userReports.find(
+            (r: any) => r.id === id || r.nomor_tiket === id || r.ticket_number === id
+          )
+          if (local) found = local
+        } catch {}
       }
 
       // 3. Gabungkan dengan localStorage status overrides jika ada
@@ -324,15 +303,7 @@ export default function AdminDetailLaporanPage() {
     }
     setReport(updatedReport)
 
-    // 2. Update objek in-memory DUMMY_REPORTS
-    const target = DUMMY_REPORTS.find(
-      (r) => r.id === report.id || r.nomor_tiket === report.nomor_tiket
-    )
-    if (target) {
-      target.status = currentStatus
-      target.is_public = isPublic
-      target.status_log = updatedLogs
-    }
+
 
     // 3. Simpan ke localStorage agar sinkron dengan Feed Publik & Halaman Warga
     // Kirim pembaruan status ke MySQL XAMPP via API

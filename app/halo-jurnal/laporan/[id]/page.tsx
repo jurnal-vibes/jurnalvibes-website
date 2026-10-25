@@ -24,7 +24,6 @@ import {
   FileCheck,
   Inbox,
 } from 'lucide-react'
-import { DUMMY_REPORTS } from '@/data/dummyReports'
 import { normalizeCategoryName } from '@/data/haloJurnalCategories'
 
 export default function HaloJurnalLaporanDetailPage() {
@@ -210,16 +209,13 @@ export default function HaloJurnalLaporanDetailPage() {
       console.warn('Gagal fetch laporan dari API database:', err)
     }
 
-    // 2. Jika tidak ada di DB, cari di dummy & localStorage
-    if (!found) {
-      found = DUMMY_REPORTS.find((r) => r.id === id || r.nomor_tiket === id || (r as any).ticketNumber === id)
-      if (!found && typeof window !== 'undefined') {
-        try {
-          const localList = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          found = localList.find((r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id)
-        } catch {}
-      }
+    // 2. Jika tidak ada di DB, cari di laporan lokal warga
+    if (!found && typeof window !== 'undefined') {
+      try {
+        const localList = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        found = localList.find((r: any) => r.id === id || r.ticket_number === id || r.nomor_tiket === id)
+      } catch {}
     }
 
     if (found && typeof window !== 'undefined') {

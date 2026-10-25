@@ -4,7 +4,6 @@ import React, { useMemo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Search, TrendingUp, ChevronRight } from 'lucide-react';
 import { Article } from '@/types';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 import { fetchArticles } from '@/lib/wordpress';
 
 interface SearchOverlayProps {
@@ -20,7 +19,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
   searchQuery,
   setSearchQuery
 }) => {
-  const [articles, setArticles] = useState<Article[]>(DUMMY_ARTICLES);
+  const [articles, setArticles] = useState<Article[]>([]);
 
   // Fetch latest articles for live search index
   useEffect(() => {

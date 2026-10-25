@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DUMMY_ARTICLES } from '@/data/dummyArticles'
+import { prisma } from '@/lib/prisma'
 import { findRelevantSukabumiKnowledge } from '@/data/sukabumiKnowledge'
 
 const SYSTEM_PROMPT = `Anda adalah "Jurnal Wave AI", asisten virtual resmi untuk portal berita Jurnal Wave dan layanan pengaduan warga Halo Jurnal Sukabumi.
@@ -126,13 +126,20 @@ export async function POST(req: NextRequest) {
     // 1. Ambil wawasan lokal Sukabumi yang relevan dengan pertanyaan (Bank Pengetahuan Sukabumi)
     const localKnowledge = findRelevantSukabumiKnowledge(message)
 
-    // 2. Siapkan daftar artikel berita terbaru dari website untuk konteks dinamis AI (RAG)
-    const recentArticlesList = DUMMY_ARTICLES.slice(0, 8)
-      .map(
-        (a, i) =>
-          `${i + 1}. [Kategori ${a.category.toUpperCase()}] "${a.title}" (Link: /artikel/${a.id}) - ${a.excerpt}`
-      )
-      .join('\n')
+    // 2. Siapkan daftar artikel berita terbaru dari database untuk konteks dinamis AI (RAG)
+    let recentArticlesList = ''
+    try {
+      const dbArticles = await prisma.article.findMany({
+        take: 8,
+        orderBy: { createdAt: 'desc' },
+      })
+      recentArticlesList = dbArticles
+        .map(
+          (a, i) =>
+            `${i + 1}. [Kategori ${a.category.toUpperCase()}] "${a.title}" (Link: /artikel/${a.id}) - ${a.excerpt}`
+        )
+        .join('\n')
+    } catch {}
 
     const dynamicSystemInstruction = `${SYSTEM_PROMPT}
 

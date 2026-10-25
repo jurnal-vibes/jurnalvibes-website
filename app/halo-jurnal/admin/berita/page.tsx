@@ -13,8 +13,7 @@ import {
   Check,
   X,
   ExternalLink,
-  Flame,
-  Star,
+  Pin,
   Calendar,
   User,
   Layers,
@@ -23,11 +22,10 @@ import {
   Upload,
   Image as ImageIcon,
 } from 'lucide-react'
-import { DUMMY_ARTICLES } from '@/data/dummyArticles'
 import { Article, ArticleCategory } from '@/types'
 
 export default function AdminBeritaPage() {
-  const [articles, setArticles] = useState<Article[]>(DUMMY_ARTICLES)
+  const [articles, setArticles] = useState<Article[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('semua')
   const [selectedFilter, setSelectedFilter] = useState<string>('semua')
@@ -41,12 +39,12 @@ export default function AdminBeritaPage() {
   // Form State untuk Tambah Berita Baru
   const [newTitle, setNewTitle] = useState('')
   const [newCategory, setNewCategory] = useState<ArticleCategory>('berita')
+  const [newSubCategory, setNewSubCategory] = useState('')
   const [newExcerpt, setNewExcerpt] = useState('')
   const [newContent, setNewContent] = useState('')
   const [newImageUrl, setNewImageUrl] = useState('')
   const [newReporter, setNewReporter] = useState('')
   const [newIsHero, setNewIsHero] = useState(false)
-  const [newIsEditorsPick, setNewIsEditorsPick] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
 
   // Helper kompres dan konversi gambar ke Base64 optimal
@@ -150,7 +148,7 @@ export default function AdminBeritaPage() {
           }
         } catch {}
       }
-      setArticles(DUMMY_ARTICLES)
+      setArticles([])
     }
 
     loadArticles()
@@ -199,7 +197,6 @@ export default function AdminBeritaPage() {
 
       // 3. Filter Khusus
       if (selectedFilter === 'hero' && !a.isHero) return false
-      if (selectedFilter === 'editors' && !a.isEditorsPick) return false
 
       return true
     })
@@ -208,16 +205,29 @@ export default function AdminBeritaPage() {
   // Hitung jumlah
   const totalCount = articles.length
   const heroCount = articles.filter((a) => a.isHero).length
-  const editorsCount = articles.filter((a) => a.isEditorsPick).length
 
   // Handle Simpan Berita Baru ke MySQL
   const handleCreateArticle = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTitle.trim()) return
 
+    let finalCategoryLabel = newCategory.toUpperCase()
+    if (newCategory === 'berita') {
+      if (newSubCategory === 'kampus') finalCategoryLabel = 'KAMPUS'
+      else if (newSubCategory === 'sekolah') finalCategoryLabel = 'SEKOLAH'
+      else finalCategoryLabel = 'BERITA'
+    } else if (newCategory === 'lifestyle') {
+      if (newSubCategory === 'style') finalCategoryLabel = 'STYLE'
+      else if (newSubCategory === 'culinary') finalCategoryLabel = 'KULINER'
+      else if (newSubCategory === 'traveling') finalCategoryLabel = 'WISATA'
+      else finalCategoryLabel = 'LIFESTYLE'
+    }
+
     const payload = {
       title: newTitle.trim(),
       category: newCategory,
+      categoryLabel: finalCategoryLabel,
+      subCategory: newSubCategory || undefined,
       excerpt: newExcerpt.trim() || newTitle.trim(),
       content: newContent.trim() || newExcerpt.trim() || newTitle.trim(),
       imageUrl:
@@ -225,7 +235,7 @@ export default function AdminBeritaPage() {
         'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80',
       reporter: newReporter.trim() || 'Redaksi Jurnal Wave',
       isHero: newIsHero,
-      isEditorsPick: newIsEditorsPick,
+      isEditorsPick: false,
     }
 
     let createdArticle: Article | null = null
@@ -244,7 +254,7 @@ export default function AdminBeritaPage() {
         }
       }
     } catch (err) {
-      console.warn('Gagal simpan ke MySQL, menyimpan ke local storage:', err)
+      console.warn('Gagal simpan ke database, menyimpan ke local storage:', err)
     }
 
     if (!createdArticle) {
@@ -255,7 +265,6 @@ export default function AdminBeritaPage() {
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)+/g, ''),
-        categoryLabel: newCategory.toUpperCase(),
         author: 'Tim Redaksi',
         redaktur: 'Redaksi Pelaksana',
         readTime: '3 min read',
@@ -275,12 +284,12 @@ export default function AdminBeritaPage() {
     // Reset Form
     setNewTitle('')
     setNewCategory('berita')
+    setNewSubCategory('')
     setNewExcerpt('')
     setNewContent('')
     setNewImageUrl('')
     setNewReporter('')
     setNewIsHero(false)
-    setNewIsEditorsPick(false)
 
     setToastMessage('Berita berhasil diterbitkan ke database!')
     setTimeout(() => setToastMessage(null), 3500)
@@ -297,36 +306,49 @@ export default function AdminBeritaPage() {
     e.preventDefault()
     if (!editingArticle || !editingArticle.title.trim()) return
 
+    let finalCategoryLabel = editingArticle.category.toUpperCase()
+    const sub = (editingArticle.subCategory || '').toLowerCase()
+    if (editingArticle.category === 'berita') {
+      if (sub === 'kampus') finalCategoryLabel = 'KAMPUS'
+      else if (sub === 'sekolah') finalCategoryLabel = 'SEKOLAH'
+      else finalCategoryLabel = 'BERITA'
+    } else if (editingArticle.category === 'lifestyle') {
+      if (sub === 'style') finalCategoryLabel = 'STYLE'
+      else if (sub === 'culinary') finalCategoryLabel = 'KULINER'
+      else if (sub === 'traveling') finalCategoryLabel = 'WISATA'
+      else finalCategoryLabel = 'LIFESTYLE'
+    }
+
+    const updatedArticle = {
+      ...editingArticle,
+      categoryLabel: finalCategoryLabel,
+      slug:
+        editingArticle.slug ||
+        editingArticle.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, ''),
+    }
+
     try {
       await fetch('/api/articles', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingArticle),
+        body: JSON.stringify(updatedArticle),
       })
     } catch (err) {
       console.warn('Gagal update ke database:', err)
     }
 
     const updated = articles.map((a) =>
-      a.id === editingArticle.id
-        ? {
-            ...editingArticle,
-            slug:
-              editingArticle.slug ||
-              editingArticle.title
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)+/g, ''),
-            categoryLabel: editingArticle.category.toUpperCase(),
-          }
-        : a
+      a.id === editingArticle.id ? updatedArticle : a
     )
 
     persistArticles(updated)
     setIsEditModalOpen(false)
     setEditingArticle(null)
 
-    setToastMessage(`Perubahan artikel "${editingArticle.title}" berhasil disimpan ke database!`)
+    setToastMessage(`Perubahan artikel "${editingArticle.title}" berhasil disimpan!`)
     setTimeout(() => setToastMessage(null), 3500)
   }
 
@@ -371,37 +393,8 @@ export default function AdminBeritaPage() {
 
     setToastMessage(
       newHeroState
-        ? 'Artikel dijadikan Headline Utama (Hero)!'
-        : 'Status Headline Utama dicabut.'
-    )
-    setTimeout(() => setToastMessage(null), 3000)
-  }
-
-  // Handle Cepat: Toggle Pilihan Redaksi ke Database
-  const handleToggleEditorsPick = async (id: string) => {
-    const target = articles.find((a) => a.id === id)
-    if (!target) return
-    const newEditorsState = !target.isEditorsPick
-
-    const updated = articles.map((a) =>
-      a.id === id ? { ...a, isEditorsPick: newEditorsState } : a
-    )
-    persistArticles(updated)
-
-    try {
-      await fetch('/api/articles', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, isEditorsPick: newEditorsState }),
-      })
-    } catch (err) {
-      console.warn('Gagal sinkron Pilihan Redaksi ke database:', err)
-    }
-
-    setToastMessage(
-      newEditorsState
-        ? 'Artikel ditambahkan ke Pilihan Redaksi!'
-        : 'Artikel dicabut dari Pilihan Redaksi.'
+        ? 'Artikel dimasukkan ke Headline Slider Beranda!'
+        : 'Artikel dicabut dari Headline Slider.'
     )
     setTimeout(() => setToastMessage(null), 3000)
   }
@@ -416,7 +409,7 @@ export default function AdminBeritaPage() {
             Manajemen Berita &amp; Konten Media
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Tulis berita baru, edit artikel, atur headline utama, dan kelola penerbitan portal Jurnal Wave.
+            Tulis berita baru, edit artikel, kelola status headline slider beranda, dan publikasi portal Jurnal Wave.
           </p>
         </div>
 
@@ -448,7 +441,7 @@ export default function AdminBeritaPage() {
       )}
 
       {/* 2. Kartu Metrik Ringkas Konten */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-500 font-medium">Total Artikel Terbit</p>
@@ -461,21 +454,11 @@ export default function AdminBeritaPage() {
 
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Headline Utama (Hero)</p>
-            <p className="text-2xl font-heading font-bold text-[#c00015] mt-1">{heroCount}</p>
-          </div>
-          <div className="w-10 h-10 rounded-lg bg-red-50 text-[#c00015] flex items-center justify-center">
-            <Flame className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
-          <div>
-            <p className="text-xs text-slate-500 font-medium">Pilihan Redaksi (Editor&apos;s Pick)</p>
-            <p className="text-2xl font-heading font-bold text-slate-900 mt-1">{editorsCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Headline Slider Beranda</p>
+            <p className="text-2xl font-heading font-bold text-slate-900 mt-1">{heroCount}</p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
-            <Star className="w-5 h-5" />
+            <Pin className="w-5 h-5 -rotate-45" />
           </div>
         </div>
       </div>
@@ -503,17 +486,7 @@ export default function AdminBeritaPage() {
                   : 'bg-slate-100 text-slate-600 hover:text-slate-900'
               }`}
             >
-              Headline / Hero ({heroCount})
-            </button>
-            <button
-              onClick={() => setSelectedFilter('editors')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                selectedFilter === 'editors'
-                  ? 'bg-[#c00015] text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Pilihan Redaksi ({editorsCount})
+              Headline Slider ({heroCount})
             </button>
           </div>
 
@@ -586,6 +559,10 @@ export default function AdminBeritaPage() {
                             src={article.imageUrl}
                             alt={article.title}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'
+                            }}
                           />
                         </div>
                         <div className="min-w-0">
@@ -599,9 +576,9 @@ export default function AdminBeritaPage() {
                       </div>
                     </td>
 
-                    {/* Kategori */}
+                    {/* Kategori Rubrik */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="text-xs font-medium text-slate-700 capitalize">
+                      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 capitalize border border-slate-200/80">
                         {article.category}
                       </span>
                     </td>
@@ -617,30 +594,25 @@ export default function AdminBeritaPage() {
                       <div className="flex items-center gap-1.5">
                         {/* Toggle Hero Button */}
                         <button
+                          type="button"
                           onClick={() => handleToggleHero(article.id)}
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer select-none active:scale-95 ${
                             article.isHero
-                              ? 'bg-red-500/10 text-[#c00015]'
-                              : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                              ? 'bg-[#c00015] hover:bg-[#a00012] text-white shadow-2xs'
+                              : 'text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200'
                           }`}
-                          title="Klik untuk jadikan atau batalkan status Headline Utama"
+                          title={
+                            article.isHero
+                              ? 'Headline aktif (Klik untuk matikan / jadikan Berita Feed reguler)'
+                              : 'Klik untuk mengaktifkan ke Headline Slider Beranda'
+                          }
                         >
-                          <Flame className={`w-3.5 h-3.5 ${article.isHero ? 'text-[#c00015]' : 'text-slate-400'}`} />
-                          <span>Headline</span>
-                        </button>
-
-                        {/* Toggle Pilihan Redaksi */}
-                        <button
-                          onClick={() => handleToggleEditorsPick(article.id)}
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer ${
-                            article.isEditorsPick
-                              ? 'bg-slate-100 text-slate-800 border border-slate-200'
-                              : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-                          }`}
-                          title="Klik untuk jadikan atau batalkan status Pilihan Redaksi"
-                        >
-                          <Star className={`w-3.5 h-3.5 ${article.isEditorsPick ? 'text-slate-800 fill-slate-800' : 'text-slate-400'}`} />
-                          <span>Pilihan</span>
+                          <Pin
+                            className={`w-3.5 h-3.5 -rotate-45 ${
+                              article.isHero ? 'text-white' : 'text-slate-400'
+                            }`}
+                          />
+                          <span>{article.isHero ? 'Headline Slider' : 'Berita Feed'}</span>
                         </button>
                       </div>
                     </td>
@@ -729,11 +701,11 @@ export default function AdminBeritaPage() {
                 />
               </div>
 
-              {/* Kategori & Reporter */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Kategori, Sub-Kategori & Reporter */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Kategori Liputan:
+                    Kategori Utama:
                   </label>
                   <select
                     value={editingArticle.category}
@@ -745,16 +717,63 @@ export default function AdminBeritaPage() {
                     }
                     className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] capitalize cursor-pointer"
                   >
-                    <option value="berita">Berita Utama</option>
+                    <option value="berita">Berita</option>
                     <option value="lifestyle">Lifestyle</option>
-                    <option value="kuliner">Kuliner</option>
-                    <option value="wisata">Wisata</option>
+                    <option value="loker">Loker</option>
                     <option value="otomotif">Otomotif</option>
                     <option value="sport">Sport</option>
-                    <option value="loker">Loker (Lowongan Kerja)</option>
-                    <option value="hiburan">Hiburan</option>
                     <option value="tech">Teknologi</option>
+                    <option value="science">Sains</option>
+                    <option value="health">Kesehatan</option>
+                    <option value="kuliner">Kuliner</option>
+                    <option value="wisata">Wisata</option>
+                    <option value="hiburan">Hiburan</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Sub-Kategori:
+                  </label>
+                  {editingArticle.category === 'berita' ? (
+                    <select
+                      value={editingArticle.subCategory || ''}
+                      onChange={(e) =>
+                        setEditingArticle({
+                          ...editingArticle,
+                          subCategory: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                    >
+                      <option value="">Semua Berita</option>
+                      <option value="kampus">Kampus (Mahasiswa)</option>
+                      <option value="sekolah">Sekolah (Pelajar)</option>
+                    </select>
+                  ) : editingArticle.category === 'lifestyle' ? (
+                    <select
+                      value={editingArticle.subCategory || ''}
+                      onChange={(e) =>
+                        setEditingArticle({
+                          ...editingArticle,
+                          subCategory: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                    >
+                      <option value="">Semua Lifestyle</option>
+                      <option value="style">Style</option>
+                      <option value="culinary">Culinary</option>
+                      <option value="traveling">Traveling</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      disabled
+                      placeholder="Tidak ada sub-kategori"
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -882,8 +901,8 @@ export default function AdminBeritaPage() {
                 />
               </div>
 
-              {/* Posisi Berita (Headline & Pilihan) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              {/* Posisi Berita (Headline Slider) */}
+              <div className="pt-2 border-t border-slate-100">
                 <label className="flex items-center gap-2 text-slate-700 cursor-pointer p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                   <input
                     type="checkbox"
@@ -894,29 +913,11 @@ export default function AdminBeritaPage() {
                         isHero: e.target.checked,
                       })
                     }
-                    className="w-4 h-4 rounded text-[#c00015] focus:ring-[#c00015]"
+                    className="w-4 h-4 rounded text-[#c00015] focus:ring-[#c00015] accent-[#c00015]"
                   />
                   <div>
-                    <span className="font-bold text-slate-900 block">Jadikan Headline Utama</span>
-                    <span className="text-[10px] text-slate-500">Tampil besar di bagian paling atas portal.</span>
-                  </div>
-                </label>
-
-                <label className="flex items-center gap-2 text-slate-700 cursor-pointer p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={editingArticle.isEditorsPick || false}
-                    onChange={(e) =>
-                      setEditingArticle({
-                        ...editingArticle,
-                        isEditorsPick: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4 rounded text-[#c00015] focus:ring-[#c00015]"
-                  />
-                  <div>
-                    <span className="font-bold text-slate-900 block">Pilihan Redaksi</span>
-                    <span className="text-[10px] text-slate-500">Direkomendasikan di section editor.</span>
+                    <span className="font-bold text-slate-900 block">Tampilkan di Headline Slider Beranda</span>
+                    <span className="text-[10px] text-slate-500">Berita akan masuk dalam deretan slider berita utama yang bergulir di bagian atas beranda.</span>
                   </div>
                 </label>
               </div>
@@ -981,27 +982,67 @@ export default function AdminBeritaPage() {
                 />
               </div>
 
-              {/* Kategori & Reporter */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Kategori, Sub-Kategori & Reporter */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Kategori Liputan:
+                    Kategori Utama: <span className="text-[#c00015]">*</span>
                   </label>
                   <select
                     value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value as ArticleCategory)}
+                    onChange={(e) => {
+                      setNewCategory(e.target.value as ArticleCategory)
+                      setNewSubCategory('')
+                    }}
                     className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] capitalize cursor-pointer"
                   >
-                    <option value="berita">Berita Utama</option>
+                    <option value="berita">Berita</option>
                     <option value="lifestyle">Lifestyle</option>
-                    <option value="kuliner">Kuliner</option>
-                    <option value="wisata">Wisata</option>
+                    <option value="loker">Loker</option>
                     <option value="otomotif">Otomotif</option>
                     <option value="sport">Sport</option>
-                    <option value="loker">Loker (Lowongan Kerja)</option>
-                    <option value="hiburan">Hiburan</option>
                     <option value="tech">Teknologi</option>
+                    <option value="science">Sains</option>
+                    <option value="health">Kesehatan</option>
+                    <option value="kuliner">Kuliner</option>
+                    <option value="wisata">Wisata</option>
+                    <option value="hiburan">Hiburan</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Sub-Kategori:
+                  </label>
+                  {newCategory === 'berita' ? (
+                    <select
+                      value={newSubCategory}
+                      onChange={(e) => setNewSubCategory(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                    >
+                      <option value="">Semua Berita</option>
+                      <option value="kampus">Kampus (Mahasiswa)</option>
+                      <option value="sekolah">Sekolah (Pelajar)</option>
+                    </select>
+                  ) : newCategory === 'lifestyle' ? (
+                    <select
+                      value={newSubCategory}
+                      onChange={(e) => setNewSubCategory(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                    >
+                      <option value="">Semua Lifestyle</option>
+                      <option value="style">Style</option>
+                      <option value="culinary">Culinary</option>
+                      <option value="traveling">Traveling</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      disabled
+                      placeholder="Tidak ada sub-kategori"
+                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -1124,31 +1165,18 @@ export default function AdminBeritaPage() {
                 />
               </div>
 
-              {/* Pilihan Headline & Pilihan Redaksi */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              {/* Pilihan Headline Slider */}
+              <div className="pt-2 border-t border-slate-100">
                 <label className="flex items-center gap-2 text-slate-700 cursor-pointer p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                   <input
                     type="checkbox"
                     checked={newIsHero}
                     onChange={(e) => setNewIsHero(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#c00015] focus:ring-[#c00015]"
+                    className="w-4 h-4 rounded text-[#c00015] focus:ring-[#c00015] accent-[#c00015]"
                   />
                   <div>
-                    <span className="font-bold text-slate-900 block">Jadikan Headline Utama</span>
-                    <span className="text-[10px] text-slate-500">Tampil besar di bagian paling atas portal.</span>
-                  </div>
-                </label>
-
-                <label className="flex items-center gap-2 text-slate-700 cursor-pointer p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={newIsEditorsPick}
-                    onChange={(e) => setNewIsEditorsPick(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#c00015] focus:ring-[#c00015]"
-                  />
-                  <div>
-                    <span className="font-bold text-slate-900 block">Pilihan Redaksi</span>
-                    <span className="text-[10px] text-slate-500">Direkomendasikan di section editor.</span>
+                    <span className="font-bold text-slate-900 block">Tampilkan di Headline Slider Beranda</span>
+                    <span className="text-[10px] text-slate-500">Berita akan masuk dalam deretan slider berita utama yang bergulir di bagian atas beranda.</span>
                   </div>
                 </label>
               </div>

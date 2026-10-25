@@ -25,41 +25,8 @@ export function NewsArticleSidebar({
     return list.slice(0, 5);
   }, [allArticles, currentArticleId]);
 
-  // 2. Video Populer
-  const popularVideos = [
-    {
-      id: 'v1',
-      title: 'Kondisi Terkini Aspal Jalur Lingkar Selatan Sukabumi Dikebut',
-      thumbnail:
-        'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80',
-      date: 'Selasa, 22 Okt 2026, 17:07 WIB',
-      link: '/reels',
-    },
-    {
-      id: 'v2',
-      title: 'Sensasi Ngopi di Tengah Hutan Pinus Cikole yang Viral',
-      thumbnail:
-        'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-      date: 'Selasa, 22 Okt 2026, 15:45 WIB',
-      link: '/reels',
-    },
-    {
-      id: 'v3',
-      title: 'Pantauan Arus Wisatawan Menuju Palabuhanratu Akhir Pekan',
-      thumbnail:
-        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80',
-      date: 'Selasa, 22 Okt 2026, 11:20 WIB',
-      link: '/reels',
-    },
-    {
-      id: 'v4',
-      title: 'Festival Kuliner Sukabumi 2024 Dipadati Ribuan Pengunjung',
-      thumbnail:
-        'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80',
-      date: 'Senin, 21 Okt 2026, 19:10 WIB',
-      link: '/reels',
-    },
-  ];
+  // 2. Video Populer (Dikosongkan dari mock dummy)
+  const popularVideos: any[] = [];
 
   // 3. Tag / Topik Populer Jurnal Wave
   const popularTags = [
@@ -79,112 +46,119 @@ export function NewsArticleSidebar({
       {/* ============================================================== */}
       {/* 1. TERPOPULER (Persis seperti Screenshot Referensi SukabumiUpdate) */}
       {/* ============================================================== */}
-      <section className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-        {/* Header Widget */}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-1.5 h-4 bg-[#c00015] rounded-xs inline-block" />
-          <h3 className="font-heading font-black text-sm tracking-wider uppercase text-slate-900 dark:text-white">
-            TERPOPULER
-          </h3>
-        </div>
-        {/* Garis Aksen Merah */}
-        <div className="w-full border-b border-slate-100 dark:border-slate-800 relative mb-3.5">
-          <div className="absolute -top-[1.5px] left-0 w-12 h-[2.5px] bg-[#c00015]" />
-        </div>
+      {popularArticles.length > 0 && (
+        <section className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+          {/* Header Widget */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-1.5 h-4 bg-[#c00015] rounded-xs inline-block" />
+            <h3 className="font-heading font-black text-sm tracking-wider uppercase text-slate-900 dark:text-white">
+              TERPOPULER
+            </h3>
+          </div>
+          {/* Garis Aksen Merah */}
+          <div className="w-full border-b border-slate-100 dark:border-slate-800 relative mb-3.5">
+            <div className="absolute -top-[1.5px] left-0 w-12 h-[2.5px] bg-[#c00015]" />
+          </div>
 
-        <div className="flex flex-col gap-2.5">
-          {popularArticles.map((item) => {
-            const rawLabel = (item.categoryLabel || item.category || 'BERITA').toUpperCase();
-            const displayCategory = rawLabel === 'INFRASTRUKTUR' ? 'BERITA' : rawLabel;
-            const validImg =
-              item.imageUrl && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('/'))
-                ? item.imageUrl
-                : FALLBACK_SIDEBAR_IMAGE;
+          <div className="flex flex-col gap-2.5">
+            {popularArticles.map((item) => {
+              const rawLabel = (item.categoryLabel || item.category || 'BERITA').toUpperCase();
+              const displayCategory = rawLabel === 'INFRASTRUKTUR' ? 'BERITA' : rawLabel;
+              const validImg =
+                item.imageUrl &&
+                (item.imageUrl.startsWith('http') ||
+                  item.imageUrl.startsWith('/') ||
+                  item.imageUrl.startsWith('data:image/'))
+                  ? item.imageUrl
+                  : FALLBACK_SIDEBAR_IMAGE;
 
-            return (
-              <Link
-                key={item.id}
-                href={`/artikel/${item.id}`}
-                className="group p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs flex items-center gap-3 transition-all"
-              >
-                {/* Thumbnail Foto */}
-                <div className="w-20 h-14 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-800">
-                  <img
-                    src={validImg}
-                    alt={item.title}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = FALLBACK_SIDEBAR_IMAGE;
-                    }}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
+              return (
+                <Link
+                  key={item.id}
+                  href={`/artikel/${item.id}`}
+                  className="group p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs flex items-center gap-3 transition-all"
+                >
+                  {/* Thumbnail Foto */}
+                  <div className="w-20 h-14 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-800">
+                    <img
+                      src={validImg}
+                      alt={item.title}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = FALLBACK_SIDEBAR_IMAGE;
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
 
-                {/* Teks Berita */}
-                <div className="flex-1 min-w-0">
-                  <span className="text-[10px] font-bold tracking-wider uppercase text-[#c00015] block mb-0.5">
-                    {displayCategory}
-                  </span>
-                  <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-3 leading-snug">
-                    {item.title}
-                  </h4>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+                  {/* Teks Berita */}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-bold tracking-wider uppercase text-[#c00015] block mb-0.5">
+                      {displayCategory}
+                    </span>
+                    <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-3 leading-snug">
+                      {item.title}
+                    </h4>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ============================================================== */}
       {/* 2. VIDEO POPULER (Desain Seragam dengan Terpopuler) */}
       {/* ============================================================== */}
-      <section className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-1.5 h-4 bg-[#c00015] rounded-xs inline-block" />
-          <h3 className="font-heading font-black text-sm tracking-wider uppercase text-slate-900 dark:text-white">
-            VIDEO POPULER
-          </h3>
-        </div>
-        <div className="w-full border-b border-slate-100 dark:border-slate-800 relative mb-3.5">
-          <div className="absolute -top-[1.5px] left-0 w-12 h-[2.5px] bg-[#c00015]" />
-        </div>
+      {popularVideos.length > 0 && (
+        <section className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-1.5 h-4 bg-[#c00015] rounded-xs inline-block" />
+            <h3 className="font-heading font-black text-sm tracking-wider uppercase text-slate-900 dark:text-white">
+              VIDEO POPULER
+            </h3>
+          </div>
+          <div className="w-full border-b border-slate-100 dark:border-slate-800 relative mb-3.5">
+            <div className="absolute -top-[1.5px] left-0 w-12 h-[2.5px] bg-[#c00015]" />
+          </div>
 
-        <div className="flex flex-col gap-2.5">
-          {popularVideos.map((vid) => (
-            <Link
-              key={vid.id}
-              href={vid.link}
-              className="group p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs flex items-center gap-3 transition-all"
-            >
-              {/* Thumbnail Video dengan Tombol Play Merah */}
-              <div className="relative w-20 h-14 rounded-lg overflow-hidden shrink-0 bg-slate-900 border border-slate-100 dark:border-slate-800">
-                <img
-                  src={vid.thumbnail}
-                  alt={vid.title}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = FALLBACK_SIDEBAR_IMAGE;
-                  }}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90"
-                />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  <div className="w-5 h-5 rounded-full bg-[#c00015] text-white flex items-center justify-center shadow-xs">
-                    <Play className="w-2.5 h-2.5 fill-white ml-0.5" />
+          <div className="flex flex-col gap-2.5">
+            {popularVideos.map((vid) => (
+              <Link
+                key={vid.id}
+                href={vid.link}
+                className="group p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs flex items-center gap-3 transition-all"
+              >
+                {/* Thumbnail Video dengan Tombol Play Merah */}
+                <div className="relative w-20 h-14 rounded-lg overflow-hidden shrink-0 bg-slate-900 border border-slate-100 dark:border-slate-800">
+                  <img
+                    src={vid.thumbnail}
+                    alt={vid.title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = FALLBACK_SIDEBAR_IMAGE;
+                    }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <div className="w-5 h-5 rounded-full bg-[#c00015] text-white flex items-center justify-center shadow-xs">
+                      <Play className="w-2.5 h-2.5 fill-white ml-0.5" />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Keterangan Video */}
-              <div className="flex-1 min-w-0">
-                <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-3 leading-snug">
-                  {vid.title}
-                </h4>
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">
-                  {vid.date}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+                {/* Keterangan Video */}
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-3 leading-snug">
+                    {vid.title}
+                  </h4>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">
+                    {vid.date}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ============================================================== */}
       {/* 3. HALO JURNAL (Desain Seragam dengan Terpopuler) */}

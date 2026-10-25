@@ -17,11 +17,10 @@ import {
   Volume2,
   Loader2
 } from 'lucide-react';
-import { LeftSidebar } from '@/components/layout/LeftSidebar';
+
 import { NewsArticleSidebar } from '@/components/layout/NewsArticleSidebar';
 import { NewsCard } from '@/components/cards/NewsCard';
 import { Article } from '@/types';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 import { fetchArticles, fetchArticleById } from '@/lib/wordpress';
 
 function FacebookIcon({ className }: { className?: string }) {
@@ -114,10 +113,8 @@ const LOANWORD_PHONETICS: [RegExp, string][] = [
 ];
 
 export function ArticleDetailView({ id, initialData }: { id: string; initialData?: Article }) {
-  const initialArticle = initialData || DUMMY_ARTICLES.find(a => a.id === id || a.slug === id) || DUMMY_ARTICLES[0];
-
-  const [article, setArticle] = useState<Article>(initialArticle);
-  const [allArticles, setAllArticles] = useState<Article[]>(DUMMY_ARTICLES);
+  const [article, setArticle] = useState<Article>(initialData as Article);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [headerCopied, setHeaderCopied] = useState<boolean>(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
@@ -517,8 +514,8 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     const others = (allArticles || []).filter(
       (a) => a.id !== article.id && a.slug !== article.slug
     );
-    return others.length > 0 ? others : DUMMY_ARTICLES.filter((a) => a.id !== article.id);
-  }, [relatedArticles, allArticles, article.id, article.slug]);
+    return others;
+  }, [relatedArticles, allArticles, article?.id, article?.slug]);
 
   // Ekstraksi Paragraf Artikel untuk Penataan Konten & Sisipan "BACA JUGA"
   const contentParagraphs = useMemo(() => {
@@ -529,7 +526,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
   }, [article?.content]);
 
   return (
-    <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
+    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
       {/* Breadcrumb di Atas Grid (Gaya SukabumiUpdate: Home / Kategori) */}
       <nav className="flex items-center gap-1.5 text-xs text-on-surface-variant/70 mb-3.5">
         <Link href="/" className="hover:text-primary transition-colors">

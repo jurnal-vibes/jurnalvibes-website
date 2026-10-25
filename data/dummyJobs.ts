@@ -2,153 +2,124 @@ import { Job } from '@/types';
 
 export const DUMMY_JOBS: Job[] = [
   {
-    id: '1',
-    title: 'Senior Front-End Developer',
-    company: 'TechNusa Solutions',
-    location: 'Kota Sukabumi, Jawa Barat',
-    salaryRange: 'Rp 8.000.000 - Rp 12.000.000',
-    type: 'Full-Time',
-    region: 'Kota Sukabumi',
-    education: 'Minimal S1 / D4 Teknik Informatika',
-    updatedAt: 'Terakhir diperbarui 1 hari yang lalu',
-    description: `Kami mencari Senior Front-End Developer yang berbakat untuk bergabung dengan tim engineering kami yang dinamis. Anda akan bertanggung jawab untuk membangun antarmuka pengguna yang responsif, berperforma tinggi, dan estetis untuk platform web utama kami.
-
-Anda akan bekerja sama dengan desainer UI/UX dan pengembang back-end untuk mengimplementasikan fitur-fitur baru, mengoptimalkan performa aplikasi, dan memastikan standar kualitas kode yang tinggi melalui code review dan pengujian otomatis.`,
-    requirements: [
-      'Pengalaman minimal 3 tahun dalam pengembangan Front-End menggunakan React.js atau Next.js.',
-      'Pemahaman mendalam tentang TypeScript dan standar ES6+.',
-      'Keahlian dalam menggunakan Tailwind CSS untuk membangun UI yang modular dan responsif.',
-      'Pengalaman dengan state management seperti Redux, Zustand, atau React Context API.',
-      'Terbiasa bekerja dengan RESTful API dan integrasi GraphQL.',
-      'Memiliki portofolio yang menunjukkan kemampuan dalam membangun aplikasi web yang kompleks.'
-    ],
-    benefits: [
-      'Gaji kompetitif sesuai dengan pengalaman dan keahlian.',
-      'Asuransi kesehatan (BPJS & Swasta).',
-      'Fleksibilitas kerja Hybrid (WFO/WFH).',
-      'Lingkungan kerja yang mendukung pertumbuhan karir dan pembelajaran berkelanjutan.',
-      'Tunjangan perangkat kerja dan internet.'
-    ],
-    applyEmail: 'hrd@technusa.solutions',
-    isSaved: true,
-    createdAt: 'Minggu, 13 September 2026 - 14:05 WIB'
-  },
-  {
-    id: '2',
-    title: 'Digital Marketing Specialist',
-    company: 'Kopi Sukabumi Raya',
-    location: 'Kota Sukabumi, Jawa Barat',
-    salaryRange: 'Rp 4.000.000 - Rp 6.000.000',
-    type: 'Full-Time',
-    region: 'Kota Sukabumi',
-    education: 'Minimal D3 / S1 Semua Jurusan',
-    updatedAt: 'Terakhir diperbarui 2 hari yang lalu',
-    description: 'Mengelola kampanye pemasaran digital, sosial media, dan engagement pelanggan untuk brand kopi lokal ternama di Sukabumi.',
-    requirements: [
-      'Pengalaman minimal 2 tahun di bidang Digital Marketing.',
-      'Menguasai Meta Ads, Google Ads, dan TikTok Ads.',
-      'Kemampuan copy-writing yang kreatif dan komunikatif.'
-    ],
-    benefits: [
-      'Tunjangan makan & kopi sepuasnya.',
-      'Bonus performa tahunan.',
-      'Asuransi kesehatan.'
-    ],
-    applyEmail: 'career@kopisukabumiraya.id',
-    createdAt: 'Sabtu, 12 September 2026 - 10:30 WIB'
-  },
-  {
-    id: '3',
-    title: 'Content Creator / Videographer',
-    company: 'Creative Pulse Agency',
+    id: 'job-1',
+    title: 'Staff Administrasi & Keuangan',
+    company: 'PT Sukabumi Indo Prima',
     location: 'Cikole, Kota Sukabumi',
-    salaryRange: 'Dapat Dinegosiasikan',
-    type: 'Freelance',
     region: 'Cikole',
-    education: 'Minimal SMA/SMK/Sederajat',
-    updatedAt: 'Terakhir diperbarui 1 hari yang lalu',
-    description: 'Memproduksi konten video pendek reels & tiktok secara estetik dan konsisten untuk brand partner agency.',
-    requirements: [
-      'Menguasai editing video CapCut, Premiere, atau DaVinci Resolve.',
-      'Memiliki kamera/smartphone dengan standar rekaman baik.',
-      'Paham tren visual dan sound terkini.'
-    ],
-    benefits: [
-      'Waktu kerja fleksibel.',
-      'Fee per project + bonus virality.'
-    ],
-    applyEmail: 'hello@creativepulse.agency',
-    createdAt: 'Jumat, 11 September 2026 - 16:45 WIB'
-  },
-  {
-    id: '4',
-    title: 'Store Manager',
-    company: 'Boutique Nusantara',
-    location: 'Cibadak, Sukabumi',
-    salaryRange: 'Rp 5.000.000 - Rp 7.500.000',
+    salaryRange: 'Rp 3.200.000 - Rp 4.500.000',
     type: 'Full-Time',
-    region: 'Cibadak',
-    education: 'Minimal D3 / S1 Manajemen',
-    updatedAt: 'Terakhir diperbarui 3 hari yang lalu',
-    description: 'Memimpin operasional outlet ritel, manajemen tim penjualan, serta stok persediaan produk fashion.',
+    education: 'D3 / S1 Akuntansi atau Manajemen',
+    description: 'Bertanggung jawab atas pengelolaan dokumen pembukuan harian, faktur penjualan, pelaporan kas kecil, serta rekapitulasi data administrasi operasional kantor.',
     requirements: [
-      'Pengalaman minimal 2 tahun sebagai Store Supervisor atau Manager.',
-      'Memiliki keahlian kepemimpinan dan komunikasi yang kuat.',
-      'Jujur, teliti, dan berorientasi pada target penjualan.'
+      'Pria/Wanita, usia maksimal 28 tahun',
+      'Pendidikan minimal D3/S1 Akuntansi, Manajemen, atau Administrasi',
+      'Menguasai Microsoft Excel (VLOOKUP, Pivot, IF) dan software akuntansi dasar',
+      'Teliti, jujur, disiplin, dan memiliki integritas tinggi',
+      'Domisili di Kota Sukabumi atau sekitarnya diutamakan'
     ],
     benefits: [
-      'Gaji pokok + komisi penjualan outlet.',
-      'BPJS Ketenagakerjaan & Kesehatan.'
+      'Gaji pokok sesuai UMK',
+      'BPJS Kesehatan & BPJS Ketenagakerjaan',
+      'Tunjangan makan & transportasi',
+      'Jenjang karir yang jelas'
     ],
-    applyEmail: 'recruitment@boutiquenusantara.co.id',
-    createdAt: 'Kamis, 10 September 2026 - 09:20 WIB'
+    applyEmail: 'karir@sukabumiindoprima.co.id',
+    createdAt: new Date().toISOString(),
   },
   {
-    id: '5',
-    title: 'Quality Control (QC) Inspector',
-    company: 'PT Sukabumi Manufacturing Corp',
-    location: 'Kawasan Industri Cicurug, Sukabumi',
-    salaryRange: 'Rp 4.500.000 - Rp 6.500.000',
-    type: 'Full-Time',
-    region: 'Cicurug',
-    education: 'Minimal SMA/SMK / D3 Teknik',
-    updatedAt: 'Terakhir diperbarui 4 hari yang lalu',
-    description: 'Melakukan inspeksi kualitas lini produksi manufaktur, memastikan standar mutu produk dan kepatuhan SOP perusahaan.',
-    requirements: [
-      'Pendidikan minimal D3/S1 Teknik atau bidang terkait.',
-      'Pengalaman minimal 1 tahun di bidang Quality Control manufaktur.',
-      'Teliti, disiplin, dan memiliki sertifikasi ISO menjadi nilai tambah.'
-    ],
-    benefits: [
-      'Gaji pokok kompetitif sesuai UMK Sukabumi.',
-      'Tunjangan transportasi dan makan siang.',
-      'BPJS Ketenagakerjaan & Kesehatan.'
-    ],
-    applyEmail: 'career@sukabumimfg.co.id',
-    createdAt: 'Rabu, 9 September 2026 - 11:15 WIB'
-  },
-  {
-    id: '6',
-    title: 'Barista & Cafe Staff',
-    company: 'Selaras Coffee & Space',
+    id: 'job-2',
+    title: 'Social Media Specialist & Content Creator',
+    company: 'Kreatif Media Nusantara',
     location: 'Cisaat, Sukabumi',
-    salaryRange: 'Rp 2.500.000 - Rp 3.800.000',
-    type: 'Part-Time',
     region: 'Cisaat',
-    education: 'Minimal SMA/SMK/Sederajat',
-    updatedAt: 'Terakhir diperbarui Baru saja',
-    description: 'Menyiapkan minuman kopi espresso-based dan manual brew, serta melayani pelanggan dengan ramah dan profesional.',
+    salaryRange: 'Rp 2.800.000 - Rp 4.000.000',
+    type: 'Full-Time',
+    education: 'SMA / SMK / D3 / S1 Segala Jurusan',
+    description: 'Merancang ide konten video pendek kreatif (TikTok, Reels, Shorts), membuat copy caption menarik, serta mengelola interaksi komunitas media sosial brand.',
     requirements: [
-      'Usia maksimal 25 tahun, ramah dan komunikatif.',
-      'Memiliki passion di dunia kopi & hospitality.',
-      'Terbuka untuk mahasiswa atau fresh graduate.'
+      'Kreatif dan aktif mengikuti tren media sosial terbaru',
+      'Mampu mengoperasikan CapCut / Premiere Pro / Canva dasar',
+      'Percaya diri di depan kamera atau handal dalam voice-over',
+      'Mampu menyusun content calendar mingguan'
     ],
     benefits: [
-      'Jadwal kerja shift fleksibel.',
-      'Insentif harian dan jatah kopi harian.',
-      'Pelatihan barista profesional.'
+      'Lingkungan kerja santai & dinamis',
+      'Bonus performa engagement konten',
+      'Pelatihan dan workshop kreatif berkala'
     ],
-    applyEmail: 'halo@selarascoffee.id',
-    createdAt: 'Selasa, 8 September 2026 - 14:00 WIB'
+    applyEmail: 'hrd@kreatifmedia.id',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'job-3',
+    title: 'Supervisor Operasional Lapangan',
+    company: 'Sentra Logistik Sukabumi',
+    location: 'Cibadak, Sukabumi',
+    region: 'Cibadak',
+    salaryRange: 'Rp 4.000.000 - Rp 5.500.000',
+    type: 'Full-Time',
+    education: 'D3 / S1 Semua Jurusan',
+    description: 'Mengawasi alur keluar-masuk armada pengiriman barang, memonitor kinerja kurir gudang, serta memastikan target SLA pengiriman wilayah Sukabumi tercapai tepat waktu.',
+    requirements: [
+      'Pengalaman kerja minimal 1-2 tahun di bidang logistik/pergudangan',
+      'Memiliki jiwa kepemimpinan tegas dan komunikasi yang baik',
+      'Bersedia bekerja sistem shift bila diperlukan',
+      'Memiliki kendaraan pribadi dan SIM C/A'
+    ],
+    benefits: [
+      'Gaji pokok + Insentif pencapaian target bulanan',
+      'BPJS Ketenagakerjaan & Asuransi Kesehatan',
+      'Uang lembur terstruktur'
+    ],
+    applyEmail: 'recruitment@sentralogistik.com',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'job-4',
+    title: 'Barista & Front Service',
+    company: 'Kopi Ruang Karsa',
+    location: 'Kota Sukabumi',
+    region: 'Kota Sukabumi',
+    salaryRange: 'Rp 1.800.000 - Rp 2.500.000',
+    type: 'Part-Time',
+    education: 'SMA / SMK Sederajat (Terbuka Mahasiswa)',
+    description: 'Menyajikan aneka minuman kopi espresso-based dan manual brew, menyapa pelanggan dengan ramah, serta menjaga kebersihan bar area kopi.',
+    requirements: [
+      'Terbuka untuk pemula (tersedia pelatihan barista)',
+      'Ramah, komunikatif, dan berpenampilan bersih rapi',
+      'Fleksibel jam kerja (shift pagi/sore)',
+      'Terbuka untuk mahasiswa aktif semester akhir'
+    ],
+    benefits: [
+      'Makan harian gratis selama shift',
+      'Free beverage allowance harian',
+      'Tips harian & pembagian service charge'
+    ],
+    applyEmail: 'halo@kopiruangkarsa.com',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'job-5',
+    title: 'Junior Web & IT Support',
+    company: 'Solusi Digital Mandiri',
+    location: 'Palabuhanratu, Sukabumi',
+    region: 'Palabuhanratu',
+    salaryRange: 'Rp 3.500.000 - Rp 5.000.000',
+    type: 'Remote',
+    education: 'SMK RPL / D3 / S1 Informatika',
+    description: 'Membantu maintenance website perusahaan berbasis Next.js/React, integrasi API, serta troubleshooting jaringan dan perangkat keras kantor cabang.',
+    requirements: [
+      'Memahami dasar HTML, CSS, JavaScript/TypeScript',
+      'Familiar dengan Git/GitHub dan sistem operasi Linux/Windows',
+      'Dapat bekerja secara mandiri maupun tim dengan komunikasi lancar via Slack/WhatsApp'
+    ],
+    benefits: [
+      'Sistem kerja remote / WFH fleksibel',
+      'Subsidi kuota internet bulanan',
+      'Tunjangan perangkat kerja'
+    ],
+    applyEmail: 'jobs@solusidigital.co.id',
+    createdAt: new Date().toISOString(),
   }
 ];

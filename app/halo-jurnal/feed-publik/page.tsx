@@ -23,8 +23,6 @@ import {
   MapPin,
   Check,
 } from 'lucide-react'
-
-import { DUMMY_REPORTS } from '@/data/dummyReports'
 import {
   KOTA_SUKABUMI_KECAMATAN,
   KAB_SUKABUMI_KECAMATAN,
@@ -176,10 +174,7 @@ function FeedPublikContent() {
         console.warn('Gagal memuat laporan dari API database, menggunakan cache:', err)
       }
 
-      // Jika database kosong / sedang offline, sediakan fallback data dummy
-      if (baseReports.length === 0) {
-        baseReports = [...DUMMY_REPORTS]
-      }
+
 
       // 2. Gabungkan dengan laporan lokal warga (jika ada data baru di localStorage)
       if (typeof window !== 'undefined') {
@@ -298,7 +293,7 @@ function FeedPublikContent() {
       setReports(filtered)
     } catch (err) {
       console.error('Error fetching reports:', err)
-      setReports(DUMMY_REPORTS)
+      setReports([])
     } finally {
       setLoading(false)
     }

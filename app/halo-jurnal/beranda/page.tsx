@@ -22,7 +22,6 @@ import {
 import UserAvatar from '@/components/halo-jurnal/UserAvatar'
 import CategoryCards from '@/components/halo-jurnal/CategoryCards'
 import RecentPublicReports from '@/components/halo-jurnal/RecentPublicReports'
-import { DUMMY_REPORTS } from '@/data/dummyReports'
 
 const TRACKER_STEPS = [
   {
@@ -126,10 +125,7 @@ export default function HaloJurnalBerandaPage() {
           }
         } catch {}
 
-        // Fallback to dummy if empty
-        if (baseReports.length === 0) {
-          baseReports = DUMMY_REPORTS.slice(0, 3)
-        }
+
 
         // Apply admin status overrides
         try {
@@ -294,7 +290,7 @@ export default function HaloJurnalBerandaPage() {
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <Image
               src="/hero-banner.webp"
-              alt="Halo Jurnal Sukabumi Banner"
+              alt="Halo Jurnal Wave Banner"
               fill
               className="object-cover object-bottom"
               priority
@@ -310,7 +306,7 @@ export default function HaloJurnalBerandaPage() {
             </h2>
 
             <p className="text-white/90 text-xs sm:text-sm md:text-base leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto font-medium">
-              Sampaikan aspirasi dan laporan pengaduan Anda secara langsung kepada tim Jurnal Sukabumi (PT. MEDIA JURNAL SUKABUMI).
+              Sampaikan aspirasi dan laporan pengaduan Anda secara langsung kepada tim redaksi Jurnal Wave.
             </p>
 
             {/* Search Bar persis seperti referensi */}
@@ -603,7 +599,7 @@ export default function HaloJurnalBerandaPage() {
               Pantauan Laporan Publik Terkini
             </h2>
             <p className="text-secondary text-xs mt-0.5">
-              Keterbukaan informasi aduan warga se-Sukabumi yang diverifikasi tim redaksi Jurnal Sukabumi.
+              Keterbukaan informasi aduan warga se-Sukabumi yang diverifikasi tim redaksi Jurnal Wave.
             </p>
           </div>
 

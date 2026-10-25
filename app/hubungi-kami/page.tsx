@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { HubungiKamiClient } from './HubungiKamiClient';
+import { fetchArticles } from '@/lib/wordpress';
 
 export const metadata: Metadata = {
   title: 'Hubungi Kami',
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HubungiKamiPage() {
-  return <HubungiKamiClient />;
+export default async function HubungiKamiPage() {
+  const articles = await fetchArticles();
+  return <HubungiKamiClient articles={articles} />;
 }

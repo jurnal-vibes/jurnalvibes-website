@@ -17,16 +17,16 @@ import {
   FileText,
   ArrowLeft,
 } from 'lucide-react'
-import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
+import { DummyReport } from '@/data/dummyReports'
 
 function ChatDeskContent() {
   const searchParams = useSearchParams()
   const initialTicketParam = searchParams.get('ticket') || searchParams.get('id')
 
-  // Semua daftar tiket laporan (dummy + user)
-  const [reports, setReports] = useState<DummyReport[]>(DUMMY_REPORTS)
+  // Semua daftar tiket laporan (database + user)
+  const [reports, setReports] = useState<DummyReport[]>([])
   const [selectedTicketId, setSelectedTicketId] = useState<string>(
-    initialTicketParam || DUMMY_REPORTS[0]?.nomor_tiket || DUMMY_REPORTS[0]?.id
+    initialTicketParam || ''
   )
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState<'semua' | 'belum_dibalas' | 'sudah_respon'>('semua')
@@ -71,7 +71,7 @@ function ChatDeskContent() {
           const userReports = JSON.parse(
             localStorage.getItem('halo_jurnal_user_reports') || '[]'
           )
-          const combined = [...liveList, ...userReports, ...DUMMY_REPORTS]
+          const combined = [...liveList, ...userReports]
           const map = new Map<string, any>()
           combined.forEach((item) => {
             const key = item.nomor_tiket || item.id || item.ticket_number

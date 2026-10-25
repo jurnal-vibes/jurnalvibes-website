@@ -2,21 +2,49 @@
 
 import React, { useState } from 'react';
 import { Search, Briefcase, X } from 'lucide-react';
-import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { JobCard } from '@/components/cards/JobCard';
+import { Job, Article } from '@/types';
 import { DUMMY_JOBS } from '@/data/dummyJobs';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
 
-export function LokerClient() {
+export function LokerClient({ articles = [] }: { articles?: Article[] }) {
+  const [jobs, setJobs] = useState<Job[]>(DUMMY_JOBS);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeType, setActiveType] = useState<string>('Semua');
 
-  const JOBS_PER_PAGE = 4;
+  const JOBS_PER_PAGE = 6;
   const [visibleCount, setVisibleCount] = useState<number>(JOBS_PER_PAGE);
+
+  React.useEffect(() => {
+    const syncJobs = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_jobs');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setJobs(parsed);
+              return;
+            }
+          }
+          // Seed localStorage with initial DUMMY_JOBS if empty
+          localStorage.setItem('jurnal_wave_jobs', JSON.stringify(DUMMY_JOBS));
+          setJobs(DUMMY_JOBS);
+        } catch {}
+      }
+    };
+
+    syncJobs();
+    window.addEventListener('storage', syncJobs);
+    window.addEventListener('focus', syncJobs);
+    return () => {
+      window.removeEventListener('storage', syncJobs);
+      window.removeEventListener('focus', syncJobs);
+    };
+  }, []);
 
   const types = ['Semua', 'Full-Time', 'Part-Time', 'Freelance', 'Remote', 'Magang'];
 
-  const filteredJobs = DUMMY_JOBS.filter(job => {
+  const filteredJobs = jobs.filter(job => {
     const matchType = activeType === 'Semua' || job.type === activeType;
     const matchSearch =
       searchQuery.trim() === '' ||
@@ -30,10 +58,8 @@ export function LokerClient() {
   const hasMore = filteredJobs.length > visibleCount;
 
   return (
-    <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop gap-gutter pt-stack-lg pb-10 md:pb-stack-lg">
-      <LeftSidebar articles={DUMMY_ARTICLES} />
-
-      <main className="flex-1 flex flex-col min-w-0 pr-0 md:pr-4">
+    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 flex flex-col min-w-0">
+      <main className="w-full flex flex-col min-w-0">
         {/* Header */}
         <header className="flex flex-col gap-3 mb-6">
           <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">

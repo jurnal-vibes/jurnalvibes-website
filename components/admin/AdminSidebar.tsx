@@ -18,10 +18,8 @@ import {
   X,
   MessageSquare,
   Film,
+  Briefcase,
 } from 'lucide-react'
-import { DUMMY_REPORTS } from '@/data/dummyReports'
-import { DUMMY_ARTICLES } from '@/data/dummyArticles'
-import { DUMMY_REELS } from '@/data/dummyPolls'
 
 interface AdminSidebarProps {
   isOpen: boolean
@@ -33,24 +31,25 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [adminUser, setAdminUser] = useState({
-    name: 'Redaksi Jurnal Sukabumi',
-    email: 'redaksi@jurnalsukabumi.com',
+    name: 'Redaksi Jurnal Wave',
+    email: 'redaksi@jurnalwave.com',
   })
 
   // Dynamic badge counts
   const [counts, setCounts] = useState({
-    pendingReports: 2,
+    pendingReports: 0,
     unreadChat: 0,
-    articles: 3,
-    reels: 8,
+    articles: 0,
+    reels: 0,
+    jobs: 0,
   })
 
   useEffect(() => {
     let isMounted = true
 
     const updateCounts = async () => {
-      let pending = 2
-      let totalArticles = 3
+      let pending = 0
+      let totalArticles = 0
 
       try {
         const [resReports, resArticles] = await Promise.all([
@@ -103,9 +102,13 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           const reelsSaved = JSON.parse(
             localStorage.getItem('jurnal_wave_reels') || '[]'
           )
-          const totalReels = Array.isArray(reelsSaved) && reelsSaved.length > 0
-            ? reelsSaved.length
-            : DUMMY_REELS.length
+          const totalReels = Array.isArray(reelsSaved) ? reelsSaved.length : 0
+
+          // 5. Jobs count
+          const jobsSaved = JSON.parse(
+            localStorage.getItem('jurnal_wave_jobs') || '[]'
+          )
+          const totalJobs = Array.isArray(jobsSaved) && jobsSaved.length > 0 ? jobsSaved.length : 5
 
           if (isMounted) {
             setCounts({
@@ -113,6 +116,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               unreadChat: unreadChatCount,
               articles: totalArticles,
               reels: totalReels,
+              jobs: totalJobs,
             })
 
             // Baca data profil admin yang sedang login
@@ -121,8 +125,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               const parsed = JSON.parse(savedUser)
               if (parsed.name || parsed.email) {
                 setAdminUser({
-                  name: parsed.name || 'Redaksi Jurnal Sukabumi',
-                  email: parsed.email || 'redaksi@jurnalsukabumi.com',
+                  name: parsed.name || 'Redaksi Jurnal Wave',
+                  email: parsed.email || 'redaksi@jurnalwave.com',
                 })
               }
             }
@@ -157,21 +161,51 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   const navSections = [
     {
-      title: 'Utama',
+      title: 'Jurnal Wave CMS (Portal Berita)',
       items: [
         {
-          name: 'Dashboard Overview',
+          name: 'Dashboard Media',
           href: '/halo-jurnal/admin',
           icon: LayoutDashboard,
+          badge: null,
+        },
+        {
+          name: 'Artikel Berita',
+          href: '/halo-jurnal/admin/berita',
+          icon: Newspaper,
+          badge: null,
+        },
+        {
+          name: 'Kategori & Headline',
+          href: '/halo-jurnal/admin/kategori',
+          icon: Layers,
+          badge: null,
+        },
+        {
+          name: 'Wave Reels',
+          href: '/halo-jurnal/admin/reels',
+          icon: Film,
+          badge: null,
+        },
+        {
+          name: 'Lowongan Kerja',
+          href: '/halo-jurnal/admin/loker',
+          icon: Briefcase,
           badge: null,
         },
       ],
     },
     {
-      title: 'Halo Jurnal',
+      title: 'Halo Jurnal (Layanan Warga)',
       items: [
         {
-          name: 'Laporan Warga',
+          name: 'Dashboard Pemantauan',
+          href: '/halo-jurnal/admin/halo',
+          icon: LayoutDashboard,
+          badge: null,
+        },
+        {
+          name: 'Buku Induk Laporan',
           href: '/halo-jurnal/admin/laporan',
           icon: FileText,
           badge: counts.pendingReports > 0 ? String(counts.pendingReports) : null,
@@ -188,31 +222,6 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           name: 'Feed Publik',
           href: '/halo-jurnal/admin/feed-publik',
           icon: Globe,
-          badge: null,
-        },
-      ],
-    },
-    {
-      title: 'Jurnal Wave CMS',
-      items: [
-        {
-          name: 'Artikel Berita',
-          href: '/halo-jurnal/admin/berita',
-          icon: Newspaper,
-          badge: String(counts.articles),
-          badgeColor: 'bg-slate-100 text-slate-600',
-        },
-        {
-          name: 'Vibes Reels',
-          href: '/halo-jurnal/admin/reels',
-          icon: Film,
-          badge: String(counts.reels),
-          badgeColor: 'bg-slate-100 text-slate-600',
-        },
-        {
-          name: 'Kategori & Headline',
-          href: '/halo-jurnal/admin/kategori',
-          icon: Layers,
           badge: null,
         },
       ],
@@ -237,8 +246,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   ]
 
   const isActive = (href: string) => {
-    if (href === '/halo-jurnal/admin') {
-      return pathname === '/halo-jurnal/admin'
+    if (href === '/halo-jurnal/admin' || href === '/halo-jurnal/admin/halo') {
+      return pathname === href
     }
     return pathname?.startsWith(href)
   }
@@ -264,20 +273,20 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <Link href="/halo-jurnal/admin" className="flex items-center gap-2.5">
             <img
               src="/halo-jurnal-icon.webp"
-              alt="Jurnal Sukabumi"
+              alt="Jurnal Wave"
               className="w-8 h-8 object-contain shrink-0"
             />
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5 leading-none">
                 <span className="font-heading font-extrabold text-base tracking-tight text-slate-900">
-                  Jurnal<span className="text-[#c00015]">Sukabumi</span>
+                  Jurnal<span className="text-[#c00015]">Central</span>
                 </span>
                 <span className="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded uppercase tracking-wider">
                   Redaksi
                 </span>
               </div>
               <span className="text-[10px] text-slate-500 font-medium mt-0.5">
-                Pusat Kendali Halo Jurnal &amp; Wave
+                Pusat Kendali Jurnal Wave &amp; Halo Jurnal
               </span>
             </div>
           </Link>
@@ -342,24 +351,36 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           ))}
         </div>
 
-        {/* Footer Sidebar (Profil & Link Portal Warga) */}
-        <div className="p-3 border-t border-slate-200 bg-slate-50/50 space-y-1.5">
+        {/* Footer Sidebar (Profil & Quick Links ke Portal) */}
+        <div className="p-3 border-t border-slate-200 bg-slate-50/50 space-y-1">
           <Link
-            href="/halo-jurnal"
+            href="/"
             target="_blank"
-            className="flex items-center justify-between px-2.5 py-1.5 text-xs text-slate-500 hover:text-slate-900 hover:bg-white rounded-md transition"
+            className="flex items-center justify-between px-2.5 py-1 text-xs text-slate-500 hover:text-slate-900 hover:bg-white rounded-md transition"
           >
             <span className="flex items-center gap-2">
               <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-              <span>Lihat Portal Warga</span>
+              <span>Lihat Portal Jurnal Wave</span>
             </span>
             <span className="text-[10px] text-slate-400 font-mono">↗</span>
           </Link>
 
-          <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200">
+          <Link
+            href="/halo-jurnal"
+            target="_blank"
+            className="flex items-center justify-between px-2.5 py-1 text-xs text-slate-500 hover:text-slate-900 hover:bg-white rounded-md transition"
+          >
+            <span className="flex items-center gap-2">
+              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+              <span>Lihat Portal Halo Jurnal</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono">↗</span>
+          </Link>
+
+          <div className="flex items-center justify-between p-2 mt-1 rounded-lg bg-white border border-slate-200">
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-7 h-7 rounded-full bg-red-50 text-[#c00015] flex items-center justify-center font-bold text-xs shrink-0 border border-red-100">
-                JS
+                JW
               </div>
               <div className="min-w-0 leading-tight">
                 <p className="text-xs font-semibold text-slate-800 truncate">{adminUser.name}</p>

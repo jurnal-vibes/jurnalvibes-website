@@ -14,7 +14,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { DUMMY_REPORTS } from '@/data/dummyReports'
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void
@@ -77,13 +76,10 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             if (!raw) continue
             const messages = JSON.parse(raw)
             if (Array.isArray(messages)) {
-              // Find report info if possible
+              // Find report info from ticket key
               const ticketOrId = key.replace('halo_jurnal_chat_', '')
-              const matchedReport = DUMMY_REPORTS.find(
-                (r) => r.id === ticketOrId || r.nomor_tiket === ticketOrId
-              )
-              const reportId = matchedReport?.id || ticketOrId
-              const reportTicket = matchedReport?.nomor_tiket || ticketOrId
+              const reportId = ticketOrId
+              const reportTicket = ticketOrId
 
               messages.forEach((msg: any) => {
                 const isWarga =
@@ -201,13 +197,16 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   // Menentukan teks breadcrumb secara dinamis sesuai halaman aktif
   const getBreadcrumb = () => {
     if (pathname === '/halo-jurnal/admin') {
-      return { section: 'Halo Jurnal', page: 'Dashboard Overview', sectionHref: '/halo-jurnal/admin' }
+      return { section: 'Jurnal Wave', page: 'Dashboard Media', sectionHref: '/halo-jurnal/admin' }
+    }
+    if (pathname === '/halo-jurnal/admin/halo') {
+      return { section: 'Halo Jurnal', page: 'Dashboard Pemantauan', sectionHref: '/halo-jurnal/admin/halo' }
     }
     if (pathname?.startsWith('/halo-jurnal/admin/laporan/')) {
       return { section: 'Halo Jurnal', page: 'Detail Investigasi Laporan', sectionHref: '/halo-jurnal/admin/laporan' }
     }
     if (pathname === '/halo-jurnal/admin/laporan') {
-      return { section: 'Halo Jurnal', page: 'Laporan Warga', sectionHref: '/halo-jurnal/admin/laporan' }
+      return { section: 'Halo Jurnal', page: 'Buku Induk Laporan', sectionHref: '/halo-jurnal/admin/laporan' }
     }
     if (pathname === '/halo-jurnal/admin/chat') {
       return { section: 'Halo Jurnal', page: 'Pusat Chat Warga', sectionHref: '/halo-jurnal/admin/chat' }
@@ -219,7 +218,10 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
       return { section: 'Jurnal Wave', page: 'Manajemen Berita', sectionHref: '/halo-jurnal/admin/berita' }
     }
     if (pathname === '/halo-jurnal/admin/reels') {
-      return { section: 'Jurnal Wave', page: 'Vibes Reels', sectionHref: '/halo-jurnal/admin/reels' }
+      return { section: 'Jurnal Wave', page: 'Wave Reels', sectionHref: '/halo-jurnal/admin/reels' }
+    }
+    if (pathname === '/halo-jurnal/admin/loker') {
+      return { section: 'Jurnal Wave', page: 'Lowongan Kerja', sectionHref: '/halo-jurnal/admin/loker' }
     }
     if (pathname === '/halo-jurnal/admin/kategori') {
       return { section: 'Jurnal Wave', page: 'Kategori & Headline', sectionHref: '/halo-jurnal/admin/kategori' }
@@ -234,7 +236,8 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   }
 
   const breadcrumb = getBreadcrumb()
-  const isBeritaPage = pathname === '/halo-jurnal/admin/berita'
+  const isJurnalWaveSection = breadcrumb.section === 'Jurnal Wave'
+  const showTulisBerita = isJurnalWaveSection && pathname !== '/halo-jurnal/admin/berita'
 
   const defaultNotifications = [
     {
@@ -357,8 +360,8 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
 
         {/* Kanan: Aksi Cepat & Notifikasi */}
         <div className="flex items-center gap-2.5">
-          {/* Tombol Tulis Berita */}
-          {!isBeritaPage && (
+          {/* Tombol Tulis Berita (Khusus Portal Media Jurnal Wave) */}
+          {showTulisBerita && (
             <Link
               href="/halo-jurnal/admin/berita"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs"

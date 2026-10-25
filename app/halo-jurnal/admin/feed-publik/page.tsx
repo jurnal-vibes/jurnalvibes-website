@@ -12,10 +12,10 @@ import {
   FileText,
   Check,
 } from 'lucide-react'
-import { DUMMY_REPORTS, DummyReport } from '@/data/dummyReports'
+import { DummyReport } from '@/data/dummyReports'
 
 export default function AdminModerasiFeedPublikPage() {
-  const [reportsList, setReportsList] = useState<DummyReport[]>(DUMMY_REPORTS)
+  const [reportsList, setReportsList] = useState<DummyReport[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [tabFilter, setTabFilter] = useState<'semua' | 'publik' | 'privat'>('publik')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -44,7 +44,7 @@ export default function AdminModerasiFeedPublikPage() {
           const userReports = JSON.parse(
             localStorage.getItem('halo_jurnal_user_reports') || '[]'
           )
-          const combined = [...userReports, ...DUMMY_REPORTS]
+          const combined = [...userReports]
           const unique = new Map<string, any>()
           combined.forEach((item) => {
             const key = item.id || item.nomor_tiket || item.ticket_number

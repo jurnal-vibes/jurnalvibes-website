@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { DUMMY_ARTICLES } from '@/data/dummyArticles';
+import { Article } from '@/types';
 import { fetchArticles } from '@/lib/wordpress';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -30,15 +30,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1.0 : 0.8,
   }));
 
-  // Dynamic Article Pages
-  let articles = DUMMY_ARTICLES;
+  // Dynamic Article Pages from DB
+  let articles: Article[] = [];
   try {
     const wpData = await fetchArticles();
     if (wpData && wpData.length > 0) {
       articles = wpData;
     }
   } catch (err) {
-    console.warn('Error fetching articles for sitemap, using fallback:', err);
+    console.warn('Error fetching articles for sitemap:', err);
   }
 
   const articleRoutes: MetadataRoute.Sitemap = articles.map((article) => ({

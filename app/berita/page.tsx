@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import { BeritaClient } from './BeritaClient';
 
 export const metadata: Metadata = {
-  title: 'Berita Terkini',
-  description: 'Informasi terhangat seputar Sukabumi dan sekitarnya — kampus, sekolah, komunitas, dan event lokal.',
+  title: 'Semua Berita',
+  description: 'Kumpulan liputan berita terkini dan terlengkap seputar Sukabumi dan sekitarnya.',
   openGraph: {
-    title: 'Berita Terkini Sukabumi | Jurnal Wave',
-    description: 'Informasi terhangat seputar Sukabumi dan sekitarnya — kampus, sekolah, komunitas, dan event lokal.',
+    title: 'Semua Berita Sukabumi | Jurnal Wave',
+    description: 'Kumpulan liputan berita terkini dan terlengkap seputar Sukabumi dan sekitarnya.',
   },
 };
 
