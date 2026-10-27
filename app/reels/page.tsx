@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import { ReelsSection } from '@/components/cards/ReelsSection';
+import { fetchReels } from '@/lib/reels';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Wave Reels Sukabumi',
@@ -10,7 +13,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ReelsPage() {
+export default async function ReelsPage() {
+  const initialReels = await fetchReels();
+
   return (
     <div className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-24 flex flex-col min-w-0">
       {/* Header */}
@@ -25,7 +30,7 @@ export default function ReelsPage() {
 
       {/* Unified Gallery Grid Reels */}
       <ReelsSection
-        reels={[]}
+        reels={initialReels}
         hideHeader={true}
         showCategoryFilter={true}
         isGalleryPage={true}
