@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Play, ChevronRight } from 'lucide-react';
 import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6';
 import { Reel } from '@/types';
-import { DEFAULT_REELS } from '@/data/dummyReels';
 
 interface ReelsSectionProps {
   reels?: Reel[];
@@ -44,10 +43,7 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
   subtitle,
   limit
 }) => {
-  const [currentReels, setCurrentReels] = useState<Reel[]>(() => {
-    if (reels && reels.length > 0) return reels;
-    return DEFAULT_REELS;
-  });
+  const [currentReels, setCurrentReels] = useState<Reel[]>(reels);
   const [activeCategory, setActiveCategory] = useState<string>('Semua');
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -58,18 +54,23 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
           const saved = localStorage.getItem('jurnal_wave_reels');
           if (saved) {
             const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setCurrentReels(parsed);
+            if (Array.isArray(parsed)) {
+              // Bersihkan hanya sisa dummy reel-skb jika pernah tersimpan
+              const clean = parsed.filter(
+                (r: any) =>
+                  !String(r.id || '').startsWith('reel-skb-') &&
+                  !String(r.id || '').startsWith('reel-00')
+              );
+              if (clean.length !== parsed.length) {
+                localStorage.setItem('jurnal_wave_reels', JSON.stringify(clean));
+              }
+              setCurrentReels(clean);
               return;
             }
           }
-
-          // Jika localStorage kosong, inisialisasi dengan DEFAULT_REELS
-          const fallback = reels && reels.length > 0 ? reels : DEFAULT_REELS;
-          localStorage.setItem('jurnal_wave_reels', JSON.stringify(fallback));
-          setCurrentReels(fallback);
+          setCurrentReels(reels || []);
         } catch {
-          setCurrentReels(DEFAULT_REELS);
+          setCurrentReels(reels || []);
         }
       }
     };

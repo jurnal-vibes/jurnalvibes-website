@@ -8,27 +8,48 @@ import { NewsCard } from '@/components/cards/NewsCard';
 import { Article } from '@/types';
 import { fetchArticles } from '@/lib/wordpress';
 
-export function BeritaClient() {
+interface BeritaClientProps {
+  initialArticles?: Article[];
+}
+
+export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
   const searchParams = useSearchParams();
   const sub = searchParams.get('sub')?.toLowerCase() || '';
 
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<Article[]>(initialArticles);
   const ITEMS_PER_PAGE = 6;
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
 
   useEffect(() => {
-    async function loadArticles() {
+    // 1. Sync from localStorage if present
+    if (typeof window !== 'undefined') {
       try {
-        const data = await fetchArticles();
-        if (data && data.length > 0) {
-          setArticles(data);
+        const saved = localStorage.getItem('jurnal_wave_articles');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setArticles(parsed);
+            return;
+          }
         }
-      } catch (err) {
-        console.error('Error fetching articles in BeritaPage:', err);
-      }
+      } catch {}
     }
-    loadArticles();
-  }, []);
+
+    // 2. Fetch from DB if initialArticles was empty
+    if (initialArticles.length === 0) {
+      async function loadArticles() {
+        try {
+          const data = await fetchArticles();
+          if (data && data.length > 0) {
+            setArticles(data);
+          }
+        } catch (err) {
+          console.error('Error fetching articles in BeritaPage:', err);
+        }
+      }
+      loadArticles();
+    }
+  }, [initialArticles.length]);
 
   // Filter berdasarkan sub-kategori
   const filteredArticles = articles.filter(article => {

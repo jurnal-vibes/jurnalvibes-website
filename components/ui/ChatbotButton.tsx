@@ -234,7 +234,7 @@ export const ChatbotButton: React.FC = () => {
             className="fixed inset-0 bg-black/20 sm:bg-black/10 z-50 backdrop-blur-[1px] transition-opacity"
             onClick={() => setIsChatOpen(false)}
           />
-          <div className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[400px] md:w-[430px] h-screen bg-surface dark:bg-slate-900 shadow-2xl border-l border-outline-variant/60 dark:border-slate-800 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+          <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[400px] md:w-[430px] h-[100dvh] max-h-[100dvh] bg-surface dark:bg-slate-900 shadow-2xl border-l border-outline-variant/60 dark:border-slate-800 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
             {/* 1. Header Chat (Elegan, Sejuk di Mata, & Modern di Mobile & Desktop) */}
             <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 shadow-xs shrink-0 transition-colors">
               <div className="flex items-center gap-3">
@@ -350,7 +350,7 @@ export const ChatbotButton: React.FC = () => {
             </div>
 
             {/* 3. Footer Chat (Input Area) */}
-            <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 shrink-0">
+            <div className="p-3 sm:p-4 pb-safe pb-4 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 shrink-0">
               <form
                 onSubmit={e => {
                   e.preventDefault();
