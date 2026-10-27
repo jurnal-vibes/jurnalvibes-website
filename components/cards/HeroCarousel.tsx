@@ -5,20 +5,29 @@ import Link from 'next/link';
 import { Bookmark } from 'lucide-react';
 import { Article } from '@/types';
 import { Badge } from '@/components/ui/badge';
+import { formatIndoDate } from '@/lib/utils';
 
 interface HeroCarouselProps {
   articles: Article[];
 }
 
 export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
-  const heroArticles = articles.filter(a => a.isHero).slice(0, 3);
+  const heroes = articles.filter(a => a.isHero);
+  const heroArticles = heroes.length > 0 ? heroes.slice(0, 10) : articles.slice(0, 5);
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [savedArticles, setSavedArticles] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    if (currentSlide >= heroArticles.length) {
+      setCurrentSlide(0);
+    }
+  }, [heroArticles.length, currentSlide]);
+
+  useEffect(() => {
+    if (heroArticles.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % heroArticles.length);
-    }, 4000);
+    }, 4500);
     return () => clearInterval(timer);
   }, [heroArticles.length]);
 
@@ -31,7 +40,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
   if (!heroArticles.length) return null;
 
   return (
-    <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:aspect-[2/1] min-h-[250px] sm:min-h-0 rounded-2xl overflow-hidden mb-4 group shadow-md border border-outline-variant/40">
+    <div className="relative w-full aspect-[16/10] sm:aspect-[2/1] md:aspect-[2.3/1] max-h-[350px] rounded-2xl overflow-hidden mb-4 group shadow-xs border border-slate-200 dark:border-zinc-800">
       {/* Carousel Track */}
       <div
         className="flex h-full w-full transition-transform duration-500 ease-in-out"
@@ -49,8 +58,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
 
             {/* Badge */}
             {article.badge && (
-              <div className="absolute top-4 left-4 z-10">
-                <Badge variant="secondary" className="shadow-xs font-bold text-xs uppercase tracking-wider">
+              <div className="absolute top-3.5 left-3.5 z-10">
+                <Badge variant="secondary" className="shadow-xs font-bold text-[10px] uppercase tracking-wider">
                   {article.badge}
                 </Badge>
               </div>
@@ -60,29 +69,29 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
             <button
               onClick={e => toggleBookmark(article.id, e)}
               aria-label="Bookmark Berita Utama"
-              className="absolute top-4 right-4 z-10 text-white/80 hover:text-white p-2 rounded-full bg-black/40 backdrop-blur-xs hover:bg-primary transition-colors cursor-pointer"
+              className="absolute top-3.5 right-3.5 z-10 text-white/80 hover:text-white p-1.5 rounded-full bg-black/40 backdrop-blur-xs hover:bg-[#c00015] transition-colors cursor-pointer"
             >
               <Bookmark
-                className={`w-5 h-5 drop-shadow-md ${
+                className={`w-4 h-4 drop-shadow-md ${
                   savedArticles[article.id] || article.isSaved ? 'fill-current text-white' : ''
                 }`}
               />
             </button>
 
             {/* Slide Content */}
-            <div className="absolute bottom-8 sm:bottom-7 md:bottom-8 left-4 right-4 md:left-6 md:right-6 z-10 flex flex-col gap-1.5 sm:gap-2">
+            <div className="absolute bottom-4 sm:bottom-6 left-3.5 right-3.5 md:left-5 md:right-5 z-10 flex flex-col gap-1 sm:gap-1.5">
               <div className="flex items-center">
-                <Badge className="bg-primary text-white font-bold text-[10px] uppercase tracking-wider">
+                <Badge className="bg-[#c00015] text-white font-bold text-[9px] uppercase tracking-wider">
                   {article.categoryLabel}
                 </Badge>
               </div>
               <Link href={`/artikel/${article.id}`}>
-                <h2 className="text-white text-base sm:text-xl md:text-2xl font-bold hover:text-primary-fixed transition-colors cursor-pointer line-clamp-2 leading-tight">
+                <h2 className="text-white text-sm sm:text-lg md:text-xl font-bold hover:text-red-200 transition-colors cursor-pointer line-clamp-2 leading-snug">
                   {article.title}
                 </h2>
               </Link>
-              <span className="text-white/80 text-xs font-normal">
-                {article.createdAt}
+              <span className="text-white/80 text-[11px] font-normal">
+                {formatIndoDate(article.createdAt || article.publishedDate)}
               </span>
             </div>
           </article>

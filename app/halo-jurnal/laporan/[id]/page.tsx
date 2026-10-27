@@ -23,6 +23,8 @@ import {
   Globe,
   FileCheck,
   Inbox,
+  Sparkles,
+  X,
 } from 'lucide-react'
 import { normalizeCategoryName } from '@/data/haloJurnalCategories'
 
@@ -36,6 +38,7 @@ export default function HaloJurnalLaporanDetailPage() {
   const [user, setUser] = useState<any>(null)
   const [isLocalAuthor, setIsLocalAuthor] = useState(false)
   const [showChatSimulation, setShowChatSimulation] = useState(false)
+  const [mobileTab, setMobileTab] = useState<'detail' | 'chat'>('detail')
 
   // Chat states
   const [messages, setMessages] = useState<any[]>([])
@@ -48,6 +51,30 @@ export default function HaloJurnalLaporanDetailPage() {
 
   const chatEndRef = useRef<HTMLDivElement>(null)
   const chatFileRef = useRef<HTMLInputElement>(null)
+  const hasLoadedReportRef = useRef(false)
+  const seenChatIdsRef = useRef<Set<string>>(new Set())
+  const hasInitializedChatRef = useRef(false)
+
+  // Suara notifikasi Web Audio API yang merdu dan ramah untuk warga saat pesan redaksi masuk
+  const playNotificationChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+      if (!AudioCtx) return
+      const ctx = new AudioCtx()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'sine'
+      // Nada harmonis ramah: D5 (587.33Hz) ke A5 (880Hz)
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime)
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1)
+      gain.gain.setValueAtTime(0.12, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
+      osc.start()
+      osc.stop(ctx.currentTime + 0.35)
+    } catch {}
+  }
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -59,10 +86,27 @@ export default function HaloJurnalLaporanDetailPage() {
         const stored = localStorage.getItem('halo_jurnal_current_user')
         if (stored) {
           try {
-            setUser(JSON.parse(stored))
+            const parsed = JSON.parse(stored)
+            if (
+              parsed &&
+              (parsed.id === 'demo-user-id' ||
+                parsed.id === 'warga-demo' ||
+                parsed.id === 'warga-demo-sukabumi' ||
+                parsed.email === 'warga@sukabumi.com')
+            ) {
+              localStorage.removeItem('halo_jurnal_current_user')
+              setUser(null)
+            } else {
+              setUser((prev: any) => {
+                if (prev && parsed && prev.id === parsed.id && prev.email === parsed.email) return prev
+                return parsed
+              })
+            }
           } catch {
             setUser(null)
           }
+        } else {
+          setUser(null)
         }
       }
     }
@@ -102,14 +146,20 @@ export default function HaloJurnalLaporanDetailPage() {
   }, [id, user])
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.search.includes('sukses=1')) {
-      setShowSuccessBanner(true)
+    if (typeof window !== 'undefined') {
+      if (window.location.search.includes('sukses=1')) {
+        setShowSuccessBanner(true)
+        setMobileTab('chat')
+      }
+      if (window.location.hash === '#chat') {
+        setMobileTab('chat')
+      }
     }
     if (id) {
       fetchReportDetail()
       fetchChatMessages()
     }
-  }, [id, user])
+  }, [id])
 
   useEffect(() => {
     if (showChatSimulation || (user && report && (report.user_id === user.id || isLocalAuthor))) {
@@ -130,8 +180,9 @@ export default function HaloJurnalLaporanDetailPage() {
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
         dbMessages = json.data.map((m: any) => ({
           id: m.id,
-          sender: m.sender_name || 'Redaksi',
-          sender_name: m.sender_name || 'Redaksi',
+          sender_id: m.sender_id || m.senderId,
+          sender: m.sender_name || (m.role === 'redaksi' || m.role === 'admin' ? 'Redaksi Halo Jurnal' : 'Warga Pelapor'),
+          sender_name: m.sender_name || (m.role === 'redaksi' || m.role === 'admin' ? 'Redaksi Halo Jurnal' : 'Warga Pelapor'),
           role: m.role || 'warga',
           message: m.message,
           created_at: m.created_at,
@@ -145,13 +196,10 @@ export default function HaloJurnalLaporanDetailPage() {
       console.warn('Gagal memuat chat dari API:', err)
     }
 
+    let finalMessages: any[] = []
     if (dbMessages.length > 0) {
-      setMessages(dbMessages)
-      return
-    }
-
-    // Fallback ke localStorage jika chat belum ada di database
-    if (typeof window !== 'undefined') {
+      finalMessages = dbMessages
+    } else if (typeof window !== 'undefined') {
       const chatKey = report?.nomor_tiket || report?.ticket_number || id
       let local = JSON.parse(
         localStorage.getItem(`halo_jurnal_chat_${chatKey}`) ||
@@ -174,8 +222,33 @@ export default function HaloJurnalLaporanDetailPage() {
         }
         local = [initialSystemMessage]
       }
-      setMessages(local)
+      finalMessages = local
     }
+
+    // Periksa notifikasi suara saat ada pesan baru dari pihak redaksi / admin
+    if (finalMessages.length > 0) {
+      if (!hasInitializedChatRef.current) {
+        // Catat pesan yang sudah ada saat halaman pertama kali dibuka
+        finalMessages.forEach((m: any) => seenChatIdsRef.current.add(m.id))
+        hasInitializedChatRef.current = true
+      } else {
+        let hasNewRedaksiMessage = false
+        finalMessages.forEach((m: any) => {
+          if (!seenChatIdsRef.current.has(m.id)) {
+            seenChatIdsRef.current.add(m.id)
+            const isRedaksi = m.role === 'redaksi' || m.role === 'admin' || m.sender_id === 'admin-redaksi'
+            if (isRedaksi) {
+              hasNewRedaksiMessage = true
+            }
+          }
+        })
+        if (hasNewRedaksiMessage) {
+          playNotificationChime()
+        }
+      }
+    }
+
+    setMessages(finalMessages)
   }
 
   // Polling chat otomatis setiap 5 detik agar percakapan dua arah selalu ter-update
@@ -195,7 +268,9 @@ export default function HaloJurnalLaporanDetailPage() {
   }, [id, report?.nomor_tiket, report?.ticketNumber])
 
   const fetchReportDetail = async () => {
-    setLoading(true)
+    if (!hasLoadedReportRef.current) {
+      setLoading(true)
+    }
     let found: any = null
 
     // 1. Coba ambil langsung dari database Neon DB via API
@@ -234,13 +309,30 @@ export default function HaloJurnalLaporanDetailPage() {
     }
 
     setReport(found || null)
-    if (typeof window !== 'undefined') {
+    const ticketKey = found?.nomor_tiket || found?.ticket_number || found?.ticketNumber || found?.id || id
+
+    if (user?.email && ticketKey) {
+      try {
+        const supRes = await fetch(
+          `/api/reports/support?ticket=${encodeURIComponent(ticketKey)}&email=${encodeURIComponent(user.email)}`
+        )
+        const supData = await supRes.json()
+        if (supData.success) {
+          if (typeof supData.count === 'number') {
+            found.dukungan_count = supData.count
+            setReport({ ...found })
+          }
+          setHasLiked(Boolean(supData.isSupported))
+        }
+      } catch {}
+    } else if (typeof window !== 'undefined') {
       try {
         const storedLikes: string[] = JSON.parse(localStorage.getItem('halo_jurnal_user_likes') || '[]')
-        setHasLiked(storedLikes.includes(id))
+        setHasLiked(storedLikes.includes(ticketKey) || storedLikes.includes(id))
       } catch {}
     }
     setLoading(false)
+    hasLoadedReportRef.current = true
   }
 
   const handleLike = async () => {
@@ -250,6 +342,7 @@ export default function HaloJurnalLaporanDetailPage() {
     }
     if (isLiking || !report) return
 
+    const ticketKey = report.nomor_tiket || report.ticket_number || report.ticketNumber || report.id || id
     setIsLiking(true)
     const nextLiked = !hasLiked
     setHasLiked(nextLiked)
@@ -266,30 +359,42 @@ export default function HaloJurnalLaporanDetailPage() {
           localStorage.getItem('halo_jurnal_user_likes') || '[]'
         )
         const nextLikes = nextLiked
-          ? [...storedLikes, id]
-          : storedLikes.filter((item) => item !== id)
+          ? Array.from(new Set([...storedLikes, ticketKey, id]))
+          : storedLikes.filter((item) => item !== ticketKey && item !== id)
         localStorage.setItem('halo_jurnal_user_likes', JSON.stringify(nextLikes))
       } catch {}
     }
-    setIsLiking(false)
+
+    try {
+      const res = await fetch('/api/reports/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticketNumber: ticketKey,
+          email: user.email,
+        }),
+      })
+      const data = await res.json()
+      if (data.success && typeof data.dukunganCount === 'number') {
+        setReport((prev: any) => ({
+          ...prev,
+          dukungan_count: data.dukunganCount,
+        }))
+        setHasLiked(Boolean(data.isSupported))
+      }
+    } catch (err) {
+      console.error('Error saving support on detail page:', err)
+    } finally {
+      setIsLiking(false)
+    }
   }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    let activeUser = user
-    if (!activeUser && typeof window !== 'undefined') {
-      activeUser = {
-        id: 'warga-demo-sukabumi',
-        email: 'warga@sukabumi.com',
-        full_name: 'Warga Sukabumi',
-        role: 'warga',
-        phone: '081234567890',
-        is_verified: true,
-        user_metadata: { full_name: 'Warga Sukabumi', phone: '081234567890' },
-      }
-      setUser(activeUser)
-      localStorage.setItem('halo_jurnal_current_user', JSON.stringify(activeUser))
-      window.dispatchEvent(new Event('storage'))
+    const activeUser = user
+    if (!activeUser) {
+      alert('Silakan masuk ke akun Anda terlebih dahulu untuk mengirim tanggapan.')
+      return
     }
 
     if (!chatMessage.trim() && !chatFile) return
@@ -343,19 +448,22 @@ export default function HaloJurnalLaporanDetailPage() {
         },
       }
 
-      setMessages((prev) => {
-        const next = [...prev, sentMsg]
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem(`halo_jurnal_chat_${id}`, JSON.stringify(next))
-            if (report?.nomor_tiket) {
-              localStorage.setItem(`halo_jurnal_chat_${report.nomor_tiket}`, JSON.stringify(next))
-            }
+      seenChatIdsRef.current.add(sentMsg.id)
+      setMessages((prev) => [...prev, sentMsg])
+
+      if (typeof window !== 'undefined') {
+        try {
+          const nextLocal = [...messages, sentMsg]
+          localStorage.setItem(`halo_jurnal_chat_${id}`, JSON.stringify(nextLocal))
+          if (report?.nomor_tiket) {
+            localStorage.setItem(`halo_jurnal_chat_${report.nomor_tiket}`, JSON.stringify(nextLocal))
+          }
+          setTimeout(() => {
             window.dispatchEvent(new Event('storage'))
-          } catch {}
-        }
-        return next
-      })
+          }, 0)
+        } catch {}
+      }
+
       setChatMessage('')
       setChatFile(null)
     } catch (err) {
@@ -403,18 +511,40 @@ export default function HaloJurnalLaporanDetailPage() {
         return [...meaningfulLogs]
           .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           .map((log: any) => {
-            let title = 'Laporan Diterima'
-            if (log.status === 'selesai') title = 'Laporan Selesai Dituntaskan'
-            else if (log.status === 'ditindaklanjuti') title = 'Koordinasi Dinas Instansi'
-            else if (log.status === 'diproses') title = 'Investigasi Lapangan'
+            const isStory =
+              (report?.jenis || '').toLowerCase() === 'inspirasi' ||
+              (report?.kategori || '').toLowerCase().includes('inspirasi')
 
-            let defaultNote = 'Laporan telah diverifikasi oleh tim Halo Jurnal.'
-            if (log.status === 'selesai') {
-              defaultNote = 'Penanganan masalah telah dituntaskan dan dikonfirmasi selesai.'
-            } else if (log.status === 'ditindaklanjuti') {
-              defaultNote = 'Laporan diteruskan ke instansi dinas berwenang untuk tindak lanjut teknis.'
-            } else if (log.status === 'diproses') {
-              defaultNote = 'Tim redaksi sedang memvalidasi fakta dan menginvestigasi kondisi lapangan.'
+            let title = isStory ? 'Cerita Inspirasi Diterima' : 'Laporan Diterima'
+            let defaultNote = isStory
+              ? 'Cerita inspirasi telah masuk ke meja kurasi redaksi Halo Jurnal.'
+              : 'Laporan telah diverifikasi oleh tim Halo Jurnal.'
+
+            if (isStory) {
+              if (log.status === 'selesai') {
+                title = 'Cerita Disetujui & Tayang'
+                defaultNote = 'Cerita inspirasi Anda telah disetujui oleh redaksi dan ditayangkan di Feed Inspirasi Sukabumi.'
+              } else if (log.status === 'ditindaklanjuti') {
+                title = '🌟 Terpilih Liputan Berita'
+                defaultNote = 'Selamat! Cerita inspirasi Anda terpilih oleh redaksi untuk diangkat menjadi liputan berita resmi Jurnal Sukabumi.'
+              } else if (log.status === 'diproses') {
+                title = 'Kurasi & Telaah Editorial'
+                defaultNote = 'Tim redaktur sedang menelaah kelayakan materi dan memvalidasi keaslian cerita inspirasi.'
+              } else if (log.status === 'ditolak') {
+                title = 'Tidak Lolos Kurasi'
+                defaultNote = 'Cerita inspirasi belum memenuhi standar kurasi redaksi.'
+              }
+            } else {
+              if (log.status === 'selesai') {
+                title = 'Laporan Selesai Dituntaskan'
+                defaultNote = 'Penanganan masalah telah dituntaskan dan dikonfirmasi selesai.'
+              } else if (log.status === 'ditindaklanjuti') {
+                title = 'Koordinasi Dinas Instansi'
+                defaultNote = 'Laporan diteruskan ke instansi dinas berwenang untuk tindak lanjut teknis.'
+              } else if (log.status === 'diproses') {
+                title = 'Investigasi Lapangan'
+                defaultNote = 'Tim redaksi sedang memvalidasi fakta dan menginvestigasi kondisi lapangan.'
+              }
             }
 
             return {
@@ -431,6 +561,47 @@ export default function HaloJurnalLaporanDetailPage() {
     // Fallback yang rapi & berbobot
     const items = []
     const createdAt = report?.created_at || new Date().toISOString()
+    const isStory =
+      (report?.jenis || '').toLowerCase() === 'inspirasi' ||
+      (report?.kategori || '').toLowerCase().includes('inspirasi')
+
+    if (isStory) {
+      if (report?.status === 'selesai') {
+        items.push({
+          id: 'log-3',
+          status: 'selesai',
+          title: 'Cerita Disetujui & Tayang',
+          date: formatLogDate(new Date(new Date(createdAt).getTime() + 86400000 * 2).toISOString()),
+          catatan: 'Cerita inspirasi Anda telah disetujui redaksi dan ditayangkan di Feed Inspirasi Sukabumi.',
+        })
+      }
+      if (report?.status === 'selesai' || report?.status === 'ditindaklanjuti') {
+        items.push({
+          id: 'log-2',
+          status: 'ditindaklanjuti',
+          title: '🌟 Terpilih Liputan Berita',
+          date: formatLogDate(new Date(new Date(createdAt).getTime() + 86400000 * 1.5).toISOString()),
+          catatan: 'Cerita inspirasi Anda terpilih oleh redaksi Jurnal Sukabumi untuk diangkat menjadi liputan berita resmi.',
+        })
+      }
+      if (report?.status === 'selesai' || report?.status === 'ditindaklanjuti' || report?.status === 'diproses') {
+        items.push({
+          id: 'log-1b',
+          status: 'diproses',
+          title: 'Kurasi & Telaah Editorial',
+          date: formatLogDate(new Date(new Date(createdAt).getTime() + 86400000 * 1).toISOString()),
+          catatan: 'Tim redaktur sedang menelaah kelayakan materi dan memvalidasi keaslian cerita inspirasi.',
+        })
+      }
+      items.push({
+        id: 'log-1',
+        status: 'diterima',
+        title: 'Cerita Inspirasi Diterima',
+        date: formatLogDate(createdAt),
+        catatan: 'Cerita inspirasi Anda berhasil diterima di meja kurasi redaksi Halo Jurnal.',
+      })
+      return items
+    }
 
     if (report?.status === 'selesai') {
       items.push({
@@ -536,6 +707,12 @@ export default function HaloJurnalLaporanDetailPage() {
   )
   const isAdmin = Boolean(isAuthenticated && (user.role === 'admin' || user.email?.toLowerCase().includes('admin')))
   const canAccessChat = Boolean(isAuthenticated && (isAuthor || isAdmin))
+  const isInspirasi = Boolean(
+    report && (
+      (report.jenis || '').toLowerCase() === 'inspirasi' ||
+      (report.kategori || '').toLowerCase().includes('inspirasi')
+    )
+  )
   const ticketDisplayId =
     report.nomor_tiket ||
     report.ticket_number ||
@@ -545,15 +722,17 @@ export default function HaloJurnalLaporanDetailPage() {
   return (
     <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 pt-6 pb-20">
       {/* Top Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-xs sm:text-sm text-secondary mb-6 font-medium">
+      <div className="flex items-center gap-2 text-xs sm:text-sm text-secondary mb-5 font-medium">
         <Link
           href="/halo-jurnal/feed-publik"
-          className="hover:text-primary transition-colors flex items-center gap-1.5"
+          className="hover:text-on-surface transition-colors flex items-center gap-1.5"
         >
           <span>Feed Publik</span>
         </Link>
-        <span className="text-secondary/50 font-semibold">&gt;</span>
-        <span className="text-primary font-bold font-mono">ID #{ticketDisplayId}</span>
+        <span className="text-secondary/40 font-semibold">&gt;</span>
+        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-surface-container text-on-surface border border-outline-variant/60">
+          ID #{ticketDisplayId}
+        </span>
       </div>
 
       {/* Banner Sukses Kirim Laporan */}
@@ -603,16 +782,104 @@ export default function HaloJurnalLaporanDetailPage() {
         </div>
       )}
 
+      {/* Mobile View Switcher (Detail vs Chat) */}
+      <div className="lg:hidden flex items-center p-1 bg-surface-container rounded-2xl mb-5 border border-outline-variant/60 sticky top-16 z-30 shadow-xs backdrop-blur-md">
+        <button
+          type="button"
+          onClick={() => setMobileTab('detail')}
+          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer text-center ${
+            mobileTab === 'detail'
+              ? 'bg-surface text-primary shadow-xs'
+              : 'text-secondary hover:text-on-surface'
+          }`}
+        >
+          Detail &amp; Riwayat Aduan
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMobileTab('chat')
+            setTimeout(scrollToBottom, 150)
+          }}
+          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
+            mobileTab === 'chat'
+              ? 'bg-surface text-primary shadow-xs'
+              : 'text-secondary hover:text-on-surface'
+          }`}
+        >
+          {canAccessChat ? (
+            <MessageSquare className="w-3.5 h-3.5" />
+          ) : (
+            <Lock className="w-3 h-3 text-secondary/80" />
+          )}
+          <span>{canAccessChat ? 'Chat Redaksi' : 'Chat Privat'}</span>
+          {canAccessChat && messages.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
+              {messages.length}
+            </span>
+          )}
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Column: Report Details & Riwayat Status */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className={`lg:col-span-2 space-y-6 ${mobileTab === 'detail' ? 'block' : 'hidden lg:block'}`}>
           <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-8 shadow-xs">
-            {/* Header: Category + Privacy + Status Indicator + Dukung Button */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-5 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
+            {/* Header: Category + Status + Privacy di kiri, Tombol Bagikan di kanan */}
+            <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[11px] tracking-wide uppercase">
                   {normalizeCategoryName(report.kategori) || report.jenis || 'Umum'}
                 </span>
+
+                {/* Status Tag (Linear / Apple Monochromatic Minimalist) */}
+                {report.status === 'selesai' && (
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold tracking-wide ${
+                    isInspirasi
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700'
+                  }`}>
+                    <CheckCircle2 className={`w-3.5 h-3.5 stroke-[2.2px] ${isInspirasi ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`} />
+                    <span>{isInspirasi ? 'Disetujui & Tayang' : 'Selesai'}</span>
+                  </span>
+                )}
+                {report.status === 'ditindaklanjuti' && (
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold tracking-wide ${
+                    isInspirasi
+                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700'
+                  }`}>
+                    {isInspirasi ? (
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2px]" />
+                    ) : (
+                      <ShieldCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
+                    )}
+                    <span>{isInspirasi ? '🌟 Liputan Berita' : 'Ditindaklanjuti'}</span>
+                  </span>
+                )}
+                {report.status === 'diproses' && (
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold tracking-wide ${
+                    isInspirasi
+                      ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700'
+                  }`}>
+                    <Clock className={`w-3.5 h-3.5 stroke-[2.2px] ${isInspirasi ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'}`} />
+                    <span>{isInspirasi ? 'Sedang Dikurasi' : 'Diproses'}</span>
+                  </span>
+                )}
+                {report.status === 'diterima' && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
+                    <Inbox className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
+                    <span>{isInspirasi ? 'Menunggu Kurasi' : 'Diterima'}</span>
+                  </span>
+                )}
+                {report.status === 'ditolak' && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold tracking-wide">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1" />
+                    <span>{isInspirasi ? 'Tidak Lolos' : 'Ditolak'}</span>
+                  </span>
+                )}
+
                 <span className="text-slate-300 dark:text-slate-700 font-mono">•</span>
                 {report.is_public === false ? (
                   <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-medium">
@@ -627,78 +894,26 @@ export default function HaloJurnalLaporanDetailPage() {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Status Tag (Linear / Apple Monochromatic Minimalist) */}
-                {report.status === 'selesai' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                    <span>Selesai</span>
-                  </span>
-                )}
-                {report.status === 'ditindaklanjuti' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
-                    <ShieldCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                    <span>Ditindaklanjuti</span>
-                  </span>
-                )}
-                {report.status === 'diproses' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
-                    <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                    <span>Diproses</span>
-                  </span>
-                )}
-                {report.status === 'diterima' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
-                    <Inbox className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                    <span>Diterima</span>
-                  </span>
-                )}
-
-                {/* Dukung Button */}
-                {report.is_public === false ? (
-                  <span
-                    title="Dukungan publik dinonaktifkan karena laporan ini berstatus privat"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 text-xs font-medium cursor-not-allowed select-none"
-                  >
-                    <Lock className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Dukungan Dinonaktifkan</span>
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleLike}
-                    disabled={isLiking}
-                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                      hasLiked
-                        ? 'bg-primary text-white border-primary shadow-2xs'
-                        : 'border-[#a83232]/50 text-[#852221] dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30'
-                    }`}
-                  >
-                    <ThumbsUp className={`w-3.5 h-3.5 ${hasLiked ? 'fill-current' : ''}`} />
-                    <span>Dukung Laporan ({report.dukungan_count || 0})</span>
-                  </button>
-                )}
-
-                {/* Bagikan */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (navigator.share) {
-                      navigator.share({
-                        title: report.judul,
-                        url: window.location.href,
-                      })
-                    } else {
-                      navigator.clipboard.writeText(window.location.href)
-                      alert('Tautan laporan disalin ke clipboard!')
-                    }
-                  }}
-                  className="p-1.5 text-secondary hover:text-on-surface transition-colors cursor-pointer rounded-lg hover:bg-surface-container-high"
-                  title="Bagikan Laporan"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </div>
+              {/* Bagikan di pojok kanan atas */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: report.judul,
+                      url: window.location.href,
+                    })
+                  } else {
+                    navigator.clipboard.writeText(window.location.href)
+                    alert('Tautan laporan disalin ke clipboard!')
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-secondary hover:text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer shrink-0"
+                title="Bagikan Laporan"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Bagikan</span>
+              </button>
             </div>
 
             {/* Title */}
@@ -707,7 +922,7 @@ export default function HaloJurnalLaporanDetailPage() {
             </h1>
 
             {/* Metadata Rows */}
-            <div className="space-y-2.5 text-xs sm:text-sm text-secondary mb-6">
+            <div className="space-y-2.5 text-xs sm:text-sm text-secondary mb-5">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 shrink-0 text-secondary/80" />
                 <span>
@@ -731,6 +946,33 @@ export default function HaloJurnalLaporanDetailPage() {
               </div>
             </div>
 
+            {/* Action Row: Dukung Laporan (Proporsional & Seimbang) */}
+            <div className="pt-1 pb-1">
+              {report.is_public === false ? (
+                <span
+                  title="Dukungan publik dinonaktifkan karena laporan ini berstatus privat"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-400 text-xs font-medium cursor-not-allowed select-none"
+                >
+                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Dukungan Dinonaktifkan</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleLike}
+                  disabled={isLiking}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                    hasLiked
+                      ? 'bg-primary/10 text-primary border-primary/30 hover:bg-primary/15'
+                      : 'bg-surface hover:bg-surface-container-high border-outline-variant text-on-surface hover:text-primary hover:border-primary/40'
+                  }`}
+                >
+                  <ThumbsUp className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${hasLiked ? 'fill-current text-primary' : 'text-secondary'}`} />
+                  <span>{hasLiked ? 'Didukung' : 'Dukung Laporan'} ({report.dukungan_count || 0})</span>
+                </button>
+              )}
+            </div>
+
             {/* Divider */}
             <hr className="my-6 border-outline-variant/60" />
 
@@ -739,9 +981,19 @@ export default function HaloJurnalLaporanDetailPage() {
               <h2 className="font-heading font-bold text-base sm:text-lg text-on-surface mb-2.5">
                 Deskripsi Laporan
               </h2>
-              <p className="text-on-surface text-xs sm:text-sm leading-relaxed whitespace-pre-line font-normal">
-                {report.deskripsi}
-              </p>
+              <div className="space-y-3 sm:space-y-3.5 text-on-surface text-xs sm:text-sm leading-relaxed text-justify [text-align-last:left]">
+                {report.deskripsi
+                  ? report.deskripsi
+                      .split(/\n+/)
+                      .map((p: string) => p.trim())
+                      .filter(Boolean)
+                      .map((paragraf: string, idx: number) => (
+                        <p key={idx} className="leading-relaxed">
+                          {paragraf}
+                        </p>
+                      ))
+                  : null}
+              </div>
             </div>
 
             {/* Section: Lampiran Bukti */}
@@ -775,60 +1027,101 @@ export default function HaloJurnalLaporanDetailPage() {
               )}
             </div>
 
-            {/* Section: Riwayat Status (Tampilan Bersih & Rapi Persis Versi Awal) */}
+            {/* Section: Riwayat Status (Tampilan Sangat Ramping & Bersih) */}
             <div className="pt-2">
-              <div className="pb-3 mb-6 border-b border-outline-variant/60">
-                <h2 className="font-heading font-bold text-lg sm:text-xl text-on-surface">
-                  Riwayat Status
+              <div className="pb-2.5 mb-4 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="font-heading font-bold text-base sm:text-lg text-slate-900 dark:text-slate-100">
+                  {isInspirasi ? 'Riwayat Kurasi Editorial' : 'Riwayat Status'}
                 </h2>
               </div>
 
-              <div className="relative pl-8 space-y-7 before:absolute before:left-[15px] before:top-4 before:bottom-4 before:w-[2px] before:bg-outline-variant/70">
+              <div className="relative pl-6 space-y-4 before:absolute before:left-[9px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-slate-200 dark:before:bg-slate-800">
                 {timelineItems.map((item, idx) => {
-                  const isCompleted = item.status === 'selesai'
-
+                  const status = (item.status || '').toLowerCase()
                   return (
-                    <div key={item.id || idx} className="relative">
-                      {/* Timeline Node Icon */}
-                      <div className="absolute -left-8 top-0.5">
-                        {isCompleted ? (
-                          <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-2xs">
-                            <Check className="w-4 h-4 stroke-[2.5]" />
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant text-secondary flex items-center justify-center shadow-2xs">
-                            <Send className="w-3.5 h-3.5 -rotate-45" />
-                          </div>
-                        )}
+                    <div key={item.id || idx} className="relative group">
+                      {/* Timeline Node Icon (Monochrome Editorial Minimalist - No Rainbow AI Slop) */}
+                      <div className="absolute -left-6 top-0.5">
+                        <div
+                          className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
+                            idx === 0
+                              ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 ring-4 ring-white dark:ring-slate-900 shadow-2xs'
+                              : 'bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 ring-4 ring-white dark:ring-slate-900'
+                          }`}
+                        >
+                          {status === 'selesai' ? (
+                            <Check className="w-2.5 h-2.5 stroke-[2.5]" />
+                          ) : status === 'ditolak' ? (
+                            <X className="w-2.5 h-2.5 stroke-[2.5]" />
+                          ) : (
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                idx === 0
+                                  ? 'bg-white dark:bg-slate-900'
+                                  : 'bg-slate-400 dark:bg-slate-500'
+                              }`}
+                            />
+                          )}
+                        </div>
                       </div>
 
-                      {/* Content */}
-                      <div className="pl-3 sm:pl-4">
-                        <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface">
-                          {item.title}
-                        </h3>
-                        <p className="text-xs text-secondary mt-0.5 mb-2 font-normal">
-                          {item.date}
-                        </p>
-
-                        {/* Note Box */}
-                        <div className="p-3.5 rounded-xl border border-outline-variant/60 bg-surface-container-low text-xs sm:text-sm text-on-surface leading-relaxed max-w-xl">
-                          {item.catatan}
+                      {/* Content: Judul, Tanggal, & Catatan Mengalir Rapi Tanpa Kotak Tebal */}
+                      <div className="pl-2">
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                          <h3 className="font-heading font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
+                            {item.title}
+                          </h3>
+                          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                            {item.date}
+                          </span>
                         </div>
+
+                        {item.catatan && (
+                          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-0.5 font-normal">
+                            {item.catatan}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )
                 })}
               </div>
             </div>
+
+            {/* Tombol Cepat Buka Chat untuk Mobile (Hanya untuk Pemilik Laporan / Admin) */}
+            {canAccessChat && (
+              <div className="lg:hidden pt-4 mt-6 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileTab('chat')
+                    setTimeout(scrollToBottom, 150)
+                  }}
+                  className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs flex items-center justify-center gap-2 shadow-xs active:scale-95 transition-all cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Buka Ruang Chat Redaksi ({messages.length})</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right Column: Chat Langsung Redaksi (Selalu Aktif & Terbuka) */}
-        {/* Right Column: Chat Langsung Redaksi (Privat & Dilindungi Enkripsi) */}
-        {/* Right Column: Chat Langsung Redaksi (Privat & Dilindungi Enkripsi - After UX Style) */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Right Column: Chat Langsung Redaksi */}
+        <div className={`lg:col-span-1 space-y-6 ${mobileTab === 'chat' ? 'block' : 'hidden lg:block'}`}>
           <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs">
+            {/* Kembali ke Detail untuk Mobile */}
+            <div className="lg:hidden pb-3 mb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setMobileTab('detail')}
+                className="text-xs font-bold text-primary hover:underline flex items-center gap-1.5 cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Lihat Detail &amp; Riwayat Aduan</span>
+              </button>
+            </div>
+
             {/* Header Chat */}
             <div className="pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -859,16 +1152,23 @@ export default function HaloJurnalLaporanDetailPage() {
                 <div className="space-y-4 max-h-[380px] overflow-y-auto pr-1 mb-4 no-scrollbar">
                   {messages.length > 0 ? (
                     messages.map((msg) => {
-                      const isMine = user && msg.sender_id === user.id
-                      const isAdminMsg =
-                        !isMine && (
-                          msg.role === 'admin' ||
-                          msg.profiles?.role === 'admin' ||
-                          msg.profiles?.role === 'superadmin' ||
-                          msg.sender === 'Redaksi Halo Jurnal' ||
-                          msg.sender_name === 'Redaksi Halo Jurnal' ||
-                          msg.isSystem === true
-                        )
+                      const isRedaksi =
+                        msg.role === 'admin' ||
+                        msg.role === 'redaksi' ||
+                        msg.profiles?.role === 'admin' ||
+                        msg.profiles?.role === 'redaksi' ||
+                        msg.profiles?.role === 'superadmin' ||
+                        msg.sender === 'Redaksi Halo Jurnal' ||
+                        msg.sender_name === 'Redaksi Halo Jurnal' ||
+                        msg.sender_name === 'Admin Redaksi' ||
+                        (msg.sender_name && msg.sender_name.toLowerCase().includes('redaksi')) ||
+                        msg.isSystem === true
+
+                      // Di halaman pelapor warga:
+                      // Jika dilihat oleh warga -> Pesan warga di KANAN (isMine = true), pesan redaksi di KIRI (isMine = false)
+                      // Jika dilihat oleh admin redaksi -> Pesan redaksi di KANAN, pesan warga di KIRI
+                      const isMine = isAdmin ? isRedaksi : !isRedaksi
+                      const isAdminMsg = isRedaksi
 
                       const timeStr = (() => {
                         try {
@@ -1062,15 +1362,10 @@ export default function HaloJurnalLaporanDetailPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="pt-1 space-y-2.5">
-                    <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-left">
-                      <p className="text-[11px] text-amber-900 dark:text-amber-300 leading-snug">
-                        Akun aktif: <strong>{user.email}</strong>. Ruang obrolan ini khusus pemilik tiket laporan ini.
-                      </p>
-                    </div>
+                  <div className="pt-2">
                     <Link
                       href="/halo-jurnal/lapor"
-                      className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
+                      className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-4 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
                     >
                       <span>Ajukan Laporan Baru Anda Sendiri</span>
                     </Link>

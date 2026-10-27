@@ -18,10 +18,59 @@ const LoginCitizenSchema = z.object({
   password: z.string().min(1, 'Kata sandi wajib diisi'),
 })
 
+function parseDomisili(domisiliStr: string | null | undefined) {
+  if (!domisiliStr || typeof domisiliStr !== 'string') {
+    return { detailAlamat: '', rtRw: '', kelurahan: '', kecamatan: '' }
+  }
+
+  const raw = domisiliStr.trim()
+  const kecMatch = raw.match(/Kec\.?\s*([^,]+)/i)
+  const kelMatch = raw.match(/Kel\.?\s*([^,]+)/i)
+  const rtRwMatch = raw.match(/RT\/?RW\s*([^,]+)/i)
+
+  const kecamatan = kecMatch ? kecMatch[1].trim() : ''
+  const kelurahan = kelMatch ? kelMatch[1].trim() : ''
+  const rtRw = rtRwMatch ? rtRwMatch[1].trim() : ''
+
+  let detailAlamat = raw
+  const splitIdx = raw.search(/,\s*RT\/?RW/i)
+  if (splitIdx !== -1) {
+    detailAlamat = raw.substring(0, splitIdx).trim()
+  } else {
+    const splitKel = raw.search(/,\s*Kel\.?/i)
+    if (splitKel !== -1) {
+      detailAlamat = raw.substring(0, splitKel).trim()
+    } else {
+      const splitKec = raw.search(/,\s*Kec\.?/i)
+      if (splitKec !== -1) {
+        detailAlamat = raw.substring(0, splitKec).trim()
+      }
+    }
+  }
+
+  return { detailAlamat, rtRw, kelurahan, kecamatan }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const action = body.action || 'login'
+
+    // 0. Cek Ketersediaan Email Sebelum OTP
+    if (action === 'check-email') {
+      const email = (body.email || '').trim().toLowerCase()
+      if (!email || !email.includes('@')) {
+        return NextResponse.json({ success: false, message: 'Format email tidak valid.' }, { status: 400 })
+      }
+      const existing = await prisma.citizenUser.findUnique({ where: { email } })
+      if (existing) {
+        return NextResponse.json(
+          { success: false, message: 'Alamat email ini sudah terdaftar. Silakan langsung masuk (login).' },
+          { status: 409 }
+        )
+      }
+      return NextResponse.json({ success: true, message: 'Email tersedia.' })
+    }
 
     // 1. Alur Pendaftaran Warga Baru
     if (action === 'register') {
@@ -58,6 +107,8 @@ export async function POST(request: NextRequest) {
         },
       })
 
+      const parsedDom = parseDomisili(user.domisili)
+
       return NextResponse.json(
         {
           success: true,
@@ -69,7 +120,12 @@ export async function POST(request: NextRequest) {
             name: user.fullName,
             phone: user.phone,
             phone_number: user.phone,
+            kecamatan: parsedDom.kecamatan,
+            kelurahan: parsedDom.kelurahan,
+            rt_rw: parsedDom.rtRw,
+            detail_alamat: parsedDom.detailAlamat,
             alamat_domisili: user.domisili,
+            domisili: user.domisili,
             role: 'warga',
             is_verified: true,
           },
@@ -78,7 +134,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 2. Alur Masuk / Login Warga
+    // 2. Alur Masuk / Login Warga (REAL DB AUTH ONLY, NO DEMO FALLBACK)
     if (action === 'login') {
       const parsed = LoginCitizenSchema.safeParse(body)
       if (!parsed.success) {
@@ -93,49 +149,101 @@ export async function POST(request: NextRequest) {
       // Cari di tabel citizen_users
       const user = await prisma.citizenUser.findUnique({ where: { email } })
 
-      if (user) {
-        // Jika ada password tersimpan, verifikasi dengan bcrypt
-        if (user.password) {
-          const isMatch = await comparePassword(password, user.password)
-          if (!isMatch && password !== 'warga123') {
-            return NextResponse.json(
-              { success: false, message: 'Kata sandi yang Anda masukkan salah.' },
-              { status: 401 }
-            )
-          }
+      if (!user) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Alamat email belum terdaftar di sistem. Silakan lakukan pendaftaran akun terlebih dahulu.',
+          },
+          { status: 404 }
+        )
+      }
+
+      // Jika ada password tersimpan, verifikasi dengan bcrypt secara ketat
+      if (user.password) {
+        const isMatch = await comparePassword(password, user.password)
+        if (!isMatch) {
+          return NextResponse.json(
+            { success: false, message: 'Kata sandi yang Anda masukkan salah.' },
+            { status: 401 }
+          )
         }
+      } else {
+        return NextResponse.json(
+          { success: false, message: 'Kata sandi belum disetel untuk akun ini. Silakan buat akun baru.' },
+          { status: 401 }
+        )
+      }
+
+      const parsedDom = parseDomisili(user.domisili)
+
+      return NextResponse.json({
+        success: true,
+        message: 'Login berhasil!',
+        user: {
+          id: user.id,
+          email: user.email,
+          full_name: user.fullName,
+          name: user.fullName,
+          phone: user.phone,
+          phone_number: user.phone,
+          kecamatan: parsedDom.kecamatan,
+          kelurahan: parsedDom.kelurahan,
+          rt_rw: parsedDom.rtRw,
+          detail_alamat: parsedDom.detailAlamat,
+          alamat_domisili: user.domisili,
+          domisili: user.domisili,
+          role: 'warga',
+          is_verified: user.isVerified,
+        },
+      })
+    }
+
+    // 3. Perbarui Profil Warga
+    if (action === 'update-profile') {
+      const { email, fullName, phone, domisili } = body
+      if (!email) {
+        return NextResponse.json({ success: false, message: 'Alamat email diperlukan' }, { status: 400 })
+      }
+
+      try {
+        const updatedUser = await prisma.citizenUser.update({
+          where: { email },
+          data: {
+            ...(fullName ? { fullName: String(fullName).trim() } : {}),
+            ...(phone ? { phone: String(phone).trim() } : {}),
+            ...(domisili ? { domisili: String(domisili).trim() } : {}),
+          },
+        })
+
+        const parsedDom = parseDomisili(updatedUser.domisili)
 
         return NextResponse.json({
           success: true,
-          message: 'Login berhasil!',
+          message: 'Profil berhasil diperbarui di database!',
           user: {
-            id: user.id,
-            email: user.email,
-            full_name: user.fullName,
-            name: user.fullName,
-            phone: user.phone,
-            phone_number: user.phone,
-            alamat_domisili: user.domisili,
+            id: updatedUser.id,
+            email: updatedUser.email,
+            full_name: updatedUser.fullName,
+            name: updatedUser.fullName,
+            phone: updatedUser.phone,
+            phone_number: updatedUser.phone,
+            kecamatan: parsedDom.kecamatan,
+            kelurahan: parsedDom.kelurahan,
+            rt_rw: parsedDom.rtRw,
+            detail_alamat: parsedDom.detailAlamat,
+            alamat_domisili: updatedUser.domisili,
+            domisili: updatedUser.domisili,
             role: 'warga',
-            is_verified: user.isVerified,
+            is_verified: updatedUser.isVerified,
           },
         })
+      } catch (err: any) {
+        return NextResponse.json(
+          { success: false, message: 'Gagal memperbarui profil: ' + (err?.message || 'Error') },
+          { status: 500 }
+        )
       }
-
-      // Fallback akun demo warga jika belum ada di database
-      return NextResponse.json({
-        success: true,
-        message: 'Login berhasil sebagai warga!',
-        user: {
-          id: 'warga-' + Date.now(),
-          email,
-          full_name: email.split('@')[0].toUpperCase(),
-          name: email.split('@')[0].toUpperCase(),
-          phone: '081234567890',
-          role: 'warga',
-          is_verified: true,
-        },
-      })
     }
 
     return NextResponse.json({ success: false, message: 'Aksi tidak dikenali' }, { status: 400 })

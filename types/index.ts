@@ -1,5 +1,6 @@
 export type ArticleCategory =
   | 'berita'
+  | 'ekonomi'
   | 'lifestyle'
   | 'loker'
   | 'sport'
@@ -21,6 +22,7 @@ export interface Article {
   categoryLabel: string;
   imageUrl: string;
   imageAlt?: string;
+  imageCaption?: string;
   author: string;
   reporter?: string;
   redaktur?: string;
@@ -59,6 +61,7 @@ export interface Job {
   requirements: string[];
   benefits: string[];
   applyEmail: string;
+  applyUrl?: string;
   isSaved?: boolean;
   createdAt: string;
 }

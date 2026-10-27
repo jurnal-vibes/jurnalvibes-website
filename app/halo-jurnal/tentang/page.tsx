@@ -19,37 +19,38 @@ import {
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Tentang Halo Jurnal',
+  title: 'Tentang Hallo Jurnal',
   description:
     'Mengenal platform aspirasi dan pengaduan publik warga Sukabumi oleh PT Media Jurnal Sukabumi.',
 }
 
 export default function HaloJurnalTentangPage() {
   const redaksi = [
-    { jabatan: 'Chief Executive Officer', nama: 'Eman Sulaeman, S.IP' },
+    { jabatan: 'Chief Executive Officer (CEO)', nama: 'Eman Sulaeman, S.IP' },
     { jabatan: 'Pemimpin Redaksi', nama: 'Ujang Herlan, S.Pd' },
-    { jabatan: 'Reporter', nama: 'Ilham Nugraha, Idris' },
-    { jabatan: 'Media Sosial', nama: 'Nofa Apekariasnya' },
-    { jabatan: 'Manager IT', nama: 'Mohammad Nur' },
     { jabatan: 'Publisher', nama: 'Yoga Arya Suhada, H Agustina' },
+    { jabatan: 'Manager IT', nama: 'Mohammad Nur' },
+    { jabatan: 'Media Sosial', nama: 'Nofa Apekariasnya' },
+    { jabatan: 'Reporter', nama: 'Ilham Nugraha, Idris' },
   ]
 
   const legalitas = [
-    { label: 'Nomor SK Kemenkumham', nilai: 'AHU-0007259.AH.01.01. Tahun 2020' },
-    { label: 'NIB', nilai: '0220109361089' },
-    { label: 'NPWP', nilai: '94.265.244.7-405.000' },
-    { label: 'IMB', nilai: '503.3/644.4/2717/PMB-DPTMPTSP/2020' },
+    { label: 'Nama Perusahaan', nilai: 'PT Media Jurnal Sukabumi' },
+    { label: 'SK Pengesahan Menkumham', nilai: 'Nomor AHU-0007259.AH.01.01. Tahun 2020' },
+    { label: 'Nomor Induk Berusaha (NIB)', nilai: '0220109361089' },
+    { label: 'NPWP Perusahaan', nilai: '94.265.244.7-405.000' },
+    { label: 'Izin Mendirikan Bangunan (IMB)', nilai: '503.3/644.4/2717/PMB-DPTMPTSP/2020' },
   ]
 
   return (
     <div className="w-full space-y-12 sm:space-y-16 pb-20">
-      {/* ===================== SEKSI 1: HERO BANNER (Tentang Halo Jurnal) ===================== */}
-      <section className="relative bg-gradient-to-br from-primary to-primary-dark text-white py-12 sm:py-16 lg:py-20 px-4 sm:px-6 md:px-8 overflow-hidden shadow-sm">
-        <div className="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      {/* ===================== SEKSI 1: HERO BANNER (Tentang Hallo Jurnal) ===================== */}
+      <section className="relative w-full bg-gradient-to-br from-primary to-primary-dark text-white py-12 sm:py-16 lg:py-20 overflow-hidden shadow-sm">
+        <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Kolom Kiri: Teks & Tombol */}
           <div className="lg:col-span-6 space-y-5">
             <h1 className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight text-white leading-tight">
-              Tentang Halo Jurnal
+              Tentang Hallo Jurnal
             </h1>
 
             <p className="text-white/90 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl">
@@ -87,7 +88,7 @@ export default function HaloJurnalTentangPage() {
       </section>
 
       {/* ===================== SEKSI: BAGAIMANA CARA KERJANYA? ===================== */}
-      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6">
+      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 py-4 sm:py-6">
         <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
           <h2 className="font-heading font-black text-2xl sm:text-3xl lg:text-4xl text-primary tracking-tight mb-2.5">
             Bagaimana Cara Kerjanya?
@@ -158,7 +159,7 @@ export default function HaloJurnalTentangPage() {
       </section>
 
       {/* ===================== SEKSI 2: KOMITMEN KAMI TERHADAP MASYARAKAT ===================== */}
-      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8">
+      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6">
         <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary tracking-tight mb-6 sm:mb-8">
           Komitmen Kami terhadap Masyarakat
         </h2>
@@ -167,27 +168,23 @@ export default function HaloJurnalTentangPage() {
           {/* Kolom Kiri: 3 Kartu Nilai (Kompak & Elegan) */}
           <div className="lg:col-span-7 flex flex-col justify-between gap-3">
             {/* Card 1: Kerahasiaan Data */}
-            <div className="bg-surface border border-outline-variant/80 rounded-xl p-3.5 sm:p-4 shadow-2xs flex items-start gap-3.5 hover:border-primary/40 transition-colors flex-1">
-              <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                <Shield className="w-4 h-4" />
-              </div>
+            <div className="bg-surface border border-outline-variant/80 rounded-xl p-4 sm:p-4.5 shadow-2xs flex items-start gap-3.5 hover:border-primary/40 transition-colors flex-1">
+              <Shield className="w-5 h-5 text-primary shrink-0 mt-0.5 stroke-[2.2]" />
               <div className="flex-1 min-w-0">
-                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-0.5">
+                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-1">
                   Kerahasiaan Data
                 </h3>
                 <p className="text-secondary text-xs sm:text-sm leading-relaxed">
-                  KTP hanya digunakan untuk verifikasi internal dan tidak akan pernah dipublikasikan kepada publik demi keamanan pelapor.
+                  Identitas akun dan data pribadi pelapor dijamin kerahasiaannya. Setiap aduan dapat dikirimkan secara anonim dan tidak pernah disalahgunakan kepada pihak ketiga.
                 </p>
               </div>
             </div>
 
             {/* Card 2: Transparansi Publik */}
-            <div className="bg-surface border border-outline-variant/80 rounded-xl p-3.5 sm:p-4 shadow-2xs flex items-start gap-3.5 hover:border-primary/40 transition-colors flex-1">
-              <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                <Eye className="w-4 h-4" />
-              </div>
+            <div className="bg-surface border border-outline-variant/80 rounded-xl p-4 sm:p-4.5 shadow-2xs flex items-start gap-3.5 hover:border-primary/40 transition-colors flex-1">
+              <Eye className="w-5 h-5 text-primary shrink-0 mt-0.5 stroke-[2.2]" />
               <div className="flex-1 min-w-0">
-                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-0.5">
+                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-1">
                   Transparansi Publik
                 </h3>
                 <p className="text-secondary text-xs sm:text-sm leading-relaxed">
@@ -197,12 +194,10 @@ export default function HaloJurnalTentangPage() {
             </div>
 
             {/* Card 3: Respon Cepat */}
-            <div className="bg-surface border border-outline-variant/80 rounded-xl p-3.5 sm:p-4 shadow-2xs flex items-start gap-3.5 hover:border-primary/40 transition-colors flex-1">
-              <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                <Gauge className="w-4 h-4" />
-              </div>
+            <div className="bg-surface border border-outline-variant/80 rounded-xl p-4 sm:p-4.5 shadow-2xs flex items-start gap-3.5 hover:border-primary/40 transition-colors flex-1">
+              <Gauge className="w-5 h-5 text-primary shrink-0 mt-0.5 stroke-[2.2]" />
               <div className="flex-1 min-w-0">
-                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-0.5">
+                <h3 className="font-heading font-bold text-sm sm:text-base text-on-surface mb-1">
                   Respon Cepat
                 </h3>
                 <p className="text-secondary text-xs sm:text-sm leading-relaxed">
@@ -212,13 +207,13 @@ export default function HaloJurnalTentangPage() {
             </div>
           </div>
 
-          {/* Kolom Kanan: 3 Gambar Kolase (Kompak, Proporsional, Sejajar 100% dengan Kolom Kiri) */}
+          {/* Kolom Kanan: 3 Gambar Kolase (Dokumentasi Aktivitas Jurnalistik & Redaksi) */}
           <div className="lg:col-span-5 flex flex-col justify-between gap-3 h-full">
-            {/* Gambar Atas: Lady Justice */}
+            {/* Gambar Atas: Newsroom Jurnalistik */}
             <div className="h-40 sm:h-48 lg:h-auto lg:flex-[3] min-h-0 rounded-xl overflow-hidden border border-outline-variant/80 shadow-2xs relative">
               <img
-                src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1000&q=80"
-                alt="Prinsip Keadilan & Akuntabilitas Halo Jurnal"
+                src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1000&q=80"
+                alt="Aktivitas Redaksi & Liputan Lapangan Halo Jurnal"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -245,7 +240,7 @@ export default function HaloJurnalTentangPage() {
       </section>
 
       {/* ===================== SEKSI 3: PROFIL RESMI MEDIA (PT. Media Jurnal Sukabumi) ===================== */}
-      <section id="profil-resmi" className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8">
+      <section id="profil-resmi" className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6">
         <div className="bg-surface border border-outline-variant/80 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xs">
           {/* Header Profil */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
@@ -268,42 +263,42 @@ export default function HaloJurnalTentangPage() {
           </div>
 
           <p className="text-secondary text-xs sm:text-sm leading-relaxed mb-8 max-w-4xl">
-            Portal berita <strong className="text-on-surface">Jurnal Wave</strong> berada di bawah naungan <strong className="text-on-surface">PT. Media Jurnal Sukabumi</strong>. Jurnal Wave hadir di tengah menjamurnya beragam media siber. Kehadirannya tentu saja diharapkan menjadi pembeda dengan media online lainnya. Maka itu, dibidani oleh sumber daya manusia yang mumpuni, profesional, dan konsisten di bidang jurnalistik, kami hadir di tengah masyarakat.
+            Kanal advokasi publik <strong className="text-on-surface">Halo Jurnal</strong> dan portal berita <strong className="text-on-surface">Jurnal Wave</strong> beroperasi di bawah naungan badan hukum pers resmi <strong className="text-on-surface">PT. Media Jurnal Sukabumi</strong>. Kami berkomitmen menyajikan jurnalisme independen, memfasilitasi transparansi kebijakan, dan mengawal tindak lanjut aspirasi seluruh warga Sukabumi secara profesional.
           </p>
 
           {/* 3 Box Grid: Susunan Redaksi, Legalitas Resmi, Rekening Resmi */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Box 1: Susunan Redaksi */}
-            <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 shadow-2xs">
-              <div className="flex items-center gap-2.5 mb-4 text-primary">
-                <Newspaper className="w-5 h-5 shrink-0" />
-                <h3 className="font-heading font-extrabold text-sm sm:text-base text-on-surface">
+            <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 shadow-2xs flex flex-col">
+              <div className="flex items-center gap-2 mb-3.5 text-primary pb-3 border-b border-outline-variant/60">
+                <Newspaper className="w-4 h-4 shrink-0" />
+                <h3 className="font-heading font-extrabold text-xs sm:text-sm uppercase tracking-wider text-on-surface">
                   Susunan Redaksi
                 </h3>
               </div>
-              <div className="space-y-3 text-xs">
+              <div className="divide-y divide-outline-variant/40 text-xs">
                 {redaksi.map((item, idx) => (
-                  <div key={idx} className="flex flex-col">
-                    <span className="text-secondary font-medium">{item.jabatan}:</span>
-                    <span className="font-bold text-on-surface">{item.nama}</span>
+                  <div key={idx} className="py-2 flex flex-col justify-center">
+                    <span className="text-secondary text-[11px] font-medium">{item.jabatan}</span>
+                    <span className="font-bold text-on-surface mt-0.5">{item.nama}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Box 2: Legalitas Resmi Perusahaan */}
-            <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 shadow-2xs">
-              <div className="flex items-center gap-2.5 mb-4 text-primary">
-                <Scale className="w-5 h-5 shrink-0" />
-                <h3 className="font-heading font-extrabold text-sm sm:text-base text-on-surface">
+            <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 shadow-2xs flex flex-col">
+              <div className="flex items-center gap-2 mb-3.5 text-primary pb-3 border-b border-outline-variant/60">
+                <Scale className="w-4 h-4 shrink-0" />
+                <h3 className="font-heading font-extrabold text-xs sm:text-sm uppercase tracking-wider text-on-surface">
                   Legalitas Resmi Perusahaan
                 </h3>
               </div>
-              <div className="space-y-3 text-xs">
+              <div className="divide-y divide-outline-variant/40 text-xs">
                 {legalitas.map((item, idx) => (
-                  <div key={idx} className="flex flex-col">
-                    <span className="text-secondary font-medium">{item.label}:</span>
-                    <span className="font-bold text-on-surface">{item.nilai}</span>
+                  <div key={idx} className="py-2 flex flex-col justify-center">
+                    <span className="text-secondary text-[11px] font-medium">{item.label}</span>
+                    <span className="font-bold font-mono text-[11px] sm:text-xs text-on-surface mt-0.5 break-all sm:break-normal">{item.nilai}</span>
                   </div>
                 ))}
               </div>
@@ -312,26 +307,27 @@ export default function HaloJurnalTentangPage() {
             {/* Box 3: Rekening Resmi PT */}
             <div className="bg-surface border border-outline-variant/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-2.5 mb-4 text-primary">
-                  <Landmark className="w-5 h-5 shrink-0" />
-                  <h3 className="font-heading font-extrabold text-sm sm:text-base text-on-surface">
+                <div className="flex items-center gap-2 mb-3.5 text-primary pb-3 border-b border-outline-variant/60">
+                  <Landmark className="w-4 h-4 shrink-0" />
+                  <h3 className="font-heading font-extrabold text-xs sm:text-sm uppercase tracking-wider text-on-surface">
                     Rekening Resmi PT
                   </h3>
                 </div>
-                <div className="space-y-2 text-xs">
-                  <p className="text-secondary leading-relaxed">
-                    Bank Jabar Banten (BJB) KCP Cibadak<br />
-                    Atas Nama: <strong className="text-on-surface">PT Media Jurnal Sukabumi</strong><br />
-                    No. Rekening: <strong className="text-on-surface font-mono">0122-4504-14100</strong>
-                  </p>
+                <div className="space-y-2.5 text-xs">
+                  <div className="p-3 bg-surface-container-high/60 rounded-xl border border-outline-variant/50">
+                    <span className="text-secondary text-[11px] block">Bank Transaksi Resmi:</span>
+                    <span className="font-bold text-on-surface text-xs block mt-0.5">Bank Jabar Banten (BJB), KCP Cibadak</span>
+                    <span className="font-mono font-bold text-primary text-sm block mt-1">0122-4504-14100</span>
+                    <span className="text-secondary text-[11px] block mt-0.5">a/n <strong className="text-on-surface">PT Media Jurnal Sukabumi</strong></span>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-outline-variant/60 text-xs">
-                <span className="text-secondary block">Email Redaksi:</span>
+              <div className="pt-3.5 mt-4 border-t border-outline-variant/60 text-xs space-y-1">
+                <span className="text-secondary text-[11px] block">Email Resmi Redaksi:</span>
                 <a
                   href="mailto:redaksi@jurnalsukabumi.com"
-                  className="font-bold text-primary hover:underline"
+                  className="font-bold text-primary hover:underline block"
                 >
                   redaksi@jurnalsukabumi.com
                 </a>
@@ -342,7 +338,7 @@ export default function HaloJurnalTentangPage() {
       </section>
 
       {/* ===================== SEKSI 4: BUTUH BANTUAN / HUBUNGI KAMI ===================== */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
+      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6">
         <div className="bg-surface border border-outline-variant/80 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-6">
           {/* Sisi Kiri: Teks & Kontak */}
           <div className="flex-1 space-y-4">

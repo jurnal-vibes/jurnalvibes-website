@@ -25,8 +25,33 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
       try {
         const res = await fetch('/api/reports', { cache: 'no-store' })
         const json = await res.json()
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          const publicReports = json.data.filter((r: any) => r.is_public !== false).slice(0, 4)
+        if (json.success && Array.isArray(json.data)) {
+          const userReports = JSON.parse(
+            localStorage.getItem('halo_jurnal_user_reports') || '[]'
+          )
+          const combined = [...json.data, ...userReports]
+          const uniqueMap = new Map<string, any>()
+          combined.forEach((item: any) => {
+            const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
+            if (key) {
+              if (!uniqueMap.has(key)) {
+                uniqueMap.set(key, item)
+              } else {
+                const existing = uniqueMap.get(key)
+                if (
+                  (!existing.laporan_lampiran || existing.laporan_lampiran.length === 0) &&
+                  item.laporan_lampiran &&
+                  item.laporan_lampiran.length > 0
+                ) {
+                  uniqueMap.set(key, { ...existing, laporan_lampiran: item.laporan_lampiran })
+                }
+              }
+            }
+          })
+
+          const publicReports = Array.from(uniqueMap.values())
+            .filter((r: any) => r.is_public !== false)
+            .slice(0, 4)
           setReports(publicReports)
           return
         }
@@ -46,12 +71,23 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
           localStorage.getItem('halo_jurnal_user_reports') || '[]'
         )
 
-        const combined = [...userReports, ...source]
+        const combined = [...source, ...userReports]
         const uniqueMap = new Map<string, any>()
         combined.forEach((item) => {
-          const key = item.id || item.nomor_tiket || item.ticket_number
-          if (key && !uniqueMap.has(key)) {
-            uniqueMap.set(key, item)
+          const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
+          if (key) {
+            if (!uniqueMap.has(key)) {
+              uniqueMap.set(key, item)
+            } else {
+              const existing = uniqueMap.get(key)
+              if (
+                (!existing.laporan_lampiran || existing.laporan_lampiran.length === 0) &&
+                item.laporan_lampiran &&
+                item.laporan_lampiran.length > 0
+              ) {
+                uniqueMap.set(key, { ...existing, laporan_lampiran: item.laporan_lampiran })
+              }
+            }
           }
         })
 
@@ -70,8 +106,8 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
 
         const nextReports = allReports.filter((r) => r.is_public !== false).slice(0, 4)
         setReports((prev) => {
-          const prevKeys = prev.map((p) => `${p.id}-${p.status}`).join(',')
-          const nextKeys = nextReports.map((p) => `${p.id}-${p.status}`).join(',')
+          const prevKeys = prev.map((p) => `${p.ticketNumber || p.nomor_tiket || p.id}-${p.status}`).join(',')
+          const nextKeys = nextReports.map((p) => `${p.ticketNumber || p.nomor_tiket || p.id}-${p.status}`).join(',')
           if (prevKeys === nextKeys) return prev
           return nextReports
         })
@@ -100,7 +136,7 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+    <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 overflow-x-auto sm:overflow-visible pb-3 sm:pb-0 no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0">
       {reports.map((report) => {
         const imageUrl =
           report.laporan_lampiran &&
@@ -122,10 +158,10 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
           <Link
             key={report.id}
             href={`/halo-jurnal/laporan/${report.id}`}
-            className="group bg-surface border border-outline-variant/70 hover:border-primary/50 rounded-2xl overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col"
+            className="group bg-surface border border-outline-variant/70 hover:border-primary/50 rounded-xl sm:rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col w-[76vw] sm:w-auto max-w-[275px] sm:max-w-none shrink-0 snap-start"
           >
             {/* Top Media Thumbnail */}
-            <div className="relative h-28 sm:h-32 w-full overflow-hidden bg-surface-container-high shrink-0">
+            <div className="relative h-24 sm:h-32 w-full overflow-hidden bg-surface-container-high shrink-0">
               {imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -145,8 +181,8 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
               )}
 
               {/* Floating Status Badge (Top-Left) */}
-              <div className="absolute top-2.5 left-2.5 z-10">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-black/65 backdrop-blur-md text-white text-[10px] font-semibold tracking-wide capitalize">
+              <div className="absolute top-2 left-2 z-10">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-black/65 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-semibold tracking-wide capitalize">
                   {status === 'selesai'
                     ? (report.jenis === 'inspirasi' ? 'Tayang' : 'Selesai')
                     : status}
@@ -154,29 +190,29 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
               </div>
 
               {/* Floating Date Badge (Top-Right) */}
-              <div className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-medium text-white flex items-center gap-1">
+              <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[9px] sm:text-[10px] font-medium text-white flex items-center gap-1">
                 <Calendar className="w-2.5 h-2.5" />
                 <span>{formattedDate}</span>
               </div>
             </div>
 
             {/* Card Content */}
-            <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
+            <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
               <div>
                 <h3 className="font-heading font-bold text-xs sm:text-sm text-on-surface mb-1 line-clamp-2 group-hover:text-primary transition-colors leading-snug">
                   {report.judul}
                 </h3>
-                <p className="text-secondary text-[11px] sm:text-xs line-clamp-2 leading-relaxed mb-2.5">
+                <p className="text-secondary text-[10px] sm:text-xs line-clamp-2 leading-relaxed mb-2">
                   {report.deskripsi}
                 </p>
               </div>
 
-              <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-outline-variant/40 text-[11px] text-secondary mt-auto">
+              <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-outline-variant/40 text-[10px] sm:text-[11px] text-secondary mt-auto">
                 <div className="flex items-center gap-1 min-w-0">
-                  <MapPin className="w-3 h-3 text-primary shrink-0" />
+                  <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary shrink-0" />
                   <span className="truncate">{report.lokasi || 'Sukabumi'}</span>
                 </div>
-                <span className="text-primary font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform text-[11px]">
+                <span className="text-primary font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform text-[10px] sm:text-[11px]">
                   Detail &rarr;
                 </span>
               </div>

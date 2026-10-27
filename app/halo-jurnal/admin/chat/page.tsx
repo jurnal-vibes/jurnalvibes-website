@@ -52,13 +52,29 @@ function ChatDeskContent() {
 
   // Muat daftar laporan lengkap (Database Neon DB + DUMMY + user created)
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
+        if (!hasPurgedV2) {
+          localStorage.removeItem('halo_jurnal_read_chats')
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i)
+            if (k && k.startsWith('halo_jurnal_chat_')) {
+              localStorage.removeItem(k)
+            }
+          }
+          localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
+        }
+      } catch {}
+    }
+
     const loadAllReports = async () => {
       let liveList: DummyReport[] = []
       try {
         const res = await fetch('/api/reports', { cache: 'no-store' })
         if (res.ok) {
           const json = await res.json()
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          if (json.success && Array.isArray(json.data)) {
             liveList = json.data
           }
         }
@@ -123,13 +139,25 @@ function ChatDeskContent() {
             )
             const lastMsg = sorted[sorted.length - 1]
             const isWargaLast =
+              lastMsg.role !== 'admin' &&
+              lastMsg.role !== 'redaksi' &&
               lastMsg.sender_id !== 'admin-redaksi' &&
+              lastMsg.sender_id !== 'dev-admin' &&
+              lastMsg.sender_id !== 'admin' &&
               lastMsg.profiles?.role !== 'admin' &&
-              lastMsg.role !== 'admin'
+              lastMsg.profiles?.role !== 'redaksi' &&
+              !(lastMsg.sender_name && lastMsg.sender_name.toLowerCase().includes('redaksi'))
+
             const unread = sorted.filter(
               (m) =>
+                m.role !== 'admin' &&
+                m.role !== 'redaksi' &&
                 m.sender_id !== 'admin-redaksi' &&
+                m.sender_id !== 'dev-admin' &&
+                m.sender_id !== 'admin' &&
                 m.profiles?.role !== 'admin' &&
+                m.profiles?.role !== 'redaksi' &&
+                !(m.sender_name && m.sender_name.toLowerCase().includes('redaksi')) &&
                 !readSet.has(m.id)
             ).length
 
@@ -186,19 +214,20 @@ function ChatDeskContent() {
 
     let merged = dbMessages
     if (typeof window !== 'undefined') {
-      const local = JSON.parse(
-        localStorage.getItem(`halo_jurnal_chat_${targetId}`) ||
-        (targetTicket ? localStorage.getItem(`halo_jurnal_chat_${targetTicket}`) : null) ||
-        '[]'
-      )
-      const map = new Map<string, any>()
-      merged.forEach((m: any) => map.set(m.id, m))
-      local.forEach((m: any) => {
-        if (!map.has(m.id)) map.set(m.id, m)
-      })
-      merged = Array.from(map.values()).sort(
-        (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      )
+      if (dbMessages.length > 0) {
+        merged = dbMessages
+        localStorage.setItem(`halo_jurnal_chat_${targetId}`, JSON.stringify(dbMessages))
+        if (targetTicket) {
+          localStorage.setItem(`halo_jurnal_chat_${targetTicket}`, JSON.stringify(dbMessages))
+        }
+      } else {
+        const local = JSON.parse(
+          localStorage.getItem(`halo_jurnal_chat_${targetId}`) ||
+          (targetTicket ? localStorage.getItem(`halo_jurnal_chat_${targetTicket}`) : null) ||
+          '[]'
+        )
+        merged = local
+      }
     }
 
     setMessages(merged)
@@ -255,29 +284,11 @@ function ChatDeskContent() {
     const targetTicket = activeReport?.nomor_tiket
     const text = inputText.trim()
 
-    let sentMsg: any = null
-
-    if (!sentMsg) {
-      sentMsg = {
-        id: `chat-admin-${Date.now()}`,
-        laporan_id: targetId,
-        sender_id: 'admin-redaksi',
-        message: text,
-        created_at: new Date().toISOString(),
-        profiles: {
-          full_name: '🛡️ Redaksi Halo Jurnal',
-          role: 'admin',
-        },
-      }
-    }
-
-    const next = [...messages, sentMsg]
-    setMessages(next)
     setInputText('')
 
-    // Kirim pesan ke MySQL XAMPP via API
+    // Kirim langsung ke API database
     try {
-      fetch('/api/chat', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -285,10 +296,60 @@ function ChatDeskContent() {
           senderId: 'admin-redaksi',
           senderName: '🛡️ Redaksi Halo Jurnal',
           role: 'admin',
-          message: inputText.trim(),
+          message: text,
         }),
-      }).catch((err) => console.warn('Notice chat MySQL sync:', err))
-    } catch {}
+      })
+
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          const newMsg = {
+            id: json.data.id,
+            ticketNumber: json.data.ticketNumber,
+            sender_id: json.data.sender_id,
+            sender_name: json.data.sender_name || '🛡️ Redaksi Halo Jurnal',
+            role: json.data.role || 'redaksi',
+            message: json.data.message,
+            created_at: json.data.created_at,
+            profiles: {
+              full_name: json.data.sender_name || '🛡️ Redaksi Halo Jurnal',
+              role: 'admin',
+            },
+          }
+          const next = [...messages, newMsg]
+          setMessages(next)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`halo_jurnal_chat_${targetId}`, JSON.stringify(next))
+            if (targetTicket) {
+              localStorage.setItem(`halo_jurnal_chat_${targetTicket}`, JSON.stringify(next))
+            }
+            window.dispatchEvent(new Event('storage'))
+          }
+          setIsSending(false)
+          return
+        }
+      }
+    } catch (err) {
+      console.warn('Notice chat API sync error:', err)
+    }
+
+    // Fallback lokal jika offline
+    const sentMsg = {
+      id: `chat-admin-${Date.now()}`,
+      laporan_id: targetId,
+      sender_id: 'admin-redaksi',
+      sender_name: '🛡️ Redaksi Halo Jurnal',
+      role: 'redaksi',
+      message: text,
+      created_at: new Date().toISOString(),
+      profiles: {
+        full_name: '🛡️ Redaksi Halo Jurnal',
+        role: 'admin',
+      },
+    }
+
+    const next = [...messages, sentMsg]
+    setMessages(next)
 
     if (typeof window !== 'undefined') {
       try {
@@ -540,9 +601,15 @@ function ChatDeskContent() {
                 ) : (
                   messages.map((msg) => {
                     const isAdmin =
+                      msg.role === 'admin' ||
+                      msg.role === 'redaksi' ||
                       msg.sender_id === 'admin-redaksi' ||
+                      msg.sender_id === 'dev-admin' ||
+                      msg.sender_id === 'admin' ||
                       msg.profiles?.role === 'admin' ||
-                      msg.role === 'admin'
+                      msg.profiles?.role === 'redaksi' ||
+                      msg.sender_name === 'Admin Redaksi' ||
+                      (msg.sender_name && msg.sender_name.toLowerCase().includes('redaksi'))
 
                     return (
                       <div
@@ -555,7 +622,7 @@ function ChatDeskContent() {
                               isAdmin ? 'text-[#c00015]' : 'text-slate-800'
                             }`}
                           >
-                            {isAdmin ? 'Redaksi Halo Jurnal' : (msg.profiles?.full_name || 'Pelapor')}
+                            {isAdmin ? 'Redaksi Halo Jurnal' : (msg.sender_name || msg.profiles?.full_name || 'Pelapor')}
                           </span>
                           <span>•</span>
                           <span>

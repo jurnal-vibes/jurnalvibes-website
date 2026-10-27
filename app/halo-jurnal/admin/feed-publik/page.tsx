@@ -27,7 +27,7 @@ export default function AdminModerasiFeedPublikPage() {
         const res = await fetch('/api/reports', { cache: 'no-store' })
         if (res.ok) {
           const json = await res.json()
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          if (json.success && Array.isArray(json.data)) {
             setReportsList(json.data)
             return
           }
@@ -47,7 +47,7 @@ export default function AdminModerasiFeedPublikPage() {
           const combined = [...userReports]
           const unique = new Map<string, any>()
           combined.forEach((item) => {
-            const key = item.id || item.nomor_tiket || item.ticket_number
+            const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
             if (key && !unique.has(key)) {
               unique.set(key, item)
             }
@@ -156,18 +156,55 @@ export default function AdminModerasiFeedPublikPage() {
   const totalPublik = reportsList.filter((r) => r.is_public !== false).length
   const totalPrivat = reportsList.filter((r) => r.is_public === false).length
 
-  // Helper badge status penanganan (Harmonisasi Monokrom Redaksi - Pembeda Kurung Bersih)
-  const getStatusBadge = (status: string) => {
-    const labels: Record<string, string> = {
-      diterima: '[Menunggu Review]',
-      diproses: '[Diproses]',
-      ditindaklanjuti: '[Ditindaklanjuti]',
-      selesai: '[Ditayangkan]',
-      ditolak: '[Ditolak]',
+  // Helper badge status penanganan (Sinkron 1-to-1 dengan Alur Tiket Warga & Kurasi Inspirasi)
+  const getStatusBadge = (status: string, jenisOrKategori?: string) => {
+    const isStory = (jenisOrKategori || '').toLowerCase().includes('inspirasi')
+    if (isStory) {
+      if (status === 'selesai') {
+        return (
+          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Disetujui & Tayang
+          </span>
+        )
+      }
+      if (status === 'ditindaklanjuti') {
+        return (
+          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-300">
+            🌟 Liputan Berita
+          </span>
+        )
+      }
+      if (status === 'diproses') {
+        return (
+          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+            Sedang Dikurasi
+          </span>
+        )
+      }
+      if (status === 'ditolak') {
+        return (
+          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+            Tidak Lolos
+          </span>
+        )
+      }
+      return (
+        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
+          Menunggu Kurasi
+        </span>
+      )
     }
-    const label = labels[status] || `[${status}]`
+
+    const labels: Record<string, string> = {
+      diterima: 'Diterima',
+      diproses: 'Diproses',
+      ditindaklanjuti: 'Ditindaklanjuti',
+      selesai: 'Selesai',
+      ditolak: 'Ditolak',
+    }
+    const label = labels[status] || status
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
+      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
         {label}
       </span>
     )
@@ -355,7 +392,7 @@ export default function AdminModerasiFeedPublikPage() {
 
                     {/* Status Penanganan */}
                     <td className="py-3.5 px-4 whitespace-nowrap align-middle">
-                      {getStatusBadge(report.status)}
+                      {getStatusBadge(report.status, (report as any).jenis || report.kategori)}
                     </td>
 
                     {/* Status Visibilitas (Ghost Minimalist) */}

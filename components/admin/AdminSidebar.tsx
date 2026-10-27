@@ -72,6 +72,18 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
       if (typeof window !== 'undefined') {
         try {
+          const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
+          if (!hasPurgedV2) {
+            localStorage.removeItem('halo_jurnal_read_chats')
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+              const k = localStorage.key(i)
+              if (k && k.startsWith('halo_jurnal_chat_')) {
+                localStorage.removeItem(k)
+              }
+            }
+            localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
+          }
+
           // 2. Chat Warga Belum Dibaca
           const readSet = new Set<string>(
             JSON.parse(localStorage.getItem('halo_jurnal_read_chats') || '[]')
@@ -224,6 +236,12 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           icon: Globe,
           badge: null,
         },
+        {
+          name: 'Warga Terdaftar',
+          href: '/halo-jurnal/admin/warga',
+          icon: Users,
+          badge: null,
+        },
       ],
     },
     {
@@ -272,7 +290,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         <div className="h-16 px-5 flex items-center justify-between border-b border-slate-200">
           <Link href="/halo-jurnal/admin" className="flex items-center gap-2.5">
             <img
-              src="/halo-jurnal-icon.webp"
+              src="/halo-jurnal-icon.webp?v=original"
               alt="Jurnal Wave"
               className="w-8 h-8 object-contain shrink-0"
             />

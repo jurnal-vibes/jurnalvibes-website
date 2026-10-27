@@ -22,6 +22,7 @@ import {
   ChevronRight,
   MapPin,
   Check,
+  RotateCcw,
 } from 'lucide-react'
 import {
   KOTA_SUKABUMI_KECAMATAN,
@@ -31,6 +32,7 @@ import {
 import {
   getCategoriesForJenis,
   normalizeCategoryName,
+  getJenisForCategory,
 } from '@/data/haloJurnalCategories'
 
 function getRelativeTime(dateString: string) {
@@ -110,7 +112,7 @@ function FeedPublikContent() {
 
   const categories = getCategoriesForJenis(selectedJenis)
 
-  const statusOptions = ['Semua Laporan', 'Diterima', 'Diproses', 'Selesai']
+  const statusOptions = ['Semua Laporan', 'Diterima', 'Diproses', 'Ditindaklanjuti', 'Selesai']
   const jenisOptions = ['Semua Jenis', 'Pengaduan', 'Aspirasi', 'Informasi', 'Inspirasi']
 
   useEffect(() => {
@@ -126,15 +128,13 @@ function FeedPublikContent() {
     }
     checkUser()
 
-    // Sinkronisasi otomatis saat beralih tab dari Admin
+    // Sinkronisasi otomatis saat ada pembaruan di tab lain
     const handleSync = () => {
       fetchReports()
     }
     window.addEventListener('storage', handleSync)
-    window.addEventListener('focus', handleSync)
     return () => {
       window.removeEventListener('storage', handleSync)
-      window.removeEventListener('focus', handleSync)
     }
   }, [])
 
@@ -147,9 +147,25 @@ function FeedPublikContent() {
     if (reports.length > 0) {
       fetchUserLikes()
     }
-  }, [reports])
+  }, [reports, user?.email])
 
-  const fetchUserLikes = () => {
+  const fetchUserLikes = async () => {
+    // 1. Ambil riwayat dukungan resmi dari basis data untuk akun aktif
+    if (user?.email) {
+      try {
+        const res = await fetch(`/api/reports/support?email=${encodeURIComponent(user.email)}`)
+        const data = await res.json()
+        if (data.success && Array.isArray(data.supportedTickets)) {
+          setLikedReports(new Set(data.supportedTickets))
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('halo_jurnal_user_likes', JSON.stringify(data.supportedTickets))
+          }
+          return
+        }
+      } catch {}
+    }
+
+    // 2. Fallback ke penyimpanan lokal peramban
     if (typeof window !== 'undefined') {
       try {
         const stored = JSON.parse(localStorage.getItem('halo_jurnal_user_likes') || '[]')
@@ -167,7 +183,7 @@ function FeedPublikContent() {
       try {
         const res = await fetch('/api/reports', { cache: 'no-store' })
         const json = await res.json()
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        if (json.success && Array.isArray(json.data)) {
           baseReports = json.data
         }
       } catch (err) {
@@ -186,8 +202,9 @@ function FeedPublikContent() {
             localStorage.getItem('halo_jurnal_status_overrides') || '{}'
           )
 
-          // Gabungkan semua sumber laporan dan cegah duplikasi
-          const combined = [...userReports, ...baseReports]
+          // Gabungkan semua sumber laporan dan cegah duplikasi:
+          // Data dari database Neon DB (baseReports) dijadikan prioritas utama
+          const combined = [...baseReports, ...userReports]
           const uniqueMap = new Map<string, any>()
           combined.forEach((item) => {
             const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
@@ -237,6 +254,7 @@ function FeedPublikContent() {
         const statusMap: Record<string, string> = {
           Diterima: 'diterima',
           Diproses: 'diproses',
+          Ditindaklanjuti: 'ditindaklanjuti',
           Selesai: 'selesai',
         }
         if (statusMap[selectedStatus]) {
@@ -246,7 +264,17 @@ function FeedPublikContent() {
 
       // 4. Filter Jenis Laporan
       if (selectedJenis && selectedJenis !== 'Semua Jenis') {
-        filtered = filtered.filter((r) => r.jenis?.toLowerCase() === selectedJenis.toLowerCase())
+        const targetJenis = selectedJenis.toLowerCase().trim()
+        filtered = filtered.filter((r) => {
+          const rJenis = (
+            r.jenis && r.jenis.toLowerCase() !== (r.kategori || '').toLowerCase()
+              ? r.jenis
+              : getJenisForCategory(r.kategori)
+          )
+            .toLowerCase()
+            .trim()
+          return rJenis === targetJenis
+        })
       }
 
       // 5. Filter Wilayah
@@ -299,7 +327,7 @@ function FeedPublikContent() {
     }
   }
 
-  const handleLike = async (reportId: string, e: React.MouseEvent) => {
+  const handleLike = async (report: any, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -308,15 +336,19 @@ function FeedPublikContent() {
       return
     }
 
-    if (likingReports.has(reportId)) return
+    const ticketKey = report.ticketNumber || report.nomor_tiket || report.ticket_number || report.id
+    if (!ticketKey) return
 
-    setLikingReports((prev) => new Set(prev).add(reportId))
-    const isCurrentlyLiked = likedReports.has(reportId)
+    if (likingReports.has(ticketKey)) return
+    setLikingReports((prev) => new Set(prev).add(ticketKey))
+
+    const isCurrentlyLiked = likedReports.has(ticketKey) || likedReports.has(report.id)
 
     // Optimistic UI update
     setReports((prev) =>
       prev.map((r) => {
-        if (r.id === reportId) {
+        const rKey = r.ticketNumber || r.nomor_tiket || r.ticket_number || r.id
+        if (rKey === ticketKey || (r.id && report.id && r.id === report.id)) {
           const currentCount = r.dukungan_count || 0
           return {
             ...r,
@@ -330,29 +362,74 @@ function FeedPublikContent() {
     setLikedReports((prev) => {
       const next = new Set(prev)
       if (isCurrentlyLiked) {
-        next.delete(reportId)
+        next.delete(ticketKey)
+        if (report.id) next.delete(report.id)
       } else {
-        next.add(reportId)
+        next.add(ticketKey)
+        if (report.id) next.add(report.id)
       }
       return next
     })
 
-    try {
-      if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
+      try {
         const storedLikes: string[] = JSON.parse(
           localStorage.getItem('halo_jurnal_user_likes') || '[]'
         )
         const nextLikes = isCurrentlyLiked
-          ? storedLikes.filter((id) => id !== reportId)
-          : [...storedLikes, reportId]
+          ? storedLikes.filter((id) => id !== ticketKey && id !== report.id)
+          : Array.from(new Set([...storedLikes, ticketKey]))
         localStorage.setItem('halo_jurnal_user_likes', JSON.stringify(nextLikes))
+
+        // Selaraskan juga dukungan_count di cache laporan lokal
+        const storedReports = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
+        const updatedReports = storedReports.map((r: any) => {
+          const rKey = r.ticketNumber || r.nomor_tiket || r.ticket_number || r.id
+          if (rKey === ticketKey || (r.id && report.id && r.id === report.id)) {
+            const curr = r.dukungan_count || 0
+            return {
+              ...r,
+              dukungan_count: isCurrentlyLiked ? Math.max(0, curr - 1) : curr + 1,
+            }
+          }
+          return r
+        })
+        localStorage.setItem('halo_jurnal_user_reports', JSON.stringify(updatedReports))
+      } catch (err) {
+        console.error('Error saving like locally:', err)
+      }
+    }
+
+    try {
+      const res = await fetch('/api/reports/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticketNumber: ticketKey,
+          email: user.email,
+        }),
+      })
+      const data = await res.json()
+      if (data.success && typeof data.dukunganCount === 'number') {
+        setReports((prev) =>
+          prev.map((r) => {
+            const rKey = r.ticketNumber || r.nomor_tiket || r.ticket_number || r.id
+            if (rKey === ticketKey || (r.id && report.id && r.id === report.id)) {
+              return {
+                ...r,
+                dukungan_count: data.dukunganCount,
+              }
+            }
+            return r
+          })
+        )
       }
     } catch (err) {
-      console.error('Error saving like locally:', err)
+      console.error('Error saving support to database:', err)
     } finally {
       setLikingReports((prev) => {
         const next = new Set(prev)
-        next.delete(reportId)
+        next.delete(ticketKey)
         return next
       })
     }
@@ -427,25 +504,34 @@ function FeedPublikContent() {
     filteredKabKec.length > 0
 
   return (
-    <div className="w-full max-w-container-max mx-auto px-4 sm:px-6 md:px-8 py-6">
+    <div className="w-full max-w-container-max mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6">
       {/* Mobile Filter Toggle Button */}
-      <div className="md:hidden flex items-center justify-between mb-4 pb-3 border-b border-outline-variant/60">
+      <div className="md:hidden flex items-center justify-between mb-3.5 pb-2.5 border-b border-outline-variant/60">
         <button
           type="button"
           onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-outline-variant text-xs font-bold text-primary shadow-2xs cursor-pointer"
+          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs transition-all shadow-2xs cursor-pointer active:scale-95 ${
+            hasActiveFilters
+              ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100 font-bold'
+              : 'bg-surface hover:bg-surface-container-high border-outline-variant text-on-surface font-semibold'
+          }`}
         >
-          <Filter className="w-4 h-4" />
-          <span>Filter Laporan {hasActiveFilters && '(Aktif)'}</span>
+          <Filter className={`w-3.5 h-3.5 ${hasActiveFilters ? 'text-white dark:text-slate-900' : 'text-secondary'}`} />
+          <span>Filter Laporan</span>
+          {hasActiveFilters && (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 dark:bg-emerald-600 animate-pulse" />
+          )}
         </button>
 
         {hasActiveFilters && (
           <button
             type="button"
             onClick={resetAllFilters}
-            className="text-xs text-rose-500 font-semibold hover:underline cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-secondary hover:text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95"
+            title="Reset semua filter"
           >
-            Reset Filter
+            <RotateCcw className="w-3 h-3" />
+            <span>Reset Filter</span>
           </button>
         )}
       </div>
@@ -459,18 +545,29 @@ function FeedPublikContent() {
         >
           <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto subtle-scrollbar pr-1 pb-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="font-heading font-extrabold text-xl text-primary tracking-tight">
+              <h2 className="font-heading font-extrabold text-lg sm:text-xl text-on-surface tracking-tight">
                 Filter Laporan
               </h2>
-              {hasActiveFilters && (
+              <div className="flex items-center gap-2">
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={resetAllFilters}
+                    className="text-xs text-secondary hover:text-primary transition-colors cursor-pointer font-medium"
+                  >
+                    Reset
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={resetAllFilters}
-                  className="text-xs text-secondary hover:text-primary transition-colors cursor-pointer font-medium"
+                  onClick={() => setMobileFilterOpen(false)}
+                  className="md:hidden p-1.5 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
+                  title="Tutup Filter"
+                  aria-label="Tutup Filter"
                 >
-                  Reset
+                  <X className="w-4 h-4" />
                 </button>
-              )}
+              </div>
             </div>
 
             {/* 1. JENIS LAPORAN */}
@@ -572,7 +669,7 @@ function FeedPublikContent() {
             </div>
 
             {/* 4. WILAYAH (CUSTOM SEARCHABLE DROPDOWN BUTTON) */}
-            <div ref={wilayahRef} className="relative inline-block w-full max-w-[210px]">
+            <div ref={wilayahRef} className="relative inline-block w-full md:max-w-[210px]">
               <div className="flex items-center justify-between mb-2">
                 <span className="block text-[11px] font-bold uppercase tracking-wider text-secondary">
                   WILAYAH
@@ -591,11 +688,11 @@ function FeedPublikContent() {
                 )}
               </div>
 
-              {/* Trigger Button - Ramping & Tidak Terlalu Lebar ke Kanan */}
+              {/* Trigger Button - Ramping di Desktop, Full di Mobile */}
               <button
                 type="button"
                 onClick={() => setIsWilayahOpen(!isWilayahOpen)}
-                className={`w-full max-w-[210px] flex items-center justify-between gap-1.5 px-3 py-2 text-xs bg-surface border rounded-xl text-on-surface font-semibold shadow-2xs cursor-pointer transition-all duration-150 ${
+                className={`w-full md:max-w-[210px] flex items-center justify-between gap-1.5 px-3 py-2 text-xs bg-surface border rounded-xl text-on-surface font-semibold shadow-2xs cursor-pointer transition-all duration-150 ${
                   isWilayahOpen
                     ? 'border-primary ring-2 ring-primary/10 shadow-sm'
                     : selectedWilayah !== SEMUA_WILAYAH_LABEL
@@ -624,7 +721,7 @@ function FeedPublikContent() {
 
               {/* Floating Dropdown Popover */}
               {isWilayahOpen && (
-                <div className="absolute top-full left-0 w-64 max-w-[calc(100vw-2rem)] mt-1.5 z-50 bg-surface border border-outline-variant rounded-2xl shadow-xl overflow-hidden backdrop-blur-md animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute top-full left-0 w-full sm:w-64 max-w-[calc(100vw-2rem)] mt-1.5 z-50 bg-surface border border-outline-variant rounded-2xl shadow-xl overflow-hidden backdrop-blur-md animate-in fade-in zoom-in-95 duration-150">
                   {/* Search Input Bar inside Popover */}
                   <div className="p-2 border-b border-outline-variant/60 bg-surface-container-lowest/90 sticky top-0 z-10">
                     <div className="relative">
@@ -791,30 +888,45 @@ function FeedPublikContent() {
                 </div>
               )}
             </div>
+
+            {/* Mobile Apply Button */}
+            <div className="md:hidden pt-3 border-t border-outline-variant/60">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileFilterOpen(false)
+                  feedTopRef.current?.scrollIntoView({ behavior: 'smooth' })
+                }}
+                className="w-full py-2.5 px-4 bg-primary text-white rounded-xl font-bold text-xs shadow-xs active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Check className="w-4 h-4" />
+                <span>Terapkan Filter ({reports.length} Laporan)</span>
+              </button>
+            </div>
           </div>
         </aside>
 
         {/* ===================== KONTEN UTAMA ===================== */}
         <main ref={feedTopRef} className="flex-1 min-w-0 w-full scroll-mt-24">
           {/* Top Header: Judul & Deskripsi */}
-          <div className="mb-6">
-            <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight">
+          <div className="mb-3.5 sm:mb-6">
+            <h1 className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-on-surface tracking-tight">
               Transparansi Aspirasi Sukabumi
             </h1>
-            <p className="text-secondary text-xs sm:text-sm mt-1">
+            <p className="text-secondary text-xs sm:text-sm mt-0.5 sm:mt-1">
               Daftar laporan warga yang dibuka secara transparan untuk pengawasan bersama.
             </p>
           </div>
 
           {/* Search Input Bar */}
-          <div className="relative mb-6">
-            <Search className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <div className="relative mb-4 sm:mb-6">
+            <Search className="w-4 h-4 text-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari judul, kata kunci, atau nama jalan..."
-              className="w-full pl-9 pr-8 py-2.5 text-xs sm:text-sm bg-surface border border-outline-variant/80 rounded-xl text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary shadow-2xs transition-colors"
+              className="w-full pl-9 pr-8 py-2 sm:py-2.5 text-xs sm:text-sm bg-surface border border-outline-variant/80 rounded-xl text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary shadow-2xs transition-colors"
             />
             {searchQuery && (
               <button
@@ -835,9 +947,17 @@ function FeedPublikContent() {
             </div>
           ) : reports.length > 0 ? (
             <>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {currentReports.map((report) => {
-                  const isLiked = likedReports.has(report.id)
+                  const ticketKey = report.ticketNumber || report.nomor_tiket || report.ticket_number || report.id
+                  const isLiked = (ticketKey && likedReports.has(ticketKey)) || (report.id && likedReports.has(report.id))
+                  const reportJenis = (
+                    report.jenis && report.jenis.toLowerCase() !== (report.kategori || '').toLowerCase()
+                      ? report.jenis
+                      : getJenisForCategory(report.kategori)
+                  )
+                    .toLowerCase()
+                    .trim()
                   const imgUrl =
                     report.laporan_lampiran &&
                     report.laporan_lampiran.length > 0 &&
@@ -848,88 +968,115 @@ function FeedPublikContent() {
                   return (
                     <div
                       key={report.id}
-                      className="bg-surface border border-outline-variant/80 hover:border-primary/50 rounded-2xl p-4 sm:p-6 shadow-2xs transition-all duration-200"
+                      className="bg-surface border border-outline-variant/80 hover:border-primary/50 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-2xs transition-all duration-200"
                     >
                       {/* Header Card: Pelapor Dilindungi (Anonim) & Waktu / Alamat */}
-                      <div className="mb-3">
+                      <div className="mb-2 sm:mb-2.5">
                         <div className="flex items-center gap-1.5 text-secondary">
                           <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-secondary/80" />
-                          <span className="font-bold text-xs sm:text-sm text-on-surface leading-tight">
+                          <span className="font-semibold text-xs sm:text-sm text-on-surface leading-tight">
                             Identitas Pelapor Dilindungi (Anonim)
                           </span>
                         </div>
-                        <span className="block text-[11px] text-secondary mt-0.5 leading-snug line-clamp-1">
+                        <span className="block text-[10px] sm:text-[11px] text-secondary mt-0.5 leading-snug line-clamp-1">
                           {getRelativeTime(report.created_at)} &bull; {report.lokasi || 'Sukabumi, Jawa Barat'}
                         </span>
                       </div>
 
                       {/* Badges Row: Jenis Laporan & Status */}
-                      <div className="flex items-center gap-2 flex-wrap mb-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap mb-2 sm:mb-2.5">
                         {/* Jenis Badge */}
-                        {report.jenis === 'informasi' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[11px] font-semibold border border-outline-variant/60">
-                            <FileText className="w-3 h-3 text-secondary" />
+                        {reportJenis === 'informasi' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[10px] sm:text-[11px] font-semibold border border-outline-variant/60">
+                            <FileText className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-secondary" />
                             <span>Informasi</span>
                           </span>
                         )}
-                        {report.jenis === 'pengaduan' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[11px] font-semibold border border-outline-variant/60">
-                            <AlertTriangle className="w-3 h-3 text-secondary" />
+                        {reportJenis === 'pengaduan' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[10px] sm:text-[11px] font-semibold border border-outline-variant/60">
+                            <AlertTriangle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-secondary" />
                             <span>Pengaduan</span>
                           </span>
                         )}
-                        {report.jenis === 'aspirasi' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[11px] font-semibold border border-outline-variant/60">
-                            <Lightbulb className="w-3 h-3 text-secondary" />
+                        {reportJenis === 'aspirasi' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[10px] sm:text-[11px] font-semibold border border-outline-variant/60">
+                            <Lightbulb className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-secondary" />
                             <span>Aspirasi</span>
                           </span>
                         )}
-                        {report.jenis === 'inspirasi' && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[11px] font-semibold border border-outline-variant/60">
-                            <BookOpen className="w-3 h-3 text-secondary" />
+                        {reportJenis === 'inspirasi' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-container-high text-on-surface-variant text-[10px] sm:text-[11px] font-semibold border border-outline-variant/60">
+                            <BookOpen className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-secondary" />
                             <span>Inspirasi</span>
                           </span>
                         )}
 
                         {/* Kategori Badge */}
                         {report.kategori && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-surface-container-low text-secondary text-[11px] font-medium border border-outline-variant/60">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-container-low text-secondary text-[10px] sm:text-[11px] font-medium border border-outline-variant/60">
                             {normalizeCategoryName(report.kategori)}
                           </span>
                         )}
 
-                        {/* Status */}
-                        {report.status === 'selesai' && (
-                          <span className="text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
-                            Selesai
-                          </span>
-                        )}
-                        {report.status === 'diproses' && (
-                          <span className="text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
-                            Diproses
-                          </span>
-                        )}
-                        {report.status === 'diterima' && (
-                          <span className="text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
-                            Diterima
-                          </span>
-                        )}
-                        {report.status === 'ditindaklanjuti' && (
-                          <span className="text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
-                            Ditindaklanjuti
-                          </span>
+                        {/* Status (Disesuaikan untuk Aduan vs Inspirasi) */}
+                        {reportJenis === 'inspirasi' ? (
+                          <>
+                            {report.status === 'selesai' && (
+                              <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 dark:text-emerald-400 tracking-tight">
+                                Disetujui &amp; Tayang
+                              </span>
+                            )}
+                            {report.status === 'ditindaklanjuti' && (
+                              <span className="text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-400 tracking-tight">
+                                🌟 Liputan Berita
+                              </span>
+                            )}
+                            {report.status === 'diproses' && (
+                              <span className="text-[10px] sm:text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                                Sedang Dikurasi
+                              </span>
+                            )}
+                            {report.status === 'diterima' && (
+                              <span className="text-[10px] sm:text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                                Menunggu Kurasi
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {report.status === 'selesai' && (
+                              <span className="text-[10px] sm:text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                                Selesai
+                              </span>
+                            )}
+                            {report.status === 'diproses' && (
+                              <span className="text-[10px] sm:text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                                Diproses
+                              </span>
+                            )}
+                            {report.status === 'diterima' && (
+                              <span className="text-[10px] sm:text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                                Diterima
+                              </span>
+                            )}
+                            {report.status === 'ditindaklanjuti' && (
+                              <span className="text-[10px] sm:text-[11px] font-bold text-secondary dark:text-slate-400 tracking-tight">
+                                Ditindaklanjuti
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
 
-                      {/* Content Section: Title & Description di kiri, Image di kanan */}
-                      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                      {/* Content Section: Title & Description di kiri, Thumbnail Foto di kanan */}
+                      <div className="flex items-start justify-between gap-3 sm:gap-4">
                         <div className="flex-1 min-w-0">
                           <Link href={`/halo-jurnal/laporan/${report.id}`} className="group/title block">
-                            <h3 className="font-heading font-bold text-base sm:text-lg text-on-surface group-hover/title:text-primary transition-colors leading-snug mb-1.5">
+                            <h3 className="font-heading font-bold text-xs sm:text-base text-on-surface group-hover/title:text-primary transition-colors leading-snug line-clamp-2 mb-1 sm:mb-1.5">
                               {report.judul}
                             </h3>
                           </Link>
-                          <p className="text-secondary text-xs sm:text-sm line-clamp-3 leading-relaxed">
+                          <p className="text-secondary text-[11px] sm:text-xs md:text-sm line-clamp-2 leading-relaxed">
                             {report.deskripsi}
                           </p>
                         </div>
@@ -937,40 +1084,41 @@ function FeedPublikContent() {
                         {imgUrl && (
                           <Link
                             href={`/halo-jurnal/laporan/${report.id}`}
-                            className="shrink-0 w-full sm:w-44 md:w-56 h-40 sm:h-28 rounded-xl overflow-hidden bg-surface-container-high border border-outline-variant/60 relative group block"
+                            className="shrink-0 w-20 h-20 sm:w-36 sm:h-24 md:w-48 md:h-28 rounded-lg sm:rounded-xl overflow-hidden bg-surface-container-high border border-outline-variant/60 relative group block"
                           >
                             <img
                               src={imgUrl}
                               alt={report.judul}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
                             />
                           </Link>
                         )}
                       </div>
 
                       {/* Bottom Action Bar */}
-                      <div className="pt-3.5 mt-4 border-t border-outline-variant/60 flex items-center justify-between gap-2.5 text-xs">
+                      <div className="pt-2.5 sm:pt-3 mt-2.5 sm:mt-3 border-t border-outline-variant/60 flex items-center justify-between gap-2 text-xs">
                         <button
                           type="button"
-                          onClick={(e) => handleLike(report.id, e)}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0 ${
+                          onClick={(e) => handleLike(report, e)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0 ${
                             isLiked
                               ? 'bg-primary/10 border-primary text-primary'
                               : 'bg-surface border-outline-variant/80 hover:border-primary/50 text-on-surface hover:text-primary'
                           }`}
                           title={isLiked ? 'Batal dukung' : 'Beri dukungan warga'}
                         >
-                          <ThumbsUp className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
+                          <ThumbsUp className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isLiked ? 'fill-current' : ''}`} />
                           <span>Dukung ({report.dukungan_count || 0})</span>
                         </button>
 
                         <Link
                           href={`/halo-jurnal/laporan/${report.id}`}
-                          className="inline-flex items-center gap-1 text-xs font-extrabold text-primary hover:underline group shrink-0"
+                          className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-secondary hover:text-on-surface transition-colors group shrink-0"
                         >
-                          <span className="hidden sm:inline">Lihat Detail &amp; Chat Admin</span>
-                          <span className="sm:hidden">Detail &amp; Chat</span>
-                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                          <span className="hidden sm:inline">Lihat Detail Laporan</span>
+                          <span className="sm:hidden">Detail Laporan</span>
+                          <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-secondary/70 group-hover:text-on-surface group-hover:translate-x-0.5 transition-all" />
                         </Link>
                       </div>
                     </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Search, TrendingUp, ChevronRight } from 'lucide-react';
 import { Article } from '@/types';
 import { fetchArticles } from '@/lib/wordpress';
+import { formatIndoDate } from '@/lib/utils';
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -149,17 +150,22 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
                       <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0 flex-1 justify-center">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-primary">
-                            {article.categoryLabel || article.category}
+                            {(() => {
+                              const raw = (article.categoryLabel || article.category || 'BERITA').toUpperCase();
+                              if (raw === 'INFRASTRUKTUR') return 'BERITA';
+                              if (raw === 'WISATA') return 'TRAVELING';
+                              return raw;
+                            })()}
                           </span>
                           <span className="text-[10px] text-on-surface-variant/60 font-normal hidden sm:inline">
-                            • {article.createdAt || article.publishedDate}
+                            • {formatIndoDate(article.createdAt || article.publishedDate)}
                           </span>
                         </div>
                         <h4 className="text-xs sm:text-sm font-bold text-on-surface dark:text-gray-100 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                           {article.title}
                         </h4>
                         <span className="text-[10px] text-on-surface-variant/60 font-normal sm:hidden">
-                          {article.createdAt || article.publishedDate}
+                          {formatIndoDate(article.createdAt || article.publishedDate)}
                         </span>
                       </div>
 

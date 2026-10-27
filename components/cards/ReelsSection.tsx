@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Film, ExternalLink } from 'lucide-react';
+import { Play, ChevronRight } from 'lucide-react';
 import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6';
 import { Reel } from '@/types';
 
@@ -17,7 +17,21 @@ interface ReelsSectionProps {
   limit?: number;
 }
 
-const CATEGORIES = ['Semua', 'Kuliner', 'Wisata', 'Lifestyle', 'Sport', 'Budaya', 'Event'];
+const BASE_CATEGORIES = [
+  'Semua',
+  'Berita',
+  'Pendidikan & Sekolah',
+  'Lifestyle',
+  'Kuliner',
+  'Wisata',
+  'Otomotif',
+  'Sport & E-Sport',
+  'Teknologi',
+  'Science',
+  'Health',
+  'Loker',
+  'Hiburan',
+];
 
 export const ReelsSection: React.FC<ReelsSectionProps> = ({
   reels,
@@ -31,6 +45,7 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
 }) => {
   const [currentReels, setCurrentReels] = useState<Reel[]>(reels);
   const [activeCategory, setActiveCategory] = useState<string>('Semua');
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const syncReels = () => {
@@ -77,6 +92,17 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
     return () => window.removeEventListener('storage', syncReels);
   }, [reels]);
 
+  const availableCategories = useMemo(() => {
+    const set = new Set<string>(['Semua']);
+    currentReels.forEach(r => {
+      if (r.category && r.category.trim()) {
+        set.add(r.category.trim());
+      }
+    });
+    BASE_CATEGORIES.forEach(c => set.add(c));
+    return Array.from(set);
+  }, [currentReels]);
+
   const filteredReels = useMemo(() => {
     let list = activeCategory === 'Semua'
       ? currentReels
@@ -88,6 +114,12 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
     }
     return list;
   }, [currentReels, activeCategory, limit]);
+
+  const handleScrollRight = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+    }
+  };
 
   if (!isGalleryPage && filteredReels.length === 0) {
     return null;
@@ -101,65 +133,78 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
       return (
         <span
           title="Buka di TikTok"
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-black/85 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110"
+          className="w-6 h-6 rounded-md bg-black border border-white/20 flex items-center justify-center text-white shadow-xs"
         >
-          <FaTiktok className="w-3.5 h-3.5 text-[#25F4EE]" />
+          <FaTiktok className="w-3 h-3 text-white" />
         </span>
       );
     }
+
     if (platform === 'youtube' || url.includes('youtube.com') || url.includes('youtu.be')) {
       return (
         <span
           title="Buka di YouTube Shorts"
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#FF0000] border border-white/20 flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110"
+          className="w-6 h-6 rounded-md bg-[#FF0000] border border-white/20 flex items-center justify-center text-white shadow-xs"
         >
-          <FaYoutube className="w-4 h-4 text-white" />
+          <FaYoutube className="w-3.5 h-3.5 text-white" />
         </span>
       );
     }
+
     // Default: Instagram gradient
     return (
       <span
         title="Buka di Instagram Reels"
-        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] border border-white/20 flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110"
+        className="w-6 h-6 rounded-md bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] border border-white/20 flex items-center justify-center text-white shadow-xs"
       >
-        <FaInstagram className="w-4 h-4 text-white" />
+        <FaInstagram className="w-3.5 h-3.5 text-white" />
       </span>
     );
   };
 
   return (
-    <section className={hideHeader ? 'my-2' : 'border-t border-outline-variant/60 pt-4 sm:pt-stack-lg mt-2 mb-4 sm:mb-6'}>
-      {/* Optional Header */}
+    <section className={hideHeader ? 'my-2' : 'border-t border-slate-100 dark:border-zinc-800 pt-4 mt-2 mb-4'}>
+      {/* Header ala SukabumiUpdate (dengan garis merah dan tombol Geser) */}
       {!hideHeader && (
-        <div className="flex items-center justify-between mb-3.5 sm:mb-5">
-          <div className="flex flex-col gap-0.5 sm:gap-1">
-            <h2 className="font-headline-md text-on-surface text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2 sm:gap-2.5">
-              <Film className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
+        <div className="flex items-center justify-between mb-3 pb-1 border-b border-slate-100 dark:border-zinc-800">
+          <div className="flex items-center gap-2">
+            <span className="w-1 h-4 sm:h-5 bg-[#c00015] rounded-full inline-block" />
+            <h2 className="font-heading font-extrabold text-sm sm:text-base tracking-wider uppercase text-slate-900 dark:text-zinc-100 flex items-center gap-2">
               <span>{title}</span>
             </h2>
-            {subtitle && (
-              <p className="text-on-surface-variant text-xs sm:text-sm font-body-md">
-                {subtitle}
-              </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Tombol Geser Carousel */}
+            {!isGalleryPage && (
+              <button
+                type="button"
+                onClick={handleScrollRight}
+                aria-label="Geser Video Reels"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-zinc-700 transition cursor-pointer"
+              >
+                <span>Geser</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {!hideSeeAll && (
+              <Link
+                href="/reels"
+                className="text-xs font-semibold text-[#c00015] hover:text-[#a00012] flex items-center gap-1 transition"
+              >
+                <span>Lihat Semua</span>
+                <span className="text-[10px]">›</span>
+              </Link>
             )}
           </div>
-          {!hideSeeAll && (
-            <Link
-              href="/reels"
-              className="inline-flex items-center gap-1.5 text-primary font-button hover:text-primary-dark hover:underline text-xs sm:text-sm font-semibold transition-colors"
-            >
-              <span>Lihat Semua</span>
-              <span className="text-xs">→</span>
-            </Link>
-          )}
         </div>
       )}
 
       {/* Category Filter Pills (if enabled) */}
       {showCategoryFilter && (
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 mb-4 sm:mb-5">
-          {CATEGORIES.map(cat => {
+          {availableCategories.map(cat => {
             const isActive = activeCategory === cat;
             return (
               <button
@@ -167,8 +212,8 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
                 onClick={() => setActiveCategory(cat)}
                 className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-primary text-on-primary shadow-2xs'
-                    : 'bg-surface-variant/60 text-on-surface hover:bg-surface-variant border border-outline-variant/40'
+                    ? 'bg-[#c00015] text-white shadow-2xs'
+                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 border border-slate-200/80 dark:border-zinc-700'
                 }`}
               >
                 {cat}
@@ -178,17 +223,18 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
         </div>
       )}
 
-      {/* Responsive Layout: Grid atau Carousel */}
+      {/* Responsive Layout: Compact Horizontal Slider atau Gallery Grid */}
       {filteredReels.length === 0 ? (
-        <div className="py-12 text-center text-on-surface-variant text-sm border border-dashed border-outline-variant/60 rounded-xl">
+        <div className="py-10 text-center text-slate-400 text-xs border border-dashed border-slate-200 dark:border-zinc-800 rounded-xl">
           Belum ada video reels yang tersedia.
         </div>
       ) : (
         <div
+          ref={sliderRef}
           className={
             isGalleryPage
-              ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5'
-              : 'flex md:grid md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5 overflow-x-auto md:overflow-visible no-scrollbar snap-x snap-mandatory pb-2 md:pb-0'
+              ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3'
+              : 'flex gap-3 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-2'
           }
         >
           {filteredReels.map((reel) => {
@@ -204,8 +250,8 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
                 className={`relative ${
                   isGalleryPage
                     ? 'w-full'
-                    : 'w-[140px] sm:w-[180px] md:w-auto shrink-0 snap-start md:shrink md:snap-align-none'
-                } aspect-[9/16] rounded-xl sm:rounded-2xl overflow-hidden group cursor-pointer bg-zinc-950 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block select-none`}
+                    : 'w-[150px] sm:w-[165px] md:w-[175px] shrink-0 snap-start'
+                } aspect-[9/16] rounded-xl overflow-hidden group cursor-pointer bg-zinc-950 shadow-2xs hover:shadow-md transition-all duration-300 block select-none border border-slate-200/20`}
               >
                 {/* Image Poster */}
                 {/* eslint-disable-next-img-element */}
@@ -220,39 +266,40 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
                 />
 
                 {/* Dark Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/50 flex flex-col justify-between p-2.5 sm:p-3.5">
-                  {/* Top Row: Mini News Portal Badge & Social Media Icon */}
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white/95 bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded border border-white/15">
-                      Jurnal Wave
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-black/40 flex flex-col justify-between p-2 sm:p-2.5">
+                  {/* Top Row: Kategori (Selaras dengan Admin) & Badge Medsos */}
+                  <div className="flex items-center justify-between w-full z-10">
+                    <span className="text-[8px] sm:text-[9px] font-semibold tracking-wide text-white bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded border border-white/20 truncate max-w-[110px]">
+                      {!reel.category || reel.category === '-' ? 'Berita' : reel.category}
                     </span>
                     {renderPlatformBadge(reel)}
                   </div>
 
-                  {/* Center Hover Action Indicator */}
-                  <div className="flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white flex items-center justify-center scale-90 group-hover:scale-100 transition-transform shadow-xl">
-                      <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  {/* Center Play Button (Selaras 100% dengan Admin) */}
+                  <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                    <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white shadow-lg group-hover:scale-110 group-hover:bg-[#c00015] group-hover:border-[#c00015] transition-all duration-300">
+                      <Play className="w-4 h-4 fill-white text-white ml-0.5" />
                     </div>
                   </div>
 
-                  {/* Bottom Content: Creator & Title */}
-                  <div className="flex flex-col gap-1 z-10">
-                    {reel.creator && (
-                      <span className="text-[10px] sm:text-[11px] font-semibold text-white/80 line-clamp-1 drop-shadow-xs">
-                        {reel.creator}
-                      </span>
-                    )}
+                  {/* Bottom Content: Creator, Title & Lokasi (Selaras dengan Admin) */}
+                  <div className="flex flex-col gap-0.5 z-10">
+                    <div className="flex items-center justify-between text-[9px] text-white/80">
+                      {reel.creator && (
+                        <span className="font-semibold line-clamp-1">
+                          {reel.creator}
+                        </span>
+                      )}
+                      {reel.location && (
+                        <span className="text-[8px] text-white/70 truncate max-w-[70px]">
+                          {reel.location}
+                        </span>
+                      )}
+                    </div>
 
-                    <p className="text-white font-bold text-xs sm:text-[13px] md:text-sm leading-snug line-clamp-2 drop-shadow-sm group-hover:text-primary-light transition-colors">
+                    <p className="text-white font-bold text-[11px] sm:text-xs leading-snug line-clamp-2 drop-shadow-sm group-hover:text-red-200 transition-colors">
                       {reel.title}
                     </p>
-
-                    {reel.category && (
-                      <span className="inline-block text-[9px] uppercase font-extrabold tracking-wider text-amber-300 drop-shadow-xs pt-0.5">
-                        #{reel.category}
-                      </span>
-                    )}
                   </div>
                 </div>
               </a>

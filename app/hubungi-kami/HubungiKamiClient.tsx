@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Send, CheckCircle2, MessageCircle } from 'lucide-react';
 import { Article } from '@/types';
 
 export function HubungiKamiClient({ articles = [] }: { articles?: Article[] }) {
@@ -14,11 +14,33 @@ export function HubungiKamiClient({ articles = [] }: { articles?: Article[] }) {
     message: '',
   });
   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [lastWaUrl, setLastWaUrl] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
+
+    const targetPhone = '6282111651470';
+    const lines = [
+      `*Halo Tim Redaksi Jurnal Wave,*`,
+      `Saya ingin mengirim pesan/korespondensi melalui formulir website:`,
+      ``,
+      `• *Nama Lengkap:* ${formData.name}`,
+      `• *Alamat Email:* ${formData.email}`,
+      formData.phone ? `• *No. Telepon/WA:* ${formData.phone}` : null,
+      formData.subject ? `• *Kategori/Subjek:* ${formData.subject}` : null,
+      ``,
+      `*Isi Pesan:*`,
+      formData.message,
+    ].filter(Boolean);
+
+    const waUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(lines.join('\n'))}`;
+    setLastWaUrl(waUrl);
     setSubmitted(true);
+
+    if (typeof window !== 'undefined') {
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
@@ -60,11 +82,35 @@ export function HubungiKamiClient({ articles = [] }: { articles?: Article[] }) {
             <h2 className="text-sm font-bold uppercase tracking-wider text-primary border-b border-outline-variant dark:border-slate-800 pb-2 mb-3">
               Kontak &amp; Korespondensi
             </h2>
-            <div className="text-xs sm:text-sm space-y-1.5 text-on-surface/90 dark:text-gray-300">
-              <p>Telepon / WhatsApp: <strong>082111651470</strong> / <strong>081572738335</strong></p>
-              <p>Email Redaksi: <strong>redaksi@jurnalsukabumi.com</strong></p>
-              <p>Email Iklan &amp; Bisnis: <strong>iklan@jurnalsukabumi.com</strong></p>
-              <p>Email Umum: <strong>jurnal.smi@gmail.com</strong></p>
+            <div className="text-xs sm:text-sm space-y-2 text-on-surface/90 dark:text-gray-300">
+              <p>
+                Telepon / WhatsApp:{' '}
+                <a href="tel:082111651470" className="font-bold text-on-surface dark:text-white hover:text-primary hover:underline">
+                  082111651470
+                </a>
+                {' '}/{' '}
+                <a href="tel:081572738335" className="font-bold text-on-surface dark:text-white hover:text-primary hover:underline">
+                  081572738335
+                </a>
+              </p>
+              <p>
+                Email Redaksi:{' '}
+                <a href="mailto:redaksi@jurnalsukabumi.com" className="font-bold text-primary hover:underline">
+                  redaksi@jurnalsukabumi.com
+                </a>
+              </p>
+              <p>
+                Email Iklan &amp; Bisnis:{' '}
+                <a href="mailto:iklan@jurnalsukabumi.com" className="font-bold text-primary hover:underline">
+                  iklan@jurnalsukabumi.com
+                </a>
+              </p>
+              <p>
+                Email Umum:{' '}
+                <a href="mailto:jurnal.smi@gmail.com" className="font-bold text-primary hover:underline">
+                  jurnal.smi@gmail.com
+                </a>
+              </p>
             </div>
           </div>
         </div>
@@ -75,23 +121,41 @@ export function HubungiKamiClient({ articles = [] }: { articles?: Article[] }) {
             Kirim Pesan / Pengaduan Redaksi
           </h2>
           <p className="text-xs text-on-surface-variant dark:text-gray-400 mb-5">
-            Silakan kirimkan pertanyaan, hak jawab, rilis berita, atau informasi publik melalui formulir berikut.
+            Silakan kirimkan pertanyaan, hak jawab, rilis berita, atau informasi publik. Pesan akan diteruskan langsung ke WhatsApp resmi redaksi.
           </p>
 
           {submitted ? (
-            <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm">
-              <p className="font-bold mb-1">Pesan Anda Berhasil Terkirim</p>
-              <p className="text-xs">Terima kasih atas korespondensi Anda. Tim redaksi akan menindaklanjuti pesan Anda secepatnya.</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSubmitted(false);
-                  setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-                }}
-                className="mt-3 text-xs font-semibold text-emerald-700 dark:text-emerald-300 underline cursor-pointer"
-              >
-                Kirim pesan baru
-              </button>
+            <div className="p-5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-100 text-sm space-y-3">
+              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="w-5 h-5 shrink-0" />
+                <h3 className="font-bold text-base">Pesan Disiapkan ke WhatsApp Redaksi</h3>
+              </div>
+              <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-200 leading-relaxed">
+                WhatsApp resmi redaksi (<strong>0821-1165-1470</strong>) telah disiapkan dengan draf pesan Anda. Jika jendela chat belum terbuka secara otomatis, silakan klik tombol di bawah untuk melanjutkan:
+              </p>
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                {lastWaUrl && (
+                  <a
+                    href={lastWaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Lanjutkan Chat di WhatsApp</span>
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+                  }}
+                  className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:underline cursor-pointer"
+                >
+                  Tulis pesan baru
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
@@ -174,9 +238,10 @@ export function HubungiKamiClient({ articles = [] }: { articles?: Article[] }) {
 
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg text-xs sm:text-sm transition-colors cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg text-sm transition-colors cursor-pointer text-center"
               >
-                Kirim Pesan
+                <Send className="w-4 h-4" />
+                <span>Kirim Pesan ke WhatsApp Redaksi</span>
               </button>
             </form>
           )}

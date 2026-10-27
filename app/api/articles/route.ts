@@ -7,13 +7,29 @@ const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1544620347-c4f
 // Helper format artikel dari Prisma ke format Frontend
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapArticleFromDb(item: any) {
-  const cat = (item.category || '').toLowerCase().trim()
+  let cat = (item.category || '').toLowerCase().trim()
   const rawLabel = (item.categoryLabel || '').trim()
-  const upperLabel = rawLabel.toUpperCase()
 
+  if (cat === 'sains' || cat === 'sains & lingkungan') {
+    cat = 'science'
+  } else if (cat === 'kesehatan') {
+    cat = 'health'
+  }
+
+  const upperLabel = rawLabel.toUpperCase()
   const isInvalid = cat === 'infrastruktur' || upperLabel === 'INFRASTRUKTUR' || cat === 'lingkungan' || cat === 'pelayanan'
-  const finalCategory = isInvalid ? 'berita' : (item.category || 'berita')
-  const finalLabel = isInvalid ? 'BERITA' : (rawLabel && upperLabel !== 'INFRASTRUKTUR' ? rawLabel : finalCategory.toUpperCase())
+  const finalCategory = isInvalid ? 'berita' : (cat || 'berita')
+
+  let finalLabel = rawLabel
+  if (isInvalid) {
+    finalLabel = 'BERITA'
+  } else if (finalCategory === 'science' && (!rawLabel || upperLabel === 'SAINS' || upperLabel === 'SAINS & LINGKUNGAN' || upperLabel === 'SCIENCE')) {
+    finalLabel = 'Science'
+  } else if (finalCategory === 'health' && (!rawLabel || upperLabel === 'KESEHATAN' || upperLabel === 'HEALTH')) {
+    finalLabel = 'Health'
+  } else if (!rawLabel) {
+    finalLabel = finalCategory.toUpperCase()
+  }
 
   const safeImageUrl =
     item.imageUrl &&
@@ -33,6 +49,7 @@ function mapArticleFromDb(item: any) {
     categoryLabel: finalLabel,
     imageUrl: safeImageUrl,
     imageAlt: item.imageAlt || item.title,
+    imageCaption: item.imageAlt || undefined,
     author: item.author || 'Tim Redaksi',
     reporter: item.reporter || 'Redaksi Jurnal Wave',
     redaktur: item.redaktur || 'Redaksi Pelaksana',
@@ -43,15 +60,31 @@ function mapArticleFromDb(item: any) {
       item.badge && item.badge !== 'HOT' && item.badge !== 'VIRAL'
         ? item.badge
         : undefined,
-    subCategory:
-      item.badge && item.badge !== 'HOT' && item.badge !== 'VIRAL'
-        ? item.badge
-        : item.categoryLabel &&
-          item.categoryLabel.toLowerCase() !== finalCategory.toLowerCase() &&
-          item.categoryLabel !== 'HOT' &&
-          item.categoryLabel !== 'VIRAL'
-        ? item.categoryLabel
-        : undefined,
+    subCategory: (() => {
+      if (item.badge && item.badge !== 'HOT' && item.badge !== 'VIRAL') {
+        const b = item.badge.toLowerCase().trim()
+        if (b !== finalCategory && b !== finalLabel.toLowerCase()) return item.badge
+      }
+      if (
+        item.categoryLabel &&
+        item.categoryLabel !== 'HOT' &&
+        item.categoryLabel !== 'VIRAL'
+      ) {
+        const labelLower = item.categoryLabel.toLowerCase().trim()
+        const catLower = finalCategory.toLowerCase().trim()
+        const isSame =
+          labelLower === catLower ||
+          (catLower === 'tech' && (labelLower === 'teknologi' || labelLower === 'tech')) ||
+          (catLower === 'sport' && (labelLower === 'olahraga' || labelLower === 'sport')) ||
+          (catLower === 'science' && (labelLower === 'sains' || labelLower === 'science' || labelLower === 'sains & lingkungan')) ||
+          (catLower === 'health' && (labelLower === 'kesehatan' || labelLower === 'health')) ||
+          (catLower === 'berita' && labelLower === 'berita') ||
+          (catLower === 'lifestyle' && labelLower === 'lifestyle') ||
+          (catLower === 'loker' && (labelLower === 'loker' || labelLower === 'lowongan kerja'))
+        if (!isSame) return item.categoryLabel
+      }
+      return undefined
+    })(),
     publishedDate: item.publishedDate || new Date(item.createdAt).toLocaleDateString('id-ID'),
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
   }
@@ -79,7 +112,14 @@ export async function GET(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {}
     if (category && category !== 'semua') {
-      where.category = category
+      const catKey = category.toLowerCase().trim()
+      if (catKey === 'science' || catKey === 'sains' || catKey === 'sains & lingkungan') {
+        where.category = { in: ['science', 'sains'] }
+      } else if (catKey === 'health' || catKey === 'kesehatan') {
+        where.category = { in: ['health', 'kesehatan'] }
+      } else {
+        where.category = category
+      }
     }
 
     const dbArticles = await prisma.article.findMany({
@@ -134,9 +174,19 @@ export async function POST(request: NextRequest) {
     let rawCategory = (body.category || 'berita').toLowerCase().trim()
     let rawCategoryLabel = (body.categoryLabel || '').trim()
 
+    if (rawCategory === 'sains' || rawCategory === 'sains & lingkungan') {
+      rawCategory = 'science'
+    } else if (rawCategory === 'kesehatan') {
+      rawCategory = 'health'
+    }
+
     if (rawCategory === 'infrastruktur' || rawCategoryLabel.toUpperCase() === 'INFRASTRUKTUR' || !rawCategory) {
       rawCategory = 'berita'
       rawCategoryLabel = 'BERITA'
+    } else if (rawCategory === 'science' && (!rawCategoryLabel || rawCategoryLabel.toLowerCase() === 'sains' || rawCategoryLabel.toLowerCase() === 'sains & lingkungan')) {
+      rawCategoryLabel = 'Science'
+    } else if (rawCategory === 'health' && (!rawCategoryLabel || rawCategoryLabel.toLowerCase() === 'kesehatan')) {
+      rawCategoryLabel = 'Health'
     } else if (!rawCategoryLabel) {
       rawCategoryLabel = rawCategory.toUpperCase()
     }
@@ -152,7 +202,7 @@ export async function POST(request: NextRequest) {
         imageUrl:
           body.imageUrl?.trim() ||
           DEFAULT_FALLBACK_IMAGE,
-        imageAlt: body.imageAlt || body.title.trim(),
+        imageAlt: body.imageCaption?.trim() || body.imageAlt?.trim() || body.title.trim(),
         author: body.author || 'Tim Redaksi',
         reporter: body.reporter?.trim() || 'Redaksi Jurnal Wave',
         redaktur: body.redaktur?.trim() || 'Redaksi Pelaksana',
@@ -228,6 +278,9 @@ export async function PUT(request: NextRequest) {
     if (typeof body.imageUrl === 'string' && body.imageUrl.trim()) {
       updateData.imageUrl = body.imageUrl.trim()
     }
+    if (typeof body.imageCaption === 'string' || typeof body.imageAlt === 'string') {
+      updateData.imageAlt = (body.imageCaption || body.imageAlt || '').trim()
+    }
     if (typeof body.badge !== 'undefined') {
       updateData.badge = body.badge
     }
@@ -235,9 +288,19 @@ export async function PUT(request: NextRequest) {
       let editCategory = body.category.toLowerCase().trim()
       let editCategoryLabel = (body.categoryLabel || '').trim()
 
+      if (editCategory === 'sains' || editCategory === 'sains & lingkungan') {
+        editCategory = 'science'
+      } else if (editCategory === 'kesehatan') {
+        editCategory = 'health'
+      }
+
       if (editCategory === 'infrastruktur' || editCategoryLabel.toUpperCase() === 'INFRASTRUKTUR') {
         editCategory = 'berita'
         editCategoryLabel = 'BERITA'
+      } else if (editCategory === 'science' && (!editCategoryLabel || editCategoryLabel.toLowerCase() === 'sains' || editCategoryLabel.toLowerCase() === 'sains & lingkungan')) {
+        editCategoryLabel = 'Science'
+      } else if (editCategory === 'health' && (!editCategoryLabel || editCategoryLabel.toLowerCase() === 'kesehatan')) {
+        editCategoryLabel = 'Health'
       } else if (!editCategoryLabel) {
         editCategoryLabel = editCategory.toUpperCase()
       }

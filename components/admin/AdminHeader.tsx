@@ -11,6 +11,7 @@ import {
   ExternalLink,
   LogOut,
   AlertCircle,
+  CheckCircle2,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -137,6 +138,36 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   }
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
+        if (!hasPurgedV2) {
+          localStorage.removeItem('halo_jurnal_read_chats')
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i)
+            if (k && k.startsWith('halo_jurnal_chat_')) {
+              localStorage.removeItem(k)
+            }
+          }
+          localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
+        }
+
+        const hasPurged = localStorage.getItem('halo_jurnal_dummy_purged_v1')
+        if (!hasPurged) {
+          localStorage.removeItem('halo_jurnal_user_reports')
+          localStorage.removeItem('halo_jurnal_status_overrides')
+          localStorage.removeItem('halo_jurnal_read_chats')
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i)
+            if (k && k.startsWith('halo_jurnal_chat_')) {
+              localStorage.removeItem(k)
+            }
+          }
+          localStorage.setItem('halo_jurnal_dummy_purged_v1', 'true')
+        }
+      } catch {}
+    }
+
     checkChatNotifications(true)
     const handleStorage = () => checkChatNotifications(false)
     window.addEventListener('storage', handleStorage)
@@ -238,33 +269,6 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   const breadcrumb = getBreadcrumb()
   const isJurnalWaveSection = breadcrumb.section === 'Jurnal Wave'
   const showTulisBerita = isJurnalWaveSection && pathname !== '/halo-jurnal/admin/berita'
-
-  const defaultNotifications = [
-    {
-      id: 'notif-1',
-      title: 'Aduan Baru Masuk',
-      desc: 'Jalan Rusak di Cikole butuh verifikasi awal.',
-      time: '10 menit lalu',
-      type: 'urgent',
-      href: '/halo-jurnal/admin/laporan',
-    },
-    {
-      id: 'notif-2',
-      title: 'Pesan Warga Masuk',
-      desc: 'Warga membalas percakapan di Meja Redaksi.',
-      time: '25 menit lalu',
-      type: 'warning',
-      href: '/halo-jurnal/admin/chat',
-    },
-    {
-      id: 'notif-3',
-      title: 'Laporan Ditindaklanjuti',
-      desc: 'Dinas PU merespons aduan JS-20260728-5266.',
-      time: '2 jam lalu',
-      type: 'info',
-      href: '/halo-jurnal/admin/laporan',
-    },
-  ]
 
   return (
     <>
@@ -446,26 +450,14 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
                       </Link>
                     ))}
 
-                    {/* Notifikasi Sistem Default */}
-                    {defaultNotifications.map((n) => (
-                      <Link
-                        key={n.id}
-                        href={n.href}
-                        onClick={() => setShowNotifications(false)}
-                        className="block p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100/80 border border-slate-100 hover:border-slate-200 transition space-y-0.5"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
-                            {n.type === 'warning' && (
-                              <AlertCircle className="w-3 h-3 text-amber-600" />
-                            )}
-                            {n.title}
-                          </span>
-                          <span className="text-[10px] text-slate-400">{n.time}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-600 line-clamp-1">{n.desc}</p>
-                      </Link>
-                    ))}
+                    {/* Notifikasi Kosong jika belum ada */}
+                    {chatNotifications.length === 0 && (
+                      <div className="text-center py-6 text-slate-400 space-y-1">
+                        <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto" />
+                        <p className="text-xs font-semibold text-slate-700">Belum ada notifikasi baru</p>
+                        <p className="text-[10px] text-slate-400">Pemberitahuan laporan atau chat masuk akan tampil di sini.</p>
+                      </div>
+                    )}
                   </div>
 
                   <Link

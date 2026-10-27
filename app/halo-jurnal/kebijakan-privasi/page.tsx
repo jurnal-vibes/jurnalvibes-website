@@ -47,18 +47,18 @@ export default function HaloJurnalKebijakanPrivasiPage() {
             Untuk memastikan setiap pengaduan sah dan dapat ditindaklanjuti secara bertanggung jawab, sistem kami mengumpulkan sejumlah informasi pengguna:
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm text-secondary dark:text-gray-400 mt-3">
-            <li><strong>Data Akun:</strong> Nama lengkap, alamat email aktif, dan nomor WhatsApp untuk keperluan komunikasi tindak lanjut aduan.</li>
-            <li><strong>Verifikasi Identitas (KTP):</strong> Unggahan foto kartu identitas (KTP) yang murni digunakan sebagai validasi internal tim verifikator agar platform terhindar dari akun palsu atau laporan manipulatif.</li>
+            <li><strong>Data Akun Warga:</strong> Nama lengkap, alamat email aktif, dan nomor kontak untuk keperluan verifikasi serta tindak lanjut aduan.</li>
+            <li><strong>Integritas Akun:</strong> Autentikasi digital yang digunakan agar platform terhindar dari spam, akun bot palsu, atau laporan manipulatif.</li>
             <li><strong>Data Laporan Publik:</strong> Judul aduan, uraian kejadian, dokumentasi foto/video di lokasi, dan titik koordinat peta yang Anda tandai.</li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-            2. Kerahasiaan Dokumen KTP &amp; Identitas Sensitif
+            2. Kerahasiaan Data Akun &amp; Identitas Pribadi
           </h2>
           <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-4 rounded-r-lg text-sm text-on-surface dark:text-gray-300">
-            <strong>Jaminan Keamanan:</strong> Foto KTP dan nomor identitas pribadi Anda <strong>TIDAK PERNAH</strong> dipublikasikan ke Feed Publik, tidak dibagikan kepada khalayak umum, dan tidak diperjualbelikan kepada pihak ketiga manapun. Data tersebut disimpan dengan enkripsi khusus untuk kebutuhan validasi internal tim redaksi.
+            <strong>Jaminan Keamanan:</strong> Data kontak dan identitas akun pribadi Anda <strong>TIDAK PERNAH</strong> dipublikasikan ke Feed Publik, tidak dibagikan kepada khalayak umum, dan tidak diperjualbelikan kepada pihak ketiga manapun. Anda juga memiliki opsi pelaporan anonim untuk melindungi privasi Anda secara penuh.
           </div>
         </section>
 

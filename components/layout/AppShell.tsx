@@ -4,7 +4,6 @@ import React from 'react'
 import { usePathname } from 'next/navigation'
 import { HeaderNav } from './HeaderNav'
 import { Footer } from './Footer'
-import { BottomNav } from './BottomNav'
 import { ChatbotButton } from '../ui/ChatbotButton'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -29,7 +28,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <HeaderNav />
       {children}
       <Footer />
-      <BottomNav />
       <ChatbotButton />
     </>
   )

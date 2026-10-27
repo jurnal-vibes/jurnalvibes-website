@@ -52,6 +52,13 @@ export const ChatbotButton: React.FC = () => {
     };
   }, [isChatOpen]);
 
+  // Listen for open-jurnal-wave-ai event from mobile menu or elsewhere
+  useEffect(() => {
+    const handleOpenAi = () => setIsChatOpen(true);
+    window.addEventListener('open-jurnal-wave-ai', handleOpenAi);
+    return () => window.removeEventListener('open-jurnal-wave-ai', handleOpenAi);
+  }, []);
+
   // Auto scroll chat to bottom when messages update or AI is typing
   useEffect(() => {
     if (isChatOpen) {
@@ -228,23 +235,23 @@ export const ChatbotButton: React.FC = () => {
             onClick={() => setIsChatOpen(false)}
           />
           <div className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[400px] md:w-[430px] h-screen bg-surface dark:bg-slate-900 shadow-2xl border-l border-outline-variant/60 dark:border-slate-800 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
-            {/* 1. Header Chat */}
-            <div className="bg-primary text-white p-4 flex items-center justify-between shadow-md shrink-0">
+            {/* 1. Header Chat (Elegan, Sejuk di Mata, & Modern di Mobile & Desktop) */}
+            <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3.5 sm:p-4 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 shadow-xs shrink-0 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center shrink-0">
                   <img
                     src="/chatbot-full-logo.webp"
                     alt="Jurnal Wave AI"
-                    className="h-10 w-auto object-contain drop-shadow-md"
+                    className="h-9 sm:h-10 w-auto object-contain drop-shadow-sm"
                   />
                 </div>
                 <div className="flex flex-col">
-                  <h3 className="font-button text-sm font-bold leading-tight flex items-center gap-1.5">
+                  <h3 className="font-button text-sm font-bold leading-tight flex items-center gap-1.5 text-slate-900 dark:text-white">
                     Jurnal Wave AI
                   </h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-emerald-400/30 animate-pulse shrink-0" />
-                    <span className="text-[11px] text-white/90 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 animate-pulse shrink-0" />
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       Online &amp; Siap Membantu
                     </span>
                   </div>
@@ -254,14 +261,14 @@ export const ChatbotButton: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="text-xs font-semibold text-white/85 hover:text-white px-2.5 py-1 rounded-md hover:bg-white/15 transition-colors cursor-pointer"
+                  className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                   title="Reset Percakapan"
                 >
                   Reset
                 </button>
                 <button
                   onClick={() => setIsChatOpen(false)}
-                  className="text-white/80 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                  className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                   title="Tutup Chat"
                 >
                   <X className="w-5 h-5" />
@@ -270,7 +277,7 @@ export const ChatbotButton: React.FC = () => {
             </div>
 
             {/* 2. Area Percakapan (Body Chat) */}
-            <div className="flex-1 p-4 overflow-y-auto bg-surface-container-lowest dark:bg-slate-950/60 flex flex-col gap-3 text-sm">
+            <div className="flex-1 p-3.5 sm:p-4 overflow-y-auto bg-slate-50/90 dark:bg-slate-950/60 flex flex-col gap-3 text-sm">
               {messages.map(msg => (
                 <div
                   key={msg.id}
@@ -279,10 +286,10 @@ export const ChatbotButton: React.FC = () => {
                   }`}
                 >
                   <div
-                    className={`px-4 py-2.5 rounded-2xl shadow-xs text-xs sm:text-sm leading-relaxed ${
+                    className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-xs text-xs sm:text-sm leading-relaxed ${
                       msg.sender === 'user'
-                        ? 'bg-primary text-on-primary rounded-br-none font-medium'
-                        : 'bg-surface-container dark:bg-slate-800 text-on-surface rounded-bl-none border border-outline-variant dark:border-slate-700'
+                        ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-br-none font-medium'
+                        : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200/80 dark:border-slate-700 shadow-2xs'
                     }`}
                   >
                     {renderFormattedText(msg.text)}
@@ -292,10 +299,10 @@ export const ChatbotButton: React.FC = () => {
 
               {/* Typing Indicator */}
               {isAiTyping && (
-                <div className="self-start flex items-center gap-1.5 px-4 py-3 rounded-2xl rounded-bl-none bg-surface-container dark:bg-slate-800 border border-outline-variant dark:border-slate-700 shadow-xs">
-                  <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce [animation-delay:-0.3s]" />
-                  <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce [animation-delay:-0.15s]" />
-                  <span className="w-2 h-2 rounded-full bg-primary/70 animate-bounce" />
+                <div className="self-start flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl rounded-bl-none bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" />
                 </div>
               )}
 
@@ -303,11 +310,11 @@ export const ChatbotButton: React.FC = () => {
             </div>
 
             {/* Quick Action Chips (Berjejer ke Samping di Bawah) */}
-            <div className="px-3 pt-2.5 pb-1.5 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0 bg-surface dark:bg-slate-900 border-t border-outline-variant/30 dark:border-slate-800">
+            <div className="px-3 pt-2.5 pb-1.5 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800">
               <Link
                 href="/halo-jurnal"
                 onClick={() => setIsChatOpen(false)}
-                className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors shrink-0 whitespace-nowrap cursor-pointer"
+                className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors shrink-0 whitespace-nowrap cursor-pointer"
               >
                 <span>Hallo Jurnal</span>
               </Link>
@@ -315,35 +322,35 @@ export const ChatbotButton: React.FC = () => {
               <button
                 onClick={() => handleSendMessage('Rekomendasi kuliner Cikole Sukabumi')}
                 disabled={isAiTyping}
-                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer disabled:opacity-50"
+                className="bg-slate-100 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50"
               >
                 Kuliner Cikole
               </button>
               <button
                 onClick={() => handleSendMessage('Berita terbaru Sukabumi hari ini')}
                 disabled={isAiTyping}
-                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer disabled:opacity-50"
+                className="bg-slate-100 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50"
               >
                 Berita Terbaru
               </button>
               <button
                 onClick={() => handleSendMessage('Info lowongan kerja Sukabumi terbaru')}
                 disabled={isAiTyping}
-                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer disabled:opacity-50"
+                className="bg-slate-100 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50"
               >
                 Info Loker
               </button>
               <button
                 onClick={() => handleSendMessage('Bagaimana cara membuat laporan di Halo Jurnal?')}
                 disabled={isAiTyping}
-                className="bg-surface-container-high hover:bg-primary hover:text-white text-on-surface px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 whitespace-nowrap border border-outline-variant dark:border-slate-700 cursor-pointer disabled:opacity-50"
+                className="bg-slate-100 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50"
               >
                 Cara Lapor Aduan
               </button>
             </div>
 
             {/* 3. Footer Chat (Input Area) */}
-            <div className="p-3 sm:p-4 bg-surface dark:bg-slate-900 border-t border-outline-variant/30 dark:border-slate-800 shrink-0">
+            <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 shrink-0">
               <form
                 onSubmit={e => {
                   e.preventDefault();
@@ -357,20 +364,20 @@ export const ChatbotButton: React.FC = () => {
                   onChange={e => setInputText(e.target.value)}
                   placeholder={isAiTyping ? 'AI sedang merespons...' : 'Tanya sesuatu...'}
                   disabled={isAiTyping}
-                  className="flex-1 bg-surface-container dark:bg-slate-800 rounded-xl px-4 py-2.5 border border-outline-variant dark:border-slate-700 focus:border-primary outline-none text-xs sm:text-sm text-on-surface placeholder:text-on-surface-variant/50 transition-colors disabled:opacity-60"
+                  className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-xl px-4 py-2 sm:py-2.5 border border-slate-200/90 dark:border-slate-700 focus:border-slate-400 outline-none text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors disabled:opacity-60"
                 />
                 <button
                   type="submit"
                   disabled={!inputText.trim() || isAiTyping}
                   className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
                     inputText.trim() && !isAiTyping
-                      ? 'bg-primary text-on-primary border-primary hover:scale-105 shadow-xs'
-                      : 'bg-surface-container dark:bg-slate-800 text-on-surface-variant/40 border-outline-variant dark:border-slate-700 cursor-not-allowed'
+                      ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100 hover:scale-105 shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 border-slate-200 dark:border-slate-700 cursor-not-allowed'
                   }`}
                   title="Kirim pesan"
                 >
                   {isAiTyping ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
@@ -381,15 +388,15 @@ export const ChatbotButton: React.FC = () => {
         </>
       )}
 
-      {/* Main Floating Action Button (Full Illustration Image) */}
+      {/* Main Floating Action Button (Sama Persis Web & HP) */}
       {!isChatOpen && (
         <div
           className={`fixed right-4 sm:right-8 z-40 flex flex-col items-end transition-all duration-300 ${
-            hasActiveAudio ? 'bottom-36 sm:bottom-24' : 'bottom-20 sm:bottom-8'
+            hasActiveAudio ? 'bottom-28 sm:bottom-24' : 'bottom-5 sm:bottom-8'
           }`}
         >
           <button
-            aria-label="Tanya AI"
+            aria-label="Tanya Jurnal Wave AI"
             onClick={() => setIsChatOpen(true)}
             className="relative transition-all duration-300 hover:scale-110 active:scale-95 group cursor-pointer focus:outline-none"
             title="Tanya Jurnal Wave AI"

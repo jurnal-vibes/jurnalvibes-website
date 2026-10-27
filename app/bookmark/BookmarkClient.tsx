@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Bookmark, Trash2, ArrowRight } from 'lucide-react';
 import { Article } from '@/types';
+import { formatIndoDate } from '@/lib/utils';
 
 export function BookmarkClient({ initialArticles = [] }: { initialArticles?: Article[] }) {
   const [allArticles] = useState<Article[]>(initialArticles);
@@ -155,7 +156,7 @@ export function BookmarkClient({ initialArticles = [] }: { initialArticles?: Art
                       {article.excerpt}
                     </p>
                     <span className="text-[10px] text-on-surface-variant/80">
-                      {article.publishedDate || '2026'}
+                      {formatIndoDate(article.createdAt || article.publishedDate)}
                     </span>
                   </div>
                 </div>

@@ -14,17 +14,36 @@ import {
   MapPin,
   Tag,
   BarChart3,
+  ShieldCheck,
+  Inbox,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
 
 export default function AdminHaloJurnalDashboardPage() {
   const [reportsList, setReportsList] = useState<DummyReport[]>([])
-  const [statusFilter, setStatusFilter] = useState<string>('aktif')
+  const [statusFilter, setStatusFilter] = useState<string>('semua')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [unreadChatCount, setUnreadChatCount] = useState<number>(0)
 
   useEffect(() => {
     let isMounted = true
+
+    // Pembersihan otomatis sisa-sisa cache percakapan lama di browser
+    if (typeof window !== 'undefined') {
+      try {
+        const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
+        if (!hasPurgedV2) {
+          localStorage.removeItem('halo_jurnal_read_chats')
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i)
+            if (k && k.startsWith('halo_jurnal_chat_')) {
+              localStorage.removeItem(k)
+            }
+          }
+          localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
+        }
+      } catch {}
+    }
 
     const loadReports = async () => {
       try {
@@ -111,14 +130,12 @@ export default function AdminHaloJurnalDashboardPage() {
     return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase()
   }
 
-  // Metrics
+  // Metrics Resmi Sinkron dengan Alur Tiket & Warga
   const totalReports = reportsList.length
-  const pendingReports = reportsList.filter((r) => r.status === 'diterima').length
-  const inProgressReports = reportsList.filter(
-    (r) => r.status === 'diproses' || r.status === 'ditindaklanjuti'
-  ).length
-  const completedReports = reportsList.filter((r) => r.status === 'selesai').length
-  const activeReportsCount = pendingReports + inProgressReports
+  const diterimaReports = reportsList.filter((r) => r.status === 'diterima').length
+  const diprosesReports = reportsList.filter((r) => r.status === 'diproses').length
+  const ditindaklanjutiReports = reportsList.filter((r) => r.status === 'ditindaklanjuti').length
+  const selesaiReports = reportsList.filter((r) => r.status === 'selesai').length
 
   // Sebaran Isu Warga (Top Kategori Masalah)
   const categoryStats = useMemo(() => {
@@ -137,16 +154,10 @@ export default function AdminHaloJurnalDashboardPage() {
       .sort((a, b) => b.count - a.count)
   }, [reportsList])
 
-  // Filtered reports untuk tabel operasional aktif
+  // Filtered reports untuk tabel operasional resmi
   const filteredReports = useMemo(() => {
     return reportsList.filter((item) => {
-      if (statusFilter === 'aktif') {
-        if (item.status !== 'diterima' && item.status !== 'diproses' && item.status !== 'ditindaklanjuti') {
-          return false
-        }
-      } else if (statusFilter === 'diproses') {
-        if (item.status !== 'diproses' && item.status !== 'ditindaklanjuti') return false
-      } else if (statusFilter !== 'semua') {
+      if (statusFilter !== 'semua') {
         if (item.status !== statusFilter) return false
       }
 
@@ -162,12 +173,49 @@ export default function AdminHaloJurnalDashboardPage() {
     })
   }, [reportsList, statusFilter, searchQuery])
 
-  // Status Badge Bersih Tanpa Titik & Tanpa Kurung Siku
-  const renderStatusBadge = (status: DummyReport['status']) => {
+  // Status Badge Bersih
+  const renderStatusBadge = (status: DummyReport['status'], jenisOrKategori?: string) => {
+    const isStory = (jenisOrKategori || '').toLowerCase().includes('inspirasi')
+    if (isStory) {
+      if (status === 'selesai') {
+        return (
+          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Disetujui & Tayang
+          </span>
+        )
+      }
+      if (status === 'ditindaklanjuti') {
+        return (
+          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-300">
+            🌟 Liputan Berita
+          </span>
+        )
+      }
+      if (status === 'diproses') {
+        return (
+          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+            Sedang Dikurasi
+          </span>
+        )
+      }
+      if (status === 'ditolak') {
+        return (
+          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+            Tidak Lolos
+          </span>
+        )
+      }
+      return (
+        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
+          Menunggu Kurasi
+        </span>
+      )
+    }
+
     const labels: Record<string, string> = {
-      diterima: 'Perlu Verifikasi',
+      diterima: 'Diterima',
       diproses: 'Diproses',
-      ditindaklanjuti: 'Diproses',
+      ditindaklanjuti: 'Ditindaklanjuti',
       selesai: 'Selesai',
       ditolak: 'Ditolak',
     }
@@ -217,9 +265,9 @@ export default function AdminHaloJurnalDashboardPage() {
         </div>
       </div>
 
-      {/* 2. Empat Kartu Metrik Halo Jurnal (Elegan & Tenang Tanpa Warna Norak) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
+      {/* 2. Lima Kartu Metrik Halo Jurnal (Sinkron 1-to-1 dengan Alur Tiket & Warga) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Total Aduan
@@ -232,43 +280,56 @@ export default function AdminHaloJurnalDashboardPage() {
           <p className="text-[11px] text-slate-500">Semua laporan warga</p>
         </div>
 
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Perlu Verifikasi
+              Diterima
             </span>
-            <AlertCircle className="w-4 h-4 text-slate-400" />
+            <Inbox className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {pendingReports}
+            {diterimaReports}
           </p>
-          <p className="text-[11px] text-slate-500">Menunggu tinjauan awal</p>
+          <p className="text-[11px] text-slate-500">Menunggu verifikasi awal</p>
         </div>
 
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Sedang Diproses
+              Diproses
             </span>
             <Clock className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {inProgressReports}
+            {diprosesReports}
           </p>
-          <p className="text-[11px] text-slate-500">Ditangani tim lapangan</p>
+          <p className="text-[11px] text-slate-500">Pemeriksaan & investigasi</p>
         </div>
 
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Selesai Tuntas
+              Ditindaklanjuti
+            </span>
+            <ShieldCheck className="w-4 h-4 text-slate-400" />
+          </div>
+          <p className="text-2xl font-extrabold font-heading text-slate-900">
+            {ditindaklanjutiReports}
+          </p>
+          <p className="text-[11px] text-slate-500">Penanganan dinas/instansi</p>
+        </div>
+
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 col-span-2 sm:col-span-1">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Selesai
             </span>
             <CheckCircle2 className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {completedReports}
+            {selesaiReports}
           </p>
-          <p className="text-[11px] text-slate-500">Aduan tuntas diselesaikan</p>
+          <p className="text-[11px] text-slate-500">Laporan tuntas diselesaikan</p>
         </div>
       </div>
 
@@ -320,16 +381,17 @@ export default function AdminHaloJurnalDashboardPage() {
         </div>
       </div>
 
-      {/* 4. Panel Tabel Aduan Aktif Membutuhkan Tindakan */}
+      {/* 4. Panel Tabel Aduan Sinkron dengan Alur Tiket & Warga */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
         {/* Filter Bar */}
         <div className="p-3.5 sm:p-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             {[
-              { key: 'aktif', label: `Aduan Aktif (${activeReportsCount})` },
-              { key: 'diterima', label: `Perlu Verifikasi (${pendingReports})` },
-              { key: 'diproses', label: `Sedang Diproses (${inProgressReports})` },
-              { key: 'semua', label: `Semua Riwayat (${totalReports})` },
+              { key: 'semua', label: `Total Aduan (${totalReports})` },
+              { key: 'diterima', label: `Diterima (${diterimaReports})` },
+              { key: 'diproses', label: `Diproses (${diprosesReports})` },
+              { key: 'ditindaklanjuti', label: `Ditindaklanjuti (${ditindaklanjutiReports})` },
+              { key: 'selesai', label: `Selesai (${selesaiReports})` },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -403,7 +465,7 @@ export default function AdminHaloJurnalDashboardPage() {
                       )}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      {renderStatusBadge(rep.status)}
+                      {renderStatusBadge(rep.status, (rep as any).jenis || rep.kategori)}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap text-slate-500 text-[11px]">
                       {new Date(rep.created_at).toLocaleDateString('id-ID', {

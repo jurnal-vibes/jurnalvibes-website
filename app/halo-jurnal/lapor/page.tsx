@@ -22,6 +22,7 @@ import {
   Image as ImageIcon,
   User,
   ShieldCheck,
+  LogIn,
 } from 'lucide-react'
 
 type ReportType = 'pengaduan' | 'aspirasi' | 'informasi' | 'inspirasi'
@@ -140,7 +141,9 @@ function LaporForm() {
 
   // Form State
   const [category, setCategory] = useState('')
+  const [customCategory, setCustomCategory] = useState('')
   const [instansi, setInstansi] = useState('')
+  const [customInstansi, setCustomInstansi] = useState('')
   const [jenisInformasi, setJenisInformasi] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -166,20 +169,35 @@ function LaporForm() {
         const stored = localStorage.getItem('halo_jurnal_current_user')
         if (stored) {
           try {
-            setUser(JSON.parse(stored))
-            return
+            const parsed = JSON.parse(stored)
+            if (
+              parsed &&
+              (parsed.id === 'demo-user-id' ||
+                parsed.id === 'warga-demo' ||
+                parsed.email === 'warga@sukabumi.com' ||
+                (typeof parsed.id === 'string' && parsed.id.startsWith('warga-17')))
+            ) {
+              localStorage.removeItem('halo_jurnal_current_user')
+            } else {
+              setUser(parsed)
+              return
+            }
           } catch {}
         }
       }
-      setUser({ id: 'demo-user-id', email: 'warga@sukabumi.com' })
+      setUser(null)
     }
     checkUser()
+    window.addEventListener('storage', checkUser)
+    return () => window.removeEventListener('storage', checkUser)
   }, [])
 
   const handleTabChange = (newType: ReportType) => {
     setActiveType(newType)
     setCategory('')
+    setCustomCategory('')
     setInstansi('')
+    setCustomInstansi('')
     setJenisInformasi('')
     router.push(`/halo-jurnal/lapor?type=${newType}`, { scroll: false })
   }
@@ -303,7 +321,14 @@ function LaporForm() {
       const random4 = Math.floor(1000 + Math.random() * 9000)
       const ticketNumber = `JS-${yyyy}${mm}${dd}-${random4}`
 
-      const finalKategori = reportType === 'informasi' ? jenisInformasi : category
+      let finalKategori = reportType === 'informasi' ? jenisInformasi : category
+      if (finalKategori === 'Lainnya' && customCategory.trim()) {
+        finalKategori = customCategory.trim()
+      }
+      let finalInstansi = instansi
+      if (reportType === 'informasi' && finalInstansi === 'Lainnya' && customInstansi.trim()) {
+        finalInstansi = customInstansi.trim()
+      }
 
       const newReportId = `lap-sukabumi-${Date.now()}`
       const pelaporDisplayName = user?.user_metadata?.full_name || user?.full_name || user?.email?.split('@')[0] || 'Warga Sukabumi'
@@ -331,8 +356,8 @@ function LaporForm() {
         lokasi: locationData.address || (reportType === 'inspirasi' ? 'Sukabumi' : ''),
         latitude: locationData.lat,
         longitude: locationData.lng,
-        instansi_tujuan: reportType === 'informasi' ? instansi : null,
-        jenis_informasi: reportType === 'informasi' ? jenisInformasi : null,
+        instansi_tujuan: reportType === 'informasi' ? finalInstansi : null,
+        jenis_informasi: reportType === 'informasi' ? finalKategori : null,
         status: 'diterima',
         is_public: false,
         dukungan_count: 0,
@@ -360,7 +385,10 @@ function LaporForm() {
             ticketNumber,
             title,
             description,
-            reportType,
+            reportType: finalKategori,
+            category: finalKategori,
+            kategori: finalKategori,
+            jenis: reportType,
             address: locationData.address || '',
             latitude: locationData.lat || null,
             longitude: locationData.lng || null,
@@ -437,8 +465,8 @@ function LaporForm() {
         <p className="text-secondary text-xs sm:text-sm leading-relaxed">{config.headerDesc}</p>
       </div>
 
-      {/* Type Tabs */}
-      <div className="flex items-center justify-start gap-2 mb-8 overflow-x-auto no-scrollbar py-1">
+      {/* Type Tabs: Pas 4 kolom penuh di mobile tanpa perlu digeser ke kanan */}
+      <div className="grid grid-cols-4 gap-1 sm:gap-2 p-1 sm:p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl mb-8 border border-slate-200/80 dark:border-slate-700/60 max-w-2xl">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = reportType === tab.type
@@ -447,14 +475,16 @@ function LaporForm() {
               key={tab.type}
               type="button"
               onClick={() => handleTabChange(tab.type)}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer select-none shrink-0 ${
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-1 sm:px-3 rounded-xl font-bold tracking-tight transition-all duration-200 cursor-pointer select-none text-center ${
                 isActive
                   ? 'bg-primary text-white shadow-xs'
-                  : 'bg-surface border border-outline-variant/80 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+                  : 'text-secondary hover:text-on-surface hover:bg-white/70 dark:hover:bg-slate-700/50'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
+              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="text-[10px] sm:text-xs md:text-sm leading-tight">
+                {tab.label}
+              </span>
             </button>
           )
         })}
@@ -470,64 +500,121 @@ function LaporForm() {
           >
             {/* Conditional: Instansi for Informasi */}
             {reportType === 'informasi' && (
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                  Instansi / Lembaga Tujuan <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={instansi}
-                  onChange={(e) => setInstansi(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary"
-                  required
-                >
-                  <option value="">-- Pilih Instansi Terkait --</option>
-                  {instansiList.map((ins) => (
-                    <option key={ins} value={ins}>
-                      {ins}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
+                    Instansi / Lembaga Tujuan <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={instansi}
+                    onChange={(e) => setInstansi(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer"
+                    required
+                  >
+                    <option value="">-- Pilih Instansi Terkait --</option>
+                    {instansiList.map((ins) => (
+                      <option key={ins} value={ins}>
+                        {ins}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {instansi === 'Lainnya' && (
+                  <div className="space-y-1.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <label className="block text-xs font-bold text-on-surface">
+                      Sebutkan Nama Instansi / Lembaga Lainnya <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customInstansi}
+                      onChange={(e) => setCustomInstansi(e.target.value)}
+                      placeholder="Contoh: Kantor Pertanahan/BPN, Kemenag, Bawaslu..."
+                      className="w-full px-4 py-2 bg-white border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
+                      required
+                    />
+                  </div>
+                )}
               </div>
             )}
 
             {/* Conditional: Jenis Informasi vs Category */}
             {reportType === 'informasi' ? (
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                  Jenis Informasi yang Diminta <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={jenisInformasi}
-                  onChange={(e) => setJenisInformasi(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary"
-                  required
-                >
-                  <option value="">-- Pilih Jenis Informasi --</option>
-                  {jenisInformasiList.map((jenis) => (
-                    <option key={jenis} value={jenis}>
-                      {jenis}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
+                    Jenis Informasi yang Diminta <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={jenisInformasi}
+                    onChange={(e) => setJenisInformasi(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer"
+                    required
+                  >
+                    <option value="">-- Pilih Jenis Informasi --</option>
+                    {jenisInformasiList.map((jenis) => (
+                      <option key={jenis} value={jenis}>
+                        {jenis}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {jenisInformasi === 'Lainnya' && (
+                  <div className="space-y-1.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <label className="block text-xs font-bold text-on-surface">
+                      Sebutkan Topik Informasi yang Diminta <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customCategory}
+                      onChange={(e) => setCustomCategory(e.target.value)}
+                      placeholder="Contoh: Rincian Anggaran Beasiswa Daerah..."
+                      className="w-full px-4 py-2 bg-white border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
+                      required
+                    />
+                  </div>
+                )}
               </div>
             ) : (
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                  Kategori <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary"
-                  required
-                >
-                  <option value="">-- Pilih Kategori --</option>
-                  {config.categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
+                    Kategori <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer"
+                    required
+                  >
+                    <option value="">-- Pilih Kategori --</option>
+                    {config.categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {category === 'Lainnya' && (
+                  <div className="space-y-1.5 p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/25 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <label className="block text-xs font-bold text-on-surface">
+                      Sebutkan Kategori / Topik Laporan Anda <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customCategory}
+                      onChange={(e) => setCustomCategory(e.target.value)}
+                      placeholder="Contoh: Pendidikan Sekolah, Sengketa Lahan, Bantuan Sosial..."
+                      className="w-full px-4 py-2 bg-white border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
+                      required
+                    />
+                    <p className="text-[11px] text-secondary">
+                      Tuliskan topik masalah secara spesifik agar tim redaksi dapat meneruskannya ke dinas yang tepat.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -657,24 +744,42 @@ function LaporForm() {
               </div>
 
               {/* Data Pelapor */}
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-secondary border-b border-outline-variant/50">
-                <div>
-                  <span className="block text-[11px] text-secondary">Nama Lengkap:</span>
-                  <span className="text-on-surface font-semibold text-xs">{user?.user_metadata?.full_name || user?.full_name || 'Warga Sukabumi'}</span>
+              {user ? (
+                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-secondary border-b border-outline-variant/50">
+                  <div>
+                    <span className="block text-[11px] text-secondary">Nama Lengkap:</span>
+                    <span className="text-on-surface font-semibold text-xs">{user?.user_metadata?.full_name || user?.full_name || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] text-secondary">No. WhatsApp / HP:</span>
+                    <span className="text-on-surface font-semibold text-xs">{user?.phone || user?.phone_number || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] text-secondary">Alamat Email:</span>
+                    <span className="text-on-surface font-semibold text-xs">{user?.email || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] text-secondary">Alamat Domisili:</span>
+                    <span className="text-on-surface font-semibold text-xs">{user?.alamat_domisili || user?.detail_alamat || '-'}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="block text-[11px] text-secondary">No. WhatsApp / HP:</span>
-                  <span className="text-on-surface font-semibold text-xs">{user?.phone || user?.phone_number || '-'}</span>
+              ) : (
+                <div className="p-4 bg-amber-500/10 border-b border-outline-variant/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="font-bold text-amber-900 dark:text-amber-200 block text-xs">Anda Belum Masuk ke Akun Warga</span>
+                    <span className="text-[11px] text-amber-800/80 dark:text-amber-300/80 block mt-0.5">
+                      Identitas pelapor resmi dibutuhkan untuk verifikasi aduan oleh tim redaksi.
+                    </span>
+                  </div>
+                  <Link
+                    href="/login?redirect=/halo-jurnal/lapor"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary hover:bg-primary-dark text-white text-xs font-semibold shrink-0 shadow-2xs transition"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>Masuk Akun</span>
+                  </Link>
                 </div>
-                <div>
-                  <span className="block text-[11px] text-secondary">Alamat Email:</span>
-                  <span className="text-on-surface font-semibold text-xs">{user?.email || '-'}</span>
-                </div>
-                <div>
-                  <span className="block text-[11px] text-secondary">Alamat Domisili:</span>
-                  <span className="text-on-surface font-semibold text-xs">{user?.alamat_domisili || user?.detail_alamat || 'Sukabumi'}</span>
-                </div>
-              </div>
+              )}
 
               {/* Ketentuan Privasi & Checkbox Legal */}
               <div className="p-4 space-y-3 bg-surface-container-lowest">
@@ -713,23 +818,35 @@ function LaporForm() {
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading || !file || !legalAgreed}
-              className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Mengirim Laporan...</span>
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  <span>{config.submitText}</span>
-                </>
-              )}
-            </button>
+            {!user ? (
+              <div className="pt-2">
+                <Link
+                  href="/login?redirect=/halo-jurnal/lapor"
+                  className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Masuk untuk Mengirim Laporan</span>
+                </Link>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                disabled={loading || !file || !legalAgreed}
+                className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Mengirim Laporan...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>{config.submitText}</span>
+                  </>
+                )}
+              </button>
+            )}
             {!file && (
               <p className="text-[11px] text-center text-primary font-medium">
                 * Wajib mengunggah minimal 1 file foto/video bukti untuk membuka tombol kirim.
@@ -796,14 +913,25 @@ function LaporForm() {
               </h3>
 
               {/* Deskripsi Laporan */}
-              <p
-                className={`text-xs sm:text-sm leading-relaxed line-clamp-3 ${
+              <div
+                className={`text-xs sm:text-sm leading-relaxed text-justify [text-align-last:left] space-y-2 ${
                   description.trim() ? 'text-secondary' : 'text-secondary/40 italic'
                 }`}
               >
-                {description.trim() ||
-                  'Detail dan kronologi kejadian yang Anda tulis akan ditampilkan di sini.'}
-              </p>
+                {description.trim() ? (
+                  description
+                    .split(/\n+/)
+                    .map((p: string) => p.trim())
+                    .filter(Boolean)
+                    .map((paragraf: string, idx: number) => (
+                      <p key={idx} className="leading-relaxed">
+                        {paragraf}
+                      </p>
+                    ))
+                ) : (
+                  <p>Detail dan kronologi kejadian yang Anda tulis akan ditampilkan di sini.</p>
+                )}
+              </div>
 
               {/* Lokasi Kejadian */}
               <div className="flex items-center gap-1.5 text-xs text-primary font-medium pt-1">

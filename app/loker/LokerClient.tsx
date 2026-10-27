@@ -22,11 +22,14 @@ export function LokerClient({ articles = [] }: { articles?: Article[] }) {
           if (saved) {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setJobs(parsed);
-              return;
+              const hasOldDummy = parsed.some((j: any) => j.company === 'PT Sukabumi Indo Prima');
+              if (!hasOldDummy) {
+                setJobs(parsed);
+                return;
+              }
             }
           }
-          // Seed localStorage with initial DUMMY_JOBS if empty
+          // Seed localStorage with fresh staggered DUMMY_JOBS
           localStorage.setItem('jurnal_wave_jobs', JSON.stringify(DUMMY_JOBS));
           setJobs(DUMMY_JOBS);
         } catch {}
@@ -124,7 +127,7 @@ export function LokerClient({ articles = [] }: { articles?: Article[] }) {
         {/* Job Cards Grid or Empty State */}
         {visibleJobs.length > 0 ? (
           <>
-            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${hasMore ? 'mb-6 sm:mb-8' : ''}`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 ${hasMore ? 'mb-6 sm:mb-8' : ''}`}>
               {visibleJobs.map(job => (
                 <JobCard key={job.id} job={job} />
               ))}

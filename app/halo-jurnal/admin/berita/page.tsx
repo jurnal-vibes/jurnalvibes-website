@@ -24,6 +24,41 @@ import {
 } from 'lucide-react'
 import { Article, ArticleCategory } from '@/types'
 
+// Daftar Kategori Resmi Jurnal Wave beserta nama tampilannya
+const CATEGORY_DISPLAY_MAP: Record<string, string> = {
+  berita: 'Berita',
+  lifestyle: 'Lifestyle',
+  loker: 'Lowongan Kerja',
+  otomotif: 'Otomotif',
+  sport: 'Sport & E-Sport',
+  tech: 'Teknologi',
+  science: 'Science',
+  health: 'Health',
+  kuliner: 'Kuliner',
+  wisata: 'Wisata',
+  hiburan: 'Hiburan & Seni',
+}
+
+const OFFICIAL_CATEGORIES: { value: ArticleCategory; label: string }[] = [
+  { value: 'berita', label: 'Berita' },
+  { value: 'lifestyle', label: 'Lifestyle' },
+  { value: 'loker', label: 'Lowongan Kerja (Loker)' },
+  { value: 'otomotif', label: 'Otomotif' },
+  { value: 'sport', label: 'Sport & E-Sport' },
+  { value: 'tech', label: 'Teknologi' },
+  { value: 'science', label: 'Science' },
+  { value: 'health', label: 'Health' },
+  { value: 'kuliner', label: 'Kuliner' },
+  { value: 'wisata', label: 'Wisata' },
+  { value: 'hiburan', label: 'Hiburan & Seni' },
+]
+
+const formatSubCategory = (sub: string) => {
+  if (!sub) return ''
+  const trimmed = sub.trim()
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
+}
+
 export default function AdminBeritaPage() {
   const [articles, setArticles] = useState<Article[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -43,9 +78,24 @@ export default function AdminBeritaPage() {
   const [newExcerpt, setNewExcerpt] = useState('')
   const [newContent, setNewContent] = useState('')
   const [newImageUrl, setNewImageUrl] = useState('')
+  const [newImageCaption, setNewImageCaption] = useState('')
   const [newReporter, setNewReporter] = useState('')
+  const [newRedaktur, setNewRedaktur] = useState('')
+  const [newTags, setNewTags] = useState('')
   const [newIsHero, setNewIsHero] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+
+  // Helper otomatis ekstrak 1-2 kalimat pertama dari isi berita untuk ringkasan/subjudul di bawah judul
+  const extractAutoExcerpt = (text: string): string => {
+    if (!text.trim()) return ''
+    const clean = text.replace(/\s+/g, ' ').trim()
+    const sentences = clean.match(/[^.!?]+[.!?]+/g)
+    if (sentences && sentences.length > 0) {
+      const firstTwo = sentences.slice(0, 2).join(' ').trim()
+      return firstTwo.length > 220 ? firstTwo.slice(0, 220) + '...' : firstTwo
+    }
+    return clean.slice(0, 180) + (clean.length > 180 ? '...' : '')
+  }
 
   // Helper kompres dan konversi gambar ke Base64 optimal
   const compressImage = (file: File): Promise<string> => {
@@ -211,29 +261,44 @@ export default function AdminBeritaPage() {
     e.preventDefault()
     if (!newTitle.trim()) return
 
-    let finalCategoryLabel = newCategory.toUpperCase()
+    let finalCategoryLabel = (CATEGORY_DISPLAY_MAP[newCategory] || newCategory).toUpperCase()
     if (newCategory === 'berita') {
       if (newSubCategory === 'kampus') finalCategoryLabel = 'KAMPUS'
       else if (newSubCategory === 'sekolah') finalCategoryLabel = 'SEKOLAH'
+      else if (newSubCategory === 'daerah') finalCategoryLabel = 'BERITA DAERAH'
       else finalCategoryLabel = 'BERITA'
     } else if (newCategory === 'lifestyle') {
-      if (newSubCategory === 'style') finalCategoryLabel = 'STYLE'
+      if (newSubCategory === 'style') finalCategoryLabel = 'STYLE & FASHION'
       else if (newSubCategory === 'culinary') finalCategoryLabel = 'KULINER'
-      else if (newSubCategory === 'traveling') finalCategoryLabel = 'WISATA'
+      else if (newSubCategory === 'traveling') finalCategoryLabel = 'TRAVELING'
       else finalCategoryLabel = 'LIFESTYLE'
     }
+
+    const autoExcerpt = newExcerpt.trim() || extractAutoExcerpt(newContent) || newTitle.trim()
+    const parsedTags = newTags.trim()
+      ? newTags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean)
+          .map((t) => (t.startsWith('#') ? t : `#${t}`))
+      : ['#BERITA', '#JurnalWave', `#${newCategory.toUpperCase()}`]
 
     const payload = {
       title: newTitle.trim(),
       category: newCategory,
       categoryLabel: finalCategoryLabel,
       subCategory: newSubCategory || undefined,
-      excerpt: newExcerpt.trim() || newTitle.trim(),
-      content: newContent.trim() || newExcerpt.trim() || newTitle.trim(),
+      excerpt: autoExcerpt,
+      content: newContent.trim() || autoExcerpt,
       imageUrl:
         newImageUrl.trim() ||
         'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80',
-      reporter: newReporter.trim() || 'Redaksi Jurnal Wave',
+      imageCaption: newImageCaption.trim() || undefined,
+      imageAlt: newImageCaption.trim() || undefined,
+      author: 'Tim Redaksi',
+      reporter: newReporter.trim() || 'Fajar Pratama',
+      redaktur: newRedaktur.trim() || 'Ujang Herlan',
+      tags: parsedTags,
       isHero: newIsHero,
       isEditorsPick: false,
     }
@@ -266,7 +331,8 @@ export default function AdminBeritaPage() {
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)+/g, ''),
         author: 'Tim Redaksi',
-        redaktur: 'Redaksi Pelaksana',
+        redaktur: newRedaktur.trim() || 'Ujang Herlan',
+        reporter: newReporter.trim() || 'Fajar Pratama',
         readTime: '3 min read',
         createdAt: 'Baru saja',
         publishedDate: new Date().toLocaleDateString('id-ID', {
@@ -288,7 +354,10 @@ export default function AdminBeritaPage() {
     setNewExcerpt('')
     setNewContent('')
     setNewImageUrl('')
+    setNewImageCaption('')
     setNewReporter('')
+    setNewRedaktur('')
+    setNewTags('')
     setNewIsHero(false)
 
     setToastMessage('Berita berhasil diterbitkan ke database!')
@@ -306,22 +375,28 @@ export default function AdminBeritaPage() {
     e.preventDefault()
     if (!editingArticle || !editingArticle.title.trim()) return
 
-    let finalCategoryLabel = editingArticle.category.toUpperCase()
+    let finalCategoryLabel = (CATEGORY_DISPLAY_MAP[editingArticle.category] || editingArticle.category).toUpperCase()
     const sub = (editingArticle.subCategory || '').toLowerCase()
     if (editingArticle.category === 'berita') {
       if (sub === 'kampus') finalCategoryLabel = 'KAMPUS'
       else if (sub === 'sekolah') finalCategoryLabel = 'SEKOLAH'
+      else if (sub === 'daerah') finalCategoryLabel = 'BERITA DAERAH'
       else finalCategoryLabel = 'BERITA'
     } else if (editingArticle.category === 'lifestyle') {
-      if (sub === 'style') finalCategoryLabel = 'STYLE'
+      if (sub === 'style') finalCategoryLabel = 'STYLE & FASHION'
       else if (sub === 'culinary') finalCategoryLabel = 'KULINER'
-      else if (sub === 'traveling') finalCategoryLabel = 'WISATA'
+      else if (sub === 'traveling') finalCategoryLabel = 'TRAVELING'
       else finalCategoryLabel = 'LIFESTYLE'
     }
 
+    const autoExcerpt = editingArticle.excerpt?.trim() || extractAutoExcerpt(editingArticle.content || '') || editingArticle.title
+    const captionVal = editingArticle.imageCaption?.trim() || editingArticle.imageAlt?.trim() || undefined
     const updatedArticle = {
       ...editingArticle,
+      imageCaption: captionVal,
+      imageAlt: captionVal,
       categoryLabel: finalCategoryLabel,
+      excerpt: autoExcerpt,
       slug:
         editingArticle.slug ||
         editingArticle.title
@@ -495,12 +570,12 @@ export default function AdminBeritaPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-700 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer capitalize"
+              className="px-3 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-700 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
             >
               <option value="semua">Semua Kategori</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
+              {OFFICIAL_CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
                 </option>
               ))}
             </select>
@@ -542,10 +617,10 @@ export default function AdminBeritaPage() {
                 <tr>
                   <th className="py-3 px-4">Artikel &amp; Thumbnail</th>
                   <th className="py-3 px-4">Kategori</th>
-                  <th className="py-3 px-4">Penulis &amp; Redaktur</th>
+                  <th className="py-3 px-4">Reporter &amp; Editor</th>
                   <th className="py-3 px-4">Posisi Tayang</th>
                   <th className="py-3 px-4">Tanggal Rilis</th>
-                  <th className="py-3 px-4 text-right">Aksi Tindakan</th>
+                  <th className="py-3 px-4 text-center">Aksi Tindakan</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -578,15 +653,50 @@ export default function AdminBeritaPage() {
 
                     {/* Kategori Rubrik */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 capitalize border border-slate-200/80">
-                        {article.category}
-                      </span>
+                      {(() => {
+                        const catKey = (article.category || '').toLowerCase().trim()
+                        const categoryLabel = CATEGORY_DISPLAY_MAP[catKey] || article.category
+
+                        const mainCat = catKey
+                        const mainLabel = (CATEGORY_DISPLAY_MAP[catKey] || '').toLowerCase().trim()
+                        const rawSub = (article.subCategory || '').trim()
+                        const subLower = rawSub.toLowerCase()
+
+                        const hasSubCategory =
+                          rawSub &&
+                          subLower !== mainCat &&
+                          subLower !== mainLabel &&
+                          subLower !== 'tech' &&
+                          subLower !== 'teknologi' &&
+                          subLower !== 'berita'
+
+                        return (
+                          <div className="flex flex-col items-center w-fit gap-0.5">
+                            <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
+                              {categoryLabel}
+                            </span>
+                            {hasSubCategory && (
+                              <span className="text-[10px] text-slate-400 font-medium capitalize text-center">
+                                {rawSub.toLowerCase()}
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })()}
                     </td>
 
-                    {/* Penulis & Redaktur */}
+                    {/* Reporter & Editor (Gaya SukabumiUpdate) */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <p className="font-semibold text-slate-900">{article.reporter || article.author}</p>
-                      <p className="text-[10px] text-slate-400">Red: {article.redaktur || 'Tim Redaksi'}</p>
+                      <div className="flex flex-col gap-0.5">
+                        <p className="font-semibold text-slate-900 flex items-center gap-1">
+                          <span className="text-[10px] font-normal text-slate-400">Oleh:</span>{' '}
+                          {article.reporter || article.author || 'Tim Redaksi'}
+                        </p>
+                        <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                          <span className="text-[10px] font-bold text-[#c00015]">EDITOR:</span>{' '}
+                          {article.redaktur || article.editor || 'Ujang Herlan'}
+                        </p>
+                      </div>
                     </td>
 
                     {/* Tombol Cepat Posisi Tayang */}
@@ -623,8 +733,8 @@ export default function AdminBeritaPage() {
                     </td>
 
                     {/* Aksi Nyata: Edit, Baca di Web, Hapus */}
-                    <td className="py-3.5 px-4 whitespace-nowrap text-right">
-                      <div className="inline-flex items-center gap-1">
+                    <td className="py-3.5 px-4 whitespace-nowrap text-center">
+                      <div className="inline-flex items-center justify-center gap-1.5">
                         {/* Tombol Edit Nyata Berfungsi */}
                         <button
                           onClick={() => handleOpenEdit(article)}
@@ -668,7 +778,7 @@ export default function AdminBeritaPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Edit className="w-5 h-5 text-blue-600" />
+                <Edit className="w-5 h-5 text-[#c00015]" />
                 <h3 className="font-heading font-bold text-sm text-slate-900">
                   Edit Berita: <span className="text-slate-600 font-normal truncate max-w-xs">{editingArticle.title}</span>
                 </h3>
@@ -715,19 +825,13 @@ export default function AdminBeritaPage() {
                         category: e.target.value as ArticleCategory,
                       })
                     }
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] capitalize cursor-pointer"
+                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                   >
-                    <option value="berita">Berita</option>
-                    <option value="lifestyle">Lifestyle</option>
-                    <option value="loker">Loker</option>
-                    <option value="otomotif">Otomotif</option>
-                    <option value="sport">Sport</option>
-                    <option value="tech">Teknologi</option>
-                    <option value="science">Sains</option>
-                    <option value="health">Kesehatan</option>
-                    <option value="kuliner">Kuliner</option>
-                    <option value="wisata">Wisata</option>
-                    <option value="hiburan">Hiburan</option>
+                    {OFFICIAL_CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -747,8 +851,8 @@ export default function AdminBeritaPage() {
                       className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                     >
                       <option value="">Semua Berita</option>
-                      <option value="kampus">Kampus (Mahasiswa)</option>
-                      <option value="sekolah">Sekolah (Pelajar)</option>
+                      <option value="kampus">Kampus</option>
+                      <option value="sekolah">Sekolah</option>
                     </select>
                   ) : editingArticle.category === 'lifestyle' ? (
                     <select
@@ -778,14 +882,50 @@ export default function AdminBeritaPage() {
 
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Nama Jurnalis / Reporter:
+                    Reporter / Penulis (Tampil di Atas: "Oleh: ..."):
                   </label>
                   <input
                     type="text"
-                    value={editingArticle.reporter || editingArticle.author}
+                    value={editingArticle.reporter || ''}
                     onChange={(e) =>
                       setEditingArticle({ ...editingArticle, reporter: e.target.value })
                     }
+                    placeholder="Contoh: Ilham Nugraha / Asep Awaludin"
+                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                  />
+                </div>
+              </div>
+
+              {/* Redaktur & Tagar Berita */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Editor / Redaktur (Tampil di Bawah: "EDITOR: ..."):
+                  </label>
+                  <input
+                    type="text"
+                    value={editingArticle.redaktur || ''}
+                    onChange={(e) =>
+                      setEditingArticle({ ...editingArticle, redaktur: e.target.value })
+                    }
+                    placeholder="Contoh: Denis Febrian / Ujang Herlan"
+                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Tagar Berita (TAG):
+                  </label>
+                  <input
+                    type="text"
+                    value={Array.isArray(editingArticle.tags) ? editingArticle.tags.join(', ') : (editingArticle.tags || '')}
+                    onChange={(e) =>
+                      setEditingArticle({
+                        ...editingArticle,
+                        tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) as any,
+                      })
+                    }
+                    placeholder="Contoh: #BERITA, #Sukabumi, #Trending"
                     className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
                   />
                 </div>
@@ -807,7 +947,7 @@ export default function AdminBeritaPage() {
                       />
                       <div className="absolute inset-0 bg-slate-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <label className="px-3 py-1.5 rounded-lg bg-white/95 hover:bg-white text-slate-800 text-xs font-bold cursor-pointer shadow-md flex items-center gap-1.5 transition">
-                          <Upload className="w-3.5 h-3.5 text-blue-600" />
+                          <Upload className="w-3.5 h-3.5 text-[#c00015]" />
                           <span>Ganti Foto</span>
                           <input
                             type="file"
@@ -828,8 +968,8 @@ export default function AdminBeritaPage() {
                       </div>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 hover:border-blue-500 bg-white rounded-xl py-5 px-4 cursor-pointer transition group text-center">
-                      <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 hover:border-[#c00015] bg-white rounded-xl py-5 px-4 cursor-pointer transition group text-center">
+                      <div className="w-9 h-9 rounded-full bg-red-50 text-[#c00015] flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
                         <Upload className="w-4 h-4" />
                       </div>
                       <span className="font-bold text-slate-800 text-xs">
@@ -864,32 +1004,43 @@ export default function AdminBeritaPage() {
                             ? '(Foto fisik terunggah dari perangkat)'
                             : 'https://images.unsplash.com/...'
                         }
-                        className="flex-1 px-2.5 py-1 text-[11px] rounded-md bg-white border border-slate-200 text-slate-800 focus:outline-none focus:border-blue-600"
+                        className="flex-1 px-2.5 py-1 text-[11px] rounded-md bg-white border border-slate-200 text-slate-800 focus:outline-none focus:border-[#c00015]"
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Ringkasan / Lead Berita */}
+              {/* Keterangan & Sumber Foto (Caption) */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Ringkasan / Lead Paragraf:
-                </label>
-                <textarea
-                  rows={2}
-                  value={editingArticle.excerpt}
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">
+                    Keterangan & Sumber Foto (Caption):
+                  </label>
+                  <span className="text-[11px] text-slate-400">Opsional</span>
+                </div>
+                <input
+                  type="text"
+                  value={editingArticle.imageCaption || editingArticle.imageAlt || ''}
                   onChange={(e) =>
-                    setEditingArticle({ ...editingArticle, excerpt: e.target.value })
+                    setEditingArticle({
+                      ...editingArticle,
+                      imageCaption: e.target.value,
+                      imageAlt: e.target.value,
+                    })
                   }
+                  placeholder="Contoh: Suasana peninjauan jalan di Sukabumi. (Foto: Dok. Humas Pemda / Sukabumi Update)"
                   className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
                 />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  📌 <strong className="font-semibold text-slate-700">Instruksi:</strong> Tuliskan keterangan singkat foto beserta sumber asal (misal: <span className="italic">Foto: Dok. Istimewa</span> atau <span className="italic">Foto: Antara / Hendra</span>). Teks ini akan dimuat rapi tepat di bawah foto artikel seperti contoh portal SukabumiUpdate.
+                </p>
               </div>
 
               {/* Isi Lengkap Berita */}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  Isi Lengkap Berita:
+                  Isi Lengkap Berita: <span className="text-[#c00015]">*</span>
                 </label>
                 <textarea
                   rows={6}
@@ -897,8 +1048,31 @@ export default function AdminBeritaPage() {
                   onChange={(e) =>
                     setEditingArticle({ ...editingArticle, content: e.target.value })
                   }
+                  placeholder="Tuliskan naskah lengkap tubuh berita..."
                   className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] leading-relaxed"
                 />
+              </div>
+
+              {/* Ringkasan / Lead Berita */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">
+                    Ringkasan / Lead Berita:
+                  </label>
+                  <span className="text-[11px] text-slate-400">Opsional</span>
+                </div>
+                <textarea
+                  rows={2}
+                  value={editingArticle.excerpt || ''}
+                  onChange={(e) =>
+                    setEditingArticle({ ...editingArticle, excerpt: e.target.value })
+                  }
+                  placeholder="Ketik ringkasan, atau kosongkan agar otomatis menggunakan kalimat awal naskah..."
+                  className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Teks pengantar di bawah judul artikel. Jika dikosongkan, sistem otomatis menggunakan kalimat awal naskah.
+                </p>
               </div>
 
               {/* Posisi Berita (Headline Slider) */}
@@ -936,7 +1110,7 @@ export default function AdminBeritaPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>Simpan Perubahan Artikel</span>
@@ -994,19 +1168,13 @@ export default function AdminBeritaPage() {
                       setNewCategory(e.target.value as ArticleCategory)
                       setNewSubCategory('')
                     }}
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] capitalize cursor-pointer"
+                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                   >
-                    <option value="berita">Berita</option>
-                    <option value="lifestyle">Lifestyle</option>
-                    <option value="loker">Loker</option>
-                    <option value="otomotif">Otomotif</option>
-                    <option value="sport">Sport</option>
-                    <option value="tech">Teknologi</option>
-                    <option value="science">Sains</option>
-                    <option value="health">Kesehatan</option>
-                    <option value="kuliner">Kuliner</option>
-                    <option value="wisata">Wisata</option>
-                    <option value="hiburan">Hiburan</option>
+                    {OFFICIAL_CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1021,8 +1189,8 @@ export default function AdminBeritaPage() {
                       className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                     >
                       <option value="">Semua Berita</option>
-                      <option value="kampus">Kampus (Mahasiswa)</option>
-                      <option value="sekolah">Sekolah (Pelajar)</option>
+                      <option value="kampus">Kampus</option>
+                      <option value="sekolah">Sekolah</option>
                     </select>
                   ) : newCategory === 'lifestyle' ? (
                     <select
@@ -1047,13 +1215,41 @@ export default function AdminBeritaPage() {
 
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Nama Jurnalis / Reporter:
+                    Reporter / Penulis (Tampil di Atas: "Oleh: ..."):
                   </label>
                   <input
                     type="text"
                     value={newReporter}
                     onChange={(e) => setNewReporter(e.target.value)}
-                    placeholder="Contoh: Rian Hidayat"
+                    placeholder="Contoh: Ilham Nugraha / Asep Awaludin"
+                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                  />
+                </div>
+              </div>
+
+              {/* Redaktur & Tagar Berita */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Editor / Redaktur (Tampil di Bawah: "EDITOR: ..."):
+                  </label>
+                  <input
+                    type="text"
+                    value={newRedaktur}
+                    onChange={(e) => setNewRedaktur(e.target.value)}
+                    placeholder="Contoh: Denis Febrian / Ujang Herlan"
+                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Tagar Berita (TAG):
+                  </label>
+                  <input
+                    type="text"
+                    value={newTags}
+                    onChange={(e) => setNewTags(e.target.value)}
+                    placeholder="Contoh: #BERITA, #Sukabumi, #Trending"
                     className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
                   />
                 </div>
@@ -1137,32 +1333,58 @@ export default function AdminBeritaPage() {
                 </div>
               </div>
 
-              {/* Ringkasan Berita */}
+              {/* Keterangan & Sumber Foto (Caption) */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Ringkasan / Lead Paragraf:
-                </label>
-                <textarea
-                  rows={2}
-                  value={newExcerpt}
-                  onChange={(e) => setNewExcerpt(e.target.value)}
-                  placeholder="Ketik 1-2 kalimat ringkasan inti berita..."
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">
+                    Keterangan & Sumber Foto (Caption):
+                  </label>
+                  <span className="text-[11px] text-slate-400">Opsional</span>
+                </div>
+                <input
+                  type="text"
+                  value={newImageCaption}
+                  onChange={(e) => setNewImageCaption(e.target.value)}
+                  placeholder="Contoh: Suasana peninjauan jalan di Sukabumi. (Foto: Dok. Humas Pemda / Sukabumi Update)"
                   className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
                 />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  📌 <strong className="font-semibold text-slate-700">Instruksi:</strong> Tuliskan keterangan singkat foto beserta sumber asal (misal: <span className="italic">Foto: Dok. Istimewa</span> atau <span className="italic">Foto: Antara / Hendra</span>). Teks ini akan dimuat rapi tepat di bawah foto artikel seperti contoh portal SukabumiUpdate.
+                </p>
               </div>
 
               {/* Isi Lengkap Berita */}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  Isi Lengkap Berita:
+                  Isi Lengkap Berita: <span className="text-[#c00015]">*</span>
                 </label>
                 <textarea
-                  rows={5}
+                  rows={6}
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  placeholder="Tuliskan naskah berita lengkap di sini..."
+                  placeholder="Tuliskan naskah lengkap tubuh berita..."
                   className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] leading-relaxed"
                 />
+              </div>
+
+              {/* Ringkasan / Lead Berita */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">
+                    Ringkasan / Lead Berita:
+                  </label>
+                  <span className="text-[11px] text-slate-400">Opsional</span>
+                </div>
+                <textarea
+                  rows={2}
+                  value={newExcerpt}
+                  onChange={(e) => setNewExcerpt(e.target.value)}
+                  placeholder="Ketik ringkasan, atau kosongkan agar otomatis menggunakan kalimat awal naskah..."
+                  className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Teks pengantar di bawah judul artikel. Jika dikosongkan, sistem otomatis menggunakan kalimat awal naskah.
+                </p>
               </div>
 
               {/* Pilihan Headline Slider */}

@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Article } from '@/types';
+import { formatIndoDate } from '@/lib/utils';
 
 interface NewsCardProps {
   article: Article;
@@ -13,7 +14,7 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d595
 
 export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) => {
   const rawLabel = (article.categoryLabel || article.category || 'BERITA').toUpperCase();
-  const displayCategory = rawLabel === 'INFRASTRUKTUR' ? 'BERITA' : rawLabel;
+  const displayCategory = rawLabel === 'INFRASTRUKTUR' ? 'BERITA' : rawLabel === 'WISATA' ? 'TRAVELING' : rawLabel;
 
   const validImage =
     article.imageUrl &&
@@ -47,7 +48,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
             </h3>
           </Link>
           <span className="text-xs text-on-surface-variant/70 font-normal mt-auto">
-            {article.createdAt}
+            {formatIndoDate(article.createdAt || article.publishedDate)}
           </span>
         </div>
       </article>
@@ -55,10 +56,10 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
   }
 
   return (
-    <article className="flex flex-row gap-3.5 sm:gap-6 group cursor-pointer border-t border-outline-variant/60 pt-3.5 sm:pt-6 w-full items-center">
+    <article className="flex flex-row gap-3.5 sm:gap-4 group cursor-pointer border-t border-slate-100 dark:border-zinc-800 py-2.5 sm:py-3.5 w-full items-start sm:items-center">
       <Link
         href={`/artikel/${article.id}`}
-        className="relative w-28 sm:w-48 md:w-52 aspect-[4/3] sm:aspect-video rounded-xl sm:rounded-2xl overflow-hidden shrink-0 block bg-slate-100 dark:bg-slate-800"
+        className="relative w-28 sm:w-40 md:w-44 aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden shrink-0 block bg-slate-100 dark:bg-slate-800"
       >
         {/* eslint-disable-next-img-element */}
         <img
@@ -70,17 +71,22 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
       </Link>
-      <div className="flex flex-col gap-1 sm:gap-1.5 justify-center flex-1 min-w-0">
-        <span className="text-primary font-bold text-[11px] sm:text-xs uppercase tracking-wider">
+      <div className="flex flex-col gap-1 justify-center flex-1 min-w-0">
+        <span className="text-[#c00015] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider">
           {displayCategory}
         </span>
         <Link href={`/artikel/${article.id}`}>
-          <h3 className="text-sm sm:text-lg md:text-xl font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+          <h3 className="text-xs sm:text-base font-bold text-slate-900 dark:text-zinc-100 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug">
             {article.title}
           </h3>
         </Link>
-        <span className="text-on-surface-variant/70 text-[11px] sm:text-xs font-normal">
-          {article.createdAt}
+        {article.excerpt && (
+          <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
+            {article.excerpt}
+          </p>
+        )}
+        <span className="text-slate-400 dark:text-zinc-500 text-[10px] sm:text-[11px] font-normal">
+          {formatIndoDate(article.createdAt || article.publishedDate)}
         </span>
       </div>
     </article>

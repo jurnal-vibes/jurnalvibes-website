@@ -54,7 +54,7 @@ export function mapWordPressPost(post: any): Article {
 }
 
 export function normalizeArticleCategory(category?: string, categoryLabel?: string): { category: ArticleCategory; categoryLabel: string } {
-  const cat = (category || '').toLowerCase().trim();
+  let cat = (category || '').toLowerCase().trim();
   const rawLabel = (categoryLabel || '').trim();
   const upperLabel = rawLabel.toUpperCase();
 
@@ -66,8 +66,16 @@ export function normalizeArticleCategory(category?: string, categoryLabel?: stri
     };
   }
 
+  if (cat === 'sains' || cat === 'sains & lingkungan') {
+    cat = 'science';
+  } else if (cat === 'kesehatan') {
+    cat = 'health';
+  }
+
   const validCategories: Record<string, string> = {
     berita: 'BERITA',
+    ekonomi: 'EKONOMI',
+    bisnis: 'EKONOMI',
     lifestyle: 'LIFESTYLE',
     kuliner: 'KULINER',
     wisata: 'WISATA',
@@ -76,14 +84,14 @@ export function normalizeArticleCategory(category?: string, categoryLabel?: stri
     loker: 'LOKER',
     hiburan: 'HIBURAN',
     tech: 'TEKNOLOGI',
-    science: 'SAINS',
-    health: 'KESEHATAN',
+    science: 'SCIENCE',
+    health: 'HEALTH',
   };
 
   if (validCategories[cat]) {
     return {
       category: cat as ArticleCategory,
-      categoryLabel: upperLabel && upperLabel !== 'INFRASTRUKTUR' ? rawLabel : validCategories[cat],
+      categoryLabel: upperLabel && upperLabel !== 'INFRASTRUKTUR' && upperLabel !== 'SAINS' && upperLabel !== 'KESEHATAN' ? rawLabel : validCategories[cat],
     };
   }
 

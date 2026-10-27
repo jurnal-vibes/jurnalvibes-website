@@ -34,11 +34,7 @@ export default function KebijakanPrivasiPage() {
         {/* Konten Kebijakan Privasi */}
         <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-5">
           <p>
-            Di <strong>Jurnal Sukabumi</strong>, yang dapat diakses dari{' '}
-            <a href="https://jurnalsukabumi.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-              jurnalsukabumi.com
-            </a>{' '}
-            dan jaringan medianya, salah satu prioritas utama kami adalah privasi pengunjung kami. Dokumen Kebijakan Privasi ini berisi jenis-jenis informasi yang dikumpulkan dan dicatat oleh Jurnal Sukabumi dan bagaimana kami menggunakannya.
+            Di portal berita <strong>Jurnal Wave</strong> (berada di bawah naungan <strong>PT Media Jurnal Sukabumi</strong>), salah satu prioritas utama kami adalah privasi pengunjung kami. Dokumen Kebijakan Privasi ini berisi jenis-jenis informasi yang dikumpulkan dan dicatat oleh Jurnal Wave dan bagaimana kami menggunakannya.
           </p>
           <p>
             Jika Anda memiliki pertanyaan tambahan atau memerlukan informasi lebih lanjut tentang Kebijakan Privasi kami, jangan ragu untuk menghubungi kami melalui saluran kontak yang tersedia.
@@ -49,7 +45,7 @@ export default function KebijakanPrivasiPage() {
               File Log (Log Files)
             </h2>
             <p>
-              Jurnal Sukabumi mengikuti prosedur standar menggunakan file log. File-file ini mencatat pengunjung ketika mereka mengunjungi situs web. Semua perusahaan hosting melakukan ini dan bagian dari analisis layanan hosting. Informasi yang dikumpulkan oleh file log termasuk alamat protokol internet (IP), tipe peramban (browser), Penyedia Layanan Internet (ISP), cap tanggal dan waktu, halaman rujukan/keluar, dan mungkin jumlah klik. Informasi ini tidak terkait dengan informasi apa pun yang dapat diidentifikasi secara pribadi. Tujuan dari informasi ini adalah untuk menganalisis tren, mengelola situs, melacak pergerakan pengguna di situs web, dan mengumpulkan informasi demografis.
+              Jurnal Wave mengikuti prosedur standar menggunakan file log. File-file ini mencatat pengunjung ketika mereka mengunjungi situs web. Semua perusahaan hosting melakukan ini dan bagian dari analisis layanan hosting. Informasi yang dikumpulkan oleh file log termasuk alamat protokol internet (IP), tipe peramban (browser), Penyedia Layanan Internet (ISP), cap tanggal dan waktu, halaman rujukan/keluar, dan mungkin jumlah klik. Informasi ini tidak terkait dengan informasi apa pun yang dapat diidentifikasi secara pribadi. Tujuan dari informasi ini adalah untuk menganalisis tren, mengelola situs, melacak pergerakan pengguna di situs web, dan mengumpulkan informasi demografis.
             </p>
           </section>
 
@@ -58,7 +54,7 @@ export default function KebijakanPrivasiPage() {
               Cookie dan Beacon Web
             </h2>
             <p>
-              Seperti situs web lainnya, Jurnal Sukabumi menggunakan &apos;cookies&apos;. Cookie ini digunakan untuk menyimpan informasi termasuk preferensi pengunjung, dan halaman-halaman di situs web yang diakses atau dikunjungi pengunjung. Informasi ini digunakan untuk mengoptimalkan pengalaman pengguna dengan menyesuaikan konten halaman web kami berdasarkan jenis browser pengunjung dan/atau informasi lainnya.
+              Seperti situs web lainnya, Jurnal Wave menggunakan &apos;cookies&apos;. Cookie ini digunakan untuk menyimpan informasi termasuk preferensi pengunjung, dan halaman-halaman di situs web yang diakses atau dikunjungi pengunjung. Informasi ini digunakan untuk mengoptimalkan pengalaman pengguna dengan menyesuaikan konten halaman web kami berdasarkan jenis browser pengunjung dan/atau informasi lainnya.
             </p>
           </section>
 
@@ -76,10 +72,10 @@ export default function KebijakanPrivasiPage() {
               Kebijakan Privasi Pihak Ketiga
             </h2>
             <p>
-              Server iklan pihak ketiga atau jaringan iklan menggunakan teknologi seperti cookie, JavaScript, atau Web Beacon yang digunakan dalam iklan masing-masing dan tautan yang muncul di Jurnal Sukabumi, yang dikirim langsung ke peramban pengguna. Mereka secara otomatis menerima alamat IP Anda ketika hal ini terjadi. Teknologi ini digunakan untuk mengukur efektivitas kampanye iklan mereka dan/atau untuk mempersonalisasi konten iklan yang Anda lihat di situs web yang Anda kunjungi. Perhatikan bahwa Jurnal Sukabumi tidak memiliki akses atau kontrol terhadap cookie ini yang digunakan oleh pengiklan pihak ketiga.
+              Server iklan pihak ketiga atau jaringan iklan menggunakan teknologi seperti cookie, JavaScript, atau Web Beacon yang digunakan dalam iklan masing-masing dan tautan yang muncul di Jurnal Wave, yang dikirim langsung ke peramban pengguna. Mereka secara otomatis menerima alamat IP Anda ketika hal ini terjadi. Teknologi ini digunakan untuk mengukur efektivitas kampanye iklan mereka dan/atau untuk mempersonalisasi konten iklan yang Anda lihat di situs web yang Anda kunjungi. Perhatikan bahwa Jurnal Wave tidak memiliki akses atau kontrol terhadap cookie ini yang digunakan oleh pengiklan pihak ketiga.
             </p>
             <p>
-              Kebijakan Privasi Jurnal Sukabumi tidak berlaku untuk pengiklan atau situs web lain. Anda dapat memilih untuk menonaktifkan cookie melalui opsi peramban individual Anda.
+              Kebijakan Privasi Jurnal Wave tidak berlaku untuk pengiklan atau situs web lain. Anda dapat memilih untuk menonaktifkan cookie melalui opsi peramban individual Anda.
             </p>
           </section>
 
@@ -88,7 +84,7 @@ export default function KebijakanPrivasiPage() {
               Informasi Perlindungan Anak
             </h2>
             <p>
-              Bagian lain dari prioritas kami adalah menambahkan perlindungan untuk anak-anak saat menggunakan internet. Kami mendorong orang tua dan wali untuk mengamati, berpartisipasi, dan/atau memantau dan membimbing aktivitas online mereka. Jurnal Sukabumi tidak secara sadar mengumpulkan Informasi Identifikasi Pribadi apa pun dari anak di bawah usia 13 tahun. Jika Anda meyakini anak Anda memberikan informasi semacam ini di situs web kami, segera hubungi kami agar kami dapat menghapus informasi tersebut dari catatan kami.
+              Bagian lain dari prioritas kami adalah menambahkan perlindungan untuk anak-anak saat menggunakan internet. Kami mendorong orang tua dan wali untuk mengamati, berpartisipasi, dan/atau memantau dan membimbing aktivitas online mereka. Jurnal Wave tidak secara sadar mengumpulkan Informasi Identifikasi Pribadi apa pun dari anak di bawah usia 13 tahun. Jika Anda meyakini anak Anda memberikan informasi semacam ini di situs web kami, segera hubungi kami agar kami dapat menghapus informasi tersebut dari catatan kami.
             </p>
           </section>
 
@@ -97,7 +93,7 @@ export default function KebijakanPrivasiPage() {
               Hanya Kebijakan Privasi Online
             </h2>
             <p>
-              Kebijakan Privasi ini hanya berlaku untuk aktivitas online kami dan berlaku untuk pengunjung situs web kami sehubungan dengan informasi yang mereka bagikan dan/atau kumpulkan di Jurnal Sukabumi. Kebijakan ini tidak berlaku untuk informasi apa pun yang dikumpulkan secara offline atau melalui saluran selain dari situs web ini.
+              Kebijakan Privasi ini hanya berlaku untuk aktivitas online kami dan berlaku untuk pengunjung situs web kami sehubungan dengan informasi yang mereka bagikan dan/atau kumpulkan di Jurnal Wave. Kebijakan ini tidak berlaku untuk informasi apa pun yang dikumpulkan secara offline atau melalui saluran selain dari situs web ini.
             </p>
           </section>
 
