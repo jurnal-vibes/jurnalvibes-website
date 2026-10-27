@@ -22,29 +22,12 @@ export const ReelsViewerModal: React.FC<ReelsViewerModalProps> = ({
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
-  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({
-    'reel-1': 142,
-    'reel-2': 289,
-    'reel-3': 195,
-  });
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
 
   // Interactive Comments state
   const [isCommentOpen, setIsCommentOpen] = useState<boolean>(false);
   const [commentInput, setCommentInput] = useState<string>('');
-  const [commentsMap, setCommentsMap] = useState<Record<string, Array<{ id: string; user: string; text: string; time: string }>>>({
-    'reel-1': [
-      { id: 'c1', user: 'warga_sukabumi', text: 'Keren banget infonya min! 🔥', time: '2j lalu' },
-      { id: 'c2', user: 'diki_ramadhan', text: 'Tempatnya di sebelah mana ya min?', time: '1j lalu' },
-      { id: 'c3', user: 'alisa_fitria', text: 'Wajib mampir kesini akhir pekan ini 😍', time: '30m lalu' }
-    ],
-    'reel-2': [
-      { id: 'c4', user: 'bayu_pratama', text: 'Gokil suasananya asik parah 🙌', time: '3j lalu' },
-      { id: 'c5', user: 'siti_nurhaliza', text: 'Sukabumi makin banyak hidden gem ya!', time: '1j lalu' }
-    ],
-    'reel-3': [
-      { id: 'c6', user: 'rendi_kurnia', text: 'Mantap Jurnal Wave selalu update info lokal!', time: '4j lalu' }
-    ]
-  });
+  const [commentsMap, setCommentsMap] = useState<Record<string, Array<{ id: string; user: string; text: string; time: string }>>>({});
 
   const emptySubscribe = React.useCallback(() => () => {}, []);
   const mounted = React.useSyncExternalStore(emptySubscribe, () => true, () => false);

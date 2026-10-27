@@ -70,44 +70,113 @@ export default function AdminReelsPage() {
 
   const coverFileInputRef = useRef<HTMLInputElement>(null)
 
-  // Muat Reels dari localStorage
+  const [isLoadingReels, setIsLoadingReels] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Muat Reels dari Database Server & Auto-Sync video asli user jika pernah tersimpan
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    let isMounted = true
+
+    const loadAndSyncReels = async () => {
       try {
-        const saved = localStorage.getItem('jurnal_wave_reels')
-        if (saved) {
-          const parsed = JSON.parse(saved)
-          if (Array.isArray(parsed)) {
-            // Bersihkan hanya sisa dummy reel-skb jika pernah tersimpan
-            const clean = parsed.filter(
-              (r: any) =>
-                !String(r.id || '').startsWith('reel-skb-') &&
-                !String(r.id || '').startsWith('reel-00')
-            )
-            if (clean.length !== parsed.length) {
-              localStorage.setItem('jurnal_wave_reels', JSON.stringify(clean))
+        setIsLoadingReels(true)
+        const res = await fetch('/api/reels', { cache: 'no-store' })
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data)) {
+            // 1. Jika di database sudah ada video reels, gunakan data database
+            if (json.data.length > 0) {
+              if (isMounted) {
+                setReels(json.data)
+                localStorage.setItem('jurnal_wave_reels', JSON.stringify(json.data))
+              }
+              return
             }
-            setReels(clean)
-            return
+
+            // 2. Jika di database masih kosong (0), periksa apakah ada video asli milik user di localStorage
+            const saved = localStorage.getItem('jurnal_wave_reels')
+            if (saved) {
+              const parsed = JSON.parse(saved)
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                // Saring hanya video asli milik user (bukan dummy)
+                const userUploadedReels = parsed.filter(
+                  (r: any) =>
+                    !String(r.id || '').startsWith('reel-skb-') &&
+                    !String(r.id || '').startsWith('reel-00') &&
+                    !['reel-1', 'reel-2', 'reel-3'].includes(String(r.id || '')) &&
+                    !String(r.title || '').toLowerCase().includes('jajanan hits') &&
+                    !String(r.title || '').toLowerCase().includes('sunset di bukit baros') &&
+                    !String(r.title || '').toLowerCase().includes('skatepark vibes')
+                )
+
+                if (userUploadedReels.length > 0) {
+                  // Migrasikan video asli user ini ke database server
+                  const migrated: Reel[] = []
+                  for (const reelToSave of userUploadedReels) {
+                    try {
+                      const postRes = await fetch('/api/reels', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          title: reelToSave.title,
+                          category: reelToSave.category || 'Berita',
+                          creator: reelToSave.creator || '@jurnalwave',
+                          platform: reelToSave.platform || 'tiktok',
+                          socialUrl: reelToSave.socialUrl || reelToSave.videoUrl || '',
+                          location: reelToSave.location || 'Sukabumi',
+                          thumbnailUrl: reelToSave.thumbnailUrl,
+                        }),
+                      })
+                      if (postRes.ok) {
+                        const postJson = await postRes.json()
+                        if (postJson.success && postJson.data) {
+                          migrated.push(postJson.data)
+                        }
+                      }
+                    } catch (e) {
+                      console.error('Failed to migrate reel:', e)
+                    }
+                  }
+
+                  if (migrated.length > 0 && isMounted) {
+                    setReels(migrated)
+                    localStorage.setItem('jurnal_wave_reels', JSON.stringify(migrated))
+                    window.dispatchEvent(new CustomEvent('reels-updated'))
+                    return
+                  }
+                }
+              }
+            }
+
+            if (isMounted) {
+              setReels([])
+              localStorage.setItem('jurnal_wave_reels', JSON.stringify([]))
+            }
           }
         }
-        setReels([])
       } catch (err) {
         console.error('Error loading reels:', err)
-        setReels([])
+      } finally {
+        if (isMounted) setIsLoadingReels(false)
       }
+    }
+
+    loadAndSyncReels()
+    return () => {
+      isMounted = false
     }
   }, [])
 
-  // Simpan data dan kirim event sinkronisasi real-time
+  // Simpan data ke state lokal, localStorage, dan kirim event sinkronisasi real-time
   const persistReels = (updated: Reel[], toastText: string) => {
     setReels(updated)
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('jurnal_wave_reels', JSON.stringify(updated))
+        window.dispatchEvent(new CustomEvent('reels-updated'))
         window.dispatchEvent(new Event('storage'))
       } catch (err) {
-        console.error('Error saving reels:', err)
+        console.error('Error saving reels locally:', err)
       }
     }
     setToastMessage(toastText)
@@ -243,11 +312,12 @@ export default function AdminReelsPage() {
     }
   }
 
-  // Submit Simpan (Tambah / Edit)
-  const handleSubmitForm = (e: React.FormEvent) => {
+  // Submit Simpan (Tambah / Edit) ke Database Server
+  const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formTitle.trim()) return
+    if (!formTitle.trim() || isSaving) return
 
+    setIsSaving(true)
     const effectiveCategory =
       formCategory === 'Lainnya' ? customCategory.trim() || 'Umum' : formCategory
 
@@ -272,49 +342,89 @@ export default function AdminReelsPage() {
 
     const finalThumbnail = formThumbnail.trim() || DEFAULT_REEL_COVER
 
-    if (editingReel) {
-      // Mode Edit
-      const updated = reels.map((r) =>
-        r.id === editingReel.id
-          ? {
-              ...r,
-              title: formTitle.trim(),
-              category: effectiveCategory,
-              creator: cleanCreator,
-              platform: formPlatform,
-              socialUrl: finalSocialUrl,
-              location: formLocation.trim() || 'Sukabumi',
-              thumbnailUrl: finalThumbnail,
-            }
-          : r
-      )
-      persistReels(updated, `Video Reels "${formTitle.trim()}" berhasil diperbarui!`)
-    } else {
-      // Mode Tambah Baru
-      const newReel: Reel = {
-        id: `reel-${Date.now()}`,
-        title: formTitle.trim(),
-        category: effectiveCategory,
-        creator: cleanCreator,
-        platform: formPlatform,
-        socialUrl: finalSocialUrl,
-        location: formLocation.trim() || 'Sukabumi',
-        thumbnailUrl: finalThumbnail,
-        viewsCount: '0',
-        imageAlt: formTitle.trim(),
-      }
-      const updated = [newReel, ...reels]
-      persistReels(updated, `Video Reels "${formTitle.trim()}" berhasil ditambahkan!`)
-    }
+    try {
+      if (editingReel) {
+        // Mode Edit via PUT /api/reels/[id]
+        const res = await fetch(`/api/reels/${editingReel.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: formTitle.trim(),
+            category: effectiveCategory,
+            creator: cleanCreator,
+            platform: formPlatform,
+            socialUrl: finalSocialUrl,
+            location: formLocation.trim() || 'Sukabumi',
+            thumbnailUrl: finalThumbnail,
+          }),
+        })
 
-    setIsModalOpen(false)
+        if (!res.ok) throw new Error('Gagal memperbarui video reels di server')
+        const json = await res.json()
+        const updatedItem = json.data || {
+          ...editingReel,
+          title: formTitle.trim(),
+          category: effectiveCategory,
+          creator: cleanCreator,
+          platform: formPlatform,
+          socialUrl: finalSocialUrl,
+          location: formLocation.trim() || 'Sukabumi',
+          thumbnailUrl: finalThumbnail,
+        }
+        const updated = reels.map((r) => (r.id === editingReel.id ? updatedItem : r))
+        persistReels(updated, `Video Reels "${formTitle.trim()}" berhasil diperbarui di server!`)
+      } else {
+        // Mode Tambah Baru via POST /api/reels
+        const res = await fetch('/api/reels', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: formTitle.trim(),
+            category: effectiveCategory,
+            creator: cleanCreator,
+            platform: formPlatform,
+            socialUrl: finalSocialUrl,
+            location: formLocation.trim() || 'Sukabumi',
+            thumbnailUrl: finalThumbnail,
+          }),
+        })
+
+        if (!res.ok) throw new Error('Gagal menambahkan video reels ke server')
+        const json = await res.json()
+        const newItem: Reel = json.data || {
+          id: `reel-${Date.now()}`,
+          title: formTitle.trim(),
+          category: effectiveCategory,
+          creator: cleanCreator,
+          platform: formPlatform,
+          socialUrl: finalSocialUrl,
+          location: formLocation.trim() || 'Sukabumi',
+          thumbnailUrl: finalThumbnail,
+          viewsCount: '0',
+          imageAlt: formTitle.trim(),
+        }
+        const updated = [newItem, ...reels]
+        persistReels(updated, `Video Reels "${formTitle.trim()}" berhasil disimpan ke server!`)
+      }
+      setIsModalOpen(false)
+    } catch (err: any) {
+      alert(err.message || 'Terjadi kesalahan saat menyimpan video ke server.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
-  // Hapus Video Reels
-  const handleDeleteReel = (id: string, title: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus video Reels "${title}"?`)) {
-      const updated = reels.filter((r) => r.id !== id)
-      persistReels(updated, `Video Reels "${title}" telah dihapus.`)
+  // Hapus Video Reels dari Database Server
+  const handleDeleteReel = async (id: string, title: string) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus video Reels "${title}" dari database?`)) {
+      try {
+        const res = await fetch(`/api/reels/${id}`, { method: 'DELETE' })
+        if (!res.ok) throw new Error('Gagal menghapus video dari server')
+        const updated = reels.filter((r) => r.id !== id)
+        persistReels(updated, `Video Reels "${title}" telah dihapus dari database.`)
+      } catch (err: any) {
+        alert(err.message || 'Gagal menghapus video dari server.')
+      }
     }
   }
 

@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { HomeClient } from './HomeClient';
 import { fetchArticles } from '@/lib/wordpress';
+import { fetchReels } from '@/lib/reels';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: {
@@ -15,5 +18,6 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const articles = await fetchArticles();
-  return <HomeClient initialArticles={articles} />;
+  const reels = await fetchReels(8);
+  return <HomeClient initialArticles={articles} initialReels={reels} />;
 }

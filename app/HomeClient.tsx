@@ -8,14 +8,15 @@ import { NewsCard } from '@/components/cards/NewsCard';
 import { HomeCategorySection } from '@/components/cards/HomeCategorySection';
 import { ReelsSection } from '@/components/cards/ReelsSection';
 import { HalloJurnalBanner } from '@/components/cards/HalloJurnalBanner';
-import { Article } from '@/types';
+import { Article, Reel } from '@/types';
 import { fetchArticles } from '@/lib/wordpress';
 
 interface HomeClientProps {
   initialArticles?: Article[];
+  initialReels?: Reel[];
 }
 
-export function HomeClient({ initialArticles = [] }: HomeClientProps) {
+export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClientProps) {
   const [articles, setArticles] = useState<Article[]>(initialArticles);
   const [loading, setLoading] = useState(initialArticles.length === 0);
 
@@ -221,7 +222,7 @@ export function HomeClient({ initialArticles = [] }: HomeClientProps) {
         />
 
         {/* 10. Wave Reels Compact Carousel */}
-        <ReelsSection reels={[]} limit={8} />
+        <ReelsSection reels={initialReels} limit={8} />
       </main>
     </div>
   );

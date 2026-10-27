@@ -48,35 +48,39 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
   const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const syncReels = () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const saved = localStorage.getItem('jurnal_wave_reels');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              // Bersihkan hanya sisa dummy reel-skb jika pernah tersimpan
-              const clean = parsed.filter(
-                (r: any) =>
-                  !String(r.id || '').startsWith('reel-skb-') &&
-                  !String(r.id || '').startsWith('reel-00')
-              );
-              if (clean.length !== parsed.length) {
-                localStorage.setItem('jurnal_wave_reels', JSON.stringify(clean));
-              }
-              setCurrentReels(clean);
-              return;
-            }
+    let isMounted = true;
+
+    const fetchLatestReels = async () => {
+      try {
+        const res = await fetch('/api/reels', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && isMounted) {
+            setCurrentReels(json.data);
           }
-          setCurrentReels(reels || []);
-        } catch {
-          setCurrentReels(reels || []);
         }
+      } catch (err) {
+        console.error('Failed to fetch reels from server:', err);
       }
     };
-    syncReels();
-    window.addEventListener('storage', syncReels);
-    return () => window.removeEventListener('storage', syncReels);
+
+    if (reels && reels.length > 0) {
+      setCurrentReels(reels);
+    } else {
+      fetchLatestReels();
+    }
+
+    const handleUpdate = () => {
+      fetchLatestReels();
+    };
+
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('reels-updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('reels-updated', handleUpdate);
+    };
   }, [reels]);
 
   const availableCategories = useMemo(() => {
