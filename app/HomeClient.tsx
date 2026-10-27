@@ -10,10 +10,15 @@ import { ReelsSection } from '@/components/cards/ReelsSection';
 import { HalloJurnalBanner } from '@/components/cards/HalloJurnalBanner';
 import { Article } from '@/types';
 import { fetchArticles } from '@/lib/wordpress';
+import { DEFAULT_REELS } from '@/data/dummyReels';
 
-export function HomeClient() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
+interface HomeClientProps {
+  initialArticles?: Article[];
+}
+
+export function HomeClient({ initialArticles = [] }: HomeClientProps) {
+  const [articles, setArticles] = useState<Article[]>(initialArticles);
+  const [loading, setLoading] = useState(initialArticles.length === 0);
 
   useEffect(() => {
     async function loadArticles() {
@@ -25,21 +30,25 @@ export function HomeClient() {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
               setArticles(parsed);
+              setLoading(false);
+              return;
             }
           }
         } catch {}
       }
 
-      // 2. Fetch from DB via API / Prisma
-      try {
-        const data = await fetchArticles();
-        if (data && data.length > 0) {
-          setArticles(data);
+      // 2. Fetch from DB via API / Prisma if initialArticles was empty
+      if (initialArticles.length === 0) {
+        try {
+          const data = await fetchArticles();
+          if (data && data.length > 0) {
+            setArticles(data);
+          }
+        } catch (err) {
+          console.error('Error fetching articles:', err);
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error('Error fetching articles:', err);
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -213,7 +222,7 @@ export function HomeClient() {
         />
 
         {/* 10. Wave Reels Compact Carousel */}
-        <ReelsSection reels={[]} limit={8} />
+        <ReelsSection reels={DEFAULT_REELS} limit={8} />
       </main>
     </div>
   );

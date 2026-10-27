@@ -25,6 +25,7 @@ import { ReelsSection } from '@/components/cards/ReelsSection';
 import { Article } from '@/types';
 import { fetchArticles, fetchArticleById } from '@/lib/wordpress';
 import { formatIndoDateTime } from '@/lib/utils';
+import { isArticleSaved, toggleArticleBookmark } from '@/lib/bookmarks';
 
 function FacebookIcon({ className }: { className?: string }) {
   return (
@@ -118,9 +119,29 @@ const LOANWORD_PHONETICS: [RegExp, string][] = [
 export function ArticleDetailView({ id, initialData }: { id: string; initialData?: Article }) {
   const [article, setArticle] = useState<Article>(initialData as Article);
   const [allArticles, setAllArticles] = useState<Article[]>([]);
-  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [isSaved, setIsSaved] = useState<boolean>(() => (initialData?.id ? isArticleSaved(initialData.id) : false));
   const [headerCopied, setHeaderCopied] = useState<boolean>(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
+
+  useEffect(() => {
+    if (!article?.id) return;
+    const syncSaved = () => {
+      setIsSaved(isArticleSaved(article.id));
+    };
+    syncSaved();
+    window.addEventListener('storage', syncSaved);
+    window.addEventListener('bookmarks-updated', syncSaved);
+    return () => {
+      window.removeEventListener('storage', syncSaved);
+      window.removeEventListener('bookmarks-updated', syncSaved);
+    };
+  }, [article?.id]);
+
+  const handleToggleBookmark = () => {
+    if (!article?.id) return;
+    const next = toggleArticleBookmark(article.id);
+    setIsSaved(next);
+  };
 
   // Audio Player State & Microsoft Edge TTS Streaming Engine (Gadis & Ardi)
   const [isAudioActive, setIsAudioActive] = useState<boolean>(false);
@@ -756,7 +777,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
               {/* Tombol Simpan (Bookmark) */}
               <button
                 type="button"
-                onClick={() => setIsSaved(!isSaved)}
+                onClick={handleToggleBookmark}
                 title={isSaved ? 'Tersimpan (Klik untuk batal)' : 'Simpan Artikel'}
                 aria-label="Simpan Artikel"
                 className={`w-9 h-9 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90 ${

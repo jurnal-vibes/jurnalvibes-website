@@ -7,6 +7,8 @@ import { Article } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { formatIndoDate } from '@/lib/utils';
 
+import { getSavedArticleIds, toggleArticleBookmark } from '@/lib/bookmarks';
+
 interface HeroCarouselProps {
   articles: Article[];
 }
@@ -16,6 +18,25 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
   const heroArticles = heroes.length > 0 ? heroes.slice(0, 10) : articles.slice(0, 5);
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [savedArticles, setSavedArticles] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const syncSaved = () => {
+      const ids = getSavedArticleIds();
+      const map: Record<string, boolean> = {};
+      ids.forEach(id => {
+        map[id] = true;
+      });
+      setSavedArticles(map);
+    };
+
+    syncSaved();
+    window.addEventListener('storage', syncSaved);
+    window.addEventListener('bookmarks-updated', syncSaved);
+    return () => {
+      window.removeEventListener('storage', syncSaved);
+      window.removeEventListener('bookmarks-updated', syncSaved);
+    };
+  }, []);
 
   useEffect(() => {
     if (currentSlide >= heroArticles.length) {
@@ -34,7 +55,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
   const toggleBookmark = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setSavedArticles(prev => ({ ...prev, [id]: !prev[id] }));
+    const newState = toggleArticleBookmark(id);
+    setSavedArticles(prev => ({ ...prev, [id]: newState }));
   };
 
   if (!heroArticles.length) return null;

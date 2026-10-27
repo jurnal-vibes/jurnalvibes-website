@@ -17,6 +17,7 @@ import {
 import { Job } from '@/types';
 import { DUMMY_JOBS } from '@/data/dummyJobs';
 import { getJobRoleIcon, formatJobDate } from '@/components/cards/JobCard';
+import { isJobSaved, toggleJobBookmark } from '@/lib/bookmarks';
 
 interface JobDetailPageProps {
   params: Promise<{ id: string }>;
@@ -24,8 +25,22 @@ interface JobDetailPageProps {
 
 export default function JobDetailPage({ params }: JobDetailPageProps) {
   const { id } = use(params);
-  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [isSaved, setIsSaved] = useState<boolean>(() => (id ? isJobSaved(id) : false));
   const [allJobs, setAllJobs] = useState<Job[]>(DUMMY_JOBS);
+
+  useEffect(() => {
+    if (!id) return;
+    const syncSaved = () => {
+      setIsSaved(isJobSaved(id));
+    };
+    syncSaved();
+    window.addEventListener('storage', syncSaved);
+    window.addEventListener('bookmarks-updated', syncSaved);
+    return () => {
+      window.removeEventListener('storage', syncSaved);
+      window.removeEventListener('bookmarks-updated', syncSaved);
+    };
+  }, [id]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -40,6 +55,12 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
       } catch {}
     }
   }, []);
+
+  const handleToggleBookmark = () => {
+    if (!id) return;
+    const next = toggleJobBookmark(id);
+    setIsSaved(next);
+  };
 
   const job = allJobs.find(j => j.id === id) || DUMMY_JOBS.find(j => j.id === id);
   const RoleIcon = getJobRoleIcon(job?.title || '', job?.company || '');
@@ -206,9 +227,9 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
             </button>
 
             <button
-              onClick={() => setIsSaved(!isSaved)}
+              onClick={handleToggleBookmark}
               aria-label="Simpan Lowongan"
-              title={isSaved ? 'Tersimpan' : 'Simpan Lowongan'}
+              title={isSaved ? 'Tersimpan (Klik untuk batal)' : 'Simpan Lowongan'}
               className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
                 isSaved
                   ? 'border-[#c00015] bg-[#c00015]/10 text-[#c00015]'
