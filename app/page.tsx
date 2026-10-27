@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { HomeClient } from './HomeClient';
+import { fetchArticles } from '@/lib/wordpress';
 
 export const metadata: Metadata = {
   title: {
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
-  return <HomeClient />;
+export default async function HomePage() {
+  const articles = await fetchArticles();
+  return <HomeClient initialArticles={articles} />;
 }

@@ -120,12 +120,12 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         title="Lihat Berita Hari Ini di Indeks Berita"
       >
         <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 dark:text-slate-400 shrink-0 group-hover:text-primary transition-colors" />
-        {/* Desktop / Tablet: Minggu, 25 Oktober 2026 */}
-        <span className="hidden sm:inline text-xs font-semibold whitespace-nowrap">
+        {/* Desktop Luas: Minggu, 25 Oktober 2026 */}
+        <span className="hidden xl:inline text-xs font-semibold whitespace-nowrap">
           {fullDate}
         </span>
-        {/* Mobile: 25 Okt 2026 */}
-        <span className="sm:hidden text-[10px] font-semibold whitespace-nowrap">
+        {/* Tablet / Small Laptop / Desktop-mode di HP: 25 Okt 2026 */}
+        <span className="xl:hidden text-[10px] sm:text-xs font-semibold whitespace-nowrap">
           {shortDate}
         </span>
       </Link>

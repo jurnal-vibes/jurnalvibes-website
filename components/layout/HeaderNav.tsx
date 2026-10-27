@@ -116,7 +116,7 @@ export const HeaderNav: React.FC = () => {
 
             {/* Navigation Links (Desktop Only - 6 Menu Super Elegan & Ramping) */}
             <nav className="hidden md:flex flex-1 items-center justify-center min-w-0">
-              <div className="flex items-center gap-5 lg:gap-7 text-sm font-semibold text-on-surface">
+              <div className="flex items-center gap-3.5 lg:gap-6 text-xs lg:text-sm font-semibold text-on-surface">
                 {/* 1. Beranda */}
                 <Link
                   href="/"

@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { Play, ChevronRight } from 'lucide-react';
 import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6';
 import { Reel } from '@/types';
+import { DEFAULT_REELS } from '@/data/dummyReels';
 
 interface ReelsSectionProps {
-  reels: Reel[];
+  reels?: Reel[];
   hideSeeAll?: boolean;
   hideHeader?: boolean;
   showCategoryFilter?: boolean;
@@ -34,7 +35,7 @@ const BASE_CATEGORIES = [
 ];
 
 export const ReelsSection: React.FC<ReelsSectionProps> = ({
-  reels,
+  reels = [],
   hideSeeAll = false,
   hideHeader = false,
   showCategoryFilter = false,
@@ -43,7 +44,10 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
   subtitle,
   limit
 }) => {
-  const [currentReels, setCurrentReels] = useState<Reel[]>(reels);
+  const [currentReels, setCurrentReels] = useState<Reel[]>(() => {
+    if (reels && reels.length > 0) return reels;
+    return DEFAULT_REELS;
+  });
   const [activeCategory, setActiveCategory] = useState<string>('Semua');
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -54,37 +58,19 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
           const saved = localStorage.getItem('jurnal_wave_reels');
           if (saved) {
             const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              // Bersihkan seluruh reel dummy sisa cache browser lama
-              const clean = parsed.filter(
-                (r: any) =>
-                  !String(r.id || '').startsWith('reel-00') &&
-                  !String(r.title || '').toLowerCase().includes('jajanan hits') &&
-                  !String(r.title || '').toLowerCase().includes('bukit baros') &&
-                  !String(r.title || '').toLowerCase().includes('skatepark') &&
-                  !String(r.title || '').toLowerCase().includes('cikole vintage') &&
-                  !String(r.title || '').toLowerCase().includes('curug cikaso') &&
-                  !String(r.title || '').toLowerCase().includes('ujung genteng') &&
-                  !String(r.title || '').toLowerCase().includes('ciletuh') &&
-                  !String(r.title || '').toLowerCase().includes('selabintana')
-              );
-              if (clean.length !== parsed.length) {
-                localStorage.setItem('jurnal_wave_reels', JSON.stringify(clean));
-              }
-              setCurrentReels(clean);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setCurrentReels(parsed);
               return;
             }
           }
-          if (reels && reels.length > 0) {
-            const clean = reels.filter(
-              (r: any) => !String(r.id || '').startsWith('reel-00')
-            );
-            localStorage.setItem('jurnal_wave_reels', JSON.stringify(clean));
-            setCurrentReels(clean);
-          } else {
-            setCurrentReels([]);
-          }
-        } catch {}
+
+          // Jika localStorage kosong, inisialisasi dengan DEFAULT_REELS
+          const fallback = reels && reels.length > 0 ? reels : DEFAULT_REELS;
+          localStorage.setItem('jurnal_wave_reels', JSON.stringify(fallback));
+          setCurrentReels(fallback);
+        } catch {
+          setCurrentReels(DEFAULT_REELS);
+        }
       }
     };
     syncReels();

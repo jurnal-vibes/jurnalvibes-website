@@ -78,13 +78,9 @@ export const HomeCategorySection: React.FC<HomeCategorySectionProps> = ({
         </div>
       ) : (
         <div className="w-full bg-white dark:bg-zinc-900/60 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-3 sm:p-5 shadow-xs">
-          <div
-            className={`flex flex-col ${
-              reverseLayout ? 'md:flex-row-reverse' : 'md:flex-row'
-            } gap-3 sm:gap-6 items-start w-full`}
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start w-full">
             {/* Kolom Featured Besar: Kiri jika reverseLayout=false, KANAN jika reverseLayout=true */}
-            <article className="w-full md:w-1/2 flex flex-col group cursor-pointer shrink-0">
+            <article className={`w-full flex flex-col group cursor-pointer min-w-0 ${reverseLayout ? 'md:order-2' : 'md:order-1'}`}>
               <Link
                 href={`/artikel/${featured.slug || featured.id}`}
                 className="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-800 mb-2 sm:mb-2.5 block shadow-2xs"
@@ -117,7 +113,7 @@ export const HomeCategorySection: React.FC<HomeCategorySectionProps> = ({
 
             {/* Kolom Kartu Kecil: Kanan jika reverseLayout=false, KIRI jika reverseLayout=true */}
             {listItems.length > 0 ? (
-              <div className="w-full md:w-1/2 flex flex-col gap-2.5 sm:gap-3">
+              <div className={`w-full flex flex-col gap-2.5 sm:gap-3 min-w-0 ${reverseLayout ? 'md:order-1' : 'md:order-2'}`}>
                 {listItems.map((item) => (
                   <article
                     key={item.id}
@@ -153,7 +149,7 @@ export const HomeCategorySection: React.FC<HomeCategorySectionProps> = ({
               </div>
             ) : (
               /* Spacer di Desktop agar posisi sisi satunya tetap terjaga dan kartu besar tetap di posisinya */
-              <div className="hidden md:block w-full md:w-1/2" />
+              <div className={`hidden md:block w-full min-w-0 ${reverseLayout ? 'md:order-1' : 'md:order-2'}`} />
             )}
           </div>
         </div>

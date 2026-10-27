@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Bookmark,
@@ -16,6 +16,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { Job } from '@/types';
+import { isJobSaved, toggleJobBookmark } from '@/lib/bookmarks';
 
 interface JobCardProps {
   job: Job;
@@ -92,13 +93,29 @@ export const formatJobDate = (dateStr?: string) => {
 };
 
 export const JobCard: React.FC<JobCardProps> = ({ job }) => {
-  const [isSaved, setIsSaved] = useState<boolean>(job.isSaved || false);
+  const [isSaved, setIsSaved] = useState<boolean>(() => (job?.id ? isJobSaved(job.id) : false));
   const RoleIcon = getJobRoleIcon(job.title, job.company);
+
+  useEffect(() => {
+    if (!job?.id) return;
+    const syncSaved = () => {
+      setIsSaved(isJobSaved(job.id));
+    };
+    syncSaved();
+    window.addEventListener('storage', syncSaved);
+    window.addEventListener('bookmarks-updated', syncSaved);
+    return () => {
+      window.removeEventListener('storage', syncSaved);
+      window.removeEventListener('bookmarks-updated', syncSaved);
+    };
+  }, [job?.id]);
 
   const toggleBookmark = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsSaved(!isSaved);
+    if (!job?.id) return;
+    const next = toggleJobBookmark(job.id);
+    setIsSaved(next);
   };
 
   const handleShare = (e: React.MouseEvent) => {
