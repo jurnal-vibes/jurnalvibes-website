@@ -113,15 +113,15 @@ export function BookmarkClient({ initialArticles = [], initialJobs = [] }: Bookm
           </p>
         </header>
 
-        {/* Tab Switcher: Semua, Berita & Artikel, Lowongan Kerja */}
-        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-3 mb-5">
+        {/* Tab Switcher: Semua, Berita & Artikel, Lowongan Kerja (Selaras di Web & Mobile) */}
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-3 mb-5 overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => {
               setActiveTab('semua');
               setActiveCategory('Semua');
             }}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 leading-none ${
               activeTab === 'semua'
                 ? 'bg-[#c00015] text-white shadow-xs'
                 : 'bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300'
@@ -129,7 +129,7 @@ export function BookmarkClient({ initialArticles = [], initialJobs = [] }: Bookm
           >
             <span>Semua</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+              className={`text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-full font-extrabold leading-none inline-flex items-center justify-center ${
                 activeTab === 'semua' ? 'bg-white/20 text-white' : 'bg-black/10 dark:bg-white/10'
               }`}
             >
@@ -140,7 +140,7 @@ export function BookmarkClient({ initialArticles = [], initialJobs = [] }: Bookm
           <button
             type="button"
             onClick={() => setActiveTab('artikel')}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 leading-none ${
               activeTab === 'artikel'
                 ? 'bg-[#c00015] text-white shadow-xs'
                 : 'bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300'
@@ -149,7 +149,7 @@ export function BookmarkClient({ initialArticles = [], initialJobs = [] }: Bookm
             <Newspaper className="w-3.5 h-3.5" />
             <span>Berita &amp; Artikel</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+              className={`text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-full font-extrabold leading-none inline-flex items-center justify-center ${
                 activeTab === 'artikel' ? 'bg-white/20 text-white' : 'bg-black/10 dark:bg-white/10'
               }`}
             >
@@ -163,7 +163,7 @@ export function BookmarkClient({ initialArticles = [], initialJobs = [] }: Bookm
               setActiveTab('loker');
               setActiveCategory('Semua');
             }}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 leading-none ${
               activeTab === 'loker'
                 ? 'bg-[#c00015] text-white shadow-xs'
                 : 'bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300'
@@ -172,7 +172,7 @@ export function BookmarkClient({ initialArticles = [], initialJobs = [] }: Bookm
             <Briefcase className="w-3.5 h-3.5" />
             <span>Lowongan Kerja</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+              className={`text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-full font-extrabold leading-none inline-flex items-center justify-center ${
                 activeTab === 'loker' ? 'bg-white/20 text-white' : 'bg-black/10 dark:bg-white/10'
               }`}
             >

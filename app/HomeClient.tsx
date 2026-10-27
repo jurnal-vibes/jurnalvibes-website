@@ -10,7 +10,6 @@ import { ReelsSection } from '@/components/cards/ReelsSection';
 import { HalloJurnalBanner } from '@/components/cards/HalloJurnalBanner';
 import { Article } from '@/types';
 import { fetchArticles } from '@/lib/wordpress';
-import { DEFAULT_REELS } from '@/data/dummyReels';
 
 interface HomeClientProps {
   initialArticles?: Article[];
@@ -222,7 +221,7 @@ export function HomeClient({ initialArticles = [] }: HomeClientProps) {
         />
 
         {/* 10. Wave Reels Compact Carousel */}
-        <ReelsSection reels={DEFAULT_REELS} limit={8} />
+        <ReelsSection reels={[]} limit={8} />
       </main>
     </div>
   );

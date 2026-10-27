@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { ReelsSection } from '@/components/cards/ReelsSection';
-import { DEFAULT_REELS } from '@/data/dummyReels';
 
 export const metadata: Metadata = {
   title: 'Wave Reels Sukabumi',
@@ -26,7 +25,7 @@ export default function ReelsPage() {
 
       {/* Unified Gallery Grid Reels */}
       <ReelsSection
-        reels={DEFAULT_REELS}
+        reels={[]}
         hideHeader={true}
         showCategoryFilter={true}
         isGalleryPage={true}

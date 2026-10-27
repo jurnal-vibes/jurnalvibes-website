@@ -22,7 +22,6 @@ import {
 } from 'lucide-react'
 import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6'
 import { Reel } from '@/types'
-import { DEFAULT_REELS } from '@/data/dummyReels'
 
 // Kategori Resmi Jurnal Wave (Portal Berita & Konten Kreatif)
 export const JURNAL_WAVE_CATEGORIES = [
@@ -78,17 +77,24 @@ export default function AdminReelsPage() {
         const saved = localStorage.getItem('jurnal_wave_reels')
         if (saved) {
           const parsed = JSON.parse(saved)
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setReels(parsed)
+          if (Array.isArray(parsed)) {
+            // Bersihkan hanya sisa dummy reel-skb jika pernah tersimpan
+            const clean = parsed.filter(
+              (r: any) =>
+                !String(r.id || '').startsWith('reel-skb-') &&
+                !String(r.id || '').startsWith('reel-00')
+            )
+            if (clean.length !== parsed.length) {
+              localStorage.setItem('jurnal_wave_reels', JSON.stringify(clean))
+            }
+            setReels(clean)
             return
           }
         }
-        // Inisialisasi awal dengan DEFAULT_REELS jika kosong
-        localStorage.setItem('jurnal_wave_reels', JSON.stringify(DEFAULT_REELS))
-        setReels(DEFAULT_REELS)
+        setReels([])
       } catch (err) {
         console.error('Error loading reels:', err)
-        setReels(DEFAULT_REELS)
+        setReels([])
       }
     }
   }, [])

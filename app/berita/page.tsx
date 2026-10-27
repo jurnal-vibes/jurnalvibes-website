@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { BeritaClient } from './BeritaClient';
+import { fetchArticles } from '@/lib/wordpress';
 
 export const metadata: Metadata = {
   title: 'Semua Berita',
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BeritaPage() {
-  return <BeritaClient />;
+export default async function BeritaPage() {
+  const articles = await fetchArticles();
+  return <BeritaClient initialArticles={articles} />;
 }
