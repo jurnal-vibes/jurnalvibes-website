@@ -15,6 +15,11 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
+import {
+  ALL_REPORT_CATEGORIES,
+  REPORT_CATEGORIES_BY_TYPE,
+  normalizeCategoryName,
+} from '@/data/haloJurnalCategories'
 
 export default function AdminLaporanPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -38,12 +43,28 @@ export default function AdminLaporanPage() {
     return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase()
   }
 
-  // Status badge styling bersih tanpa kurung siku
-  const getStatusBadge = (status: DummyReport['status']) => {
+  // Status badge styling bersih (Mendukung alur tiket reguler & alur kurasi inspirasi)
+  const getStatusBadge = (status: DummyReport['status'], jenis?: string) => {
+    const isInspirasi = (jenis || '').toLowerCase() === 'inspirasi'
+    if (isInspirasi) {
+      const labels: Record<string, string> = {
+        diterima: 'Menunggu Kurasi',
+        diproses: 'Sedang Dikurasi',
+        ditindaklanjuti: '🌟 Liputan Berita',
+        selesai: 'Disetujui & Tayang',
+        ditolak: 'Tidak Lolos',
+      }
+      return (
+        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200">
+          {labels[status] || status}
+        </span>
+      )
+    }
+
     const labels: Record<string, string> = {
-      diterima: 'Perlu Verifikasi',
+      diterima: 'Diterima',
       diproses: 'Diproses',
-      ditindaklanjuti: 'Diproses',
+      ditindaklanjuti: 'Ditindaklanjuti',
       selesai: 'Selesai',
       ditolak: 'Ditolak',
     }
@@ -74,6 +95,22 @@ export default function AdminLaporanPage() {
 
   // Scan jumlah pesan chat warga aktif
   React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
+        if (!hasPurgedV2) {
+          localStorage.removeItem('halo_jurnal_read_chats')
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i)
+            if (k && k.startsWith('halo_jurnal_chat_')) {
+              localStorage.removeItem(k)
+            }
+          }
+          localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
+        }
+      } catch {}
+    }
+
     const scanChats = () => {
       if (typeof window === 'undefined') return
       const map: Record<string, number> = {}
@@ -116,7 +153,7 @@ export default function AdminLaporanPage() {
         const res = await fetch('/api/reports', { cache: 'no-store' })
         if (res.ok) {
           const json = await res.json()
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          if (json.success && Array.isArray(json.data)) {
             setReportsList(json.data)
             return
           }
@@ -137,7 +174,7 @@ export default function AdminLaporanPage() {
           const combined = [...userReports]
           const unique = new Map<string, any>()
           combined.forEach((item) => {
-            const key = item.id || item.nomor_tiket || item.ticket_number
+            const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
             if (key && !unique.has(key)) {
               unique.set(key, item)
             }
@@ -170,13 +207,24 @@ export default function AdminLaporanPage() {
     }
   }, [])
 
-  // Daftar kategori unik
-  const categories = useMemo(() => {
-    const set = new Set<string>()
+  // Kategori khusus yang diketik manual oleh warga (di luar master bawaan)
+  const customCategoriesFromReports = useMemo(() => {
+    const defaultSet = new Set<string>(
+      ALL_REPORT_CATEGORIES.map((c) => c.toLowerCase().trim())
+    )
+    const customSet = new Set<string>()
     reportsList.forEach((r) => {
-      if (r.kategori) set.add(r.kategori)
+      const clean = (r.kategori || '').trim()
+      if (
+        clean &&
+        !defaultSet.has(clean.toLowerCase()) &&
+        clean.toLowerCase() !== 'semua' &&
+        clean.toLowerCase() !== 'lainnya'
+      ) {
+        customSet.add(clean)
+      }
     })
-    return Array.from(set)
+    return Array.from(customSet)
   }, [reportsList])
 
   // Filter laporan
@@ -198,8 +246,12 @@ export default function AdminLaporanPage() {
       }
 
       // 3. Kategori
-      if (selectedCategory !== 'semua' && r.kategori !== selectedCategory) {
-        return false
+      if (selectedCategory !== 'semua') {
+        const normalizedItem = normalizeCategoryName(r.kategori).toLowerCase()
+        const normalizedTarget = selectedCategory.toLowerCase()
+        if (normalizedItem !== normalizedTarget && (r.kategori || '').toLowerCase() !== normalizedTarget) {
+          return false
+        }
       }
 
       // 4. Visibilitas
@@ -210,12 +262,13 @@ export default function AdminLaporanPage() {
     })
   }, [reportsList, searchQuery, selectedStatus, selectedCategory, selectedVisibility])
 
-  // Hitung jumlah tiap status untuk tab
+  // Hitung jumlah tiap status untuk tab (Sinkron 1-to-1 dengan Alur Tiket Warga)
   const statusCounts = useMemo(() => {
     return {
       semua: reportsList.length,
       diterima: reportsList.filter((r) => r.status === 'diterima').length,
-      diproses: reportsList.filter((r) => r.status === 'diproses' || r.status === 'ditindaklanjuti').length,
+      diproses: reportsList.filter((r) => r.status === 'diproses').length,
+      ditindaklanjuti: reportsList.filter((r) => r.status === 'ditindaklanjuti').length,
       selesai: reportsList.filter((r) => r.status === 'selesai').length,
     }
   }, [reportsList])
@@ -290,12 +343,13 @@ export default function AdminLaporanPage() {
         </div>
       </div>
 
-      {/* 2. Status Tab Cepat */}
+      {/* 2. Status Tab Cepat (Sinkron 1-to-1 dengan Alur Tiket Warga) */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {[
           { key: 'semua', label: 'Semua Laporan', count: statusCounts.semua },
-          { key: 'diterima', label: 'Perlu Verifikasi', count: statusCounts.diterima },
+          { key: 'diterima', label: 'Diterima', count: statusCounts.diterima },
           { key: 'diproses', label: 'Diproses', count: statusCounts.diproses },
+          { key: 'ditindaklanjuti', label: 'Ditindaklanjuti', count: statusCounts.ditindaklanjuti },
           { key: 'selesai', label: 'Selesai', count: statusCounts.selesai },
         ].map((tab) => (
           <button
@@ -345,7 +399,7 @@ export default function AdminLaporanPage() {
             )}
           </div>
 
-          {/* Filter Dropdown Kategori */}
+          {/* Filter Dropdown Kategori Terkelompok Rapi (Opsi 2 <optgroup>) */}
           <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full md:w-auto">
             <select
               value={selectedCategory}
@@ -353,11 +407,56 @@ export default function AdminLaporanPage() {
               className="w-full sm:w-auto px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-700 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
             >
               <option value="semua">Semua Kategori</option>
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
+
+              <optgroup label="── PENGADUAN WARGA ──">
+                {REPORT_CATEGORIES_BY_TYPE.pengaduan
+                  .filter((c) => c !== 'Lainnya')
+                  .map((cat) => (
+                    <option key={`pengaduan-${cat}`} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+              </optgroup>
+
+              <optgroup label="── ASPIRASI & USULAN ──">
+                {REPORT_CATEGORIES_BY_TYPE.aspirasi
+                  .filter((c) => c !== 'Lainnya')
+                  .map((cat) => (
+                    <option key={`aspirasi-${cat}`} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+              </optgroup>
+
+              <optgroup label="── PERMOHONAN INFORMASI ──">
+                {REPORT_CATEGORIES_BY_TYPE.informasi
+                  .filter((c) => c !== 'Lainnya')
+                  .map((cat) => (
+                    <option key={`informasi-${cat}`} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+              </optgroup>
+
+              <optgroup label="── CERITA INSPIRASI ──">
+                {REPORT_CATEGORIES_BY_TYPE.inspirasi
+                  .filter((c) => c !== 'Lainnya')
+                  .map((cat) => (
+                    <option key={`inspirasi-${cat}`} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+              </optgroup>
+
+              {customCategoriesFromReports.length > 0 && (
+                <optgroup label="── KATEGORI KHUSUS WARGA ──">
+                  {customCategoriesFromReports.map((cat) => (
+                    <option key={`custom-${cat}`} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
 
             {/* Filter Visibilitas */}
@@ -495,9 +594,9 @@ export default function AdminLaporanPage() {
                         </span>
                       </td>
 
-                      {/* Status Penanganan */}
+                      {/* Status Penanganan / Kurasi */}
                       <td className="py-3.5 px-4 whitespace-nowrap align-middle">
-                        {getStatusBadge(report.status)}
+                        {getStatusBadge(report.status, report.jenis || report.kategori)}
                       </td>
 
                       {/* Dukungan Warga */}

@@ -54,8 +54,11 @@ export default function AdminLokerPage() {
           if (saved) {
             const parsed = JSON.parse(saved)
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setJobs(parsed)
-              return
+              const hasOldDummy = parsed.some((j: any) => j.company === 'PT Sukabumi Indo Prima')
+              if (!hasOldDummy) {
+                setJobs(parsed)
+                return
+              }
             }
           }
           localStorage.setItem('jurnal_wave_jobs', JSON.stringify(DUMMY_JOBS))
@@ -113,6 +116,15 @@ export default function AdminLokerPage() {
       .map((b) => b.trim())
       .filter(Boolean)
 
+    const cleanApplyLink = newApplyEmail.trim()
+    const formattedLink = cleanApplyLink.startsWith('http://') || cleanApplyLink.startsWith('https://') || cleanApplyLink.startsWith('mailto:') || cleanApplyLink.includes('@')
+      ? cleanApplyLink
+      : cleanApplyLink.startsWith('wa.me')
+      ? `https://${cleanApplyLink}`
+      : cleanApplyLink.replace(/[^0-9]/g, '').length >= 10
+      ? `https://wa.me/${cleanApplyLink.replace(/[^0-9]/g, '')}`
+      : `https://${cleanApplyLink}`
+
     const newJob: Job = {
       id: `job-${Date.now()}`,
       title: newTitle.trim(),
@@ -125,7 +137,8 @@ export default function AdminLokerPage() {
       description: newDescription.trim() || 'Informasi lengkap terkait lowongan pekerjaan ini.',
       requirements: reqList.length > 0 ? reqList : ['Pendidikan relevan', 'Komunikatif dan bertanggung jawab'],
       benefits: benList.length > 0 ? benList : ['Gaji pokok sesuai kesepakatan', 'BPJS'],
-      applyEmail: newApplyEmail.trim() || 'recruitment@sukabumi.com',
+      applyEmail: formattedLink,
+      applyUrl: formattedLink,
       createdAt: new Date().toISOString(),
     }
 
@@ -301,7 +314,7 @@ export default function AdminLokerPage() {
                   <th className="py-3 px-4">Lokasi &amp; Wilayah</th>
                   <th className="py-3 px-4">Tipe &amp; Pendidikan</th>
                   <th className="py-3 px-4">Kisaran Gaji</th>
-                  <th className="py-3 px-4">Kontak Lamaran</th>
+                  <th className="py-3 px-4">Link Pendaftaran</th>
                   <th className="py-3 px-4 text-right">Aksi</th>
                 </tr>
               </thead>
@@ -349,9 +362,9 @@ export default function AdminLokerPage() {
                       {job.salaryRange}
                     </td>
 
-                    {/* Email Lamaran */}
-                    <td className="py-3.5 px-4 whitespace-nowrap text-slate-600 font-mono text-[11px]">
-                      {job.applyEmail}
+                    {/* Link Pendaftaran */}
+                    <td className="py-3.5 px-4 max-w-[200px] truncate text-slate-600 font-mono text-[11px]" title={job.applyUrl || job.applyEmail}>
+                      {job.applyUrl || job.applyEmail}
                     </td>
 
                     {/* Aksi */}
@@ -521,16 +534,19 @@ export default function AdminLokerPage() {
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  Email / Kontak Kirim Lamaran: <span className="text-[#c00015]">*</span>
+                  Tautan / Link Pendaftaran Loker: <span className="text-[#c00015]">*</span>
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={newApplyEmail}
                   onChange={(e) => setNewApplyEmail(e.target.value)}
-                  placeholder="Contoh: karir@perusahaan.com"
+                  placeholder="Contoh: https://forms.gle/xyz, https://perusahaan.com/karir, atau https://wa.me/62812..."
                   className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
                 />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Pengunjung akan langsung diarahkan ke tautan ini saat mengklik tombol &quot;Lamar Sekarang&quot;.
+                </p>
               </div>
 
               <div>
@@ -725,15 +741,25 @@ export default function AdminLokerPage() {
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  Email Lamaran:
+                  Tautan / Link Pendaftaran Loker: <span className="text-[#c00015]">*</span>
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  value={editingJob.applyEmail}
-                  onChange={(e) => setEditingJob({ ...editingJob, applyEmail: e.target.value })}
+                  value={editingJob.applyUrl || editingJob.applyEmail}
+                  onChange={(e) =>
+                    setEditingJob({
+                      ...editingJob,
+                      applyUrl: e.target.value,
+                      applyEmail: e.target.value,
+                    })
+                  }
+                  placeholder="Contoh: https://forms.gle/xyz, https://perusahaan.com/karir, atau https://wa.me/62812..."
                   className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
                 />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Pengunjung akan langsung diarahkan ke tautan ini saat mengklik tombol &quot;Lamar Sekarang&quot;.
+                </p>
               </div>
 
               <div>

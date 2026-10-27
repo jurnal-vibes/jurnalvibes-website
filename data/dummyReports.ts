@@ -8,7 +8,7 @@ export interface DummyReport {
   lokasi: string
   latitude: number
   longitude: number
-  status: 'diterima' | 'diproses' | 'ditindaklanjuti' | 'selesai'
+  status: 'diterima' | 'diproses' | 'ditindaklanjuti' | 'selesai' | 'ditolak'
   is_public: boolean
   dukungan_count: number
   komentar_count: number

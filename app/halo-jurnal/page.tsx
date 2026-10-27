@@ -12,6 +12,9 @@ export default async function HaloJurnalLandingPage() {
 
   try {
     const dbReports = await prisma.report.findMany({
+      include: {
+        attachments: true,
+      },
       orderBy: { createdAt: 'desc' },
     })
     if (dbReports.length > 0) {
@@ -33,7 +36,11 @@ export default async function HaloJurnalLandingPage() {
           status: item.status,
           is_public: Boolean(item.isPublic),
           created_at: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
-          laporan_lampiran: [],
+          laporan_lampiran: (item.attachments || []).map((att: any) => ({
+            id: att.id,
+            file_url: att.fileUrl,
+            file_type: att.fileType,
+          })),
         }))
     }
   } catch {}
@@ -41,7 +48,7 @@ export default async function HaloJurnalLandingPage() {
   return (
     <main className="w-full">
       {/* Hero Section */}
-      <section className="relative min-h-[520px] sm:min-h-[640px] md:min-h-[720px] flex items-center justify-center overflow-hidden pt-10 pb-24 sm:pt-10 sm:pb-36 md:pt-12 md:pb-44">
+      <section className="relative min-h-[460px] sm:min-h-[640px] md:min-h-[720px] flex items-center justify-center overflow-hidden pt-14 pb-18 sm:pt-10 sm:pb-36 md:pt-12 md:pb-44">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/40 z-10" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -52,7 +59,7 @@ export default async function HaloJurnalLandingPage() {
           />
         </div>
 
-        <div className="relative z-20 text-center px-4 sm:px-6 max-w-4xl mx-auto flex flex-col items-center">
+        <div className="relative z-20 text-center px-4 sm:px-6 max-w-4xl mx-auto flex flex-col items-center mt-5 sm:mt-0">
           <h1 className="font-heading font-extrabold text-2xl sm:text-4xl md:text-5xl text-white mb-3 md:mb-4 tracking-tight drop-shadow-md">
             Suara Anda, Wadah Kami
           </h1>
@@ -89,7 +96,7 @@ export default async function HaloJurnalLandingPage() {
       </section>
 
       {/* Category Cards Section */}
-      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 -mt-10 sm:-mt-20 md:-mt-32 relative z-30 pb-8 sm:pb-12">
+      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 -mt-14 sm:-mt-20 md:-mt-32 relative z-30 pb-8 sm:pb-12">
         <CategoryCards />
       </section>
 
@@ -119,64 +126,65 @@ export default async function HaloJurnalLandingPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="relative py-8 sm:py-10 bg-surface border-t border-outline-variant/60 overflow-hidden">
-        {/* Subtle Ambient Glows */}
-        <div className="absolute -left-12 -top-12 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
-        <div className="absolute right-0 bottom-0 w-72 h-72 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
-
+      {/* Stats Section: Clean Editorial Metric Strip */}
+      <section className="relative py-3.5 sm:py-6 bg-surface-container-low/50 border-t border-outline-variant/60">
         <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-5">
-            {/* Laporan Masuk */}
-            <div className="group relative p-4 sm:p-5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
-              <span className="font-heading font-bold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
-                {totalLaporan || 0}
-              </span>
-              <span className="text-xs font-bold text-on-surface uppercase tracking-wider mb-0.5">
-                Laporan Masuk
-              </span>
-              <span className="text-[11px] text-secondary">
-                Aspirasi warga terhimpun
-              </span>
-            </div>
+          <div className="rounded-xl sm:rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs py-3 sm:py-4 px-1 sm:px-4">
+            <div className="grid grid-cols-4 divide-x divide-slate-100 dark:divide-slate-800">
+              {/* 1. Laporan Masuk */}
+              <div className="flex flex-col items-center justify-center text-center px-1 sm:px-3">
+                <span className="font-heading font-extrabold text-base sm:text-2xl md:text-3xl text-slate-900 dark:text-white tracking-tight leading-none mb-1">
+                  {totalLaporan || 0}
+                </span>
+                <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <span className="sm:hidden">Laporan</span>
+                  <span className="hidden sm:inline">Laporan Masuk</span>
+                </span>
+                <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                  Aspirasi warga
+                </span>
+              </div>
 
-            {/* Tuntas Ditangani */}
-            <div className="group relative p-4 sm:p-5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
-              <span className="font-heading font-bold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
-                {tuntasLaporan || 0}
-              </span>
-              <span className="text-xs font-bold text-on-surface uppercase tracking-wider mb-0.5">
-                Tuntas Ditangani
-              </span>
-              <span className="text-[11px] text-secondary">
-                Solusi tervalidasi
-              </span>
-            </div>
+              {/* 2. Tuntas Ditangani */}
+              <div className="flex flex-col items-center justify-center text-center px-1 sm:px-3">
+                <span className="font-heading font-extrabold text-base sm:text-2xl md:text-3xl text-slate-900 dark:text-white tracking-tight leading-none mb-1">
+                  {tuntasLaporan || 0}
+                </span>
+                <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <span className="sm:hidden">Selesai</span>
+                  <span className="hidden sm:inline">Tuntas Ditangani</span>
+                </span>
+                <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                  Solusi tervalidasi
+                </span>
+              </div>
 
-            {/* Sedang Diproses */}
-            <div className="group relative p-4 sm:p-5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
-              <span className="font-heading font-bold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
-                {prosesLaporan || 0}
-              </span>
-              <span className="text-xs font-bold text-on-surface uppercase tracking-wider mb-0.5">
-                Sedang Diproses
-              </span>
-              <span className="text-[11px] text-secondary">
-                Tindak lanjut instansi
-              </span>
-            </div>
+              {/* 3. Sedang Diproses */}
+              <div className="flex flex-col items-center justify-center text-center px-1 sm:px-3">
+                <span className="font-heading font-extrabold text-base sm:text-2xl md:text-3xl text-slate-900 dark:text-white tracking-tight leading-none mb-1">
+                  {prosesLaporan || 0}
+                </span>
+                <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <span className="sm:hidden">Diproses</span>
+                  <span className="hidden sm:inline">Sedang Diproses</span>
+                </span>
+                <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                  Tindak lanjut instansi
+                </span>
+              </div>
 
-            {/* Transparansi */}
-            <div className="group relative p-4 sm:p-5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/70 hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col items-center text-center">
-              <span className="font-heading font-bold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
-                100%
-              </span>
-              <span className="text-xs font-bold text-on-surface uppercase tracking-wider mb-0.5">
-                Transparansi
-              </span>
-              <span className="text-[11px] text-secondary">
-                Terbuka & akuntabel
-              </span>
+              {/* 4. Transparansi */}
+              <div className="flex flex-col items-center justify-center text-center px-1 sm:px-3">
+                <span className="font-heading font-extrabold text-base sm:text-2xl md:text-3xl text-slate-900 dark:text-white tracking-tight leading-none mb-1">
+                  100%
+                </span>
+                <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Transparansi
+                </span>
+                <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                  Terbuka &amp; akuntabel
+                </span>
+              </div>
             </div>
           </div>
         </div>

@@ -61,13 +61,12 @@ function LoginPageContent() {
         return
       }
 
-      const wargaUser = data.user || {
-        id: 'warga-' + Date.now(),
-        email: email.trim(),
-        full_name: email.trim().split('@')[0].toUpperCase(),
-        role: 'warga',
-        is_verified: true,
+      if (!data.user) {
+        setError('Data profil akun tidak ditemukan. Silakan hubungi admin.')
+        return
       }
+
+      const wargaUser = data.user
 
       if (typeof window !== 'undefined') {
         localStorage.setItem('halo_jurnal_current_user', JSON.stringify(wargaUser))
@@ -103,19 +102,19 @@ function LoginPageContent() {
         <div className="absolute right-0 bottom-0 w-96 h-96 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* SISI KIRI: GAMBAR MASKOT (KEPALA PAS DI ATAS, KAKI TERANGKAT RAPI DARI BAWAH) */}
-          <div className="md:col-span-5 flex flex-col items-center justify-center pointer-events-none self-stretch pt-2 pb-4">
-            <div className="relative w-full h-full min-h-[320px] sm:min-h-[380px] md:min-h-[440px] max-h-[460px] flex flex-col items-center justify-start">
-              {/* Soft glow podium */}
-              <div className="absolute w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-primary/15 via-amber-500/10 to-transparent blur-3xl pointer-events-none" />
+          {/* SISI KIRI: MASKOT (Proporsional di semua ukuran) */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center pointer-events-none self-stretch">
+            <div className="relative w-full flex flex-col items-center justify-center">
+              {/* Soft glow */}
+              <div className="absolute w-48 h-48 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/hallo-jurnal-presenter.webp"
                 alt="Hallo Jurnal Presenter"
-                className="w-full h-full max-h-[440px] object-contain object-top drop-shadow-xl select-none transition-transform duration-300"
+                className="relative w-1/2 max-w-[160px] md:w-3/4 md:max-w-[240px] object-contain drop-shadow-xl select-none"
               />
-              {/* Bayangan halus di bawah kaki */}
-              <div className="w-24 sm:w-32 h-2.5 bg-black/10 blur-xs rounded-full -mt-1.5 pointer-events-none" />
+              {/* Bayangan bawah kaki */}
+              <div className="w-16 md:w-20 h-2 bg-black/8 blur-sm rounded-full -mt-1 pointer-events-none" />
             </div>
           </div>
 
@@ -124,17 +123,17 @@ function LoginPageContent() {
             {/* Kalimat Singkat di Bagian Atas */}
             <div className="mb-6">
               <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-2xs">
+                <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-2xs">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="/halo-jurnal-icon.webp"
-                    alt="Halo Jurnal Logo"
+                    src="/halo-jurnal-icon.webp?v=original"
+                    alt="Hallo Jurnal Logo"
                     className="w-full h-full object-contain"
                   />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-heading font-bold text-sm text-on-surface tracking-tight leading-none">
-                    Halo Jurnal
+                  <span className="font-heading font-black text-base text-on-surface tracking-tight leading-none">
+                    Hallo Jurnal
                   </span>
                   <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">
                     Aspirasi &amp; Aduan Sukabumi
@@ -179,7 +178,7 @@ function LoginPageContent() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="adminjurnal7@gmail.com"
+                    placeholder="nama@email.com"
                     required
                     className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                   />
@@ -205,7 +204,7 @@ function LoginPageContent() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••••"
+                    placeholder="Minimal 8 karakter"
                     required
                     className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                   />
@@ -222,6 +221,9 @@ function LoginPageContent() {
                     )}
                   </button>
                 </div>
+                <p className="text-[11px] text-secondary mt-1.5">
+                  Gunakan minimal 8 karakter kombinasi huruf atau angka.
+                </p>
               </div>
 
               {/* Submit Button */}

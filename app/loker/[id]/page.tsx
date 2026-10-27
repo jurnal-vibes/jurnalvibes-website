@@ -1,22 +1,22 @@
 'use client';
 
-import React, { use, useState } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
-  Building2,
   MapPin,
   GraduationCap,
   Briefcase,
   Banknote,
   Bookmark,
   Share2,
-  ExternalLink,
   ShieldCheck,
   Flag,
-  ChevronRight
+  ExternalLink,
 } from 'lucide-react';
+import { Job } from '@/types';
 import { DUMMY_JOBS } from '@/data/dummyJobs';
+import { getJobRoleIcon, formatJobDate } from '@/components/cards/JobCard';
 
 interface JobDetailPageProps {
   params: Promise<{ id: string }>;
@@ -25,21 +25,37 @@ interface JobDetailPageProps {
 export default function JobDetailPage({ params }: JobDetailPageProps) {
   const { id } = use(params);
   const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [allJobs, setAllJobs] = useState<Job[]>(DUMMY_JOBS);
 
-  const job = DUMMY_JOBS.find(j => j.id === id);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('jurnal_wave_jobs');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setAllJobs(parsed);
+          }
+        }
+      } catch {}
+    }
+  }, []);
+
+  const job = allJobs.find(j => j.id === id) || DUMMY_JOBS.find(j => j.id === id);
+  const RoleIcon = getJobRoleIcon(job?.title || '', job?.company || '');
 
   if (!job) {
     return (
       <div className="flex flex-1 mx-auto max-w-container-max w-full px-margin-mobile md:px-margin-desktop py-20 text-center">
         <div className="max-w-md mx-auto flex flex-col items-center">
-          <Briefcase className="w-12 h-12 text-on-surface-variant/50 mb-4" />
-          <h2 className="text-xl font-bold text-on-surface mb-2">Lowongan Tidak Ditemukan</h2>
-          <p className="text-sm text-on-surface-variant mb-6">
+          <Briefcase className="w-12 h-12 text-slate-400 mb-4" />
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Lowongan Tidak Ditemukan</h2>
+          <p className="text-sm text-slate-500 mb-6">
             Lowongan kerja yang Anda cari tidak tersedia atau telah ditutup.
           </p>
           <Link
             href="/loker"
-            className="px-5 py-2.5 rounded-full bg-primary text-on-primary font-bold text-sm"
+            className="px-5 py-2.5 rounded-full bg-[#c00015] text-white font-bold text-sm"
           >
             Kembali ke Daftar Loker
           </Link>
@@ -64,7 +80,35 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
   };
 
   const handleApply = () => {
-    window.location.href = `mailto:${job.applyEmail}?subject=Lamaran%20Pekerjaan%20-%20${encodeURIComponent(job.title)}%20-%20[Nama%20Lengkap]&body=Halo%20Tim%20HRD%20${encodeURIComponent(job.company)},%0D%0A%0D%0ASaya%20tertarik%20untuk%20melamar%20posisi%20${encodeURIComponent(job.title)}.%20Terlampir%20CV%20dan%20dokumen%20pendukung%20saya.%0D%0A%0D%0ATerima%20kasih.`;
+    const rawLink = (job.applyUrl || job.applyEmail || '').trim();
+    if (!rawLink) {
+      alert('Tautan pendaftaran belum tersedia untuk lowongan ini.');
+      return;
+    }
+
+    if (rawLink.startsWith('http://') || rawLink.startsWith('https://')) {
+      window.open(rawLink, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (rawLink.startsWith('wa.me/')) {
+      window.open(`https://${rawLink}`, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (rawLink.includes('@') && !rawLink.includes('/')) {
+      window.location.href = `mailto:${rawLink}?subject=Lamaran%20Pekerjaan%20-%20${encodeURIComponent(job.title)}%20-%20[Nama%20Lengkap]`;
+      return;
+    }
+
+    const cleanDigits = rawLink.replace(/[^0-9]/g, '');
+    if (cleanDigits.length >= 10) {
+      const waNum = cleanDigits.startsWith('0') ? '62' + cleanDigits.slice(1) : cleanDigits;
+      window.open(`https://wa.me/${waNum}?text=Halo%20saya%20tertarik%20melamar%20posisi%20${encodeURIComponent(job.title)}%20di%20${encodeURIComponent(job.company)}`, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    window.open(`https://${rawLink}`, '_blank', 'noopener,noreferrer');
   };
 
   const recruiterRequirements = [
@@ -82,12 +126,10 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
   ];
 
   const defaultBenefits = [
-    'Asuransi kesehatan',
-    'Bonus kinerja',
-    'BPJS Ketenagakerjaan',
-    'Cuti tahunan',
-    'Gaji Pokok',
-    'Tunjangan Hari Raya (THR)'
+    'Gaji pokok sesuai UMK',
+    'BPJS Kesehatan & Ketenagakerjaan',
+    'Tunjangan makan & transportasi',
+    'Jenjang karir yang jelas'
   ];
 
   return (
@@ -97,75 +139,80 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
         <div className="mb-4">
           <Link
             href="/loker"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-500 hover:text-primary transition-colors group"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#c00015] transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
             <span>Kembali ke Daftar Loker</span>
           </Link>
         </div>
 
-        {/* ================= 1. HEADER KARTU LOKER ================= */}
-        <div className="bg-surface border border-outline-variant/60 rounded-2xl p-5 sm:p-7 shadow-2xs mb-6 flex flex-col gap-5">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-surface-variant/70 border border-outline-variant/50 flex items-center justify-center shrink-0 text-primary font-bold shadow-2xs">
-              <Building2 className="w-7 h-7" />
+        {/* ================= 1. HEADER KARTU LOKER (Compact Modern Style) ================= */}
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-2xs mb-4 sm:mb-6 flex flex-col gap-3.5 sm:gap-4">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 border border-slate-200 dark:border-zinc-700 flex items-center justify-center shrink-0 shadow-2xs">
+              <RoleIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[#c00015] stroke-[2.2]" />
             </div>
 
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-heading font-extrabold text-slate-900 dark:text-zinc-100 leading-snug">
                 {job.title}
               </h1>
-              <p className="text-sm sm:text-base font-medium text-zinc-600 dark:text-zinc-400 mt-1">
+              <p className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-400 mt-0.5">
                 {job.company}
               </p>
             </div>
           </div>
 
-          {/* 4 Info Utama Berikon */}
-          <div className="flex flex-col gap-2.5 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 pt-1 border-t border-outline-variant/40">
-            <div className="flex items-center gap-2.5">
-              <MapPin className="w-4 h-4 text-primary shrink-0 stroke-[2]" />
+          {/* Info Utama: Badge Chips Kompak Modern */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
+            {/* Gaji (Netral Elegan tanpa warna hijau) */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 border border-slate-200/80 dark:border-zinc-700 text-xs font-bold tracking-tight">
+              <Banknote className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 shrink-0" />
+              <span>{job.salaryRange}</span>
+            </div>
+
+            {/* Lokasi (Utuh tanpa terpotong) */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200/70 dark:border-zinc-700/60 text-xs font-medium">
+              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span>{job.location}</span>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <GraduationCap className="w-4 h-4 text-primary shrink-0 stroke-[2]" />
-              <span>{job.education || 'Minimal SMA/SMK/Sederajat'}</span>
+            {/* Tipe Pekerjaan */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200/70 dark:border-zinc-700/60 text-xs font-medium">
+              <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span>{job.type}</span>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <Briefcase className="w-4 h-4 text-primary shrink-0 stroke-[2]" />
-              <span>{job.type} • Penempatan Area Sukabumi</span>
+            {/* Pendidikan */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200/70 dark:border-zinc-700/60 text-xs font-medium">
+              <GraduationCap className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span>{job.education || 'Minimal SMA/SMK'}</span>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <Banknote className="w-4 h-4 text-primary shrink-0 stroke-[2]" />
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{job.salaryRange}</span>
-            </div>
-          </div>
-
-          {/* Info Tanggal Posting */}
-          <div className="text-[11px] text-zinc-400 dark:text-zinc-500 font-normal -mt-1">
-            {job.createdAt ? job.createdAt.split('-')[0].trim() : 'Terbaru'}
+            {/* Info Tanggal Posting */}
+            <span className="text-[11px] text-slate-400 dark:text-zinc-500 font-medium ml-auto self-center">
+              {formatJobDate(job.createdAt)}
+            </span>
           </div>
 
           {/* Tombol Aksi Utama */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex items-center gap-2.5 pt-1">
             <button
               onClick={handleApply}
-              className="flex-1 sm:flex-initial px-6 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-sm shadow-xs transition-all cursor-pointer active:scale-95 text-center"
+              className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer active:scale-95 text-center flex items-center justify-center gap-2"
             >
-              Lamar Sekarang
+              <span>Lamar Sekarang</span>
+              <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
               onClick={() => setIsSaved(!isSaved)}
               aria-label="Simpan Lowongan"
               title={isSaved ? 'Tersimpan' : 'Simpan Lowongan'}
-              className={`w-11 h-11 rounded-xl border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+              className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
                 isSaved
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-outline-variant/70 text-zinc-500 hover:text-primary hover:border-primary bg-surface'
+                  ? 'border-[#c00015] bg-[#c00015]/10 text-[#c00015]'
+                  : 'border-slate-200 dark:border-zinc-700 text-slate-400 hover:text-[#c00015] hover:border-[#c00015] bg-white dark:bg-zinc-900'
               }`}
             >
               <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
@@ -175,7 +222,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
               onClick={handleShare}
               aria-label="Bagikan Lowongan"
               title="Bagikan Lowongan"
-              className="w-11 h-11 rounded-xl border border-outline-variant/70 text-zinc-500 hover:text-primary hover:border-primary bg-surface flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              className="w-10 h-10 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-400 hover:text-[#c00015] hover:border-[#c00015] bg-white dark:bg-zinc-900 flex items-center justify-center transition-colors cursor-pointer shrink-0"
             >
               <Share2 className="w-4 h-4" />
             </button>
@@ -183,65 +230,65 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
         </div>
 
         {/* ================= 2. DESKRIPSI & KUALIFIKASI ================= */}
-        <div className="bg-surface border border-outline-variant/60 rounded-2xl p-5 sm:p-7 shadow-2xs mb-6 flex flex-col gap-6">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-2xs mb-6 flex flex-col gap-6">
           <section className="flex flex-col gap-3">
-            <h2 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-zinc-100">
               Deskripsi Pekerjaan
             </h2>
 
-            <div className="flex flex-col gap-2 text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Jobdesk pekerjaan :</span>
+            <div className="flex flex-col gap-2 text-sm text-slate-700 dark:text-zinc-300 leading-relaxed">
+              <span className="font-semibold text-slate-900 dark:text-zinc-100">Jobdesk pekerjaan:</span>
               <p className="whitespace-pre-line">{job.description}</p>
             </div>
           </section>
 
           {/* Kualifikasi */}
-          <section className="flex flex-col gap-3 pt-4 border-t border-outline-variant/40">
-            <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">Kualifikasi :</span>
-            <ul className="list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-300 flex flex-col gap-1.5 leading-relaxed">
+          <section className="flex flex-col gap-3 pt-4 border-t border-slate-100 dark:border-zinc-800">
+            <span className="font-semibold text-sm text-slate-900 dark:text-zinc-100">Kualifikasi:</span>
+            <ul className="list-disc pl-5 text-sm text-slate-700 dark:text-zinc-300 flex flex-col gap-1.5 leading-relaxed">
               {job.requirements.map((req, idx) => (
                 <li key={idx}>{req}</li>
               ))}
             </ul>
           </section>
 
-          {/* Kebijakan Data Pribadi */}
-          <div className="p-4 rounded-xl bg-surface-variant/40 border border-outline-variant/40 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-            <span className="font-bold text-zinc-800 dark:text-zinc-200 block mb-1">
-              {job.company} tunduk pada ketentuan UU Nomor 27 Tahun 2022 tentang Perlindungan Data Pribadi
+          {/* Komitmen Perlindungan Data */}
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700/60 text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+            <span className="font-semibold text-slate-800 dark:text-zinc-200 block mb-0.5">
+              Komitmen Privasi Pelamar
             </span>
-            Data lamaran kerja yang Anda kirimkan hanya akan digunakan untuk keperluan verifikasi dan seleksi rekrutmen di {job.company}.
+            Data lamaran kerja yang dikirimkan hanya diperuntukkan bagi proses seleksi rekrutmen resmi di {job.company}.
           </div>
 
-          {/* Hari & Jam Kerja (2 Kolom) */}
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-outline-variant/40">
+          {/* Hari & Jam Kerja */}
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
             <div>
-              <span className="block text-xs text-zinc-500 font-medium">Hari Kerja</span>
-              <span className="block text-sm font-bold text-zinc-800 dark:text-zinc-200 mt-0.5">
+              <span className="block text-xs text-slate-500 font-medium">Hari Kerja</span>
+              <span className="block text-sm font-bold text-slate-900 dark:text-zinc-100 mt-0.5">
                 Senin - Jumat
               </span>
             </div>
             <div>
-              <span className="block text-xs text-zinc-500 font-medium">Jam Kerja</span>
-              <span className="block text-sm font-bold text-zinc-800 dark:text-zinc-200 mt-0.5">
+              <span className="block text-xs text-slate-500 font-medium">Jam Kerja</span>
+              <span className="block text-sm font-bold text-slate-900 dark:text-zinc-100 mt-0.5">
                 08:30 - 17:30 WIB
               </span>
             </div>
           </div>
         </div>
 
-        {/* ================= 3. PERSYARATAN, KEAHLIAN & BENEFIT (CHIPS) ================= */}
-        <div className="bg-surface border border-outline-variant/60 rounded-2xl p-5 sm:p-7 shadow-2xs mb-6 flex flex-col gap-6">
+        {/* ================= 3. PERSYARATAN, KEAHLIAN & BENEFIT (CHIPS BERSIH MONOKROM) ================= */}
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-5 sm:p-7 shadow-2xs mb-6 flex flex-col gap-6">
           {/* Persyaratan dari rekruter */}
           <div className="flex flex-col gap-2.5">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Persyaratan dari rekruter
+            <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+              Persyaratan dari Rekruter
             </h3>
             <div className="flex flex-wrap gap-2">
               {recruiterRequirements.map((req, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/40"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 border border-slate-200/80 dark:border-zinc-700/60"
                 >
                   {req}
                 </span>
@@ -251,14 +298,14 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
 
           {/* Keahlian yang dibutuhkan */}
           <div className="flex flex-col gap-2.5">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Keahlian yang dibutuhkan
+            <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+              Keahlian yang Dibutuhkan
             </h3>
             <div className="flex flex-wrap gap-2">
               {defaultSkills.map((skill, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200/70 dark:border-zinc-700/60"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 border border-slate-200/80 dark:border-zinc-700/60"
                 >
                   {skill}
                 </span>
@@ -266,16 +313,16 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
             </div>
           </div>
 
-          {/* Benefit (Chips Oranye Lembut) */}
+          {/* Benefit */}
           <div className="flex flex-col gap-2.5">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Benefit
+            <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+              Benefit &amp; Fasilitas
             </h3>
             <div className="flex flex-wrap gap-2">
               {(job.benefits && job.benefits.length > 0 ? job.benefits : defaultBenefits).map((ben, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/40"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 border border-slate-200/80 dark:border-zinc-700/60"
                 >
                   {ben}
                 </span>
@@ -285,37 +332,37 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
         </div>
 
         {/* ================= 4. TENTANG PERUSAHAAN ================= */}
-        <div className="bg-sky-50/50 dark:bg-sky-950/20 border border-sky-100 dark:border-sky-900/40 rounded-2xl p-5 sm:p-7 shadow-2xs mb-6 flex flex-col gap-4">
-          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-5 sm:p-7 shadow-2xs mb-6 flex flex-col gap-4">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
             Tentang Perusahaan
           </span>
 
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-white dark:bg-zinc-800 border border-sky-200/60 dark:border-sky-800/60 flex items-center justify-center text-primary font-bold shadow-2xs shrink-0">
-              <Building2 className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-100 border border-slate-200 dark:border-zinc-700 flex items-center justify-center shrink-0 shadow-2xs">
+              <RoleIcon className="w-6 h-6 text-[#c00015] stroke-[2.2]" />
             </div>
             <div>
-              <h4 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
+              <h4 className="font-bold text-base text-slate-900 dark:text-zinc-100">
                 {job.company}
               </h4>
-              <p className="text-xs text-zinc-500">Kemitraan Usaha &amp; Industri Sukabumi</p>
+              <p className="text-xs text-slate-500">Kemitraan Usaha &amp; Industri Sukabumi</p>
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed pt-2 border-t border-sky-200/40 dark:border-sky-800/40">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 leading-relaxed pt-2 border-t border-slate-100 dark:border-zinc-800">
             {job.company} merupakan salah satu entitas usaha terpercaya yang beroperasi di wilayah Sukabumi dan sekitarnya, berkomitmen memberikan kontribusi nyata serta peluang karir yang berkelanjutan bagi tenaga kerja lokal.
           </p>
         </div>
 
         {/* ================= 5. TIPS AMAN & LAPORKAN ================= */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40 mb-6 flex items-start gap-3.5">
-          <ShieldCheck className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 mb-6 flex items-start gap-3.5">
+          <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
           <div className="flex flex-col gap-0.5">
-            <h5 className="font-bold text-xs sm:text-sm text-amber-900 dark:text-amber-200">
-              Tips Aman Lamar Kerja
+            <h5 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-zinc-100">
+              Tips Aman Melamar Kerja
             </h5>
-            <p className="text-xs text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
-              Harap waspada &amp; laporkan ke tim kami jika ada lowongan yang memintamu untuk transfer uang. Seluruh proses rekrutmen di Jurnal Wave tidak dipungut biaya apa pun.
+            <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+              Waspadalah terhadap pihak yang mengatasnamakan rekrutmen dan meminta pungutan biaya apa pun. Seluruh publikasi lowongan kerja di Jurnal Wave adalah gratis dan tanpa perantara berbayar.
             </p>
           </div>
         </div>

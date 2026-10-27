@@ -2,124 +2,81 @@ import { Job } from '@/types';
 
 export const DUMMY_JOBS: Job[] = [
   {
-    id: 'job-1',
-    title: 'Staff Administrasi & Keuangan',
-    company: 'PT Sukabumi Indo Prima',
-    location: 'Cikole, Kota Sukabumi',
-    region: 'Cikole',
-    salaryRange: 'Rp 3.200.000 - Rp 4.500.000',
+    id: 'job-yakult',
+    title: 'Operator Produksi & Quality Control',
+    company: 'PT Yakult Indonesia Persada',
+    location: 'Kawasan Industri Pasawahan, Cicurug, Sukabumi',
+    region: 'Cicurug',
+    salaryRange: 'Rp 3.500.000 - Rp 4.600.000',
     type: 'Full-Time',
-    education: 'D3 / S1 Akuntansi atau Manajemen',
-    description: 'Bertanggung jawab atas pengelolaan dokumen pembukuan harian, faktur penjualan, pelaporan kas kecil, serta rekapitulasi data administrasi operasional kantor.',
+    education: 'SMK Teknik / IPA / Kimia / Farmasi / D3',
+    description: 'Menjalankan operasional mesin produksi pengolahan dan pembotolan susu fermentasi berstandar higienitas tinggi pabrik Jepang.\nMelakukan pencatatan parameter mutu, suhu, serta pemantauan sterilisasi ruang produksi.\nMemastikan kepatuhan terhadap standar keselamatan kerja (K3) dan sanitasi pangan pabrik.',
+    requirements: [
+      'Pria/Wanita, usia 18 - 25 tahun',
+      'Pendidikan SMK Teknik Mesin/Listrik/Kimia/Farmasi atau SMA IPA',
+      'Sehat jasmani dan mata normal (tidak buta warna)',
+      'Teliti, disiplin tinggi, dan siap bekerja sistem shift di Cicurug'
+    ],
+    benefits: [
+      'Gaji pokok standar UMK Kabupaten Sukabumi',
+      'BPJS Kesehatan & BPJS Ketenagakerjaan lengkap',
+      'Makan siang kantin pabrik & seragam kerja',
+      'Tunjangan shift malam dan premi hadir bulanan'
+    ],
+    applyEmail: 'https://karir.yakult.co.id',
+    applyUrl: 'https://karir.yakult.co.id',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'job-otsuka',
+    title: 'Staff Logistik & Pergudangan',
+    company: 'PT Amerta Indah Otsuka',
+    location: 'Jl. Siliwangi Km 28, Desa Benda, Cicurug, Sukabumi',
+    region: 'Cicurug',
+    salaryRange: 'Rp 3.800.000 - Rp 5.000.000',
+    type: 'Full-Time',
+    education: 'D3 / S1 Manajemen Logistik / Teknik Industri',
+    description: 'Mengelola pencatatan stok barang masuk dan keluar di gudang bahan baku dan produk jadi pabrik Pocari Sweat Cicurug.\nMelakukan koordinasi dengan tim armada logistik untuk jadwal pengiriman distributor se-Jawa Barat.\nMengoperasikan sistem manajemen pergudangan (WMS / SAP) dan audit stock opname fisik berkala.',
     requirements: [
       'Pria/Wanita, usia maksimal 28 tahun',
-      'Pendidikan minimal D3/S1 Akuntansi, Manajemen, atau Administrasi',
-      'Menguasai Microsoft Excel (VLOOKUP, Pivot, IF) dan software akuntansi dasar',
-      'Teliti, jujur, disiplin, dan memiliki integritas tinggi',
-      'Domisili di Kota Sukabumi atau sekitarnya diutamakan'
+      'Pendidikan D3/S1 Manajemen Logistik, Teknik Industri, atau Administrasi',
+      'Mahir menggunakan Microsoft Excel (VLOOKUP, Pivot) dan terbiasa dengan ERP/WMS',
+      'Mampu bekerja sama dalam tim dan memiliki komunikasi profesional'
     ],
     benefits: [
-      'Gaji pokok sesuai UMK',
-      'BPJS Kesehatan & BPJS Ketenagakerjaan',
-      'Tunjangan makan & transportasi',
-      'Jenjang karir yang jelas'
+      'Gaji pokok kompetitif di atas UMK Sukabumi',
+      'Asuransi kesehatan swasta + BPJS Ketenagakerjaan',
+      'Jemputan karyawan dan tunjangan makan',
+      'Jenjang karir perusahaan multinasional Jepang'
     ],
-    applyEmail: 'karir@sukabumiindoprima.co.id',
-    createdAt: new Date().toISOString(),
+    applyEmail: 'https://rise.otsuka.co.id',
+    applyUrl: 'https://rise.otsuka.co.id',
+    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
   },
   {
-    id: 'job-2',
-    title: 'Social Media Specialist & Content Creator',
-    company: 'Kreatif Media Nusantara',
-    location: 'Cisaat, Sukabumi',
-    region: 'Cisaat',
-    salaryRange: 'Rp 2.800.000 - Rp 4.000.000',
+    id: 'job-hermina',
+    title: 'Front Office & Customer Care RS',
+    company: 'Rumah Sakit Hermina Sukabumi',
+    location: 'Jl. Raya Sukaraja, Sukabumi',
+    region: 'Sukabumi Kota',
+    salaryRange: 'Rp 3.400.000 - Rp 4.500.000',
     type: 'Full-Time',
-    education: 'SMA / SMK / D3 / S1 Segala Jurusan',
-    description: 'Merancang ide konten video pendek kreatif (TikTok, Reels, Shorts), membuat copy caption menarik, serta mengelola interaksi komunitas media sosial brand.',
+    education: 'D3 / S1 Komunikasi / Manajemen / Administrasi RS',
+    description: 'Melayani pendaftaran pasien rawat jalan dan rawat inap dengan ramah dan solutif (service excellence).\nMemberikan edukasi alur pelayanan rumah sakit, asuransi/BPJS Kesehatan, dan jadwal praktik dokter spesialis.\nMenangani keluhan awal pasien serta koordinasi cepat dengan unit medis rumah sakit.',
     requirements: [
-      'Kreatif dan aktif mengikuti tren media sosial terbaru',
-      'Mampu mengoperasikan CapCut / Premiere Pro / Canva dasar',
-      'Percaya diri di depan kamera atau handal dalam voice-over',
-      'Mampu menyusun content calendar mingguan'
+      'Pria/Wanita, penampilan rapi, ramah, dan berjiwa melayani',
+      'Pendidikan minimal D3 atau S1 Komunikasi, Manajemen, atau Administrasi Rumah Sakit',
+      'Mampu berkomunikasi efektif dan empati tinggi terhadap pasien',
+      'Mampu mengoperasikan sistem informasi rumah sakit (SIMRS) dasar'
     ],
     benefits: [
-      'Lingkungan kerja santai & dinamis',
-      'Bonus performa engagement konten',
-      'Pelatihan dan workshop kreatif berkala'
+      'Gaji pokok standar UMK Kota Sukabumi',
+      'Jaminan pemeliharaan kesehatan keluarga & BPJS',
+      'Pelatihan hospitality medis Hermina Group',
+      'Tunjangan insentif kinerja pelayanan'
     ],
-    applyEmail: 'hrd@kreatifmedia.id',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'job-3',
-    title: 'Supervisor Operasional Lapangan',
-    company: 'Sentra Logistik Sukabumi',
-    location: 'Cibadak, Sukabumi',
-    region: 'Cibadak',
-    salaryRange: 'Rp 4.000.000 - Rp 5.500.000',
-    type: 'Full-Time',
-    education: 'D3 / S1 Semua Jurusan',
-    description: 'Mengawasi alur keluar-masuk armada pengiriman barang, memonitor kinerja kurir gudang, serta memastikan target SLA pengiriman wilayah Sukabumi tercapai tepat waktu.',
-    requirements: [
-      'Pengalaman kerja minimal 1-2 tahun di bidang logistik/pergudangan',
-      'Memiliki jiwa kepemimpinan tegas dan komunikasi yang baik',
-      'Bersedia bekerja sistem shift bila diperlukan',
-      'Memiliki kendaraan pribadi dan SIM C/A'
-    ],
-    benefits: [
-      'Gaji pokok + Insentif pencapaian target bulanan',
-      'BPJS Ketenagakerjaan & Asuransi Kesehatan',
-      'Uang lembur terstruktur'
-    ],
-    applyEmail: 'recruitment@sentralogistik.com',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'job-4',
-    title: 'Barista & Front Service',
-    company: 'Kopi Ruang Karsa',
-    location: 'Kota Sukabumi',
-    region: 'Kota Sukabumi',
-    salaryRange: 'Rp 1.800.000 - Rp 2.500.000',
-    type: 'Part-Time',
-    education: 'SMA / SMK Sederajat (Terbuka Mahasiswa)',
-    description: 'Menyajikan aneka minuman kopi espresso-based dan manual brew, menyapa pelanggan dengan ramah, serta menjaga kebersihan bar area kopi.',
-    requirements: [
-      'Terbuka untuk pemula (tersedia pelatihan barista)',
-      'Ramah, komunikatif, dan berpenampilan bersih rapi',
-      'Fleksibel jam kerja (shift pagi/sore)',
-      'Terbuka untuk mahasiswa aktif semester akhir'
-    ],
-    benefits: [
-      'Makan harian gratis selama shift',
-      'Free beverage allowance harian',
-      'Tips harian & pembagian service charge'
-    ],
-    applyEmail: 'halo@kopiruangkarsa.com',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'job-5',
-    title: 'Junior Web & IT Support',
-    company: 'Solusi Digital Mandiri',
-    location: 'Palabuhanratu, Sukabumi',
-    region: 'Palabuhanratu',
-    salaryRange: 'Rp 3.500.000 - Rp 5.000.000',
-    type: 'Remote',
-    education: 'SMK RPL / D3 / S1 Informatika',
-    description: 'Membantu maintenance website perusahaan berbasis Next.js/React, integrasi API, serta troubleshooting jaringan dan perangkat keras kantor cabang.',
-    requirements: [
-      'Memahami dasar HTML, CSS, JavaScript/TypeScript',
-      'Familiar dengan Git/GitHub dan sistem operasi Linux/Windows',
-      'Dapat bekerja secara mandiri maupun tim dengan komunikasi lancar via Slack/WhatsApp'
-    ],
-    benefits: [
-      'Sistem kerja remote / WFH fleksibel',
-      'Subsidi kuota internet bulanan',
-      'Tunjangan perangkat kerja'
-    ],
-    applyEmail: 'jobs@solusidigital.co.id',
-    createdAt: new Date().toISOString(),
+    applyEmail: 'https://herminahospitals.com/karir',
+    applyUrl: 'https://herminahospitals.com/karir',
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
   }
 ];

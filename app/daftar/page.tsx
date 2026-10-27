@@ -73,7 +73,7 @@ export default function DaftarPage() {
     e.preventDefault()
     setError('')
 
-    if (!fullName.trim()) return setError('Mohon masukkan Nama Lengkap sesuai KTP.')
+    if (!fullName.trim()) return setError('Mohon masukkan Nama Lengkap Anda.')
     if (!phone.trim()) return setError('Mohon masukkan Nomor WhatsApp aktif.')
     if (!email.trim() || !email.includes('@')) return setError('Mohon masukkan Alamat Email aktif yang valid.')
     if (!kecamatan.trim()) return setError('Mohon masukkan Kecamatan domisili.')
@@ -91,16 +91,30 @@ export default function DaftarPage() {
     }
 
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      setStep(2)
-      setTimer(60)
-      setCanResend(false)
-      setOtpError('')
-      setTimeout(() => {
-        otpInputRefs.current[0]?.focus()
-      }, 150)
-    }, 500)
+    fetch('/api/auth/citizen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'check-email', email: email.trim().toLowerCase() }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setLoading(false)
+        if (!data.success) {
+          setError(data.message || 'Alamat email ini sudah terdaftar. Silakan langsung masuk.')
+          return
+        }
+        setStep(2)
+        setTimer(60)
+        setCanResend(false)
+        setOtpError('')
+        setTimeout(() => {
+          otpInputRefs.current[0]?.focus()
+        }, 150)
+      })
+      .catch(() => {
+        setLoading(false)
+        setError('Gagal memeriksa ketersediaan email. Periksa koneksi internet Anda.')
+      })
   }
 
   // Handle OTP Input Change (Auto-focus ke kotak berikutnya)
@@ -134,7 +148,7 @@ export default function DaftarPage() {
   }
 
   // Handle Verify OTP & Finish Registration
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     const entered = otpCode.join('')
 
@@ -143,64 +157,61 @@ export default function DaftarPage() {
     }
 
     setLoading(true)
+    setOtpError('')
     const fullDomisili = `${detailAlamat.trim()}, RT/RW ${rtRw.trim()}, Kel. ${kelurahan.trim()}, Kec. ${kecamatan.trim()}, Sukabumi`
 
-    // Simpan akun ke database Neon DB via API
-    fetch('/api/auth/citizen', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'register',
-        email: email.trim().toLowerCase(),
-        fullName: fullName.trim(),
-        phone: phone.trim(),
-        domisili: fullDomisili,
-        password,
-      }),
-    })
-      .then((res) => res.json())
-      .catch((err) => console.warn('Gagal sinkron akun warga ke DB:', err))
-      .finally(() => {
-        setLoading(false)
-
-        const newUserSession = {
-          id: 'warga-' + Date.now(),
+    try {
+      // Simpan akun ke database Neon DB via API
+      const res = await fetch('/api/auth/citizen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'register',
           email: email.trim().toLowerCase(),
-          full_name: fullName.trim(),
-          name: fullName.trim(),
+          fullName: fullName.trim(),
           phone: phone.trim(),
-          phone_number: phone.trim(),
-          kecamatan: kecamatan.trim(),
-          kelurahan: kelurahan.trim(),
-          rt_rw: rtRw.trim(),
-          detail_alamat: detailAlamat.trim(),
-          alamat_domisili: fullDomisili,
-          user_metadata: {
-            full_name: fullName.trim(),
-            phone: phone.trim(),
-            alamat_domisili: fullDomisili,
-            is_verified: true,
-          },
-          role: 'warga',
-          is_verified: true,
-          otp_verified_at: new Date().toISOString(),
-        }
-
-        if (typeof window !== 'undefined') {
-          try {
-            const registeredUsersRaw = localStorage.getItem('halo_jurnal_registered_users')
-            const list = registeredUsersRaw ? JSON.parse(registeredUsersRaw) : []
-            list.push(newUserSession)
-            localStorage.setItem('halo_jurnal_registered_users', JSON.stringify(list))
-          } catch {}
-
-          localStorage.setItem('halo_jurnal_current_user', JSON.stringify(newUserSession))
-          window.dispatchEvent(new Event('storage'))
-        }
-
-        setStep(3)
+          domisili: fullDomisili,
+          password,
+        }),
       })
 
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        setLoading(false)
+        setOtpError(data.message || 'Pendaftaran akun gagal. Silakan coba kembali.')
+        return
+      }
+
+      const realUser = {
+        ...(data.user || {}),
+        id: data.user?.id || 'warga-' + Date.now(),
+        email: email.trim().toLowerCase(),
+        full_name: fullName.trim(),
+        name: fullName.trim(),
+        phone: phone.trim(),
+        phone_number: phone.trim(),
+        kecamatan: kecamatan.trim(),
+        kelurahan: kelurahan.trim(),
+        rt_rw: rtRw.trim(),
+        detail_alamat: detailAlamat.trim(),
+        alamat_domisili: fullDomisili,
+        domisili: fullDomisili,
+        role: 'warga',
+        is_verified: true,
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('halo_jurnal_current_user', JSON.stringify(realUser))
+        window.dispatchEvent(new Event('storage'))
+      }
+
+      setLoading(false)
+      setStep(3)
+    } catch {
+      setLoading(false)
+      setOtpError('Terjadi kendala jaringan saat menghubungi basis data. Coba beberapa saat lagi.')
+    }
   }
 
   return (
@@ -224,38 +235,38 @@ export default function DaftarPage() {
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* SISI KIRI: GAMBAR MASKOT PRESENTER (SELARAS 100% DENGAN HALAMAN MASUK) */}
-          <div className="md:col-span-5 flex flex-col items-center justify-center pointer-events-none self-stretch pt-2 pb-4">
-            <div className="relative w-full h-full min-h-[300px] sm:min-h-[380px] md:min-h-[460px] max-h-[500px] flex flex-col items-center justify-start md:sticky md:top-8">
-              {/* Soft glow podium */}
-              <div className="absolute w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-primary/15 via-amber-500/10 to-transparent blur-3xl pointer-events-none" />
+          {/* SISI KIRI: MASKOT (Proporsional di semua ukuran) */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center pointer-events-none self-stretch">
+            <div className="relative w-full flex flex-col items-center justify-center">
+              {/* Soft glow */}
+              <div className="absolute w-48 h-48 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/hallo-jurnal-presenter.webp"
                 alt="Hallo Jurnal Presenter"
-                className="w-full h-full max-h-[440px] md:max-h-[480px] object-contain object-top drop-shadow-xl select-none transition-transform duration-300"
+                className="relative w-1/2 max-w-[160px] md:w-3/4 md:max-w-[240px] object-contain drop-shadow-xl select-none"
               />
-              {/* Bayangan halus di bawah kaki */}
-              <div className="w-24 sm:w-32 h-2.5 bg-black/10 blur-xs rounded-full -mt-1.5 pointer-events-none" />
+              {/* Bayangan bawah kaki */}
+              <div className="w-16 md:w-20 h-2 bg-black/8 blur-sm rounded-full -mt-1 pointer-events-none" />
             </div>
           </div>
 
           {/* SISI KANAN: KONTEN STEP 1, 2, ATAU 3 */}
           <div className="md:col-span-7 flex flex-col justify-center py-2">
             
-            {/* Logo Badge Resmi Halo Jurnal */}
+            {/* Logo Badge Resmi Hallo Jurnal */}
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-2xs">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-2xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/halo-jurnal-icon.webp"
-                  alt="Halo Jurnal Logo"
+                  src="/halo-jurnal-icon.webp?v=original"
+                  alt="Hallo Jurnal Logo"
                   className="w-full h-full object-contain"
                 />
               </div>
               <div className="flex flex-col">
-                <span className="font-heading font-bold text-sm text-on-surface tracking-tight leading-none">
-                  Halo Jurnal
+                <span className="font-heading font-black text-base text-on-surface tracking-tight leading-none">
+                  Hallo Jurnal
                 </span>
                 <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">
                   Aspirasi &amp; Aduan Sukabumi
@@ -287,7 +298,6 @@ export default function DaftarPage() {
                       <label className="text-xs font-semibold text-on-surface">
                         Nama Lengkap <span className="text-primary">*</span>
                       </label>
-                      <span className="text-[11px] text-secondary">Wajib sesuai KTP</span>
                     </div>
                     <div className="relative">
                       <User className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -341,9 +351,10 @@ export default function DaftarPage() {
 
                   {/* Alamat Domisili */}
                   <div className="pt-2 border-t border-outline-variant/50 space-y-2.5">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-on-surface">
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-on-surface">
                       <MapPin className="w-3.5 h-3.5 text-primary" />
                       <span>Alamat Domisili Saat Ini</span>
+                      <span className="text-[11px] text-secondary font-normal">(Tempat tinggal aktif Anda saat ini)</span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -427,6 +438,9 @@ export default function DaftarPage() {
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
+                      <p className="text-[11px] text-secondary mt-1">
+                        Gunakan minimal 8 karakter kombinasi huruf atau angka.
+                      </p>
                     </div>
 
                     <div>

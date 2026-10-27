@@ -15,6 +15,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { Article } from '@/types'
+import { DUMMY_JOBS } from '@/data/dummyJobs'
 
 interface CategoryMeta {
   id: string
@@ -31,7 +32,7 @@ const DEFAULT_CATEGORIES: CategoryMeta[] = [
     slug: 'berita',
     name: 'Berita',
     description: 'Liputan peristiwa aktual, peristiwa daerah, kampus mahasiswa, dan kabar sekolah.',
-    articleCount: 42,
+    articleCount: 0,
     isActive: true,
   },
   {
@@ -39,7 +40,7 @@ const DEFAULT_CATEGORIES: CategoryMeta[] = [
     slug: 'lifestyle',
     name: 'Lifestyle',
     description: 'Tren gaya hidup, style berpakaian, eksplorasi kuliner, dan destinasi traveling.',
-    articleCount: 18,
+    articleCount: 0,
     isActive: true,
   },
   {
@@ -47,7 +48,7 @@ const DEFAULT_CATEGORIES: CategoryMeta[] = [
     slug: 'loker',
     name: 'Loker',
     description: 'Bursa lowongan kerja, informasi karir, magang, dan rekrutmen terbaru.',
-    articleCount: 15,
+    articleCount: 0,
     isActive: true,
   },
   {
@@ -55,7 +56,7 @@ const DEFAULT_CATEGORIES: CategoryMeta[] = [
     slug: 'otomotif',
     name: 'Otomotif',
     description: 'Review kendaraan, tips otomotif, dunia modifikasi, dan transportasi.',
-    articleCount: 12,
+    articleCount: 0,
     isActive: true,
   },
   {
@@ -63,7 +64,7 @@ const DEFAULT_CATEGORIES: CategoryMeta[] = [
     slug: 'sport',
     name: 'Sport',
     description: 'Kompetisi sepak bola, olahraga lokal & nasional, e-sport, dan prestasi atlet.',
-    articleCount: 8,
+    articleCount: 0,
     isActive: true,
   },
   {
@@ -71,23 +72,23 @@ const DEFAULT_CATEGORIES: CategoryMeta[] = [
     slug: 'tech',
     name: 'Teknologi',
     description: 'Inovasi digital, gadget terkini, perkembangan AI, dan internet.',
-    articleCount: 6,
+    articleCount: 0,
     isActive: true,
   },
   {
     id: 'cat-7',
     slug: 'science',
-    name: 'Sains',
-    description: 'Kabar sains, eksplorasi alam, fenomena bumi, astronomi, dan riset lingkungan.',
-    articleCount: 5,
+    name: 'Science',
+    description: 'Kabar sains, riset ilmiah, fenomena alam, dan lingkungan hidup.',
+    articleCount: 0,
     isActive: true,
   },
   {
     id: 'cat-8',
     slug: 'health',
-    name: 'Kesehatan',
-    description: 'Gaya hidup sehat, tips nutrisi, medis, dan fasilitas layanan kesehatan.',
-    articleCount: 4,
+    name: 'Health',
+    description: 'Gaya hidup sehat, tips nutrisi harian, medis, dan kebugaran.',
+    articleCount: 0,
     isActive: true,
   },
 ]
@@ -95,23 +96,47 @@ const DEFAULT_CATEGORIES: CategoryMeta[] = [
 export default function AdminKategoriHeadlinePage() {
   const [articles, setArticles] = useState<Article[]>([])
   const [categories, setCategories] = useState<CategoryMeta[]>(DEFAULT_CATEGORIES)
+  const [jobsCount, setJobsCount] = useState<number>(DUMMY_JOBS.length)
   const [selectedHeroId, setSelectedHeroId] = useState<string>('')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
-  // Muat data dari localStorage
+  // Muat data riil dari database API (dengan fallback localStorage)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    async function loadData() {
       try {
-        const savedArticles = localStorage.getItem('jurnal_wave_articles')
-        if (savedArticles) {
-          const parsed = JSON.parse(savedArticles)
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setArticles(parsed)
-            const currentHero = parsed.find((a: Article) => a.isHero)
+        const res = await fetch('/api/articles')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setArticles(json.data)
+            const currentHero = json.data.find((a: Article) => a.isHero)
             if (currentHero) setSelectedHeroId(currentHero.id)
+            return
           }
         }
+      } catch (err) {
+        console.warn('Gagal memuat artikel dari database API, menggunakan fallback:', err)
+      }
 
+      if (typeof window !== 'undefined') {
+        const savedArticles = localStorage.getItem('jurnal_wave_articles')
+        if (savedArticles) {
+          try {
+            const parsed = JSON.parse(savedArticles)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setArticles(parsed)
+              const currentHero = parsed.find((a: Article) => a.isHero)
+              if (currentHero) setSelectedHeroId(currentHero.id)
+            }
+          } catch {}
+        }
+      }
+    }
+
+    loadData()
+
+    if (typeof window !== 'undefined') {
+      try {
         const savedCats = localStorage.getItem('jurnal_wave_categories')
         if (savedCats) {
           const parsedCats = JSON.parse(savedCats)
@@ -122,8 +147,63 @@ export default function AdminKategoriHeadlinePage() {
       } catch (err) {
         console.error('Error loading data:', err)
       }
+
+      try {
+        const savedJobs = JSON.parse(localStorage.getItem('jurnal_wave_jobs') || '[]')
+        if (Array.isArray(savedJobs) && savedJobs.length > 0) {
+          setJobsCount(savedJobs.length)
+        } else {
+          setJobsCount(DUMMY_JOBS.length)
+        }
+      } catch {}
     }
   }, [])
+
+  // Menghitung jumlah artikel riil per kategori secara dinamis dari database
+  const getCategoryCount = (slug: string) => {
+    if (slug === 'loker') {
+      const articleCount = articles.filter(
+        (a) => (a.category || '').toLowerCase().trim() === 'loker' || (a.category || '').toLowerCase().trim() === 'karir'
+      ).length
+      return articleCount > 0 ? articleCount : jobsCount
+    }
+
+    return articles.filter((a) => {
+      const cat = (a.category || '').toLowerCase().trim()
+      const sub = (a.subCategory || '').toLowerCase().trim()
+
+      if (slug === 'berita') {
+        return cat === 'berita'
+      }
+      if (slug === 'lifestyle') {
+        return (
+          cat === 'lifestyle' ||
+          cat === 'kuliner' ||
+          cat === 'traveling' ||
+          cat === 'wisata' ||
+          cat === 'style' ||
+          sub === 'kuliner' ||
+          sub === 'traveling'
+        )
+      }
+      if (slug === 'tech') {
+        return cat === 'tech' || cat === 'teknologi'
+      }
+      if (slug === 'otomotif') {
+        return cat === 'otomotif'
+      }
+      if (slug === 'sport') {
+        return cat === 'sport' || cat === 'olahraga'
+      }
+      if (slug === 'science') {
+        return cat === 'science' || cat === 'sains'
+      }
+      if (slug === 'health') {
+        return cat === 'health' || cat === 'kesehatan'
+      }
+      return cat === slug.toLowerCase()
+    }).length
+  }
 
   // Cari artikel Hero saat ini
   const activeHeroArticle =
@@ -132,7 +212,7 @@ export default function AdminKategoriHeadlinePage() {
     articles[0]
 
   // Ganti Headline Utama
-  const handleSetHeroArticle = (newId: string) => {
+  const handleSetHeroArticle = async (newId: string) => {
     const updated = articles.map((a) => ({
       ...a,
       isHero: a.id === newId,
@@ -147,6 +227,20 @@ export default function AdminKategoriHeadlinePage() {
       } catch (err) {
         console.error('Error saving hero update:', err)
       }
+    }
+
+    // Sinkronkan ke database API
+    try {
+      const chosen = updated.find((a) => a.id === newId)
+      if (chosen) {
+        await fetch('/api/articles', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(chosen),
+        })
+      }
+    } catch (err) {
+      console.warn('Gagal sinkron hero ke API database:', err)
     }
 
     const chosen = updated.find((a) => a.id === newId)
@@ -292,7 +386,9 @@ export default function AdminKategoriHeadlinePage() {
               Struktur Rubrik Liputan Portal
             </h2>
           </div>
-          <span className="text-xs text-slate-500">{categories.length} Kategori Aktif</span>
+          <span className="text-xs text-slate-500">
+            {categories.filter((c) => c.isActive).length} Kategori Aktif
+          </span>
         </div>
 
         <div className="overflow-x-auto">
@@ -308,37 +404,40 @@ export default function AdminKategoriHeadlinePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {categories.map((cat) => (
-                <tr key={cat.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-slate-900">{cat.name}</td>
-                  <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
-                    /{cat.slug}
-                  </td>
-                  <td className="py-3.5 px-4 text-slate-600 max-w-xs">{cat.description}</td>
-                  <td className="py-3.5 px-4 font-semibold text-slate-800">
-                    {cat.articleCount} artikel
-                  </td>
-                  <td className="py-3.5 px-4">
-                    {cat.isActive ? (
-                      <span className="text-xs font-semibold text-slate-700">
-                        Aktif
-                      </span>
-                    ) : (
-                      <span className="text-xs font-medium text-slate-500">
-                        Nonaktif
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button
-                      onClick={() => handleToggleCategory(cat.id)}
-                      className="px-2.5 py-1 rounded text-[11px] font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition cursor-pointer"
-                    >
-                      {cat.isActive ? 'Nonaktifkan' : 'Aktifkan'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {categories.map((cat) => {
+                const count = getCategoryCount(cat.slug)
+                return (
+                  <tr key={cat.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-slate-900">{cat.name}</td>
+                    <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
+                      /{cat.slug}
+                    </td>
+                    <td className="py-3.5 px-4 text-slate-600 max-w-xs">{cat.description}</td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-800">
+                      {count} {cat.slug === 'loker' ? 'lowongan' : 'artikel'}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {cat.isActive ? (
+                        <span className="text-xs font-semibold text-slate-700">
+                          Aktif
+                        </span>
+                      ) : (
+                        <span className="text-xs font-medium text-slate-500">
+                          Nonaktif
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button
+                        onClick={() => handleToggleCategory(cat.id)}
+                        className="px-2.5 py-1 rounded text-[11px] font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition cursor-pointer"
+                      >
+                        {cat.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

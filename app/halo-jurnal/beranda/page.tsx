@@ -85,21 +85,28 @@ export default function HaloJurnalBerandaPage() {
         const storedUser = localStorage.getItem('halo_jurnal_current_user')
         if (storedUser) {
           try {
-            currentUser = JSON.parse(storedUser)
+            const parsed = JSON.parse(storedUser)
+            if (
+              parsed &&
+              (parsed.id === 'demo-user-id' ||
+                parsed.id === 'warga-demo' ||
+                parsed.email === 'warga@sukabumi.com' ||
+                (typeof parsed.id === 'string' && parsed.id.startsWith('warga-17')))
+            ) {
+              localStorage.removeItem('halo_jurnal_current_user')
+              currentUser = null
+            } else {
+              currentUser = parsed
+            }
           } catch {}
         }
       }
 
-      // Default demo warga if completely empty
       if (!currentUser) {
-        currentUser = {
-          id: 'demo-user-id',
-          email: 'warga@sukabumi.com',
-          full_name: 'Warga Sukabumi',
-          role: 'warga',
-          phone: '081234567890',
-          is_verified: true,
-        }
+        setUser(null)
+        setProfile(null)
+        router.replace('/halo-jurnal')
+        return
       }
 
       setUser(currentUser)
@@ -109,32 +116,75 @@ export default function HaloJurnalBerandaPage() {
         role: currentUser.role || 'warga',
       })
 
-      // 2. Fetch reports for this user
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let baseReports: any[] = []
+      // 2. Fetch reports for this user (sinkron database Neon & storage lokal)
+      const currentUserId = currentUser?.id
+      const currentUserEmail = (currentUser?.email || '').toLowerCase().trim()
+      const currentUserPhone = (currentUser?.phone || currentUser?.phone_number || '').trim()
 
-      // Fallback / merge with localStorage reports
+      // Ambil laporan resmi dari API database Neon DB
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let dbReports: any[] = []
+      try {
+        const res = await fetch('/api/reports', { cache: 'no-store' })
+        const json = await res.json()
+        if (json.success && Array.isArray(json.data)) {
+          dbReports = json.data
+        }
+      } catch (err) {
+        console.warn('Gagal memuat laporan database di Beranda:', err)
+      }
+
+      // Ambil laporan dari local storage browser
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let localReports: any[] = []
       if (typeof window !== 'undefined') {
         try {
           const storedReports = localStorage.getItem('halo_jurnal_user_reports')
           if (storedReports) {
             const parsed = JSON.parse(storedReports)
             if (Array.isArray(parsed) && parsed.length > 0) {
-              baseReports = [...parsed, ...baseReports]
+              localReports = parsed
             }
           }
         } catch {}
+      }
 
+      // Gabungkan laporan secara unik berdasarkan nomor tiket / ID
+      const allCombined = [...localReports, ...dbReports]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const uniqueMap = new Map<string, any>()
+      allCombined.forEach((item) => {
+        const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
+        if (key && !uniqueMap.has(key)) {
+          uniqueMap.set(key, item)
+        }
+      })
 
+      // Saring laporan agar HANYA milik akun yang sedang login saat ini
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let baseReports = Array.from(uniqueMap.values()).filter((r: any) => {
+        if (!currentUserId && !currentUserEmail && !currentUserPhone) return false
+        const reportUserId = r.user_id || r.userId
+        const reportEmail = (r.email || r.user_email || r.pelaporEmail || r.pelapor_email || '').toLowerCase().trim()
+        const reportPhone = (r.telepon || r.phone || r.pelaporPhone || r.citizenPhone || '').trim()
 
-        // Apply admin status overrides
+        if (currentUserId && reportUserId && String(reportUserId) === String(currentUserId)) return true
+        if (currentUserEmail && reportEmail && reportEmail === currentUserEmail) return true
+        if (currentUserPhone && reportPhone && reportPhone === currentUserPhone) return true
+        return false
+      })
+
+      // Terapkan override status dari admin jika ada
+      if (typeof window !== 'undefined') {
         try {
           const overrides = JSON.parse(localStorage.getItem('halo_jurnal_status_overrides') || '{}')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           baseReports = baseReports.map((r: any) => {
             const saved =
               overrides[r.id] ||
               (r.nomor_tiket ? overrides[r.nomor_tiket] : null) ||
-              (r.ticket_number ? overrides[r.ticket_number] : null)
+              (r.ticket_number ? overrides[r.ticket_number] : null) ||
+              (r.ticketNumber ? overrides[r.ticketNumber] : null)
             if (saved) {
               return {
                 ...r,
@@ -232,54 +282,46 @@ export default function HaloJurnalBerandaPage() {
 
   return (
     <main className="w-full min-h-screen bg-surface-container-lowest text-on-surface">
-      {/* 1. WARGA GREETING HEADER */}
-      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 pt-5 pb-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-          {/* Left: Avatar Inisial & Teks Selamat Datang */}
-          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+      {/* 1. WARGA GREETING HEADER (Kompak 1 Baris) */}
+      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 pt-3 sm:pt-4 pb-2 sm:pb-3">
+        <div className="flex items-center justify-between gap-3">
+          {/* Left: Avatar Inisial & Teks Sapaan Ringkas */}
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <UserAvatar
               name={displayName}
-              size="md"
+              size="sm"
               bgColor="primary"
-              className="w-11 h-11 sm:w-12 sm:h-12 text-sm sm:text-base font-bold shadow-2xs ring-2 ring-primary/15 shrink-0"
+              className="w-8 h-8 sm:w-9 sm:h-9 text-xs font-bold shadow-2xs ring-1.5 ring-primary/20 shrink-0"
             />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h1 className="font-heading font-bold text-lg sm:text-xl text-on-surface tracking-tight truncate">
-                  Selamat Datang, {displayName}
+                <h1 className="font-heading font-bold text-xs sm:text-sm text-on-surface tracking-tight truncate leading-tight">
+                  Halo, <span className="capitalize">{displayName}</span>
                 </h1>
                 {isVerified && (
                   <span title="Warga Terverifikasi Sukabumi" className="inline-flex items-center text-sky-500 shrink-0">
-                    <ShieldCheck className="w-5 h-5 fill-sky-500/15 stroke-[2.2px]" />
+                    <ShieldCheck className="w-3.5 h-3.5 fill-sky-500/15 stroke-[2.2px]" />
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-secondary font-medium">
-                <span className="text-[11px] sm:text-xs text-secondary">
-                  {isVerified ? 'Warga Terverifikasi' : 'Warga Terdaftar'}
-                </span>
-                <span className="text-outline-variant">•</span>
-                <span className="font-mono text-[11px] sm:text-xs text-secondary/80">
-                  WA: {userPhone}
-                </span>
-                <span className="text-outline-variant">•</span>
-                <span className="text-[11px] sm:text-xs text-secondary">
-                  Kabupaten &amp; Kota Sukabumi
-                </span>
-              </div>
+              <p className="text-[10px] sm:text-[11px] text-secondary font-medium truncate mt-0.5">
+                Warga Sukabumi {userPhone ? `• ${userPhone}` : ''}
+              </p>
             </div>
           </div>
 
-          {/* Right: Tombol Laporan Saya */}
-          <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
-            <Link
-              href="/halo-jurnal/laporan-saya"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-surface hover:bg-surface-container-high border border-outline-variant/80 text-on-surface font-semibold text-xs sm:text-sm tracking-tight transition-all shadow-2xs hover:border-primary/40 cursor-pointer"
-            >
-              <ClipboardList className="w-4 h-4 text-primary" />
-              <span>Laporan Saya ({totalReportsCount})</span>
-            </Link>
-          </div>
+          {/* Right: Tombol Laporan Saya Ringkas */}
+          <Link
+            href="/halo-jurnal/laporan-saya"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface hover:bg-surface-container-high border border-outline-variant/80 text-on-surface font-semibold text-[11px] sm:text-xs tracking-tight transition-all shadow-2xs hover:border-primary/40 shrink-0 cursor-pointer"
+            title="Lihat Laporan Saya"
+          >
+            <ClipboardList className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span className="hidden xs:inline sm:inline">Laporan Saya</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-[10px] leading-none">
+              {totalReportsCount}
+            </span>
+          </Link>
         </div>
       </section>
 
@@ -413,10 +455,10 @@ export default function HaloJurnalBerandaPage() {
                   )}
                 </div>
 
-                <div className="shrink-0 self-start md:self-auto">
+                <div className="shrink-0 w-full sm:w-auto self-stretch sm:self-auto mt-1 md:mt-0">
                   <Link
                     href={`/halo-jurnal/laporan/${latestReport.id}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition-all shadow-xs active:scale-95 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition-all shadow-xs active:scale-95 cursor-pointer"
                   >
                     <span>Detail &amp; Diskusi</span>
                     <ArrowRight className="w-3.5 h-3.5" />

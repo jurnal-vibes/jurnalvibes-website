@@ -48,7 +48,8 @@ export default function NotFound() {
             { label: 'Teknologi', href: '/tech' },
             { label: 'Olahraga', href: '/sport' },
             { label: 'Otomotif', href: '/otomotif' },
-            { label: 'Kesehatan', href: '/health' },
+            { label: 'Science', href: '/science' },
+            { label: 'Health', href: '/health' },
             { label: 'Lowongan Kerja', href: '/loker' },
           ].map((cat) => (
             <Link

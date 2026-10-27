@@ -124,3 +124,27 @@ model CitizenUser {
   @@map("citizen_users")
 }
 
+// 9. Kode OTP Reset Kata Sandi Warga
+model PasswordResetOtp {
+  id        String   @id @default(cuid())
+  email     String   @db.VarChar(100)
+  otpCode   String   @db.VarChar(10)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("password_reset_otps")
+}
+
+// 10. Dukungan / Vote Warga pada Laporan Publik
+model ReportSupport {
+  id           String   @id @default(cuid())
+  ticketNumber String   @db.VarChar(50)
+  citizenEmail String   @db.VarChar(100)
+  createdAt    DateTime @default(now())
+
+  @@unique([ticketNumber, citizenEmail])
+  @@index([ticketNumber])
+  @@map("report_supports")
+}
+

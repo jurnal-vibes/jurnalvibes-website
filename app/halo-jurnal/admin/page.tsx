@@ -16,6 +16,21 @@ import {
 import { Article, Job } from '@/types'
 import { DUMMY_JOBS } from '@/data/dummyJobs'
 
+const CATEGORY_DISPLAY_MAP: Record<string, string> = {
+  berita: 'Berita',
+  lifestyle: 'Lifestyle',
+  loker: 'Lowongan Kerja',
+  otomotif: 'Otomotif',
+  sport: 'Sport & E-Sport',
+  tech: 'Teknologi',
+  teknologi: 'Teknologi',
+  science: 'Science',
+  health: 'Health',
+  kuliner: 'Kuliner',
+  wisata: 'Wisata',
+  hiburan: 'Hiburan & Seni',
+}
+
 export default function AdminDashboardMediaPage() {
   const [articlesList, setArticlesList] = useState<Article[]>([])
   const [reelsCount, setReelsCount] = useState<number>(0)
@@ -264,9 +279,9 @@ export default function AdminDashboardMediaPage() {
               <tr>
                 <th className="py-3 px-4">Artikel &amp; Thumbnail</th>
                 <th className="py-3 px-4">Kategori Rubrik</th>
-                <th className="py-3 px-4">Penulis / Jurnalis</th>
+                <th className="py-3 px-4">Reporter &amp; Editor</th>
                 <th className="py-3 px-4">Posisi Tayang</th>
-                <th className="py-3 px-4 text-right">Aksi</th>
+                <th className="py-3 px-4 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -304,13 +319,46 @@ export default function AdminDashboardMediaPage() {
                       </td>
 
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 capitalize border border-slate-200/80">
-                          {art.category}
-                        </span>
+                        {(() => {
+                          const catKey = (art.category || '').toLowerCase().trim()
+                          const label = CATEGORY_DISPLAY_MAP[catKey] || art.category
+                          const rawSub = (art.subCategory || '').trim()
+                          const subLower = rawSub.toLowerCase()
+                          const hasSub =
+                            rawSub &&
+                            subLower !== catKey &&
+                            subLower !== label.toLowerCase() &&
+                            subLower !== 'tech' &&
+                            subLower !== 'teknologi' &&
+                            subLower !== 'berita'
+
+                          return (
+                            <div className="flex flex-col items-center w-fit gap-0.5">
+                              <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
+                                {label}
+                              </span>
+                              {hasSub && (
+                                <span className="text-[10px] text-slate-400 font-medium capitalize text-center">
+                                  {rawSub.toLowerCase()}
+                                </span>
+                              )}
+                            </div>
+                          )
+                        })()}
                       </td>
 
-                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-600">
-                        {art.reporter || art.author}
+                      {/* Reporter & Editor (Gaya SukabumiUpdate) */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-0.5">
+                          <p className="font-semibold text-slate-900 flex items-center gap-1">
+                            <span className="text-[10px] font-normal text-slate-400">Oleh:</span>{' '}
+                            {art.reporter || art.author || 'Tim Redaksi'}
+                          </p>
+                          <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-[#c00015]">EDITOR:</span>{' '}
+                            {art.redaktur || art.editor || 'Ujang Herlan'}
+                          </p>
+                        </div>
                       </td>
 
                       <td className="py-3.5 px-4 whitespace-nowrap">
@@ -337,8 +385,8 @@ export default function AdminDashboardMediaPage() {
                         </button>
                       </td>
 
-                      <td className="py-3.5 px-4 whitespace-nowrap text-right">
-                        <div className="inline-flex items-center gap-1.5">
+                      <td className="py-3.5 px-4 whitespace-nowrap text-center">
+                        <div className="inline-flex items-center justify-center gap-1.5">
                           <Link
                             href="/halo-jurnal/admin/berita"
                             className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"

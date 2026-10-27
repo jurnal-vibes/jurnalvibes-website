@@ -19,6 +19,7 @@ import {
   Check,
   ArrowRight,
   RotateCcw,
+  Sparkles,
 } from 'lucide-react'
 import {
   ALL_REPORT_CATEGORIES,
@@ -262,23 +263,13 @@ export default function HaloJurnalLaporanSayaPage() {
   return (
     <div className="w-full max-w-container-max mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-20">
       {/* 1. Header Halaman */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight">
-            Laporan Saya
-          </h1>
-          <p className="text-secondary text-xs sm:text-sm mt-1">
-            Pantau status dan tindak lanjut aduan yang Anda ajukan secara transparan.
-          </p>
-        </div>
-
-        <Link
-          href="/halo-jurnal/lapor"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-semibold transition-colors shrink-0 shadow-2xs cursor-pointer"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Buat Laporan</span>
-        </Link>
+      <div className="mb-5">
+        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight">
+          Laporan Saya
+        </h1>
+        <p className="text-secondary text-xs sm:text-sm mt-1">
+          Pantau status dan tindak lanjut aduan yang Anda ajukan secara transparan.
+        </p>
       </div>
 
       {!user && !loading ? (
@@ -309,75 +300,105 @@ export default function HaloJurnalLaporanSayaPage() {
         </div>
       ) : (
         <>
-          {/* 2. Stat Control Bar (Unified After UX Style) */}
-          <div className="bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl p-1.5 mb-6 shadow-2xs">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
+          {/* 2. Stat Control Bar: 1 Hero Total Card di Atas + 4 Status Grid 2x2 di Bawah */}
+          <div className="mb-6">
+            {/* Card 1: Total Semua Laporan (Hero Overview Card) */}
+            <button
+              type="button"
+              onClick={() => setStatusFilter('Semua Status')}
+              className={`w-full p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 transition-all cursor-pointer text-left mb-2.5 ${
+                statusFilter === 'Semua Status'
+                  ? 'bg-surface border-2 border-primary/40 ring-1 ring-primary/20 shadow-xs'
+                  : 'bg-surface-container-low hover:bg-surface-container border border-outline-variant/70'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    statusFilter === 'Semua Status'
+                      ? 'bg-primary text-white shadow-2xs'
+                      : 'bg-surface-container-high text-secondary'
+                  }`}
+                >
+                  <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-heading font-bold text-xs sm:text-sm text-on-surface block leading-tight">
+                    Total Semua Laporan
+                  </span>
+                  <span className="text-[11px] text-secondary mt-0.5 block">
+                    Seluruh aduan dan aspirasi yang diajukan
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-heading font-black text-xl sm:text-2xl text-on-surface leading-none">
+                  {totalCount}
+                </span>
+                {statusFilter === 'Semua Status' && (
+                  <span className="hidden xs:inline-flex text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    Semua
+                  </span>
+                )}
+              </div>
+            </button>
+
+            {/* Grid 2x2: 4 Status Penanganan Aduan (Simetris & Pas) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
               {[
-                {
-                  key: 'Semua Status',
-                  label: 'Total Laporan',
-                  count: totalCount,
-                  icon: ClipboardList,
-                  colSpan: '',
-                },
                 {
                   key: 'Diterima',
                   label: 'Diterima',
                   count: diterimaCount,
                   icon: Inbox,
-                  colSpan: '',
                 },
                 {
                   key: 'Diproses',
                   label: 'Diproses',
                   count: diprosesCount,
                   icon: Clock,
-                  colSpan: '',
                 },
                 {
                   key: 'Ditindaklanjuti',
                   label: 'Ditindaklanjuti',
                   count: ditindaklanjutiCount,
                   icon: ShieldCheck,
-                  colSpan: '',
                 },
                 {
                   key: 'Selesai',
                   label: 'Selesai',
                   count: selesaiCount,
                   icon: CheckCircle2,
-                  colSpan: 'col-span-2 sm:col-span-1',
                 },
               ].map((tab) => {
                 const Icon = tab.icon
-                const isActive =
-                  statusFilter === tab.key || (tab.key === 'Semua Status' && statusFilter === 'TOTAL')
+                const isActive = statusFilter === tab.key
                 return (
                   <button
                     key={tab.key}
                     type="button"
-                    onClick={() => setStatusFilter(tab.key)}
-                    className={`py-3 px-3.5 rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer text-left ${tab.colSpan} ${
+                    onClick={() => setStatusFilter(isActive ? 'Semua Status' : tab.key)}
+                    className={`py-2.5 px-3 sm:py-3 sm:px-3.5 rounded-2xl flex items-center justify-between gap-2 transition-all cursor-pointer text-left ${
                       isActive
-                        ? 'bg-white dark:bg-slate-900 shadow-xs border border-slate-200/90 dark:border-slate-700 text-slate-900 dark:text-white'
-                        : 'hover:bg-white/60 dark:hover:bg-slate-800/70 text-slate-600 dark:text-slate-400 border border-transparent'
+                        ? 'bg-surface border-2 border-primary/40 ring-1 ring-primary/20 shadow-xs text-on-surface'
+                        : 'bg-surface-container-low hover:bg-surface-container border border-outline-variant/70 text-secondary hover:text-on-surface'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                           isActive
-                            ? 'bg-[#c00015]/10 text-[#c00015]'
-                            : 'bg-slate-200/70 dark:bg-slate-700/60 text-slate-600 dark:text-slate-400'
+                            ? 'bg-primary text-white shadow-2xs'
+                            : 'bg-surface-container-high text-secondary'
                         }`}
                       >
-                        <Icon className="w-4 h-4 stroke-[2px]" />
+                        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate block">
+                        <span className="text-[10px] sm:text-[11px] font-medium text-secondary truncate block">
                           {tab.label}
                         </span>
-                        <span className="font-heading font-bold text-lg text-slate-900 dark:text-slate-100 leading-none">
+                        <span className="font-heading font-bold text-base sm:text-lg text-on-surface leading-none mt-0.5 block">
                           {tab.count}
                         </span>
                       </div>
@@ -493,6 +514,7 @@ export default function HaloJurnalLaporanSayaPage() {
 
             const status = (report.status || 'diterima').toLowerCase()
             const isCopied = copiedId === ticketId
+            const isInspirasi = (report.jenis || report.kategori || '').toLowerCase().includes('inspirasi')
 
             return (
               <div
@@ -535,27 +557,49 @@ export default function HaloJurnalLaporanSayaPage() {
                   {/* Status Tag (Linear / Apple Monochromatic Minimalist) */}
                   <div>
                     {status === 'selesai' && (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold tracking-wide">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                        <span>Selesai</span>
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-semibold tracking-wide ${
+                        isInspirasi
+                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700'
+                      }`}>
+                        <CheckCircle2 className={`w-3.5 h-3.5 stroke-[2.2px] ${isInspirasi ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`} />
+                        <span>{isInspirasi ? 'Disetujui & Tayang' : 'Selesai'}</span>
                       </span>
                     )}
                     {status === 'ditindaklanjuti' && (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold tracking-wide">
-                        <ShieldCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                        <span>Ditindaklanjuti</span>
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-semibold tracking-wide ${
+                        isInspirasi
+                          ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700'
+                      }`}>
+                        {isInspirasi ? (
+                          <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2px]" />
+                        ) : (
+                          <ShieldCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
+                        )}
+                        <span>{isInspirasi ? '🌟 Liputan Berita' : 'Ditindaklanjuti'}</span>
                       </span>
                     )}
                     {status === 'diproses' && (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold tracking-wide">
-                        <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                        <span>Diproses</span>
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-semibold tracking-wide ${
+                        isInspirasi
+                          ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700'
+                      }`}>
+                        <Clock className={`w-3.5 h-3.5 stroke-[2.2px] ${isInspirasi ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'}`} />
+                        <span>{isInspirasi ? 'Sedang Dikurasi' : 'Diproses'}</span>
                       </span>
                     )}
                     {status === 'diterima' && (
                       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold tracking-wide">
                         <Inbox className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                        <span>Diterima</span>
+                        <span>{isInspirasi ? 'Menunggu Kurasi' : 'Diterima'}</span>
+                      </span>
+                    )}
+                    {status === 'ditolak' && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-[11px] font-semibold tracking-wide">
+                        <X className="w-3.5 h-3.5 text-rose-500 stroke-[2.2px]" />
+                        <span>{isInspirasi ? 'Tidak Lolos' : 'Ditolak'}</span>
                       </span>
                     )}
                   </div>
@@ -604,12 +648,15 @@ export default function HaloJurnalLaporanSayaPage() {
                 <div className="pt-3.5 mt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-3 text-xs">
                   <Link
                     href={`/halo-jurnal/laporan/${report.id}#chat`}
-                    className="inline-flex items-center gap-2 text-slate-500 hover:text-[#c00015] dark:text-slate-400 dark:hover:text-[#ff6b6b] font-medium transition-colors group/chat"
+                    className="inline-flex items-center gap-1.5 text-slate-500 hover:text-[#c00015] dark:text-slate-400 dark:hover:text-[#ff6b6b] font-medium transition-colors group/chat shrink-0"
                   >
-                    <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover/chat:bg-[#c00015]/10 group-hover/chat:text-[#c00015] transition-colors">
+                    <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover/chat:bg-[#c00015]/10 group-hover/chat:text-[#c00015] transition-colors shrink-0">
                       <MessageSquare className="w-3.5 h-3.5" />
                     </div>
-                    <span>Ruang Koordinasi Redaksi</span>
+                    <span>
+                      <span className="hidden sm:inline">Ruang Koordinasi Redaksi</span>
+                      <span className="sm:hidden">Chat Redaksi</span>
+                    </span>
                     {report.chat_messages && report.chat_messages[0]?.count > 0 && (
                       <span className="px-1.5 py-0.5 bg-[#c00015]/10 text-[#c00015] rounded-full text-[10px] font-bold">
                         {report.chat_messages[0].count}
@@ -619,9 +666,12 @@ export default function HaloJurnalLaporanSayaPage() {
 
                   <Link
                     href={`/halo-jurnal/laporan/${report.id}`}
-                    className="inline-flex items-center gap-1 font-semibold text-slate-700 hover:text-[#c00015] dark:text-slate-300 dark:hover:text-white transition-colors group/cta"
+                    className="inline-flex items-center gap-1 font-semibold text-slate-700 hover:text-[#c00015] dark:text-slate-300 dark:hover:text-white transition-colors group/cta shrink-0"
                   >
-                    <span>Lihat Detail</span>
+                    <span>
+                      <span className="hidden sm:inline">Lihat Detail</span>
+                      <span className="sm:hidden">Detail</span>
+                    </span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover/cta:translate-x-0.5 transition-transform" />
                   </Link>
                 </div>

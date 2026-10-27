@@ -94,3 +94,17 @@ export function normalizeCategoryName(rawCategory?: string | null): string {
 
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
 }
+
+/**
+ * Mendapatkan jenis laporan ('pengaduan' | 'aspirasi' | 'informasi' | 'inspirasi') berdasarkan nama kategori.
+ */
+export function getJenisForCategory(category?: string | null): ReportType {
+  if (!category) return 'pengaduan'
+  const norm = normalizeCategoryName(category).toLowerCase()
+  for (const [jenis, cats] of Object.entries(REPORT_CATEGORIES_BY_TYPE)) {
+    if (cats.some((c) => c.toLowerCase() === norm)) {
+      return jenis as ReportType
+    }
+  }
+  return 'pengaduan'
+}

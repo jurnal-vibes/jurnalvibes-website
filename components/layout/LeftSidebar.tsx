@@ -24,7 +24,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ articles }) => {
     { href: '/', label: 'Beranda', icon: Home, isActive: isHome },
     { href: '/berita', label: 'Semua Berita', icon: Newspaper, isActive: isBerita },
     { href: '/loker', label: 'Loker', icon: Briefcase, isActive: isLoker },
-    { href: '/reels', label: 'Vibes Reels', icon: Film, isActive: isReels },
+    { href: '/reels', label: 'Wave Reels', icon: Film, isActive: isReels },
     { href: '/bookmark', label: 'Tersimpan', icon: Bookmark, isActive: isBookmark },
   ];
 

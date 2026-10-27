@@ -48,8 +48,8 @@ export default function HaloJurnalSyaratKetentuanPage() {
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm text-secondary dark:text-gray-400 mt-3">
             <li>Pengguna bertanggung jawab penuh atas kebenaran data dan informasi yang disampaikan.</li>
-            <li>Identitas diri (KTP) diverifikasi secara internal dan dilindungi kerahasiaannya sesuai ketentuan perlindungan data pribadi.</li>
-            <li>Satu identitas resmi hanya diperbolehkan memiliki satu akun aktif di portal Halo Jurnal.</li>
+            <li>Identitas akun warga diverifikasi secara digital dan dilindungi kerahasiaannya sesuai ketentuan perlindungan data pribadi.</li>
+            <li>Setiap warga menggunakan akun email aktif dan terverifikasi di portal Halo Jurnal.</li>
           </ul>
         </section>
 

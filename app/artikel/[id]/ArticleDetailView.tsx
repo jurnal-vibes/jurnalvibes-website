@@ -15,13 +15,16 @@ import {
   RotateCcw,
   RotateCw,
   Volume2,
-  Loader2
+  Loader2,
+  Clock
 } from 'lucide-react';
 
 import { NewsArticleSidebar } from '@/components/layout/NewsArticleSidebar';
 import { NewsCard } from '@/components/cards/NewsCard';
+import { ReelsSection } from '@/components/cards/ReelsSection';
 import { Article } from '@/types';
 import { fetchArticles, fetchArticleById } from '@/lib/wordpress';
+import { formatIndoDateTime } from '@/lib/utils';
 
 function FacebookIcon({ className }: { className?: string }) {
   return (
@@ -410,12 +413,35 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
   const [reactions, setReactions] = useState<{
     [key: string]: { emoji: string; label: string; count: number; userVoted: boolean; bg: string; border: string; text: string };
   }>({
-    suka: { emoji: '👍', label: 'Suka', count: 14, userVoted: false, bg: '', border: '', text: '' },
-    informatif: { emoji: '💡', label: 'Informatif', count: 9, userVoted: false, bg: '', border: '', text: '' },
-    lucu: { emoji: '😂', label: 'Lucu', count: 6, userVoted: false, bg: '', border: '', text: '' },
-    sedih: { emoji: '😢', label: 'Sedih', count: 4, userVoted: false, bg: '', border: '', text: '' },
-    geram: { emoji: '😡', label: 'Geram', count: 2, userVoted: false, bg: '', border: '', text: '' }
+    suka: { emoji: '👍', label: 'Suka', count: 0, userVoted: false, bg: '', border: '', text: '' },
+    informatif: { emoji: '💡', label: 'Informatif', count: 0, userVoted: false, bg: '', border: '', text: '' },
+    lucu: { emoji: '😂', label: 'Lucu', count: 0, userVoted: false, bg: '', border: '', text: '' },
+    sedih: { emoji: '😢', label: 'Sedih', count: 0, userVoted: false, bg: '', border: '', text: '' },
+    geram: { emoji: '😡', label: 'Geram', count: 0, userVoted: false, bg: '', border: '', text: '' }
   });
+
+  // Load reaksi tersimpan dari localStorage per artikel
+  useEffect(() => {
+    if (typeof window !== 'undefined' && article?.id) {
+      try {
+        const saved = localStorage.getItem(`jurnal_wave_reactions_${article.id}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setReactions(prev => {
+            const next = { ...prev };
+            Object.keys(parsed).forEach(k => {
+              if (next[k]) {
+                next[k] = { ...next[k], count: parsed[k].count || 0, userVoted: Boolean(parsed[k].userVoted) };
+              }
+            });
+            return next;
+          });
+        }
+      } catch (e) {
+        console.error('Error loading reactions from localStorage:', e);
+      }
+    }
+  }, [article?.id]);
 
   const handleReactionClick = (key: string) => {
     setReactions(prev => {
@@ -440,6 +466,13 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
           count: next[key].count + 1,
           userVoted: true
         };
+      }
+
+      // Simpan perubahan ke localStorage per artikel
+      if (typeof window !== 'undefined' && article?.id) {
+        try {
+          localStorage.setItem(`jurnal_wave_reactions_${article.id}`, JSON.stringify(next));
+        } catch {}
       }
 
       return next;
@@ -508,6 +541,17 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     return scored.slice(0, 3).map(item => item.article);
   }, [article, allArticles]);
 
+  // Berita Terkini (urutkan dari yang terbaru, kecualikan artikel aktif dan berita terkait)
+  const latestArticles = useMemo(() => {
+    if (!allArticles || allArticles.length === 0) return [];
+    const relatedIds = new Set(relatedArticles.map(r => r.id));
+    const pool = allArticles.filter(a => a.id !== article?.id && a.slug !== article?.slug && !relatedIds.has(a.id));
+    if (pool.length > 0) {
+      return pool.slice(0, 8);
+    }
+    return allArticles.filter(a => a.id !== article?.id && a.slug !== article?.slug).slice(0, 8);
+  }, [allArticles, article?.id, article?.slug, relatedArticles]);
+
   // Rekomendasi Khusus untuk Kotak "BACA JUGA" di Sela-Sela Paragraf
   const inlineRecommendedArticles = useMemo(() => {
     if (relatedArticles.length > 0) return relatedArticles;
@@ -517,13 +561,73 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     return others;
   }, [relatedArticles, allArticles, article?.id, article?.slug]);
 
-  // Ekstraksi Paragraf Artikel untuk Penataan Konten & Sisipan "BACA JUGA"
+  // Ekstraksi & Penataan Paragraf Jurnalistik Berita (Standar Editorial SukabumiUpdate)
   const contentParagraphs = useMemo(() => {
     const raw = article?.content || '';
-    const parts = raw.split(/\r?\n\s*\r?\n/).map(p => p.trim()).filter(Boolean);
-    if (parts.length > 0) return parts;
-    return raw.split(/\r?\n/).map(p => p.trim()).filter(Boolean);
+    if (!raw.trim()) return [];
+
+    // Pisahkan berdasarkan jeda baris
+    const rawBlocks = raw.split(/\r?\n+/).map(p => p.trim()).filter(Boolean);
+
+    // Pecah blok teks yang terlalu panjang (>320 char / multi kalimat) menjadi paragraf 2-3 kalimat yang nyaman dibaca
+    const formatted: string[] = [];
+    for (const block of rawBlocks) {
+      if (block.length > 320) {
+        const sentences = block.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g);
+        if (sentences && sentences.length > 2) {
+          let currentChunk: string[] = [];
+          for (let i = 0; i < sentences.length; i++) {
+            currentChunk.push(sentences[i].trim());
+            if (currentChunk.length >= 2 && currentChunk.join(' ').length >= 180) {
+              formatted.push(currentChunk.join(' '));
+              currentChunk = [];
+            }
+          }
+          if (currentChunk.length > 0) {
+            formatted.push(currentChunk.join(' '));
+          }
+        } else {
+          formatted.push(block);
+        }
+      } else {
+        formatted.push(block);
+      }
+    }
+
+    return formatted.length > 0 ? formatted : [raw.trim()];
   }, [article?.content]);
+
+  // Topik Terkait Dinamis dari Artikel Jurnal Wave (Deduplikasi Bersih)
+  const uniqueTags = useMemo(() => {
+    let rawList: string[] = [];
+    if (Array.isArray(article?.tags) && article.tags.length > 0) {
+      rawList = article.tags;
+    } else if (typeof article?.tags === 'string' && (article.tags as string).trim()) {
+      rawList = (article.tags as string).split(',').map(t => t.trim());
+    } else {
+      rawList = [
+        article?.categoryLabel || article?.category || 'Berita',
+        article?.subCategory || 'Sukabumi',
+        'Jurnal Wave',
+      ];
+    }
+
+    const seen = new Set<string>();
+    const result: string[] = [];
+
+    for (const raw of rawList) {
+      if (!raw) continue;
+      const clean = String(raw).replace(/^#+/, '').trim();
+      if (!clean) continue;
+      const lower = clean.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        result.push(clean);
+      }
+    }
+
+    return result;
+  }, [article?.tags, article?.categoryLabel, article?.category, article?.subCategory]);
 
   return (
     <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
@@ -538,9 +642,12 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         </Link>
         <span className="text-slate-400">/</span>
         <span className="text-[#c00015] font-bold">
-          {(article.categoryLabel || article.category || 'BERITA').toUpperCase() === 'INFRASTRUKTUR'
-            ? 'BERITA'
-            : (article.categoryLabel || article.category || 'BERITA')}
+          {(() => {
+            const raw = (article.categoryLabel || article.category || 'BERITA').toUpperCase();
+            if (raw === 'INFRASTRUKTUR') return 'BERITA';
+            if (raw === 'WISATA') return 'TRAVELING';
+            return raw;
+          })()}
         </span>
       </nav>
 
@@ -562,25 +669,31 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            {/* Penulis & Tanggal (Kiri) */}
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-1.5">
-                <span className="text-red-600 font-bold text-sm">
-                  {article.author || 'Tim Redaksi'}
-                </span>
-                {/* Centang Biru Verifikasi */}
-                <svg className="w-4 h-4 text-[#1D9BF0] inline-block shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.49 4.49 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <span className="text-xs text-on-surface-variant/70">
-                {article.createdAt || `${article.publishedDate} - 12:19 WIB`}
+          {/* Baris Meta Penulis & Tanggal (Persis SukabumiUpdate) */}
+          <div className="border-t border-b border-slate-200/80 dark:border-slate-800 py-2.5 my-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            {/* Sisi Kiri: JURNALWAVE.COM • Oleh: Nama Reporter */}
+            <div className="flex items-center gap-1.5 flex-wrap text-xs sm:text-[13px]">
+              <span className="text-[#c00015] font-black tracking-wide uppercase">
+                JURNALWAVE.COM
+              </span>
+              <span className="text-slate-300 dark:text-slate-600 font-bold">•</span>
+              <span className="text-slate-500 dark:text-slate-400">
+                Oleh:{' '}
+                <strong className="font-bold text-slate-900 dark:text-white">
+                  {article.reporter || (article.author && article.author !== 'Tim Redaksi' ? article.author : 'Ilham Nugraha')}
+                </strong>
               </span>
             </div>
 
-            {/* Tombol Bagikan Populer + Tombol Simpan (Kanan): FB -> X -> WA -> Telegram -> Salin -> Simpan */}
-            <div className="flex items-center gap-2 flex-wrap">
+            {/* Sisi Kanan: Tanggal & Jam Lengkap dengan Ikon Clock */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span>{formatIndoDateTime(article.createdAt || article.publishedDate)}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-start gap-2 flex-wrap mb-1">
+            {/* Tombol Bagikan Populer + Tombol Simpan */}
               {/* Facebook */}
               <button
                 type="button"
@@ -655,7 +768,6 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
                 <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
               </button>
             </div>
-          </div>
         </header>
 
         {/* Featured Image & Baris Utilitas Baca (Rapet ke Gambar) */}
@@ -665,7 +777,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
               {/* eslint-disable-next-img-element */}
               <img
                 src={article?.imageUrl || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'}
-                alt={article?.imageAlt || article?.title || 'Jurnal Wave'}
+                alt={article?.imageCaption || article?.imageAlt || article?.title || 'Jurnal Wave'}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src =
                     'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80';
@@ -673,6 +785,11 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
                 className="w-full h-full object-cover"
               />
             </div>
+            {(article?.imageCaption || article?.imageAlt) && (
+              <figcaption className="text-xs text-slate-500 dark:text-slate-400 italic text-center mt-2.5 px-3 leading-relaxed font-sans">
+                {article.imageCaption || article.imageAlt}
+              </figcaption>
+            )}
           </figure>
 
           {/* Baris Utilitas Baca: Dengarkan Artikel (Kiri) & Ukuran Teks (Kanan) */}
@@ -799,7 +916,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
       </div>
 
         {/* Article Body, Reporter & Tags (Uniform Gap) */}
-        <div className={`font-body-lg text-on-surface dark:text-gray-100 flex flex-col gap-3.5 transition-all duration-200 ${FONT_SIZE_CLASSES[fontSize]}`}>
+        <div className={`font-sans text-slate-800 dark:text-slate-200 flex flex-col gap-5 sm:gap-6 leading-[1.85] transition-all duration-200 ${FONT_SIZE_CLASSES[fontSize]}`}>
           {contentParagraphs.map((paragraph, idx) => {
             const isFirst = idx === 0;
             const cleanFirst = isFirst
@@ -816,14 +933,14 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
             return (
               <React.Fragment key={idx}>
                 {isFirst ? (
-                  <p>
-                    <span className="text-red-600 dark:text-red-500 font-bold">
+                  <p className="leading-[1.85]">
+                    <strong className="font-bold text-[#c00015] dark:text-red-500">
                       JURNALWAVE.COM
-                    </span>{' '}
+                    </strong>{' '}
                     – {cleanFirst}
                   </p>
                 ) : (
-                  <p>{paragraph}</p>
+                  <p className="leading-[1.85]">{paragraph}</p>
                 )}
 
                 {/* Sisipan Kotak BACA JUGA Pertama (Gaya Murni SukabumiUpdate) */}
@@ -873,44 +990,42 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
             );
           })}
 
-          {/* Reporter & Redaktur Credit Line */}
-          <div className="text-on-surface dark:text-gray-200">
-            <span>
-              Reporter: <strong className="font-bold text-on-surface dark:text-white">{article.reporter || (article.author && article.author !== 'Tim Redaksi' ? article.author : 'Ilham Nugraha')}</strong>
+          {/* Kotak Editor Khas SukabumiUpdate */}
+          <div className="p-3 sm:p-3.5 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 flex items-center">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-2">
+              EDITOR:
             </span>
-            <span className="mx-2.5 text-outline-variant dark:text-slate-600">|</span>
-            <span>
-              Redaktur: <strong className="font-bold text-on-surface dark:text-white">{article.redaktur || article.editor || 'Ujang Herlan'}</strong>
-            </span>
+            <strong className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+              {article.redaktur || article.editor || 'Ujang Herlan'}
+            </strong>
           </div>
 
-          {/* Tags Section (Clean text/hashtag style - Tanpa Card) */}
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 dark:text-gray-400 mr-1 flex items-center gap-1.5">
-              <Tag className="w-3.5 h-3.5 text-on-surface-variant/70" />
-              Tag:
-            </span>
-            {(article.tags && article.tags.length > 0
-              ? article.tags
-              : [
-                  article.categoryLabel || article.category,
-                  article.subCategory || 'Sukabumi',
-                  'JurnalWave',
-                  'Trending'
-                ]
-            ).map((tag, idx) => {
-              const cleanTag = tag.replace(/^#/, '');
-              return (
-                <Link
-                  key={idx}
-                  href={`/berita?q=${encodeURIComponent(cleanTag)}`}
-                  className="text-xs sm:text-sm font-medium text-on-surface-variant/90 hover:text-primary dark:text-gray-400 dark:hover:text-primary hover:underline transition-colors"
-                >
-                  #{cleanTag}
-                </Link>
-              );
-            })}
-          </div>
+          {/* Kotak Topik Terkait (Standar Desain SukabumiUpdate) */}
+          {uniqueTags.length > 0 && (
+            <div className="mt-6 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1 h-3.5 bg-[#c00015] rounded-full shrink-0" />
+                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  TOPIK TERKAIT
+                </h4>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:gap-2.5">
+                {uniqueTags.map((tag, idx) => {
+                  const tagSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+                  return (
+                    <Link
+                      key={idx}
+                      href={`/topik/${encodeURIComponent(tagSlug)}`}
+                      className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-[#c00015] hover:text-[#c00015] dark:hover:border-[#c00015] dark:hover:text-[#c00015] transition-all shadow-2xs group cursor-pointer"
+                    >
+                      <span className="text-[#c00015] font-bold mr-1">#</span>
+                      <span>{tag}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Reaction Section (Simple Pill Bar with Label) */}
@@ -937,12 +1052,12 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         </div>
 
         {/* Related Articles */}
-        <section className="mt-10 sm:mt-14 pb-4 sm:pb-8">
-          <div className="flex flex-col gap-1 mb-4 sm:mb-6">
-            <h3 className="text-sm sm:text-base font-bold text-on-surface dark:text-white tracking-wider uppercase">
+        <section className="mt-10 sm:mt-14 pb-2 sm:pb-4">
+          <div className="flex items-center gap-2 mb-4 sm:mb-6">
+            <span className="w-1.5 h-4 sm:h-5 bg-[#c00015] rounded-xs inline-block" />
+            <h3 className="font-heading font-black text-sm sm:text-base tracking-wider uppercase text-slate-900 dark:text-white">
               BERITA TERKAIT
             </h3>
-            <div className="w-10 h-[2.5px] bg-primary rounded-full mt-0.5" />
           </div>
           <div className="flex flex-col gap-2 sm:gap-4">
             {relatedArticles.map(rel => (
@@ -950,6 +1065,42 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
             ))}
           </div>
         </section>
+
+        {/* Wave Reels */}
+        <section className="mt-2 mb-6">
+          <ReelsSection
+            reels={[]}
+            title="Wave Reels"
+            limit={6}
+          />
+        </section>
+
+        {/* Berita Terkini */}
+        {latestArticles.length > 0 && (
+          <section className="mt-4 pb-6">
+            <div className="flex items-center gap-2 mb-4 sm:mb-6">
+              <span className="w-1.5 h-4 sm:h-5 bg-[#c00015] rounded-xs inline-block" />
+              <h3 className="font-heading font-black text-sm sm:text-base tracking-wider uppercase text-slate-900 dark:text-white">
+                BERITA TERKINI
+              </h3>
+            </div>
+            <div className="flex flex-col gap-3 sm:gap-4">
+              {latestArticles.map(item => (
+                <NewsCard key={item.id} article={item} variant="row" />
+              ))}
+            </div>
+
+            {/* Tombol Tampilkan Lebih Banyak Menuju Indeks Berita */}
+            <div className="flex justify-center mt-6 sm:mt-8">
+              <Link
+                href="/indeks-berita"
+                className="inline-flex items-center justify-center px-7 sm:px-9 py-2.5 rounded-full bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-bold tracking-wide transition-all shadow-sm hover:scale-[1.02] active:scale-95 cursor-pointer"
+              >
+                Tampilkan lebih banyak
+              </Link>
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Kolom Kanan: Sidebar Khas Portal Berita (4 dari 12 Kolom) - Sejajar langsung dengan Judul di Kiri */}

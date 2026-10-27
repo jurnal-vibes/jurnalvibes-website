@@ -162,19 +162,20 @@ export default function AdminDetailLaporanPage() {
 
     let merged = dbMessages
     if (typeof window !== 'undefined') {
-      const local = JSON.parse(
-        localStorage.getItem(`halo_jurnal_chat_${targetId}`) ||
-        (targetTicket ? localStorage.getItem(`halo_jurnal_chat_${targetTicket}`) : null) ||
-        '[]'
-      )
-      const map = new Map<string, any>()
-      merged.forEach((m: any) => map.set(m.id, m))
-      local.forEach((m: any) => {
-        if (!map.has(m.id)) map.set(m.id, m)
-      })
-      merged = Array.from(map.values()).sort(
-        (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      )
+      if (dbMessages.length > 0) {
+        merged = dbMessages
+        localStorage.setItem(`halo_jurnal_chat_${targetId}`, JSON.stringify(dbMessages))
+        if (targetTicket) {
+          localStorage.setItem(`halo_jurnal_chat_${targetTicket}`, JSON.stringify(dbMessages))
+        }
+      } else {
+        const local = JSON.parse(
+          localStorage.getItem(`halo_jurnal_chat_${targetId}`) ||
+          (targetTicket ? localStorage.getItem(`halo_jurnal_chat_${targetTicket}`) : null) ||
+          '[]'
+        )
+        merged = local
+      }
     }
     setChatMessages(merged)
   }
@@ -257,16 +258,41 @@ export default function AdminDetailLaporanPage() {
     const hasVisibilityChanged = isPublic !== report.is_public
     const customNote = editorialNote.trim()
 
-    const statusLabels: Record<string, string> = {
-      diterima: 'Diterima',
-      diproses: 'Diproses',
-      ditindaklanjuti: 'Ditindaklanjuti',
-      selesai: 'Selesai',
-    }
+    const isInspirasi =
+      (report.jenis || '').toLowerCase() === 'inspirasi' ||
+      (report.kategori || '').toLowerCase().includes('inspirasi')
+
+    const statusLabels: Record<string, string> = isInspirasi
+      ? {
+          diterima: 'Menunggu Kurasi',
+          diproses: 'Sedang Dikurasi',
+          ditindaklanjuti: 'Diangkat Liputan Berita',
+          selesai: 'Disetujui & Tayang',
+          ditolak: 'Tidak Lolos Kurasi',
+        }
+      : {
+          diterima: 'Diterima',
+          diproses: 'Diproses',
+          ditindaklanjuti: 'Ditindaklanjuti',
+          selesai: 'Selesai',
+          ditolak: 'Ditolak',
+        }
 
     let defaultNote = ''
     if (customNote) {
       defaultNote = customNote
+    } else if (isInspirasi) {
+      if (currentStatus === 'selesai') {
+        defaultNote = 'Cerita inspirasi warga telah disetujui redaksi dan ditayangkan di Feed Inspirasi Sukabumi.'
+      } else if (currentStatus === 'ditindaklanjuti') {
+        defaultNote = '🌟 Cerita inspirasi terpilih untuk diangkat menjadi liputan berita resmi Jurnal Sukabumi!'
+      } else if (currentStatus === 'diproses') {
+        defaultNote = 'Redaksi sedang mengurasi kelayakan dan memvalidasi materi cerita inspirasi.'
+      } else if (currentStatus === 'ditolak') {
+        defaultNote = 'Cerita inspirasi belum memenuhi standar kurasi redaksi Halo Jurnal.'
+      } else {
+        defaultNote = 'Cerita inspirasi diterima dan mengantre di meja kurasi redaksi.'
+      }
     } else if (hasStatusChanged && hasVisibilityChanged) {
       defaultNote = `Tahap diubah ke "${statusLabels[currentStatus] || currentStatus}" dan visibilitas diatur ke "${isPublic ? 'Tayang Publik' : 'Privat'}".`
     } else if (hasStatusChanged) {
@@ -378,38 +404,78 @@ export default function AdminDetailLaporanPage() {
     return cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase()
   }
 
-  // Helper warna badge status (Harmonisasi Monokrom Redaksi - Pembeda Kurung Bersih)
+  // Helper warna badge status (Sinkron 1-to-1 dengan Alur Tiket Warga & Alur Kurasi Inspirasi)
   const getStatusBadgeConfig = (status: string) => {
+    const isInspirasi =
+      (report.jenis || '').toLowerCase() === 'inspirasi' ||
+      (report.kategori || '').toLowerCase().includes('inspirasi')
+
+    if (isInspirasi) {
+      switch (status) {
+        case 'selesai':
+        case 'ditayangkan':
+          return {
+            label: 'Disetujui & Tayang',
+            bg: 'bg-emerald-50 text-emerald-800 border border-emerald-200',
+          }
+        case 'ditindaklanjuti':
+          return {
+            label: '🌟 Liputan Berita',
+            bg: 'bg-amber-50 text-amber-900 border border-amber-200',
+          }
+        case 'diproses':
+        case 'konfirmasi':
+          return {
+            label: 'Sedang Dikurasi',
+            bg: 'bg-sky-50 text-sky-800 border border-sky-200',
+          }
+        case 'ditolak':
+          return {
+            label: 'Tidak Lolos Kurasi',
+            bg: 'bg-rose-50 text-rose-800 border border-rose-200',
+          }
+        default:
+          return {
+            label: 'Menunggu Kurasi',
+            bg: 'bg-slate-100 text-slate-800 border border-slate-200',
+          }
+      }
+    }
+
     switch (status) {
       case 'selesai':
       case 'ditayangkan':
         return {
-          label: '[Ditayangkan]',
+          label: 'Selesai',
           bg: 'bg-slate-100 text-slate-800 border border-slate-200',
         }
       case 'diproses':
       case 'konfirmasi':
         return {
-          label: '[Diproses]',
+          label: 'Diproses',
           bg: 'bg-slate-100 text-slate-800 border border-slate-200',
         }
       case 'ditindaklanjuti':
         return {
-          label: '[Ditindaklanjuti]',
+          label: 'Ditindaklanjuti',
           bg: 'bg-slate-100 text-slate-800 border border-slate-200',
         }
       case 'ditolak':
         return {
-          label: '[Ditolak]',
+          label: 'Ditolak',
           bg: 'bg-slate-100 text-slate-800 border border-slate-200',
         }
       default:
         return {
-          label: '[Menunggu Review]',
+          label: 'Diterima',
           bg: 'bg-slate-100 text-slate-800 border border-slate-200',
         }
     }
   }
+
+  const isInspirasi =
+    (report.jenis || '').toLowerCase() === 'inspirasi' ||
+    (report.kategori || '').toLowerCase().includes('inspirasi')
 
   const currentBadge = getStatusBadgeConfig(report.status)
 
@@ -521,8 +587,18 @@ export default function AdminDetailLaporanPage() {
               <h2 className="text-lg font-heading font-bold text-slate-900 leading-snug">
                 {report.judul}
               </h2>
-              <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line py-0.5">
-                {report.deskripsi}
+              <div className="space-y-3 text-sm text-slate-700 leading-relaxed text-justify [text-align-last:left] py-0.5">
+                {report.deskripsi
+                  ? report.deskripsi
+                      .split(/\n+/)
+                      .map((p: string) => p.trim())
+                      .filter(Boolean)
+                      .map((paragraf: string, idx: number) => (
+                        <p key={idx} className="leading-relaxed">
+                          {paragraf}
+                        </p>
+                      ))
+                  : null}
               </div>
             </div>
 
@@ -679,19 +755,35 @@ export default function AdminDetailLaporanPage() {
             </h3>
 
             <form onSubmit={handleSaveAction} className="space-y-4">
-              {/* 1. Tahapan Penanganan (Grid 2 Kolom Rapi & Lega, Bebas Tumpang Tindih) */}
+              {/* 1. Tahapan Penanganan / Alur Kurasi Inspirasi */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
-                  Tahap Penanganan
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-800">
+                    {isInspirasi ? 'Alur Kurasi Editorial' : 'Tahap Penanganan'}
+                  </label>
+                  {isInspirasi && (
+                    <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      Rubrik Inspirasi
+                    </span>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
-                  {[
-                    { key: 'diterima', label: 'Menunggu Review' },
-                    { key: 'diproses', label: 'Diproses' },
-                    { key: 'ditindaklanjuti', label: 'Ditindaklanjuti' },
-                    { key: 'selesai', label: 'Ditayangkan' },
-                    { key: 'ditolak', label: 'Ditolak / Arsip' },
-                  ].map((st, idx) => {
+                  {(isInspirasi
+                    ? [
+                        { key: 'diterima', label: 'Menunggu Kurasi' },
+                        { key: 'diproses', label: 'Sedang Dikurasi' },
+                        { key: 'ditindaklanjuti', label: '🌟 Angkat Berita' },
+                        { key: 'selesai', label: '✅ Tayang Publik' },
+                        { key: 'ditolak', label: 'Tidak Lolos' },
+                      ]
+                    : [
+                        { key: 'diterima', label: 'Diterima' },
+                        { key: 'diproses', label: 'Diproses' },
+                        { key: 'ditindaklanjuti', label: 'Ditindaklanjuti' },
+                        { key: 'selesai', label: 'Selesai' },
+                        { key: 'ditolak', label: 'Ditolak' },
+                      ]
+                  ).map((st, idx) => {
                     const isSelected = currentStatus === st.key
                     const isFull = idx === 4
                     return (
@@ -713,6 +805,25 @@ export default function AdminDetailLaporanPage() {
                   })}
                 </div>
               </div>
+
+              {/* Banner Aksi Cepat Angkat ke Berita Portal jika Inspirasi Terpilih */}
+              {isInspirasi && currentStatus === 'ditindaklanjuti' && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <span>🌟 Inspirasi Terpilih Jadi Berita</span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                    Cerita ini diputuskan redaksi untuk diangkat menjadi artikel berita resmi di portal Jurnal Sukabumi.
+                  </p>
+                  <Link
+                    href="/admin/berita"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#c00015] hover:bg-[#a00012] text-white rounded-lg font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <span>Buka Meja Redaksi Berita</span>
+                    <ExternalLink className="w-3 h-3 opacity-80" />
+                  </Link>
+                </div>
+              )}
 
               {/* 2. Visibilitas Feed Publik (Segmented Control Bersih) */}
               <div className="pt-2 border-t border-slate-100 space-y-1.5">

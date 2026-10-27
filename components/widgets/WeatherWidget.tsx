@@ -21,11 +21,12 @@ interface WeatherWidgetProps {
 
 export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   date = '',
-  temp = '26°C',
+  temp = '22°C',
   location = 'Sukabumi',
   variant = 'header'
 }) => {
-  const [currentDate, setCurrentDate] = useState<string>(date);
+  const [fullDate, setFullDate] = useState<string>('Minggu, 25 Oktober 2026');
+  const [shortDate, setShortDate] = useState<string>('25 Okt 2026');
   const [currentTemp, setCurrentTemp] = useState<string>(temp);
   const [currentCondition, setCurrentCondition] = useState<string>('Berawan');
   const [iconName, setIconName] = useState<string>('CloudSun');
@@ -34,13 +35,21 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
     // 1. Format tanggal hari ini
     try {
       const now = new Date();
-      const formatted = new Intl.DateTimeFormat('id-ID', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      }).format(now);
-      setCurrentDate(formatted);
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const monthsFull = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+      const dayName = days[now.getDay()];
+      const day = now.getDate();
+      const monthFull = monthsFull[now.getMonth()];
+      const monthShort = monthsShort[now.getMonth()];
+      const year = now.getFullYear();
+
+      setFullDate(`${dayName}, ${day} ${monthFull} ${year}`);
+      setShortDate(`${day} ${monthShort} ${year}`);
     } catch {
       // fallback date
     }
@@ -92,7 +101,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         className="mt-8 px-4 flex flex-col gap-1 group cursor-pointer block hover:opacity-90 transition-opacity"
         title={`Cuaca Sukabumi: ${currentCondition} ${currentTemp}`}
       >
-        <p className="text-xs text-zinc-500 group-hover:text-primary transition-colors">{currentDate}</p>
+        <p className="text-xs text-zinc-500 group-hover:text-primary transition-colors">{fullDate}</p>
         <div className="flex items-center gap-2 text-on-surface group-hover:text-primary transition-colors">
           {renderIcon('w-5 h-5 text-amber-500 group-hover:scale-105 transition-transform')}
           <span className="text-base font-bold text-zinc-900 dark:text-zinc-100">{currentTemp}</span>
@@ -103,26 +112,40 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   }
 
   return (
-    <Link
-      href="/cuaca"
-      className="flex items-center gap-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-surface-container-low/90 hover:bg-surface-container border border-outline-variant/40 hover:border-outline-variant/80 shadow-2xs hover:shadow-xs transition-all duration-200 group shrink-0 cursor-pointer"
-      title={`Cuaca Sukabumi: ${currentCondition} ${currentTemp}. Klik untuk detail 7 hari.`}
-    >
-      {/* Weather Icon Badge */}
-      <div className="flex items-center justify-center w-6 h-6 sm:w-6.5 sm:h-6.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500 group-hover:text-white transition-all duration-200 shrink-0">
-        {renderIcon('w-3.5 h-3.5 stroke-[2.2] group-hover:scale-105 transition-transform')}
-      </div>
+    <div className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full bg-surface-container-low/90 hover:bg-surface-container border border-outline-variant/40 hover:border-outline-variant/80 shadow-2xs hover:shadow-xs transition-all duration-200 shrink-0">
+      {/* Date / Calendar Part (Format SukabumiUpdate) */}
+      <Link
+        href="/indeks-berita?preset=hari-ini"
+        className="flex items-center gap-1 sm:gap-1.5 text-slate-700 dark:text-slate-200 hover:text-primary transition-colors cursor-pointer group"
+        title="Lihat Berita Hari Ini di Indeks Berita"
+      >
+        <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 dark:text-slate-400 shrink-0 group-hover:text-primary transition-colors" />
+        {/* Desktop / Tablet: Minggu, 25 Oktober 2026 */}
+        <span className="hidden sm:inline text-xs font-semibold whitespace-nowrap">
+          {fullDate}
+        </span>
+        {/* Mobile: 25 Okt 2026 */}
+        <span className="sm:hidden text-[10px] font-semibold whitespace-nowrap">
+          {shortDate}
+        </span>
+      </Link>
 
-      {/* Weather Info */}
-      <div className="flex items-center gap-1.5 text-xs">
-        <span className="font-bold text-on-surface group-hover:text-primary transition-colors text-xs sm:text-sm">
+      {/* Divider */}
+      <span className="w-px h-2.5 sm:h-3.5 bg-outline-variant/60 shrink-0" />
+
+      {/* Weather Part (Ikon Awan + Suhu disempilkan) */}
+      <Link
+        href="/cuaca"
+        className="flex items-center gap-1 text-slate-700 dark:text-slate-200 hover:text-primary transition-colors cursor-pointer group shrink-0"
+        title={`Cuaca Sukabumi: ${currentCondition} ${currentTemp}. Klik untuk detail prakiraan cuaca.`}
+      >
+        <div className="flex items-center justify-center shrink-0">
+          {renderIcon('w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 group-hover:scale-110 transition-transform shrink-0')}
+        </div>
+        <span className="font-bold text-[10px] sm:text-xs text-on-surface whitespace-nowrap group-hover:text-primary transition-colors">
           {currentTemp}
         </span>
-        <span className="text-on-surface-variant/50 text-[10px] hidden sm:inline">•</span>
-        <span className="text-on-surface-variant font-medium text-[11px] sm:text-xs hidden sm:inline group-hover:text-on-surface transition-colors">
-          {location}
-        </span>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 };

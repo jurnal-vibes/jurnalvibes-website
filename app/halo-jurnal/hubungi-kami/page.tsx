@@ -11,19 +11,34 @@ export default function HaloJurnalHubungiKamiPage() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [lastWaUrl, setLastWaUrl] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!name || !email || !message) return
     setLoading(true)
 
-    setTimeout(() => {
-      setLoading(false)
-      setSuccess(true)
-      setName('')
-      setEmail('')
-      setPhone('')
-      setMessage('')
-    }, 1200)
+    const targetPhone = '6282111651470'
+    const lines = [
+      `*Halo Tim Halo Jurnal / Redaksi,*`,
+      `Saya ingin mengirim pesan/pertanyaan melalui formulir Halo Jurnal:`,
+      ``,
+      `• *Nama Lengkap:* ${name}`,
+      `• *Alamat Email:* ${email}`,
+      phone ? `• *No. WhatsApp:* ${phone}` : null,
+      ``,
+      `*Isi Pesan:*`,
+      message,
+    ].filter(Boolean)
+
+    const waUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(lines.join('\n'))}`
+    setLastWaUrl(waUrl)
+    setLoading(false)
+    setSuccess(true)
+
+    if (typeof window !== 'undefined') {
+      window.open(waUrl, '_blank', 'noopener,noreferrer')
+    }
   }
 
   return (
@@ -63,11 +78,21 @@ export default function HaloJurnalHubungiKamiPage() {
             <div className="mt-4 pt-3 border-t border-outline-variant/60 dark:border-slate-800 space-y-2 text-xs text-on-surface-variant dark:text-gray-400">
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span>WhatsApp Hotline: <strong className="text-on-surface dark:text-white">0821-1165-1470</strong></span>
+                <span>
+                  WhatsApp Hotline:{' '}
+                  <a href="tel:082111651470" className="text-on-surface dark:text-white font-bold hover:text-primary hover:underline">
+                    0821-1165-1470
+                  </a>
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span>Email Redaksi: <strong className="text-on-surface dark:text-white">redaksi@jurnalsukabumi.com</strong></span>
+                <span>
+                  Email Redaksi:{' '}
+                  <a href="mailto:redaksi@jurnalsukabumi.com" className="text-on-surface dark:text-white font-bold hover:text-primary hover:underline">
+                    redaksi@jurnalsukabumi.com
+                  </a>
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
@@ -93,19 +118,37 @@ export default function HaloJurnalHubungiKamiPage() {
           </h2>
 
           {success ? (
-            <div className="p-6 text-center bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 rounded-xl border border-emerald-200 dark:border-emerald-800/60">
-              <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
-              <p className="font-bold text-sm">Pesan Berhasil Terkirim!</p>
-              <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1">
-                Terima kasih, tim redaksi Halo Jurnal akan menanggapi pesan Anda secepatnya.
+            <div className="p-6 text-center bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-100 rounded-xl border border-emerald-200 dark:border-emerald-800/60 space-y-3">
+              <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mx-auto" />
+              <h3 className="font-bold text-base text-emerald-800 dark:text-emerald-300">Pesan Disiapkan ke WhatsApp Redaksi</h3>
+              <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-200 leading-relaxed max-w-sm mx-auto">
+                WhatsApp tim redaksi Halo Jurnal (<strong>0821-1165-1470</strong>) telah disiapkan. Klik tombol di bawah jika jendela chat belum terbuka:
               </p>
-              <button
-                type="button"
-                onClick={() => setSuccess(false)}
-                className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition cursor-pointer"
-              >
-                Kirim Pesan Lain
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
+                {lastWaUrl && (
+                  <a
+                    href={lastWaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>Buka Chat WhatsApp Redaksi</span>
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSuccess(false)
+                    setName('')
+                    setEmail('')
+                    setPhone('')
+                    setMessage('')
+                  }}
+                  className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:underline cursor-pointer py-1"
+                >
+                  Kirim Pesan Lain
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3.5">
@@ -175,7 +218,7 @@ export default function HaloJurnalHubungiKamiPage() {
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
-                <span>Kirim Pesan</span>
+                <span>Kirim Pesan ke WhatsApp Redaksi</span>
               </button>
             </form>
           )}

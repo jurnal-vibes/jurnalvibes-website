@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAdminSession } from '@/lib/auth'
 import { z } from 'zod'
+import { getJenisForCategory, normalizeCategoryName } from '@/data/haloJurnalCategories'
 
 // Skema validasi masukan laporan aduan warga
 const ReportInputSchema = z.object({
   title: z.string().min(3, 'Judul laporan minimal 3 karakter').max(200, 'Judul laporan maksimal 200 karakter'),
   description: z.string().optional(),
   reportType: z.string().optional(),
+  category: z.string().optional(),
+  kategori: z.string().optional(),
   address: z.string().optional(),
   latitude: z.union([z.number(), z.string(), z.null()]).optional(),
   longitude: z.union([z.number(), z.string(), z.null()]).optional(),
@@ -23,7 +26,14 @@ const ReportInputSchema = z.object({
 
 // Helper format laporan dari database ke format kompatibel frontend
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapReportFromDb(item: any) {
+function mapReportFromDb(item: any, supportCount = 0) {
+  const category = normalizeCategoryName(item.reportType || item.kategori || 'Infrastruktur')
+  const rawJenis = (item as any).jenis || ''
+  const jenis =
+    rawJenis && rawJenis.toLowerCase() !== category.toLowerCase()
+      ? rawJenis.toLowerCase()
+      : getJenisForCategory(category)
+
   return {
     id: item.id,
     nomor_tiket: item.ticketNumber,
@@ -33,9 +43,9 @@ function mapReportFromDb(item: any) {
     title: item.title,
     deskripsi: item.description,
     description: item.description,
-    jenis: item.reportType,
-    reportType: item.reportType,
-    kategori: item.reportType,
+    jenis,
+    reportType: category,
+    kategori: category,
     lokasi: item.address || 'Sukabumi',
     address: item.address || 'Sukabumi',
     latitude: item.latitude,
@@ -47,7 +57,7 @@ function mapReportFromDb(item: any) {
     email: (item as any).pelaporEmail || (item as any).citizenEmail || '',
     status: item.status || 'diterima',
     is_public: Boolean(item.isPublic),
-    dukungan_count: 0,
+    dukungan_count: supportCount,
     komentar_count: 0,
     created_at: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     createdAt: item.createdAt,
@@ -97,10 +107,23 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
+    // Hitung dukungan nyata dari tabel report_supports
+    const supportCountsMap: Record<string, number> = {}
+    try {
+      const countRows = await prisma.$queryRawUnsafe<any[]>(
+        `SELECT "ticketNumber", COUNT(*)::int as count FROM "report_supports" GROUP BY "ticketNumber"`
+      )
+      countRows.forEach((r) => {
+        if (r.ticketNumber) {
+          supportCountsMap[r.ticketNumber] = Number(r.count) || 0
+        }
+      })
+    } catch {}
+
     return NextResponse.json({
       success: true,
       source: 'database',
-      data: dbReports.map(mapReportFromDb),
+      data: dbReports.map((r) => mapReportFromDb(r, supportCountsMap[r.ticketNumber] || 0)),
     })
   } catch (error: any) {
     console.error('API Reports GET error:', error)
@@ -163,7 +186,7 @@ export async function POST(request: NextRequest) {
         ticketNumber,
         title,
         description,
-        reportType: data.reportType || 'infrastruktur',
+        reportType: (data.kategori || data.category || data.reportType || 'Infrastruktur').trim(),
         address: data.address || 'Sukabumi',
         latitude: data.latitude ? parseFloat(String(data.latitude)) : null,
         longitude: data.longitude ? parseFloat(String(data.longitude)) : null,

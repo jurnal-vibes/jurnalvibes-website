@@ -51,18 +51,18 @@ export default function TentangKamiPage() {
         {/* Konten Redaksional */}
         <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-4">
           <p>
-            Portal berita <strong>Jurnal Wave</strong> berada di bawah naungan <strong>PT. Media Jurnal Sukabumi</strong>. Jurnal Wave hadir di tengah menjamurnya beragam media siber untuk menyajikan informasi yang independen, faktual, dan mendalam seputar Kota dan Kabupaten Sukabumi.
+            Portal berita <strong>Jurnal Wave</strong> beroperasi di bawah naungan badan hukum pers resmi <strong>PT. Media Jurnal Sukabumi</strong>. Kami berdedikasi menyajikan jurnalisme yang independen, berimbang, dan mendalam seputar dinamika serta peristiwa di Kota dan Kabupaten Sukabumi.
           </p>
           <p>
-            Dibidani oleh jurnalis profesional yang konsisten pada kode etik pers, kami berkomitmen menyuarakan aspirasi warga. Sebagai wujud nyata komitmen tersebut, kami juga mengoperasikan <strong>Halo Jurnal</strong>—platform interaktif pelaporan dan pengaduan warga untuk transparansi fasilitas serta layanan publik di Sukabumi.
+            Berpegang teguh pada Kode Etik Jurnalistik dan Undang-Undang Pers, redaksi kami berkomitmen mengawal kepentingan masyarakat. Sebagai wujud nyata keterbukaan informasi dan advokasi publik, kami juga mengoperasikan <strong>Halo Jurnal</strong>—kanal interaktif aspirasi dan aduan warga untuk mendorong peningkatan fasilitas serta pelayanan publik di Sukabumi.
           </p>
           <div className="pt-1">
             <Link
               href="/halo-jurnal"
-              className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline bg-primary/10 px-3.5 py-1.5 rounded-full"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#c00015] hover:text-[#a00012] hover:underline transition-colors group"
             >
               <span>Jelajahi Portal Layanan Warga: Halo Jurnal</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
         </article>
@@ -97,7 +97,7 @@ export default function TentangKamiPage() {
                 <span className="text-on-surface-variant dark:text-gray-400 font-medium sm:w-1/2">
                   {item.label}
                 </span>
-                <span className="text-on-surface dark:text-white font-mono font-semibold sm:w-1/2 sm:text-right text-xs sm:text-sm">
+                <span className="text-on-surface dark:text-white font-mono font-semibold sm:w-1/2 sm:text-right text-xs sm:text-sm break-all sm:break-normal">
                   {item.nilai}
                 </span>
               </div>
@@ -113,10 +113,29 @@ export default function TentangKamiPage() {
               Perum Bukit Randu Asri, Blok K, Nomor 14, RT 07 RW 22 Kelurahan/Kecamatan Cibadak, Kabupaten Sukabumi, Jawa Barat.<br />
               <strong>Kode Pos: 43351</strong>
             </p>
-            <div className="mt-3 space-y-1 text-on-surface-variant dark:text-gray-400">
-              <p>Telepon / Kontak: <strong>082111651470 / 081572738335</strong></p>
-              <p>Email Redaksi: <strong>redaksi@jurnalsukabumi.com</strong></p>
-              <p>Email Umum: <strong>jurnal.smi@gmail.com</strong></p>
+            <div className="mt-3 space-y-1.5 text-on-surface-variant dark:text-gray-400">
+              <p>
+                Telepon / Kontak:{' '}
+                <a href="tel:082111651470" className="font-bold text-on-surface dark:text-white hover:text-primary hover:underline">
+                  082111651470
+                </a>
+                {' '}/{' '}
+                <a href="tel:081572738335" className="font-bold text-on-surface dark:text-white hover:text-primary hover:underline">
+                  081572738335
+                </a>
+              </p>
+              <p>
+                Email Redaksi:{' '}
+                <a href="mailto:redaksi@jurnalsukabumi.com" className="font-bold text-primary hover:underline">
+                  redaksi@jurnalsukabumi.com
+                </a>
+              </p>
+              <p>
+                Email Umum:{' '}
+                <a href="mailto:jurnal.smi@gmail.com" className="font-bold text-primary hover:underline">
+                  jurnal.smi@gmail.com
+                </a>
+              </p>
             </div>
           </div>
 
@@ -131,7 +150,10 @@ export default function TentangKamiPage() {
               <div className="text-xs text-on-surface-variant dark:text-gray-400 mt-0.5">a/n <strong>PT Media Jurnal Sukabumi</strong></div>
             </div>
             <p className="mt-2 text-xs text-on-surface-variant dark:text-gray-400">
-              Email Iklan: <strong>iklan@jurnalsukabumi.com</strong>
+              Email Iklan:{' '}
+              <a href="mailto:iklan@jurnalsukabumi.com" className="font-bold text-primary hover:underline">
+                iklan@jurnalsukabumi.com
+              </a>
             </p>
           </div>
         </section>

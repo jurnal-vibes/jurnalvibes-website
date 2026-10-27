@@ -212,7 +212,7 @@ export function NewsArticleSidebar({
           {popularTags.map((tag) => (
             <Link
               key={tag}
-              href={`/search?q=${encodeURIComponent(tag)}`}
+              href={`/topik/${encodeURIComponent(tag.replace(/^#/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-'))}`}
               className="px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-[#c00015] dark:hover:border-[#c00015] text-slate-700 dark:text-slate-300 hover:text-[#c00015] dark:hover:text-[#c00015] text-xs font-semibold transition-all hover:shadow-2xs"
             >
               {tag}

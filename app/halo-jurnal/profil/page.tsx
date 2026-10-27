@@ -13,11 +13,44 @@ import {
   Loader2,
   MapPin,
   CheckCircle2,
-  PlusCircle,
-  FileText,
-  Phone,
-  Mail,
 } from 'lucide-react'
+
+// Helper untuk mengekstrak komponen alamat terstruktur dari kalimat domisili gabungan
+function parseDomisili(domisiliStr: string) {
+  if (!domisiliStr || typeof domisiliStr !== 'string') {
+    return { detailAlamat: '', rtRw: '', kelurahan: '', kecamatan: '' }
+  }
+
+  const raw = domisiliStr.trim()
+
+  // Format baku pendaftaran: "${detail}, RT/RW ${rtRw}, Kel. ${kelurahan}, Kec. ${kecamatan}, Sukabumi"
+  const kecMatch = raw.match(/Kec\.?\s*([^,]+)/i)
+  const kelMatch = raw.match(/Kel\.?\s*([^,]+)/i)
+  const rtRwMatch = raw.match(/RT\/?RW\s*([^,]+)/i)
+
+  const kecamatan = kecMatch ? kecMatch[1].trim() : ''
+  const kelurahan = kelMatch ? kelMatch[1].trim() : ''
+  const rtRw = rtRwMatch ? rtRwMatch[1].trim() : ''
+
+  // Ambil detail alamat awal sebelum ", RT/RW" atau ", Kel." atau ", Kec."
+  let detailAlamat = raw
+  const splitIdx = raw.search(/,\s*RT\/?RW/i)
+  if (splitIdx !== -1) {
+    detailAlamat = raw.substring(0, splitIdx).trim()
+  } else {
+    const splitKel = raw.search(/,\s*Kel\.?/i)
+    if (splitKel !== -1) {
+      detailAlamat = raw.substring(0, splitKel).trim()
+    } else {
+      const splitKec = raw.search(/,\s*Kec\.?/i)
+      if (splitKec !== -1) {
+        detailAlamat = raw.substring(0, splitKec).trim()
+      }
+    }
+  }
+
+  return { detailAlamat, rtRw, kelurahan, kecamatan }
+}
 
 export default function HaloJurnalProfilPage() {
   const [user, setUser] = useState<any>(null)
@@ -36,6 +69,9 @@ export default function HaloJurnalProfilPage() {
 
   useEffect(() => {
     fetchProfile()
+    const handleStorage = () => fetchProfile()
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
   }, [])
 
   const fetchProfile = () => {
@@ -46,40 +82,80 @@ export default function HaloJurnalProfilPage() {
         const stored = localStorage.getItem('halo_jurnal_current_user')
         if (stored) {
           try {
-            localUser = JSON.parse(stored)
+            const parsed = JSON.parse(stored)
+            // Bersihkan data dummy warga lama jika ada
+            if (
+              parsed &&
+              (parsed.id === 'warga-demo' ||
+                parsed.id === 'demo-user-id' ||
+                parsed.email === 'warga@sukabumi.com' ||
+                (typeof parsed.id === 'string' && parsed.id.startsWith('warga-17')))
+            ) {
+              localStorage.removeItem('halo_jurnal_current_user')
+              localUser = null
+            } else {
+              localUser = parsed
+            }
           } catch {}
         }
       }
 
       if (!localUser) {
-        localUser = {
-          id: 'warga-demo',
-          email: 'warga@sukabumi.com',
-          full_name: 'Warga Sukabumi',
-          phone: '081234567890',
-          kecamatan: 'Cisaat',
-          kelurahan: 'Cibatu',
-          rt_rw: 'RT 02 / RW 05',
-          detail_alamat: 'Jl. Raya Cisaat No. 120',
-          alamat_domisili: 'Jl. Raya Cisaat No. 120, RT/RW 02/05, Kel. Cibatu, Kec. Cisaat, Sukabumi',
-          is_verified: true,
-          role: 'warga',
-        }
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('halo_jurnal_current_user', JSON.stringify(localUser))
-          window.dispatchEvent(new Event('storage'))
-        }
+        setUser(null)
+        setFullName('')
+        setPhone('')
+        setKecamatan('')
+        setKelurahan('')
+        setRtRw('')
+        setDetailAlamat('')
+        return
       }
 
-      setUser(localUser)
-      setFullName(localUser.full_name || localUser.name || 'Warga Sukabumi')
-      setPhone(localUser.phone || localUser.phone_number || '081234567890')
-      setKecamatan(localUser.kecamatan || 'Cisaat')
-      setKelurahan(localUser.kelurahan || 'Cibatu')
-      setRtRw(localUser.rt_rw || 'RT 02 / RW 05')
-      setDetailAlamat(localUser.detail_alamat || localUser.alamat_domisili || 'Jl. Raya Cisaat No. 120')
+      // Smart Parser: jika kecamatan/kelurahan/rt_rw belum ada di objek user, ekstrak dari alamat_domisili
+      let resolvedKec = localUser.kecamatan || ''
+      let resolvedKel = localUser.kelurahan || ''
+      let resolvedRtRw = localUser.rt_rw || ''
+      let resolvedDetail = localUser.detail_alamat || ''
+
+      const domisiliSource = localUser.alamat_domisili || localUser.domisili || ''
+      if ((!resolvedKec || !resolvedKel || !resolvedRtRw || !resolvedDetail) && domisiliSource) {
+        const parsed = parseDomisili(domisiliSource)
+        if (!resolvedKec) resolvedKec = parsed.kecamatan
+        if (!resolvedKel) resolvedKel = parsed.kelurahan
+        if (!resolvedRtRw) resolvedRtRw = parsed.rtRw
+        if (!resolvedDetail) resolvedDetail = parsed.detailAlamat
+      }
+
+      const syncedUser = {
+        ...localUser,
+        kecamatan: resolvedKec,
+        kelurahan: resolvedKel,
+        rt_rw: resolvedRtRw,
+        detail_alamat: resolvedDetail,
+      }
+
+      // Sinkronkan kembali ke localStorage agar terstruktur permanen
+      if (
+        localUser.kecamatan !== resolvedKec ||
+        localUser.kelurahan !== resolvedKel ||
+        localUser.rt_rw !== resolvedRtRw ||
+        localUser.detail_alamat !== resolvedDetail
+      ) {
+        try {
+          localStorage.setItem('halo_jurnal_current_user', JSON.stringify(syncedUser))
+        } catch {}
+      }
+
+      setUser(syncedUser)
+      setFullName(syncedUser.full_name || syncedUser.name || '')
+      setPhone(syncedUser.phone || syncedUser.phone_number || '')
+      setKecamatan(resolvedKec)
+      setKelurahan(resolvedKel)
+      setRtRw(resolvedRtRw)
+      setDetailAlamat(resolvedDetail)
     } catch (err) {
       console.error('Fetch profile error:', err)
+      setUser(null)
     } finally {
       setLoading(false)
     }
@@ -115,6 +191,23 @@ export default function HaloJurnalProfilPage() {
       window.dispatchEvent(new Event('storage'))
     }
 
+    // Sinkronisasi data ke database jika terdaftar
+    if (user?.email) {
+      try {
+        fetch('/api/auth/citizen', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'update-profile',
+            email: user.email,
+            fullName: fullName.trim(),
+            phone: phone.trim(),
+            domisili: fullDomisili,
+          }),
+        }).catch(() => {})
+      } catch {}
+    }
+
     setUser(updated)
     setSaving(false)
     setEditing(false)
@@ -126,6 +219,38 @@ export default function HaloJurnalProfilPage() {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
+        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-10 shadow-xs max-w-md mx-auto w-full">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
+            <User className="w-7 h-7" />
+          </div>
+          <h2 className="font-heading font-bold text-lg text-slate-900 dark:text-slate-100 mb-2">
+            Anda Belum Masuk
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+            Silakan masuk ke akun Anda untuk melihat dan mengelola informasi identitas profil warga.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/login?redirect=/halo-jurnal/profil"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-semibold transition-all shadow-xs text-center"
+            >
+              Masuk ke Akun
+            </Link>
+            <Link
+              href="/halo-jurnal"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-all text-center"
+            >
+              Kembali ke Beranda
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
@@ -164,11 +289,11 @@ export default function HaloJurnalProfilPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="w-full sm:w-auto flex items-center justify-center sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
           <button
             type="button"
             onClick={() => setEditing(!editing)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition cursor-pointer"
           >
             {editing ? (
               <>
@@ -195,7 +320,7 @@ export default function HaloJurnalProfilPage() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Nama Lengkap <span className="text-slate-400 font-normal">(Sesuai KTP)</span>
+              Nama Lengkap
             </label>
             <input
               type="text"
@@ -300,7 +425,7 @@ export default function HaloJurnalProfilPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
               <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
-                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-1">Nama Lengkap (KTP)</span>
+                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-1">Nama Lengkap</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm block truncate">{user?.full_name || '-'}</span>
               </div>
 
@@ -337,15 +462,15 @@ export default function HaloJurnalProfilPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 pt-1">
               <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
                 <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-0.5">Kecamatan</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">{user?.kecamatan || 'Cisaat'}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm capitalize">{user?.kecamatan || '-'}</span>
               </div>
               <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
                 <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-0.5">Kelurahan / Desa</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">{user?.kelurahan || 'Cibatu'}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm capitalize">{user?.kelurahan || '-'}</span>
               </div>
               <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 col-span-2 sm:col-span-1">
                 <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-0.5">RT / RW</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">{user?.rt_rw || 'RT 02 / RW 05'}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">{user?.rt_rw || '-'}</span>
               </div>
             </div>
 
@@ -358,24 +483,6 @@ export default function HaloJurnalProfilPage() {
           </div>
         </div>
       )}
-
-      {/* 4. Menu Cepat */}
-      <div className="flex flex-wrap items-center gap-3 pt-1">
-        <Link
-          href="/halo-jurnal/lapor"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white font-heading font-semibold text-xs sm:text-sm transition-colors shadow-2xs cursor-pointer"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Buat Laporan Baru</span>
-        </Link>
-        <Link
-          href="/halo-jurnal/laporan-saya"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-heading font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
-        >
-          <FileText className="w-4 h-4 text-slate-500" />
-          <span>Riwayat Laporan Saya</span>
-        </Link>
-      </div>
     </div>
   )
 }

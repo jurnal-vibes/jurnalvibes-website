@@ -16,10 +16,10 @@ export function LifestyleClient({ initialArticles = [] }: { initialArticles?: Ar
   const allLifestyleArticles = articles.filter(
     a =>
       a.category === 'lifestyle' ||
-      ['KULINER', 'WISATA', 'MUSIK', 'EVENT LOKAL', 'FASHION', 'KOMUNITAS'].includes(
+      ['KULINER', 'WISATA', 'TRAVELING', 'MUSIK', 'EVENT LOKAL', 'FASHION', 'KOMUNITAS'].includes(
         (a.categoryLabel || '').toUpperCase()
       ) ||
-      ['KULINER', 'WISATA', 'MUSIK', 'EVENT LOKAL', 'FASHION'].includes(
+      ['KULINER', 'WISATA', 'TRAVELING', 'MUSIK', 'EVENT LOKAL', 'FASHION'].includes(
         (a.subCategory || '').toUpperCase()
       )
   );
@@ -49,8 +49,11 @@ export function LifestyleClient({ initialArticles = [] }: { initialArticles?: Ar
     }
     if (sub === 'traveling' || sub === 'wisata') {
       return (
+        (article.categoryLabel || '').toUpperCase() === 'TRAVELING' ||
         (article.categoryLabel || '').toUpperCase() === 'WISATA' ||
+        (article.subCategory || '').toUpperCase() === 'TRAVELING' ||
         (article.subCategory || '').toUpperCase() === 'WISATA' ||
+        article.title.toLowerCase().includes('travel') ||
         article.title.toLowerCase().includes('wisata') ||
         article.title.toLowerCase().includes('curug') ||
         article.title.toLowerCase().includes('pantai') ||
