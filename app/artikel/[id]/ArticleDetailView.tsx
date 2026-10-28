@@ -338,7 +338,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
       return;
     }
 
-    // Download audio dengan TIMEOUT 12 detik
+    // Download audio dengan TIMEOUT 12 detik (koneksi + download body)
     try {
       const controller = new AbortController();
       const fetchTimeout = setTimeout(() => controller.abort(), 12000);
@@ -346,11 +346,12 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
       const response = await fetch(`/api/tts?id=${encodeURIComponent(article.id)}`, {
         signal: controller.signal,
       });
-      clearTimeout(fetchTimeout);
 
-      if (!response.ok) throw new Error(`TTS API error: ${response.status}`);
+      if (!response.ok) { clearTimeout(fetchTimeout); throw new Error(`TTS API error: ${response.status}`); }
 
       const blob = await response.blob();
+      clearTimeout(fetchTimeout);
+
       if (blob.size < 500) throw new Error('Audio terlalu kecil');
 
       const blobUrl = URL.createObjectURL(blob);
