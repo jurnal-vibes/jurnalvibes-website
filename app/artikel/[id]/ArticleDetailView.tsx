@@ -192,6 +192,8 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
   }, [article?.id]);
 
   // Eksekusi pemutaran audio INSTAN (100% Mobile & Desktop Compatible)
+  const audioLoadedRef = useRef<boolean>(false);
+
   const handlePlayToggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -207,28 +209,57 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
       setIsPlaying(false);
     } else {
       setIsLoadingAudio(true);
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true);
-            setIsLoadingAudio(false);
-          })
-          .catch((err) => {
-            console.warn('Audio play notice, retrying with load:', err);
-            audio.load();
-            audio
-              .play()
-              .then(() => {
-                setIsPlaying(true);
-                setIsLoadingAudio(false);
-              })
-              .catch((retryErr) => {
-                console.error('Audio play failed:', retryErr);
-                setIsLoadingAudio(false);
-                setIsPlaying(false);
-              });
-          });
+
+      // Mobile: harus load() dulu sebelum play() agar browser tidak block
+      const attemptPlay = () => {
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+              setIsLoadingAudio(false);
+            })
+            .catch((err) => {
+              console.warn('Audio play failed, retrying:', err);
+              // Retry sekali lagi setelah delay singkat (mobile Safari butuh ini)
+              setTimeout(() => {
+                audio.play()
+                  .then(() => {
+                    setIsPlaying(true);
+                    setIsLoadingAudio(false);
+                  })
+                  .catch((retryErr) => {
+                    console.error('Audio play retry failed:', retryErr);
+                    setIsLoadingAudio(false);
+                    setIsPlaying(false);
+                  });
+              }, 300);
+            });
+        }
+      };
+
+      // Jika audio belum pernah di-load (mobile), load dulu baru play
+      if (!audioLoadedRef.current) {
+        audio.load();
+        const onCanPlay = () => {
+          audioLoadedRef.current = true;
+          audio.removeEventListener('canplaythrough', onCanPlay);
+          audio.removeEventListener('canplay', onCanPlay);
+          clearTimeout(loadTimeout);
+          attemptPlay();
+        };
+        audio.addEventListener('canplaythrough', onCanPlay, { once: true });
+        audio.addEventListener('canplay', onCanPlay, { once: true });
+
+        // Fallback: jika canplay tidak fire dalam 15 detik, coba play langsung
+        const loadTimeout = setTimeout(() => {
+          audio.removeEventListener('canplaythrough', onCanPlay);
+          audio.removeEventListener('canplay', onCanPlay);
+          audioLoadedRef.current = true;
+          attemptPlay();
+        }, 15000);
+      } else {
+        attemptPlay();
       }
     }
   };
@@ -1192,14 +1223,16 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
       <audio
         ref={audioRef}
         src={`/api/tts?id=${encodeURIComponent(article.id)}`}
-        preload="metadata"
+        preload="none"
         playsInline
+        crossOrigin="anonymous"
         onTimeUpdate={(e) => {
           setCurrentTime(Math.round(e.currentTarget.currentTime));
         }}
         onLoadedMetadata={(e) => {
           if (e.currentTarget.duration && isFinite(e.currentTarget.duration)) {
             setAudioDuration(Math.round(e.currentTarget.duration));
+            audioLoadedRef.current = true;
           }
         }}
         onPlaying={() => {
@@ -1209,14 +1242,24 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         onWaiting={() => {
           setIsLoadingAudio(true);
         }}
+        onStalled={() => {
+          // Mobile: jika audio stall, coba load ulang
+          const audio = audioRef.current;
+          if (audio && isPlaying) {
+            audio.load();
+            audio.play().catch(() => {});
+          }
+        }}
         onEnded={() => {
           setIsPlaying(false);
           setCurrentTime(0);
+          audioLoadedRef.current = false;
         }}
         onError={(e) => {
           console.warn('Audio streaming notice:', e);
           setIsLoadingAudio(false);
           setIsPlaying(false);
+          audioLoadedRef.current = false;
         }}
         className="hidden"
       />

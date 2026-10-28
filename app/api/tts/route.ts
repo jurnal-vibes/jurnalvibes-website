@@ -5,17 +5,26 @@ import crypto from 'crypto';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { fetchArticleById } from '@/lib/wordpress';
 
+import os from 'os';
+import { EdgeTTS } from '@andresaya/edge-tts';
+
 // Suara resmi presenter berita Jurnal Wave: Microsoft Azure/Edge Neural Voice (Pria Dewasa, Tegas, Berwibawa)
 const VOICE_NAME = 'id-ID-ArdiNeural';
-const VOICE_RATE = '-2%'; // Tempo stabil dan tenang khas pembaca berita TV (tidak terburu-buru/balap lari)
+const VOICE_RATE = '-2%'; // Tempo stabil dan tenang khas pembaca berita TV
 const VOICE_PITCH = '+0Hz';
 
-// Direktori cache audio lokal agar pemutaran instan (0 detik) setelah di-generate
-const CACHE_DIR = path.join(process.cwd(), '.cache', 'tts');
+// Direktori cache audio yang aman baik di lokal maupun di serverless cloud Vercel (/tmp)
+const CACHE_DIR = process.env.VERCEL
+  ? path.join(os.tmpdir(), 'jurnalwave-tts')
+  : path.join(process.cwd(), '.cache', 'tts');
 
 function ensureCacheDir() {
-  if (!fs.existsSync(CACHE_DIR)) {
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(CACHE_DIR)) {
+      fs.mkdirSync(CACHE_DIR, { recursive: true });
+    }
+  } catch (err) {
+    console.warn('Cache dir creation notice:', err);
   }
 }
 
@@ -91,7 +100,29 @@ function cleanArticleText(text: string): string {
 
 import { spawn } from 'child_process';
 
-// Menghasilkan audio pria (ArdiNeural) menggunakan Python edge-tts resmi & stabil
+// Menghasilkan audio pria ArdiNeural menggunakan EdgeTTS Node.js (Universal untuk Vercel & Lokal)
+async function generateMaleAudioWithEdgeTTS(cleanText: string, cacheFile: string): Promise<Buffer> {
+  const tts = new EdgeTTS();
+
+  await tts.synthesize(cleanText, VOICE_NAME, {
+    rate: VOICE_RATE,
+    pitch: VOICE_PITCH,
+    outputFormat: 'audio-24khz-48kbitrate-mono-mp3'
+  });
+  const buffer = tts.toBuffer();
+  if (buffer && buffer.length > 500) {
+    try {
+      ensureCacheDir();
+      fs.writeFileSync(cacheFile, buffer);
+    } catch (saveErr) {
+      console.warn('Could not write cache file:', saveErr);
+    }
+    return buffer;
+  }
+  throw new Error('EdgeTTS produced empty buffer');
+}
+
+// Fallback Python bridge jika di lokal ingin menggunakan Python
 function generateMaleAudioWithPython(cleanText: string, cacheFile: string): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     ensureCacheDir();
@@ -129,7 +160,7 @@ function generateMaleAudioWithPython(cleanText: string, cacheFile: string): Prom
   });
 }
 
-// Mendapatkan buffer audio pria konsisten 100% untuk seluruh artikel
+// Mendapatkan buffer audio pria ArdiNeural konsisten 100% untuk seluruh artikel
 async function getAudioBuffer(cleanText: string, cacheFile: string): Promise<Buffer> {
   ensureCacheDir();
   // 1. Jika sudah ada di disk cache, baca langsung (0.001 detik)
@@ -142,8 +173,13 @@ async function getAudioBuffer(cleanText: string, cacheFile: string): Promise<Buf
     } catch {}
   }
 
-  // 2. Generate audio pria ArdiNeural resmi via Python bridge
-  return await generateMaleAudioWithPython(cleanText, cacheFile);
+  // 2. Generate audio pria ArdiNeural resmi via Node.js EdgeTTS (bekerja 100% di server Vercel & lokal)
+  try {
+    return await generateMaleAudioWithEdgeTTS(cleanText, cacheFile);
+  } catch (err) {
+    console.warn('EdgeTTS Node.js notice, attempting python fallback:', err);
+    return await generateMaleAudioWithPython(cleanText, cacheFile);
+  }
 }
 
 // Handler GET: Digunakan oleh pemutar audio HTML5 (<audio src="/api/tts?id=...">)
