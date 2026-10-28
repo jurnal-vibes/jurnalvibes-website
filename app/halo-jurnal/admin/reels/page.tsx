@@ -458,21 +458,30 @@ export default function AdminReelsPage() {
     const p = platform?.toLowerCase()
     if (p === 'tiktok') {
       return (
-        <span className="w-5 h-5 rounded bg-black flex items-center justify-center text-[#25F4EE] shadow-2xs">
-          <FaTiktok className="w-2.5 h-2.5" />
+        <span
+          title="Buka di TikTok"
+          className="w-6 h-6 rounded-md bg-black border border-white/20 flex items-center justify-center text-white shadow-xs"
+        >
+          <FaTiktok className="w-3 h-3 text-white" />
         </span>
       )
     }
     if (p === 'youtube') {
       return (
-        <span className="w-5 h-5 rounded bg-[#FF0000] flex items-center justify-center text-white shadow-2xs">
-          <FaYoutube className="w-2.5 h-2.5" />
+        <span
+          title="Buka di YouTube Shorts"
+          className="w-6 h-6 rounded-md bg-[#FF0000] border border-white/20 flex items-center justify-center text-white shadow-xs"
+        >
+          <FaYoutube className="w-3.5 h-3.5 text-white" />
         </span>
       )
     }
     return (
-      <span className="w-5 h-5 rounded bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white shadow-2xs">
-        <FaInstagram className="w-2.5 h-2.5" />
+      <span
+        title="Buka di Instagram"
+        className="w-6 h-6 rounded-md bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] border border-white/20 flex items-center justify-center text-white shadow-xs"
+      >
+        <FaInstagram className="w-3.5 h-3.5 text-white" />
       </span>
     )
   }

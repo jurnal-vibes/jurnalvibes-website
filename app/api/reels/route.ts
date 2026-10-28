@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
+import { clearServerReelsCache } from '@/lib/reels';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,6 +81,8 @@ export async function POST(req: NextRequest) {
         viewsCount: '0',
       },
     });
+
+    clearServerReelsCache();
 
     return NextResponse.json({
       success: true,

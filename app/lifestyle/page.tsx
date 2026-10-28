@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { LifestyleClient } from './LifestyleClient';
 import { fetchArticles } from '@/lib/wordpress';
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: 'Lifestyle & Culture',
   description: 'Gaya hidup, tempat nongkrong, kuliner, dan tren terbaru pemuda Sukabumi.',

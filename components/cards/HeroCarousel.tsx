@@ -78,14 +78,12 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
-            {/* Badge */}
-            {article.badge && (
-              <div className="absolute top-3.5 left-3.5 z-10">
-                <Badge variant="secondary" className="shadow-xs font-bold text-[10px] uppercase tracking-wider">
-                  {article.badge}
-                </Badge>
-              </div>
-            )}
+            {/* Badge Atas: HEADLINE */}
+            <div className="absolute top-3.5 left-3.5 z-10">
+              <Badge variant="secondary" className="shadow-xs font-bold text-[10px] uppercase tracking-wider bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white backdrop-blur-xs border border-white/20">
+                HEADLINE
+              </Badge>
+            </div>
 
             {/* Bookmark button */}
             <button
@@ -102,9 +100,10 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
 
             {/* Slide Content */}
             <div className="absolute bottom-4 sm:bottom-6 left-3.5 right-3.5 md:left-5 md:right-5 z-10 flex flex-col gap-1 sm:gap-1.5">
+              {/* Badge Bawah: Kategori Berita */}
               <div className="flex items-center">
                 <Badge className="bg-[#c00015] text-white font-bold text-[9px] uppercase tracking-wider">
-                  {article.categoryLabel}
+                  {article.categoryLabel || article.category || 'BERITA'}
                 </Badge>
               </div>
               <Link href={`/artikel/${article.id}`}>
