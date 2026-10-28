@@ -392,7 +392,7 @@ export const ChatbotButton: React.FC = () => {
       {!isChatOpen && (
         <div
           className={`fixed right-4 sm:right-8 z-40 flex flex-col items-end transition-all duration-300 ${
-            hasActiveAudio ? 'bottom-28 sm:bottom-24' : 'bottom-5 sm:bottom-8'
+            hasActiveAudio ? 'bottom-36 sm:bottom-24' : 'bottom-5 sm:bottom-8'
           }`}
         >
           <button

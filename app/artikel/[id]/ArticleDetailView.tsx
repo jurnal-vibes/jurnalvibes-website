@@ -232,20 +232,20 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     };
   }, [article?.id]);
 
-  // Eksekusi pemutaran audio INSTAN
-  const handlePlayToggle = async () => {
+  // Eksekusi pemutaran audio INSTAN (Mobile-Friendly & Instant Response)
+  const handlePlayToggle = () => {
     if (!isAudioActive) {
       setIsAudioActive(true);
     }
 
     const streamUrl = `/api/tts?id=${encodeURIComponent(article.id)}`;
-    if (!audioRef.current) {
-      const audio = new Audio(streamUrl);
+    let audio = audioRef.current;
+    if (!audio) {
+      audio = new Audio(streamUrl);
       audio.preload = 'auto';
       audioRef.current = audio;
     }
 
-    const audio = audioRef.current;
     if (!audio.src || audio.src === window.location.href) {
       audio.src = streamUrl;
     }
@@ -255,17 +255,31 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
       audio.pause();
       setIsPlaying(false);
     } else {
-      try {
-        setIsLoadingAudio(true);
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          await playPromise;
-        }
-        setIsPlaying(true);
-      } catch (err) {
-        console.warn('Audio play error, retrying:', err);
-      } finally {
-        setIsLoadingAudio(false);
+      // Panggil play() LANGSUNG sinkronus di gesture klik (wajib untuk browser mobile Safari/Chrome)
+      setIsLoadingAudio(true);
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            setIsLoadingAudio(false);
+          })
+          .catch((err) => {
+            console.warn('Audio play error, retrying:', err);
+            // Coba reload dan putar ulang jika stream sempat macet di HP
+            audio.load();
+            audio
+              .play()
+              .then(() => {
+                setIsPlaying(true);
+                setIsLoadingAudio(false);
+              })
+              .catch((retryErr) => {
+                console.error('Audio retry error:', retryErr);
+                setIsLoadingAudio(false);
+                setIsPlaying(false);
+              });
+          });
       }
     }
   };
