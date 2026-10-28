@@ -178,84 +178,34 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     };
   }, [isAudioActive]);
 
-  // Preload streaming audio begitu artikel dibuka (Menjamin Play INSTAN tanpa loading lama)
+  // Reset pemutar saat berganti berita
   useEffect(() => {
-    if (!article?.id) return;
-
-    // Reset status pemutar saat berpindah berita
     setIsAudioActive(false);
     setIsPlaying(false);
     setIsLoadingAudio(false);
     setCurrentTime(0);
     setAudioDuration(0);
-
-    const streamUrl = `/api/tts?id=${encodeURIComponent(article.id)}`;
-    const audio = new Audio(streamUrl);
-    audio.preload = 'auto';
-    audio.playbackRate = playbackRate;
-
-    audio.ontimeupdate = () => {
-      setCurrentTime(Math.round(audio.currentTime));
-    };
-
-    audio.onloadedmetadata = () => {
-      if (audio.duration && isFinite(audio.duration)) {
-        setAudioDuration(Math.round(audio.duration));
-      }
-    };
-
-    audio.onplaying = () => {
-      setIsLoadingAudio(false);
-      setIsPlaying(true);
-    };
-
-    audio.onwaiting = () => {
-      setIsLoadingAudio(true);
-    };
-
-    audio.onended = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    };
-
-    audio.onerror = (e) => {
-      console.warn('Audio streaming notice:', e);
-      setIsLoadingAudio(false);
-      setIsPlaying(false);
-    };
-
-    audioRef.current = audio;
-
-    return () => {
-      audio.pause();
-      audio.src = '';
-    };
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   }, [article?.id]);
 
-  // Eksekusi pemutaran audio INSTAN (Mobile-Friendly & Instant Response)
+  // Eksekusi pemutaran audio INSTAN (100% Mobile & Desktop Compatible)
   const handlePlayToggle = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
     if (!isAudioActive) {
       setIsAudioActive(true);
     }
 
-    const streamUrl = `/api/tts?id=${encodeURIComponent(article.id)}`;
-    let audio = audioRef.current;
-    if (!audio) {
-      audio = new Audio(streamUrl);
-      audio.preload = 'auto';
-      audioRef.current = audio;
-    }
-
-    if (!audio.src || audio.src === window.location.href) {
-      audio.src = streamUrl;
-    }
     audio.playbackRate = playbackRate;
 
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
     } else {
-      // Panggil play() LANGSUNG sinkronus di gesture klik (wajib untuk browser mobile Safari/Chrome)
       setIsLoadingAudio(true);
       const playPromise = audio.play();
       if (playPromise !== undefined) {
@@ -265,8 +215,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
             setIsLoadingAudio(false);
           })
           .catch((err) => {
-            console.warn('Audio play error, retrying:', err);
-            // Coba reload dan putar ulang jika stream sempat macet di HP
+            console.warn('Audio play notice, retrying with load:', err);
             audio.load();
             audio
               .play()
@@ -275,7 +224,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
                 setIsLoadingAudio(false);
               })
               .catch((retryErr) => {
-                console.error('Audio retry error:', retryErr);
+                console.error('Audio play failed:', retryErr);
                 setIsLoadingAudio(false);
                 setIsPlaying(false);
               });
@@ -1238,6 +1187,39 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
           </div>
         </div>
       )}
+
+      {/* Audio Elemen Fisik DOM (Wajib agar didukung 100% oleh Browser HP / Safari / Chrome Mobile) */}
+      <audio
+        ref={audioRef}
+        src={`/api/tts?id=${encodeURIComponent(article.id)}`}
+        preload="metadata"
+        playsInline
+        onTimeUpdate={(e) => {
+          setCurrentTime(Math.round(e.currentTarget.currentTime));
+        }}
+        onLoadedMetadata={(e) => {
+          if (e.currentTarget.duration && isFinite(e.currentTarget.duration)) {
+            setAudioDuration(Math.round(e.currentTarget.duration));
+          }
+        }}
+        onPlaying={() => {
+          setIsLoadingAudio(false);
+          setIsPlaying(true);
+        }}
+        onWaiting={() => {
+          setIsLoadingAudio(true);
+        }}
+        onEnded={() => {
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }}
+        onError={(e) => {
+          console.warn('Audio streaming notice:', e);
+          setIsLoadingAudio(false);
+          setIsPlaying(false);
+        }}
+        className="hidden"
+      />
     </div>
   );
 }
