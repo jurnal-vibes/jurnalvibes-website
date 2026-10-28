@@ -240,8 +240,75 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     };
   }, [article?.id]);
 
-  // Eksekusi pemutaran audio (100% Mobile & Desktop Compatible via Blob Download)
+  // Track apakah sedang menggunakan Web Speech API (fallback)
+  const usingSpeechSynthRef = useRef<boolean>(false);
+
+  // Fallback: Gunakan Web Speech API bawaan browser jika server TTS gagal
+  const playWithWebSpeech = () => {
+    if (!('speechSynthesis' in window)) {
+      setIsLoadingAudio(false);
+      setIsPlaying(false);
+      return;
+    }
+
+    const rawText = `${article?.title || ''}. ${article?.excerpt || ''}. ${article?.content || ''}`;
+    const cleanText = rawText
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/[*_#`~[\]()]/g, ' ')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!cleanText) {
+      setIsLoadingAudio(false);
+      setIsPlaying(false);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText.slice(0, 4000));
+    utterance.lang = 'id-ID';
+    utterance.rate = playbackRate;
+
+    // Coba cari suara Indonesia
+    const voices = window.speechSynthesis.getVoices();
+    const idVoice = voices.find(v => v.lang.startsWith('id'));
+    if (idVoice) utterance.voice = idVoice;
+
+    utterance.onstart = () => {
+      usingSpeechSynthRef.current = true;
+      setIsPlaying(true);
+      setIsLoadingAudio(false);
+    };
+    utterance.onend = () => {
+      usingSpeechSynthRef.current = false;
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
+    utterance.onerror = () => {
+      usingSpeechSynthRef.current = false;
+      setIsPlaying(false);
+      setIsLoadingAudio(false);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Eksekusi pemutaran audio (Server TTS + Fallback Web Speech API)
   const handlePlayToggle = async () => {
+    // Jika sedang pakai Web Speech, toggle pause/resume
+    if (usingSpeechSynthRef.current) {
+      if (isPlaying) {
+        window.speechSynthesis.pause();
+        setIsPlaying(false);
+      } else {
+        window.speechSynthesis.resume();
+        setIsPlaying(true);
+      }
+      return;
+    }
+
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -271,18 +338,25 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
       return;
     }
 
-    // Download audio sebagai blob dulu (ini yang bikin mobile bisa jalan)
+    // Download audio dengan TIMEOUT 12 detik (koneksi + download body)
     try {
-      const response = await fetch(`/api/tts?id=${encodeURIComponent(article.id)}`);
-      if (!response.ok) throw new Error(`TTS API error: ${response.status}`);
+      const controller = new AbortController();
+      const fetchTimeout = setTimeout(() => controller.abort(), 12000);
+
+      const response = await fetch(`/api/tts?id=${encodeURIComponent(article.id)}`, {
+        signal: controller.signal,
+      });
+
+      if (!response.ok) { clearTimeout(fetchTimeout); throw new Error(`TTS API error: ${response.status}`); }
 
       const blob = await response.blob();
+      clearTimeout(fetchTimeout);
+
       if (blob.size < 500) throw new Error('Audio terlalu kecil');
 
       const blobUrl = URL.createObjectURL(blob);
       audioBlobUrlRef.current = blobUrl;
 
-      // Set src ke blob URL lokal (bukan streaming dari server)
       audio.src = blobUrl;
       audio.playbackRate = playbackRate;
       audio.load();
@@ -304,7 +378,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         const timeout = setTimeout(() => {
           audio.removeEventListener('canplaythrough', onReady);
           audio.removeEventListener('error', onError);
-          resolve(); // Coba play meskipun timeout
+          resolve();
         }, 5000);
         audio.addEventListener('canplaythrough', onReady, { once: true });
         audio.addEventListener('error', onError, { once: true });
@@ -314,9 +388,9 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
       setIsPlaying(true);
       setIsLoadingAudio(false);
     } catch (err) {
-      console.error('Audio fetch/play error:', err);
-      setIsLoadingAudio(false);
-      setIsPlaying(false);
+      console.warn('Server TTS gagal, fallback ke Web Speech:', err);
+      // FALLBACK: Gunakan browser TTS bawaan HP
+      playWithWebSpeech();
     }
   };
 
@@ -360,11 +434,11 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+    usingSpeechSynthRef.current = false;
     setIsAudioActive(false);
     setIsPlaying(false);
     setIsLoadingAudio(false);
     setCurrentTime(0);
-    // Jangan revoke blob URL di sini agar bisa play lagi tanpa download ulang
   };
 
   // Media Session API (Integrasi Kontrol Play/Pause di Layar Kunci & Notifikasi HP)
