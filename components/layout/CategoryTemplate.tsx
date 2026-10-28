@@ -24,9 +24,6 @@ export const CategoryTemplate: React.FC<CategoryTemplateProps> = ({
         <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
           {title}
         </h1>
-        <p className="text-sm md:text-base text-on-surface-variant font-body-lg">
-          {description}
-        </p>
       </header>
 
       {articles.length > 0 ? (
