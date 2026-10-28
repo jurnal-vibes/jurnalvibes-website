@@ -812,7 +812,7 @@ export default function AdminBeritaPage() {
               </div>
 
               {/* Kategori, Sub-Kategori & Reporter */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
                     Kategori Utama:
@@ -825,7 +825,7 @@ export default function AdminBeritaPage() {
                         category: e.target.value as ArticleCategory,
                       })
                     }
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                    className="w-full h-9 px-3 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                   >
                     {OFFICIAL_CATEGORIES.map((cat) => (
                       <option key={cat.value} value={cat.value}>
@@ -848,7 +848,7 @@ export default function AdminBeritaPage() {
                           subCategory: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                      className="w-full h-9 px-3 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                     >
                       <option value="">Semua Berita</option>
                       <option value="kampus">Kampus</option>
@@ -863,7 +863,7 @@ export default function AdminBeritaPage() {
                           subCategory: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                      className="w-full h-9 px-3 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                     >
                       <option value="">Semua Lifestyle</option>
                       <option value="style">Style</option>
@@ -875,14 +875,14 @@ export default function AdminBeritaPage() {
                       type="text"
                       disabled
                       placeholder="Tidak ada sub-kategori"
-                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
+                      className="w-full h-9 px-3 text-xs rounded-lg bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
                     />
                   )}
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Reporter / Penulis (Tampil di Atas: "Oleh: ..."):
+                  <label className="block font-semibold text-slate-700 mb-1 truncate" title="Reporter / Penulis (Tampil di Atas: Oleh)">
+                    Reporter / Penulis:
                   </label>
                   <input
                     type="text"
@@ -890,8 +890,8 @@ export default function AdminBeritaPage() {
                     onChange={(e) =>
                       setEditingArticle({ ...editingArticle, reporter: e.target.value })
                     }
-                    placeholder="Contoh: Ilham Nugraha / Asep Awaludin"
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                    placeholder="Contoh: Ilham Nugraha"
+                    className="w-full h-9 px-3 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
                   />
                 </div>
               </div>
@@ -1157,7 +1157,7 @@ export default function AdminBeritaPage() {
               </div>
 
               {/* Kategori, Sub-Kategori & Reporter */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
                     Kategori Utama: <span className="text-[#c00015]">*</span>
@@ -1168,7 +1168,7 @@ export default function AdminBeritaPage() {
                       setNewCategory(e.target.value as ArticleCategory)
                       setNewSubCategory('')
                     }}
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                    className="w-full h-9 px-3 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                   >
                     {OFFICIAL_CATEGORIES.map((cat) => (
                       <option key={cat.value} value={cat.value}>
@@ -1186,7 +1186,7 @@ export default function AdminBeritaPage() {
                     <select
                       value={newSubCategory}
                       onChange={(e) => setNewSubCategory(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                      className="w-full h-9 px-3 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                     >
                       <option value="">Semua Berita</option>
                       <option value="kampus">Kampus</option>
@@ -1196,7 +1196,7 @@ export default function AdminBeritaPage() {
                     <select
                       value={newSubCategory}
                       onChange={(e) => setNewSubCategory(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+                      className="w-full h-9 px-3 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
                     >
                       <option value="">Semua Lifestyle</option>
                       <option value="style">Style</option>
@@ -1208,21 +1208,21 @@ export default function AdminBeritaPage() {
                       type="text"
                       disabled
                       placeholder="Tidak ada sub-kategori"
-                      className="w-full px-3 py-2 text-xs rounded-lg bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
+                      className="w-full h-9 px-3 text-xs rounded-lg bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
                     />
                   )}
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Reporter / Penulis (Tampil di Atas: "Oleh: ..."):
+                  <label className="block font-semibold text-slate-700 mb-1 truncate" title="Reporter / Penulis (Tampil di Atas: Oleh)">
+                    Reporter / Penulis:
                   </label>
                   <input
                     type="text"
                     value={newReporter}
                     onChange={(e) => setNewReporter(e.target.value)}
-                    placeholder="Contoh: Ilham Nugraha / Asep Awaludin"
-                    className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                    placeholder="Contoh: Ilham Nugraha"
+                    className="w-full h-9 px-3 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
                   />
                 </div>
               </div>
