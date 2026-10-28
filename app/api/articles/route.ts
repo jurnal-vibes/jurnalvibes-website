@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAdminSession } from '@/lib/auth'
+import { clearServerArticlesCache } from '@/lib/wordpress'
 
 const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'
 
@@ -218,6 +219,8 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    clearServerArticlesCache()
+
     return NextResponse.json(
       {
         success: true,
@@ -314,6 +317,8 @@ export async function PUT(request: NextRequest) {
       data: updateData,
     })
 
+    clearServerArticlesCache()
+
     return NextResponse.json({
       success: true,
       message: 'Berita berhasil diperbarui!',
@@ -349,6 +354,8 @@ export async function DELETE(request: NextRequest) {
     await prisma.article.delete({
       where: { id },
     })
+
+    clearServerArticlesCache()
 
     return NextResponse.json({
       success: true,

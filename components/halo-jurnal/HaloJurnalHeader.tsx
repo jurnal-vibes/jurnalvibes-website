@@ -259,7 +259,7 @@ export default function HaloJurnalHeader() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-xl text-on-surface hover:text-primary hover:bg-surface-variant/80 transition-colors cursor-pointer"
+            className="md:hidden p-2 rounded-xl text-on-surface hover:text-primary hover:bg-surface-variant/80 transition-transform active:scale-90 touch-manipulation select-none cursor-pointer"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -330,41 +330,37 @@ export default function HaloJurnalHeader() {
             <span>Kembali ke Portal Jurnal Wave</span>
           </Link>
 
-          {/* Main nav - icon langsung di samping teks (tanpa box & tanpa chevron) */}
-          <div className="flex flex-col gap-1">
+          {/* Main nav - hanya teks tanpa icon & tanpa wadah kotak */}
+          <div className="flex flex-col gap-0.5">
             {navLinks.map((item) => {
               const active = isActive(item.href, item.exact)
-              const Icon = item.icon
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm transition-all ${
+                  className={`px-3 py-2.5 rounded-lg text-sm transition-colors ${
                     active
-                      ? 'text-primary font-bold bg-primary/10 border border-primary/25'
-                      : 'text-on-surface font-semibold hover:bg-surface-container-high'
+                      ? 'text-primary font-bold border-l-2 border-primary bg-primary/5 pl-3.5'
+                      : 'text-on-surface font-medium hover:text-primary hover:bg-surface-container-high'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-primary' : 'text-secondary'}`} />
                   <span>{item.label}</span>
                 </Link>
               )
             })}
           </div>
 
-          {/* Secondary links - icon langsung di samping teks */}
+          {/* Secondary links - hanya teks tanpa icon */}
           <div className="mt-3 pt-3 border-t border-outline-variant/60 flex flex-col gap-0.5">
             {secondaryLinks.map((item) => {
-              const Icon = item.icon
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-secondary hover:text-on-surface hover:bg-surface-container-high transition-all"
+                  className="px-3.5 py-2.5 rounded-xl text-sm font-medium text-secondary hover:text-on-surface hover:bg-surface-container-high transition-all"
                 >
-                  <Icon className="w-4 h-4 shrink-0 text-secondary/70" />
                   <span>{item.label}</span>
                 </Link>
               )

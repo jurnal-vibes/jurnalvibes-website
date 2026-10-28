@@ -116,20 +116,33 @@ export function getSafeImageUrl(url?: string | null): string {
   return DEFAULT_FALLBACK_IMAGE;
 }
 
+// In-memory cache server-side agar tidak bolak-balik query Neon DB jika data masih segar (mengurangi delay)
+let serverArticlesCache: { data: Article[]; timestamp: number } | null = null;
+const CACHE_TTL_MS = 60 * 1000; // 60 detik
+
+export function clearServerArticlesCache() {
+  serverArticlesCache = null;
+}
+
 /**
  * Fetches all articles from Database/WordPress.
  * Fallbacks to localStorage ('jurnal_wave_articles') or empty array [] if not yet populated.
  */
 export async function fetchArticlesFromWordPress(): Promise<Article[]> {
-  // 1. Server-side fetch from MySQL via Prisma
+  // 1. Server-side fetch from MySQL/PostgreSQL via Prisma
   if (typeof window === 'undefined') {
+    const now = Date.now();
+    if (serverArticlesCache && now - serverArticlesCache.timestamp < CACHE_TTL_MS) {
+      return serverArticlesCache.data;
+    }
+
     try {
       const { prisma } = await import('@/lib/prisma');
       const dbPosts = await prisma.article.findMany({
         orderBy: { createdAt: 'desc' },
       });
       if (dbPosts.length > 0) {
-        return dbPosts.map((item) => {
+        const mapped = dbPosts.map((item) => {
           const { category, categoryLabel } = normalizeArticleCategory(item.category, item.categoryLabel || undefined);
           return {
             id: item.id,
@@ -153,9 +166,14 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
             createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
           };
         });
+
+        // Simpan ke cache memori server
+        serverArticlesCache = { data: mapped, timestamp: now };
+        return mapped;
       }
     } catch (err) {
-      console.warn('MySQL server-side article fetch notice:', err);
+      console.warn('Database server-side article fetch notice:', err);
+      if (serverArticlesCache) return serverArticlesCache.data;
     }
   }
 

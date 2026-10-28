@@ -3,7 +3,7 @@ import { HomeClient } from './HomeClient';
 import { fetchArticles } from '@/lib/wordpress';
 import { fetchReels } from '@/lib/reels';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: {

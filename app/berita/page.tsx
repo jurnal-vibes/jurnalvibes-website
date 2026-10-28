@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { BeritaClient } from './BeritaClient';
 import { fetchArticles } from '@/lib/wordpress';
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: 'Semua Berita',
   description: 'Kumpulan liputan berita terkini dan terlengkap seputar Sukabumi dan sekitarnya.',

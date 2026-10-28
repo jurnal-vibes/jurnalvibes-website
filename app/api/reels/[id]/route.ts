@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { clearServerReelsCache } from '@/lib/reels';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +47,8 @@ export async function PUT(
       },
     });
 
+    clearServerReelsCache();
+
     return NextResponse.json({
       success: true,
       message: 'Video reels berhasil diperbarui.',
@@ -76,6 +79,8 @@ export async function DELETE(
     }
 
     await prisma.reel.delete({ where: { id } });
+
+    clearServerReelsCache();
 
     return NextResponse.json({
       success: true,
