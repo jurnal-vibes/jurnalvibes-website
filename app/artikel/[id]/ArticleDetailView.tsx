@@ -360,83 +360,30 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
 
     setIsLoadingAudio(true);
 
-    // Jika blob sudah ada (audio sudah pernah di-precache/download), langsung play
-    if (audioBlobUrlRef.current) {
-      // Pastikan audio.src sudah di-set ke blob URL (precache hanya simpan URL, belum set ke element)
-      if (audio.src !== audioBlobUrlRef.current) {
-        audio.src = audioBlobUrlRef.current;
-        audio.load();
-        // Tunggu audio siap (wajib untuk tablet/iPad agar play() tidak ditolak)
-        await new Promise<void>((resolve) => {
-          const onReady = () => { audio.removeEventListener('canplaythrough', onReady); clearTimeout(t); resolve(); };
-          const t = setTimeout(() => { audio.removeEventListener('canplaythrough', onReady); resolve(); }, 3000);
-          audio.addEventListener('canplaythrough', onReady, { once: true });
-        });
-      }
-      audio.playbackRate = playbackRate;
-      try {
-        await audio.play();
-        setIsPlaying(true);
-      } catch (err) {
-        console.warn('Play from blob failed:', err);
-        setIsPlaying(false);
-      }
-      setIsLoadingAudio(false);
-      return;
-    }
+    // Prioritaskan blob yang sudah di-precache di background; jika belum, langsung stream endpoint server
+    const targetSrc = audioBlobUrlRef.current || `/api/tts?id=${encodeURIComponent(article.id)}`;
 
-    // Download audio dengan TIMEOUT 12 detik (koneksi + download body)
-    try {
-      const controller = new AbortController();
-      const fetchTimeout = setTimeout(() => controller.abort(), 12000);
-
-      const response = await fetch(`/api/tts?id=${encodeURIComponent(article.id)}`, {
-        signal: controller.signal,
-      });
-
-      if (!response.ok) { clearTimeout(fetchTimeout); throw new Error(`TTS API error: ${response.status}`); }
-
-      const blob = await response.blob();
-      clearTimeout(fetchTimeout);
-
-      if (blob.size < 500) throw new Error('Audio terlalu kecil');
-
-      const blobUrl = URL.createObjectURL(blob);
-      audioBlobUrlRef.current = blobUrl;
-
-      audio.src = blobUrl;
-      audio.playbackRate = playbackRate;
+    if (audio.src !== targetSrc && !audio.src.endsWith(targetSrc)) {
+      audio.src = targetSrc;
       audio.load();
+    }
+    audio.playbackRate = playbackRate;
 
-      // Tunggu audio siap, lalu play
-      await new Promise<void>((resolve, reject) => {
-        const onReady = () => {
-          audio.removeEventListener('canplaythrough', onReady);
-          audio.removeEventListener('error', onError);
-          clearTimeout(timeout);
-          resolve();
-        };
-        const onError = () => {
-          audio.removeEventListener('canplaythrough', onReady);
-          audio.removeEventListener('error', onError);
-          clearTimeout(timeout);
-          reject(new Error('Audio load error'));
-        };
-        const timeout = setTimeout(() => {
-          audio.removeEventListener('canplaythrough', onReady);
-          audio.removeEventListener('error', onError);
-          resolve();
-        }, 5000);
-        audio.addEventListener('canplaythrough', onReady, { once: true });
-        audio.addEventListener('error', onError, { once: true });
-      });
+    // Safety timeout: maksimal 5 detik agar antarmuka tidak pernah macet di animasi loading
+    const safetyTimer = setTimeout(() => {
+      setIsLoadingAudio(false);
+    }, 5000);
 
+    try {
+      // Panggil audio.play() langsung dalam konteks click event user agar tidak diblokir oleh iOS / iPad Safari
       await audio.play();
+      clearTimeout(safetyTimer);
       setIsPlaying(true);
       setIsLoadingAudio(false);
     } catch (err) {
-      console.warn('Server TTS gagal, fallback ke Web Speech:', err);
-      // FALLBACK: Gunakan browser TTS bawaan HP
+      clearTimeout(safetyTimer);
+      console.warn('Pemutaran audio langsung ditolak atau gagal, beralih ke fallback:', err);
+      setIsLoadingAudio(false);
       playWithWebSpeech();
     }
   };
@@ -1397,10 +1344,10 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         </div>
       )}
 
-      {/* Audio Elemen Fisik DOM — src di-set via blob URL oleh handlePlayToggle */}
+      {/* Audio Elemen Fisik DOM — src di-set via blob precache atau stream URL oleh handlePlayToggle */}
       <audio
         ref={audioRef}
-        preload="none"
+        preload="auto"
         playsInline
         onTimeUpdate={(e) => {
           setCurrentTime(Math.round(e.currentTarget.currentTime));
@@ -1410,6 +1357,9 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
             setAudioDuration(Math.round(e.currentTarget.duration));
           }
         }}
+        onCanPlay={() => {
+          setIsLoadingAudio(false);
+        }}
         onPlaying={() => {
           setIsLoadingAudio(false);
           setIsPlaying(true);
@@ -1417,12 +1367,17 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         onWaiting={() => {
           setIsLoadingAudio(true);
         }}
+        onPause={() => {
+          setIsPlaying(false);
+          setIsLoadingAudio(false);
+        }}
         onEnded={() => {
           setIsPlaying(false);
+          setIsLoadingAudio(false);
           setCurrentTime(0);
         }}
         onError={(e) => {
-          console.warn('Audio error:', e);
+          console.warn('Audio tag error:', e);
           setIsLoadingAudio(false);
           setIsPlaying(false);
         }}
