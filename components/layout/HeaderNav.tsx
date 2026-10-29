@@ -306,7 +306,7 @@ export const HeaderNav: React.FC = () => {
 
         {/* Mobile Quick Category Bar (Only visible on small screen when search is closed) */}
         {!isSearchOpen && (
-          <div className="md:hidden flex overflow-x-auto no-scrollbar gap-4 px-4 text-xs font-semibold text-on-surface border-t border-outline-variant/30 bg-surface">
+          <div className="md:hidden flex overflow-x-auto no-scrollbar gap-4 px-4 text-xs font-semibold text-on-surface border-t border-outline-variant/30 bg-surface justify-center">
             {mobileQuickCategories.map((link, idx) => {
               const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
               return (
