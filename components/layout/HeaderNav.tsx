@@ -306,29 +306,31 @@ export const HeaderNav: React.FC = () => {
 
         {/* Mobile Quick Category Bar (Only visible on small screen when search is closed) */}
         {!isSearchOpen && (
-          <div className="md:hidden flex overflow-x-auto no-scrollbar gap-4 px-4 text-xs font-semibold text-on-surface border-t border-outline-variant/30 bg-surface">
-            {mobileQuickCategories.map((link, idx) => {
-              const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={idx}
-                  href={link.href}
-                  onClick={(e) => {
-                    if (link.href === '/' && pathname === '/') {
-                      e.preventDefault();
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                  }}
-                  className={`shrink-0 py-2.5 border-b-2 transition-all whitespace-nowrap ${
-                    isActive
-                      ? 'border-primary text-primary font-bold'
-                      : 'border-transparent text-on-surface hover:text-primary'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
+          <div className="md:hidden border-t border-outline-variant/30 bg-surface">
+            <div className="flex items-center overflow-x-auto no-scrollbar gap-4 sm:gap-6 px-3 sm:px-4 md:px-6 max-w-container-max mx-auto w-full text-xs font-semibold text-on-surface">
+              {mobileQuickCategories.map((link, idx) => {
+                const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
+                return (
+                  <Link
+                    key={idx}
+                    href={link.href}
+                    onClick={(e) => {
+                      if (link.href === '/' && pathname === '/') {
+                        e.preventDefault();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
+                    className={`shrink-0 py-2.5 border-b-2 transition-all whitespace-nowrap ${
+                      isActive
+                        ? 'border-primary text-primary font-bold'
+                        : 'border-transparent text-on-surface hover:text-primary'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
 

@@ -271,10 +271,46 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     utterance.lang = 'id-ID';
     utterance.rate = playbackRate;
 
-    // Coba cari suara Indonesia
+    // Cari suara Indonesia PRIA agar selaras dengan ArdiNeural di server TTS
+    // Kompatibel: Android Chrome, iOS Safari/Chrome, Desktop
     const voices = window.speechSynthesis.getVoices();
-    const idVoice = voices.find(v => v.lang.startsWith('id'));
-    if (idVoice) utterance.voice = idVoice;
+    const idVoices = voices.filter(v => v.lang.startsWith('id'));
+
+    // Daftar nama voice PRIA yang dikenal di berbagai platform
+    const knownMaleNames = [
+      'sanjar',           // iOS — id-ID Sanjar (pria)
+      'ardi',             // Edge/Windows — id-ID-ArdiNeural
+      'google id-id male', // Beberapa build Chrome
+      'microsoft ardi',   // Windows desktop
+    ];
+    // Daftar nama voice WANITA yang harus DIHINDARI
+    const knownFemaleNames = [
+      'damayanti',        // iOS — id-ID Damayanti (wanita)
+      'gadis',            // Edge/Windows — id-ID-GadisNeural
+      'google bahasa indonesia', // Android Chrome default (wanita)
+      'microsoft gadis',  // Windows desktop
+    ];
+
+    // Prioritas 1: Cari voice pria yang dikenal secara eksplisit
+    let selectedVoice = idVoices.find(v => {
+      const name = v.name.toLowerCase();
+      return knownMaleNames.some(m => name.includes(m));
+    }) || null;
+
+    // Prioritas 2: Cari voice Indonesia yang BUKAN wanita yang dikenal
+    if (!selectedVoice && idVoices.length > 1) {
+      selectedVoice = idVoices.find(v => {
+        const name = v.name.toLowerCase();
+        return !knownFemaleNames.some(f => name.includes(f));
+      }) || null;
+    }
+
+    // Tidak ada voice pria? Tetap pakai voice Indonesia apapun yang ada — audio harus selalu berfungsi
+    if (!selectedVoice && idVoices.length > 0) {
+      selectedVoice = idVoices[0];
+    }
+
+    if (selectedVoice) utterance.voice = selectedVoice;
 
     utterance.onstart = () => {
       usingSpeechSynthRef.current = true;
@@ -324,8 +360,19 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
 
     setIsLoadingAudio(true);
 
-    // Jika blob sudah ada (audio sudah pernah di-download), langsung play
+    // Jika blob sudah ada (audio sudah pernah di-precache/download), langsung play
     if (audioBlobUrlRef.current) {
+      // Pastikan audio.src sudah di-set ke blob URL (precache hanya simpan URL, belum set ke element)
+      if (audio.src !== audioBlobUrlRef.current) {
+        audio.src = audioBlobUrlRef.current;
+        audio.load();
+        // Tunggu audio siap (wajib untuk tablet/iPad agar play() tidak ditolak)
+        await new Promise<void>((resolve) => {
+          const onReady = () => { audio.removeEventListener('canplaythrough', onReady); clearTimeout(t); resolve(); };
+          const t = setTimeout(() => { audio.removeEventListener('canplaythrough', onReady); resolve(); }, 3000);
+          audio.addEventListener('canplaythrough', onReady, { once: true });
+        });
+      }
       audio.playbackRate = playbackRate;
       try {
         await audio.play();
