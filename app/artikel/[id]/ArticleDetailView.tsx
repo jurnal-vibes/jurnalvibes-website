@@ -178,9 +178,6 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     };
   }, [isAudioActive]);
 
-  // Blob URL untuk audio yang sudah di-download (agar mobile tidak streaming)
-  const audioBlobUrlRef = useRef<string | null>(null);
-
   // Reset pemutar saat berganti berita
   useEffect(() => {
     setIsAudioActive(false);
@@ -190,54 +187,8 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
     setAudioDuration(0);
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.src = '';
+      audioRef.current.currentTime = 0;
     }
-    // Revoke blob URL lama
-    if (audioBlobUrlRef.current) {
-      URL.revokeObjectURL(audioBlobUrlRef.current);
-      audioBlobUrlRef.current = null;
-    }
-  }, [article?.id]);
-
-  // Cleanup blob URL saat unmount
-  useEffect(() => {
-    return () => {
-      if (audioBlobUrlRef.current) {
-        URL.revokeObjectURL(audioBlobUrlRef.current);
-      }
-    };
-  }, []);
-
-  // PRE-CACHE: Download audio di background begitu halaman artikel dibuka
-  // Agar saat user klik Play, audio sudah siap → langsung bunyi
-  useEffect(() => {
-    if (!article?.id) return;
-    // Jangan pre-cache jika sudah ada blob
-    if (audioBlobUrlRef.current) return;
-
-    const controller = new AbortController();
-    const precache = async () => {
-      try {
-        const response = await fetch(`/api/tts?id=${encodeURIComponent(article.id)}`, {
-          signal: controller.signal,
-        });
-        if (!response.ok) return;
-        const blob = await response.blob();
-        if (blob.size < 500) return;
-        // Pastikan belum di-revoke oleh navigasi artikel lain
-        if (controller.signal.aborted) return;
-        const blobUrl = URL.createObjectURL(blob);
-        audioBlobUrlRef.current = blobUrl;
-      } catch {
-        // Abaikan error pre-cache (user belum klik play, tidak perlu feedback)
-      }
-    };
-    // Delay 1 detik agar tidak mengganggu load utama halaman
-    const timer = setTimeout(precache, 1000);
-    return () => {
-      clearTimeout(timer);
-      controller.abort();
-    };
   }, [article?.id]);
 
   // Track apakah sedang menggunakan Web Speech API (fallback)
@@ -360,31 +311,27 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
 
     setIsLoadingAudio(true);
 
-    // Prioritaskan blob yang sudah di-precache di background; jika belum, langsung stream endpoint server
-    const targetSrc = audioBlobUrlRef.current || `/api/tts?id=${encodeURIComponent(article.id)}`;
-
-    if (audio.src !== targetSrc && !audio.src.endsWith(targetSrc)) {
-      audio.src = targetSrc;
-      audio.load();
+    // Pastikan src terpasang jika belum ada
+    const targetSrc = `/api/tts?id=${encodeURIComponent(article.id)}`;
+    if (!audio.getAttribute('src')) {
+      audio.setAttribute('src', targetSrc);
     }
     audio.playbackRate = playbackRate;
 
-    // Safety timeout: maksimal 5 detik agar antarmuka tidak pernah macet di animasi loading
-    const safetyTimer = setTimeout(() => {
-      setIsLoadingAudio(false);
-    }, 5000);
-
     try {
-      // Panggil audio.play() langsung dalam konteks click event user agar tidak diblokir oleh iOS / iPad Safari
+      // Panggil audio.play() langsung murni dalam user click context
       await audio.play();
-      clearTimeout(safetyTimer);
       setIsPlaying(true);
       setIsLoadingAudio(false);
-    } catch (err) {
-      clearTimeout(safetyTimer);
-      console.warn('Pemutaran audio langsung ditolak atau gagal, beralih ke fallback:', err);
-      setIsLoadingAudio(false);
-      playWithWebSpeech();
+    } catch (err: any) {
+      console.warn('Audio play error:', err);
+      // Jangan trigger fallback jika hanya AbortError (misal klik berulang)
+      if (err?.name !== 'AbortError') {
+        setIsLoadingAudio(false);
+        playWithWebSpeech();
+      } else {
+        setIsLoadingAudio(false);
+      }
     }
   };
 
@@ -1344,10 +1291,11 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
         </div>
       )}
 
-      {/* Audio Elemen Fisik DOM — src di-set via blob precache atau stream URL oleh handlePlayToggle */}
+      {/* Audio Elemen Fisik DOM — src native HTTP stream langsung ke endpoint TTS */}
       <audio
         ref={audioRef}
-        preload="auto"
+        src={article?.id ? `/api/tts?id=${encodeURIComponent(article.id)}` : undefined}
+        preload="metadata"
         playsInline
         onTimeUpdate={(e) => {
           setCurrentTime(Math.round(e.currentTarget.currentTime));
