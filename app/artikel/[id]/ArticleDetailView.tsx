@@ -900,7 +900,7 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
               <span className="flex items-center min-h-[20px]">
                 {isLoadingAudio ? (
                   <span className="text-primary font-medium text-xs">Menyiapkan Audio...</span>
-                ) : isAudioActive ? (
+                ) : isAudioActive && currentTime > 0 ? (
                   isPlaying ? (
                     <div className="flex items-center h-5 gap-[3px] mx-1" title="Sedang Memutar">
                       <style>{`
@@ -1305,19 +1305,12 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
             setAudioDuration(Math.round(e.currentTarget.duration));
           }
         }}
-        onCanPlay={() => {
-          setIsLoadingAudio(false);
-        }}
         onPlaying={() => {
           setIsLoadingAudio(false);
           setIsPlaying(true);
         }}
         onWaiting={() => {
           setIsLoadingAudio(true);
-        }}
-        onPause={() => {
-          setIsPlaying(false);
-          setIsLoadingAudio(false);
         }}
         onEnded={() => {
           setIsPlaying(false);
