@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         )
       }
       role = 'redaksi'
-      senderName = session.name || 'Tim Redaksi Halo Jurnal'
+      senderName = session.name || 'Tim Redaksi Hallo Jurnal'
       senderId = session.id || 'admin'
     }
 

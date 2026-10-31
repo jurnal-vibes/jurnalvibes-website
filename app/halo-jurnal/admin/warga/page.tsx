@@ -148,7 +148,7 @@ export default function AdminWargaPage() {
         // Jika opsi kirim WA dipilih
         if (sendViaWhatsApp) {
           const cleanWa = selectedCitizen.phone.replace(/[^0-9]/g, '').replace(/^0/, '62')
-          const waMessage = `Sampurasun ${encodeURIComponent(selectedCitizen.fullName)}, kami dari Tim Redaksi Halo Jurnal Sukabumi. Berdasarkan permohonan bantuan Anda, kata sandi akun Anda telah kami atur ulang menjadi:%0A%0A🔑 Kata Sandi Baru: *${encodeURIComponent(newPassword.trim())}*%0A%0ASilakan masuk di menu login dan Anda dapat memperbarui kata sandi tersebut kapan saja di menu profil. Hatur nuhun!`
+          const waMessage = `Sampurasun ${encodeURIComponent(selectedCitizen.fullName)}, kami dari Tim Redaksi Hallo Jurnal Sukabumi. Berdasarkan permohonan bantuan Anda, kata sandi akun Anda telah kami atur ulang menjadi:%0A%0A🔑 Kata Sandi Baru: *${encodeURIComponent(newPassword.trim())}*%0A%0ASilakan masuk di menu login dan Anda dapat memperbarui kata sandi tersebut kapan saja di menu profil. Hatur nuhun!`
           const waUrl = `https://wa.me/${cleanWa}?text=${waMessage}`
           window.open(waUrl, '_blank')
         }
@@ -210,7 +210,7 @@ export default function AdminWargaPage() {
             Direktori &amp; Kelola Warga Terdaftar
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-            Daftar resmi masyarakat pelapor Halo Jurnal. Kendalikan akses akun, reset kata sandi, dan pantau riwayat aduan.
+            Daftar resmi masyarakat pelapor Hallo Jurnal. Kendalikan akses akun, reset kata sandi, dan pantau riwayat aduan.
           </p>
         </div>
 

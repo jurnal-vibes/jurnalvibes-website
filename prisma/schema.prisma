@@ -33,7 +33,7 @@ model Article {
   @@map("articles")
 }
 
-// 2. Model Laporan Warga (Halo Jurnal)
+// 2. Model Laporan Warga (Hallo Jurnal)
 model Report {
   id           String             @id @default(cuid())
   ticketNumber String             @unique @db.VarChar(50)
@@ -109,7 +109,7 @@ model AdminUser {
   @@map("admin_users")
 }
 
-// 8. Pengguna Warga (Halo Jurnal)
+// 8. Pengguna Warga (Hallo Jurnal)
 model CitizenUser {
   id         String   @id @default(cuid())
   email      String   @unique @db.VarChar(100)

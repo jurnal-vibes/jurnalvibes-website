@@ -289,7 +289,7 @@ export default function AdminDetailLaporanPage() {
       } else if (currentStatus === 'diproses') {
         defaultNote = 'Redaksi sedang mengurasi kelayakan dan memvalidasi materi cerita inspirasi.'
       } else if (currentStatus === 'ditolak') {
-        defaultNote = 'Cerita inspirasi belum memenuhi standar kurasi redaksi Halo Jurnal.'
+        defaultNote = 'Cerita inspirasi belum memenuhi standar kurasi redaksi Hallo Jurnal.'
       } else {
         defaultNote = 'Cerita inspirasi diterima dan mengantre di meja kurasi redaksi.'
       }

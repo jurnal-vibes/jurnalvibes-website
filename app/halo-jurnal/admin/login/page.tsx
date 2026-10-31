@@ -94,7 +94,7 @@ export default function AdminLoginPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/halo-jurnal-icon.webp?v=original"
-            alt="Halo Jurnal Logo"
+            alt="Hallo Jurnal Logo"
             className="w-8 h-8 object-contain shrink-0"
           />
           <div className="flex flex-col">
@@ -107,7 +107,7 @@ export default function AdminLoginPage() {
               </span>
             </div>
             <span className="text-[10px] text-slate-500 font-medium mt-0.5">
-              Pusat Kendali Halo Jurnal &amp; Wave
+              Pusat Kendali Hallo Jurnal &amp; Wave
             </span>
           </div>
         </Link>
@@ -129,7 +129,7 @@ export default function AdminLoginPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/halo-jurnal-icon.webp?v=original"
-              alt="Halo Jurnal Logo"
+              alt="Hallo Jurnal Logo"
               className="w-7 h-7 object-contain"
             />
           </div>
@@ -137,7 +137,7 @@ export default function AdminLoginPage() {
             Masuk Meja Redaksi
           </h1>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Akses khusus Redaksi <strong className="text-slate-800">Jurnal Wave</strong> &amp; Pusat Kendali <strong className="text-slate-800">Halo Jurnal</strong>.
+            Akses khusus Redaksi <strong className="text-slate-800">Jurnal Wave</strong> &amp; Pusat Kendali <strong className="text-slate-800">Hallo Jurnal</strong>.
           </p>
         </div>
 
@@ -234,7 +234,7 @@ export default function AdminLoginPage() {
       {/* Footer Bawah */}
       <footer className="text-center text-xs text-slate-400 py-4">
         © 2026 <strong className="text-slate-600 font-semibold">Jurnal Wave</strong> — Meja Redaksi &amp;
-        Pusat Kendali Jurnal Wave &amp; Halo Jurnal.
+        Pusat Kendali Jurnal Wave &amp; Hallo Jurnal.
       </footer>
     </div>
   )

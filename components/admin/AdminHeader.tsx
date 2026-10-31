@@ -128,7 +128,7 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
               sender_name: newest.profiles?.full_name || 'Warga Pelapor',
             })
             playNotificationChime()
-            document.title = `🔴 (${unreadList.length}) Pesan Baru - Halo Jurnal Admin`
+            document.title = `🔴 (${unreadList.length}) Pesan Baru - Hallo Jurnal Admin`
           }
         }
       }
@@ -193,7 +193,7 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
         localStorage.setItem('halo_jurnal_read_chats', JSON.stringify(allIds))
         setUnreadChatCount(0)
         setToastNotification(null)
-        document.title = 'Halo Jurnal Admin — Ruang Kerja Redaksi'
+        document.title = 'Hallo Jurnal Admin — Ruang Kerja Redaksi'
       } catch {}
     }
   }
@@ -231,19 +231,19 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
       return { section: 'Jurnal Wave', page: 'Dashboard Media', sectionHref: '/halo-jurnal/admin' }
     }
     if (pathname === '/halo-jurnal/admin/halo') {
-      return { section: 'Halo Jurnal', page: 'Dashboard Pemantauan', sectionHref: '/halo-jurnal/admin/halo' }
+      return { section: 'Hallo Jurnal', page: 'Dashboard Pemantauan', sectionHref: '/halo-jurnal/admin/halo' }
     }
     if (pathname?.startsWith('/halo-jurnal/admin/laporan/')) {
-      return { section: 'Halo Jurnal', page: 'Detail Investigasi Laporan', sectionHref: '/halo-jurnal/admin/laporan' }
+      return { section: 'Hallo Jurnal', page: 'Detail Investigasi Laporan', sectionHref: '/halo-jurnal/admin/laporan' }
     }
     if (pathname === '/halo-jurnal/admin/laporan') {
-      return { section: 'Halo Jurnal', page: 'Buku Induk Laporan', sectionHref: '/halo-jurnal/admin/laporan' }
+      return { section: 'Hallo Jurnal', page: 'Buku Induk Laporan', sectionHref: '/halo-jurnal/admin/laporan' }
     }
     if (pathname === '/halo-jurnal/admin/chat') {
-      return { section: 'Halo Jurnal', page: 'Pusat Chat Warga', sectionHref: '/halo-jurnal/admin/chat' }
+      return { section: 'Hallo Jurnal', page: 'Pusat Chat Warga', sectionHref: '/halo-jurnal/admin/chat' }
     }
     if (pathname === '/halo-jurnal/admin/feed-publik') {
-      return { section: 'Halo Jurnal', page: 'Moderasi Feed Publik', sectionHref: '/halo-jurnal/admin/feed-publik' }
+      return { section: 'Hallo Jurnal', page: 'Moderasi Feed Publik', sectionHref: '/halo-jurnal/admin/feed-publik' }
     }
     if (pathname === '/halo-jurnal/admin/berita') {
       return { section: 'Jurnal Wave', page: 'Manajemen Berita', sectionHref: '/halo-jurnal/admin/berita' }

@@ -275,10 +275,10 @@ export default function HaloJurnalHeader() {
         <div className="flex justify-between items-center px-4 h-16 border-b border-outline-variant/60 shrink-0 bg-surface">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-2xs">
-              <img src="/halo-jurnal-icon.webp?v=original" alt="Halo Jurnal Logo" className="w-full h-full object-contain" />
+              <img src="/halo-jurnal-icon.webp?v=original" alt="Hallo Jurnal Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
-              <span className="font-heading font-bold text-lg leading-none text-on-surface tracking-tight">Halo Jurnal</span>
+              <span className="font-heading font-bold text-lg leading-none text-on-surface tracking-tight">Hallo Jurnal</span>
               <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">Aspirasi &amp; Aduan Sukabumi</span>
             </div>
           </div>

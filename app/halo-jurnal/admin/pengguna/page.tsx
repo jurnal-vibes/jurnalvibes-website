@@ -146,7 +146,7 @@ export default function AdminTimRedaksiPage() {
             Manajemen Tim Redaksi &amp; Penulis
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Daftar jurnalis, editor, dan staf verifikator Halo Jurnal yang memiliki akses sistem.
+            Daftar jurnalis, editor, dan staf verifikator Hallo Jurnal yang memiliki akses sistem.
           </p>
         </div>
 
@@ -336,7 +336,7 @@ export default function AdminTimRedaksiPage() {
                 >
                   <option value="Reporter / Jurnalis">Reporter / Jurnalis</option>
                   <option value="Redaktur Pelaksana">Redaktur Pelaksana</option>
-                  <option value="Admin Verifikasi">Admin Verifikasi Halo Jurnal</option>
+                  <option value="Admin Verifikasi">Admin Verifikasi Hallo Jurnal</option>
                   <option value="Pemimpin Redaksi">Pemimpin Redaksi</option>
                 </select>
               </div>

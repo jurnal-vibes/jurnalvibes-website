@@ -44,17 +44,17 @@ export const BottomNav: React.FC = () => {
           <span className="text-[10px] mt-0.5 tracking-tight">Loker</span>
         </Link>
 
-        {/* 3. Halo Jurnal (Tombol Tengah Menonjol) */}
+        {/* 3. Hallo Jurnal (Tombol Tengah Menonjol) */}
         <Link
           href="/halo-jurnal"
           className="flex flex-col items-center justify-center -mt-5 group transition-transform active:scale-95"
-          title="Salurkan Laporan & Aduan Warga Sukabumi di Halo Jurnal"
+          title="Salurkan Laporan & Aduan Warga Sukabumi di Hallo Jurnal"
         >
           <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary to-[#ff3b53] text-white flex items-center justify-center shadow-[0_6px_18px_-2px_rgba(192,0,21,0.5)] group-hover:scale-105 transition-all">
             <Megaphone className="w-5 h-5 fill-current" />
           </div>
           <span className="text-[10px] font-extrabold text-primary tracking-tight mt-1">
-            Halo Jurnal
+            Hallo Jurnal
           </span>
         </Link>
 

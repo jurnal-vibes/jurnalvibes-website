@@ -199,7 +199,7 @@ export const SUKABUMI_CULINARY: CulinarySpot[] = [
   }
 ]
 
-// 4. PANDUAN PENGADUAN HALO JURNAL
+// 4. PANDUAN PENGADUAN HALLO JURNAL
 export const HALO_JURNAL_GUIDE = {
   portalUrl: '/halo-jurnal',
   laporUrl: '/halo-jurnal/lapor',
@@ -258,9 +258,9 @@ export function findRelevantSukabumiKnowledge(userQuery: string): string {
     ).join('\n'))
   }
 
-  // 3. Cek pengaduan Halo Jurnal
+  // 3. Cek pengaduan Hallo Jurnal
   if (query.includes('lapor') || query.includes('aduan') || query.includes('rusak') || query.includes('jalan') || query.includes('sampah') || query.includes('lampu') || query.includes('pju')) {
-    relevantNotes.push('Panduan Resmi Halo Jurnal:\n- Akses lapor: ' + HALO_JURNAL_GUIDE.laporUrl + '\n- Akses cek status: ' + HALO_JURNAL_GUIDE.statusUrl + '\n- Syarat: Foto bukti lapangan, lokasi kecamatan jelas, dan judul aduan.')
+    relevantNotes.push('Panduan Resmi Hallo Jurnal:\n- Akses lapor: ' + HALO_JURNAL_GUIDE.laporUrl + '\n- Akses cek status: ' + HALO_JURNAL_GUIDE.statusUrl + '\n- Syarat: Foto bukti lapangan, lokasi kecamatan jelas, dan judul aduan.')
   }
 
   return relevantNotes.join('\n\n')

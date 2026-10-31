@@ -32,7 +32,7 @@ export const REPORT_CATEGORIES_BY_TYPE: Record<ReportType, string[]> = {
   ],
 }
 
-// Seluruh daftar kategori unik yang selaras di semua halaman Halo Jurnal
+// Seluruh daftar kategori unik yang selaras di semua halaman Hallo Jurnal
 export const ALL_REPORT_CATEGORIES: string[] = [
   // Pengaduan
   'Infrastruktur',

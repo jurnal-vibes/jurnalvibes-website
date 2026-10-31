@@ -332,7 +332,7 @@ export default function HaloJurnalBerandaPage() {
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <Image
               src="/hero-banner.webp"
-              alt="Halo Jurnal Wave Banner"
+              alt="Hallo Jurnal Wave Banner"
               fill
               className="object-cover object-bottom"
               priority

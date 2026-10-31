@@ -58,7 +58,7 @@ export function normalizeArticleCategory(category?: string, categoryLabel?: stri
   const rawLabel = (categoryLabel || '').trim();
   const upperLabel = rawLabel.toUpperCase();
 
-  // Kategori aduan dari Halo Jurnal (infrastruktur, lingkungan, dll) harus dinormalisasi ke BERITA
+  // Kategori aduan dari Hallo Jurnal (infrastruktur, lingkungan, dll) harus dinormalisasi ke BERITA
   if (cat === 'infrastruktur' || upperLabel === 'INFRASTRUKTUR' || cat === 'lingkungan' || cat === 'pelayanan' || !cat) {
     return {
       category: 'berita',

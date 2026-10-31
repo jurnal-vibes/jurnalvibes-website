@@ -72,7 +72,7 @@ export default function AdminLayout({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/halo-jurnal-icon.webp?v=original"
-              alt="Halo Jurnal Logo"
+              alt="Hallo Jurnal Logo"
               className="w-7 h-7 object-contain"
             />
           </div>
@@ -81,7 +81,7 @@ export default function AdminLayout({
             <span>Memverifikasi Hak Akses Redaksi...</span>
           </div>
           <p className="text-[11px] text-slate-400">
-            JurnalCentral — Pusat Kendali Jurnal Wave &amp; Halo Jurnal
+            JurnalCentral — Pusat Kendali Jurnal Wave &amp; Hallo Jurnal
           </p>
         </div>
       </div>
@@ -110,7 +110,7 @@ export default function AdminLayout({
         {/* Footer Kecil Admin */}
         <footer className="px-6 py-4 border-t border-slate-200 text-center text-xs text-slate-500 bg-white/50">
           © 2026 <strong className="text-slate-800 font-semibold">Jurnal Wave</strong> — Meja Redaksi &amp;
-          Pusat Kendali Jurnal Wave &amp; Halo Jurnal.
+          Pusat Kendali Jurnal Wave &amp; Hallo Jurnal.
         </footer>
       </div>
     </div>

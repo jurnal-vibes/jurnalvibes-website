@@ -20,8 +20,8 @@ export default function HaloJurnalHubungiKamiPage() {
 
     const targetPhone = '6282111651470'
     const lines = [
-      `*Halo Tim Halo Jurnal / Redaksi,*`,
-      `Saya ingin mengirim pesan/pertanyaan melalui formulir Halo Jurnal:`,
+      `*Halo Tim Hallo Jurnal / Redaksi,*`,
+      `Saya ingin mengirim pesan/pertanyaan melalui formulir Hallo Jurnal:`,
       ``,
       `• *Nama Lengkap:* ${name}`,
       `• *Alamat Email:* ${email}`,
@@ -46,7 +46,7 @@ export default function HaloJurnalHubungiKamiPage() {
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-on-surface-variant dark:text-gray-400">
         <Link href="/halo-jurnal" className="hover:text-primary transition-colors">
-          Halo Jurnal
+          Hallo Jurnal
         </Link>
         <ChevronRight className="w-3 h-3" />
         <span className="text-on-surface dark:text-white font-semibold">Hubungi Kami</span>
@@ -58,7 +58,7 @@ export default function HaloJurnalHubungiKamiPage() {
           Hubungi Kami
         </h1>
         <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 mt-2">
-          Saluran komunikasi resmi tim redaksi Halo Jurnal untuk kendala teknis, verifikasi akun, dan tindak lanjut aduan warga Sukabumi.
+          Saluran komunikasi resmi tim redaksi Hallo Jurnal untuk kendala teknis, verifikasi akun, dan tindak lanjut aduan warga Sukabumi.
         </p>
       </header>
 
@@ -122,7 +122,7 @@ export default function HaloJurnalHubungiKamiPage() {
               <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mx-auto" />
               <h3 className="font-bold text-base text-emerald-800 dark:text-emerald-300">Pesan Disiapkan ke WhatsApp Redaksi</h3>
               <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-200 leading-relaxed max-w-sm mx-auto">
-                WhatsApp tim redaksi Halo Jurnal (<strong>0821-1165-1470</strong>) telah disiapkan. Klik tombol di bawah jika jendela chat belum terbuka:
+                WhatsApp tim redaksi Hallo Jurnal (<strong>0821-1165-1470</strong>) telah disiapkan. Klik tombol di bawah jika jendela chat belum terbuka:
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
                 {lastWaUrl && (

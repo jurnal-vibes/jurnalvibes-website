@@ -1,5 +1,5 @@
 # BLUEPRINT CETAK BIRU SISTEM INFORMASI & RANCANGAN BACKEND
-## Media Jurnal Sukabumi (Jurnal Wave & Halo Jurnal)
+## Media Jurnal Sukabumi (Jurnal Wave & Hallo Jurnal)
 *Dokumen Spesifikasi Rekayasa Sistem, Alur Informasi, Algoritma, & Arsitektur Backend*
 
 ---
@@ -46,17 +46,21 @@ Design system diselaraskan menggunakan prinsip **Modern Minimalist Editorial** y
   --border-subtle: #e2e8f0;          /* Slate-200 border divider */
   --border-strong: #cbd5e1;          /* Slate-300 table separator */
 
-  /* 3. Status Badges (Strict Neutral Typographic System) */
-  --badge-review-bg: #f1f5f9;        /* [Menunggu Review] */
+  /* 3. Status Badges & Hak Tayang (Strict Neutral Typographic System) */
+  --badge-review-bg: #f1f5f9;        /* [Diterima] */
   --badge-review-text: #334155;
   --badge-process-bg: #f8fafc;       /* [Diproses] */
   --badge-process-text: #1e293b;
   --badge-followup-bg: #f1f5f9;      /* [Ditindaklanjuti] */
   --badge-followup-text: #0f172a;
-  --badge-published-bg: #f0fdf4;     /* [Ditayangkan] */
-  --badge-published-text: #166534;
+  --badge-finished-bg: #f0fdf4;      /* [Selesai] */
+  --badge-finished-text: #166534;
   --badge-rejected-bg: #fef2f2;      /* [Ditolak] */
   --badge-rejected-text: #991b1b;
+  --badge-public-bg: #fef2f2;        /* [Hak Tayang: Tayang di Feed Publik] */
+  --badge-public-text: #c00015;
+  --badge-private-bg: #f1f5f9;       /* [Hak Tayang: Privat (Arsip Redaksi)] */
+  --badge-private-text: #475569;
 }
 ```
 
@@ -76,7 +80,7 @@ Sistem informasi ini dibagi ke dalam 3 alur orkestrasi:
 sequenceDiagram
     autonumber
     actor Warga as Pelapor (Warga)
-    participant UI as Halo Jurnal Portal
+    participant UI as Hallo Jurnal Portal
     participant API as Backend API
     participant GIS as Geo Service
     participant DB as Database Relasional
@@ -90,28 +94,34 @@ sequenceDiagram
     API->>API: Validasi Input (Zod DTO)
     API->>API: Eksekusi Algoritma Generate Nomor Tiket
     API->>DB: Simpan Laporan (Status: "diterima", is_public: false)
-    DB-->>API: Tiket Terbit (Contoh: HJ-20261020-8812)
+    DB-->>API: Tiket Terbit (Nomor Tiket Unik Berbasis Tanggal)
     API-->>UI: Respons Sukses & Redirect ke /halo-jurnal/laporan/[id]
     UI-->>Warga: Tampilkan Halaman Tracking & Buka Sesi Chat Langsung
 ```
 
 ### 2.2 Alur Investigasi & Moderasi Redaksi (Editorial Desk Flow)
+Pada panel Meja Eksekusi Redaksi (`/halo-jurnal/admin/laporan/[id]`), redaksi memproses laporan melalui dua kendali terpisah: **Tahap Penanganan** dan **Hak Tayang Feed Warga**:
+
 ```mermaid
 stateDiagram-v2
-    [*] --> Menunggu_Review: Warga Mengirim Laporan (Tiket Terbit)
+    [*] --> Diterima: Warga Mengirim Laporan (Tiket Terbit)
     
-    Menunggu_Review --> Diproses: Redaksi Melakukan Klarifikasi & Verifikasi Bukti
-    Menunggu_Review --> Ditolak: Laporan Tidak Masuk Akal / Spam / Kurang Bukti
+    Diterima --> Diproses: Redaksi Melakukan Klarifikasi & Verifikasi Bukti
+    Diterima --> Ditolak: Laporan Tidak Masuk Akal / Spam / Kurang Bukti
     
     Diproses --> Ditindaklanjuti: Redaksi Mengonfirmasi ke Dinas Terkait / Investigasi Lapangan
     Diproses --> Chat_Warga: Redaksi Butuh Foto Tambahan / Keterangan Warga
     
-    Ditindaklanjuti --> Ditayangkan: Masalah Selesai Dibereskan / Berita Diterbitkan ke Feed Publik
+    Ditindaklanjuti --> Selesai: Masalah Selesai Ditangani / Tindak Lanjut Tuntas
     Ditolak --> Arsip: Disimpan sebagai Riwayat Internal Redaksi
     
-    Ditayangkan --> [*]
+    Selesai --> [*]
     Arsip --> [*]
 ```
+
+**Kendali Hak Tayang Feed Warga (`isPublic`)**:
+* **Tayang di Feed Publik** (`isPublic = true`): Laporan ditampilkan di linimasa feed publik agar dapat diakses masyarakat dan mendapat dukungan suara (*support/vote*).
+* **Privat (Arsip Redaksi)** (`isPublic = false`): Laporan bersifat internal dan hanya dapat dipantau oleh pelapor asli serta staf redaksi.
 
 ### 2.3 Alur Penerbitan Berita & Reels (Jurnal Wave CMS)
 1. **Penyusunan Konten**: Jurnalis menulis liputan di Meja Admin (`/halo-jurnal/admin/berita`), menetapkan headline utama (*hero carousel*), memilih kategori, dan mengunggah foto utama.
@@ -127,7 +137,7 @@ Untuk meningkatkan kualitas sistem informasi dari sekadar CRUD menjadi sistem ce
 ### 3.1 Algoritma 1: Collision-Proof & Idempotent Ticket Generator
 Nomor tiket harus mudah dibaca manusia, unik, tidak bisa ditebak (*tamper-resistant*), serta mencantumkan tanggal pengajuan.
 
-* **Format**: `HJ-[YYYYMMDD]-[KODE_WILAYAH]-[RANDOM_4_ALPHANUMERIC]`
+* **Format**: Nomor tiket unik berbasis tanggal: `[YYYYMMDD]-[KODE]-[ACAK]`
 * **Implementasi Kode**:
 ```typescript
 export function generateTicketNumber(kategoriId: string): string {
@@ -157,7 +167,7 @@ export function generateTicketNumber(kategoriId: string): string {
     randomSuffix += charset[randomIndex];
   }
 
-  return `HJ-${dateStr}-${categoryCode}-${randomSuffix}`;
+  return `${dateStr}-${categoryCode}-${randomSuffix}`;
 }
 ```
 
@@ -258,7 +268,7 @@ Mengapa?
 ```text
 ┌────────────────────────────────────────────────────────┐
 │               FRONTEND (Next.js 16 Client)            │
-│  - Portal Warga Halo Jurnal     - Portal Berita Wave   │
+│  - Portal Warga Hallo Jurnal     - Portal Berita Wave   │
 │  - Peta Lokasi Leaflet GIS      - Meja Redaksi Admin   │
 └───────────────────────────┬────────────────────────────┘
                             │ HTTPS / REST / Server Actions
@@ -322,7 +332,7 @@ CREATE TABLE articles (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. TABEL LAPORAN ADUAN WARGA (HALO JURNAL)
+-- 4. TABEL LAPORAN ADUAN WARGA (HALLO JURNAL)
 CREATE TABLE reports (
     id VARCHAR(36) PRIMARY KEY,
     ticket_number VARCHAR(50) UNIQUE NOT NULL,

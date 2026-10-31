@@ -97,7 +97,7 @@ function LoginPageContent() {
 
       {/* Kartu Utama Berperbandingan Proporsional */}
       <div className="w-full max-w-5xl bg-surface-container-lowest border border-outline-variant/60 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xs relative overflow-hidden">
-        {/* Subtle Background Glow Khas Halo Jurnal */}
+        {/* Subtle Background Glow Khas Hallo Jurnal */}
         <div className="absolute -left-12 -top-12 w-96 h-96 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
         <div className="absolute right-0 bottom-0 w-96 h-96 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
 

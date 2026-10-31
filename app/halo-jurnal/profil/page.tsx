@@ -284,7 +284,7 @@ export default function HaloJurnalProfilPage() {
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">{user?.email}</p>
             <p className="text-slate-400 dark:text-slate-500 text-[11px] mt-0.5">
-              Warga Aktif Terverifikasi Halo Jurnal Sukabumi
+              Warga Aktif Terverifikasi Hallo Jurnal Sukabumi
             </p>
           </div>
         </div>
