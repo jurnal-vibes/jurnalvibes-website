@@ -1,5 +1,5 @@
 # DOKUMENTASI LENGKAP ARSITEKTUR & KODE PROJEK
-## Portal Media Jurnal Sukabumi (Jurnal Wave & Halo Jurnal)
+## Portal Media Jurnal Sukabumi (Jurnal Wave & Hallo Jurnal)
 *Terakhir Diperbarui: Oktober 2026 | Versi Sistem: 1.0.0-Production Ready*
 
 ---
@@ -26,7 +26,7 @@ Projek ini adalah platform media digital hyperlocal terpadu untuk wilayah Kota d
    * Portal berita modern yang menyajikan liputan peristiwa terkini, gaya hidup (*lifestyle*), lowongan kerja (*loker*), otomotif, teknologi, sains, olahraga, serta video vertikal (*Reels*).
    * Mendukung sinkronisasi konten dinamis dengan WordPress REST API maupun pengelolaan mandiri via CMS Admin internal.
 
-2. **Halo Jurnal (Layanan Aduan & Jurnalisme Warga)**
+2. **Hallo Jurnal (Layanan Aduan & Jurnalisme Warga)**
    * Ruang interaksi sipil dan advokasi publik bagi warga Sukabumi untuk melaporkan masalah infrastruktur, lingkungan, pelayanan publik, sosial, hingga keamanan.
    * Dilengkapi fitur pinpoint peta geolokasi interaktif (GIS), nomor tiket otomatis, pelacakan status laporan transparan, obrolan dua arah langsung (*two-way chat*) antara pelapor dan meja redaksi, serta moderasi feed publik.
 
@@ -84,7 +84,7 @@ d:\jurnalvibes-website/
 │   ├── dummyArticles.ts              # Dataset artikel berita lokal Sukabumi
 │   ├── dummyJobs.ts                  # Dataset lowongan kerja wilayah Sukabumi
 │   ├── dummyPolls.ts                 # Dataset polling pembaca & daftar reels
-│   ├── dummyReports.ts               # Dataset awal laporan warga Halo Jurnal
+│   ├── dummyReports.ts               # Dataset awal laporan warga Hallo Jurnal
 │   ├── haloJurnalCategories.ts       # Definisi kategori dan icon aduan
 │   ├── sukabumiKnowledge.ts          # Knowledge base ensiklopedia lokal Sukabumi
 │   ├── sukabumiPOI.ts                # Titik landmark & koordinat penting Sukabumi
@@ -103,7 +103,7 @@ d:\jurnalvibes-website/
 │   ├── halo-jurnal/
 │   │   ├── CategoryCards.tsx         # Kartu pilihan kategori aduan
 │   │   ├── HaloJurnalBottomNav.tsx   # Navigasi bawah mobile portal warga
-│   │   ├── HaloJurnalFooter.tsx      # Footer resmi Halo Jurnal
+│   │   ├── HaloJurnalFooter.tsx      # Footer resmi Hallo Jurnal
 │   │   ├── HaloJurnalHeader.tsx      # Header navigasi & profil warga
 │   │   ├── HaloJurnalShell.tsx       # Pembungkus layout konsisten warga
 │   │   ├── LocationPicker.tsx        # Picker peta Leaflet & deteksi koordinat
@@ -137,8 +137,8 @@ d:\jurnalvibes-website/
 │   ├── bookmark/                     # Halaman artikel yang disimpan user
 │   ├── login/, daftar/, reset-pw/   # Alur autentikasi publik
 │   │
-│   ├── halo-jurnal/                  # Ekosistem Warga (Halo Jurnal)
-│   │   ├── page.tsx                  # Landing page Halo Jurnal
+│   ├── halo-jurnal/                  # Ekosistem Warga (Hallo Jurnal)
+│   │   ├── page.tsx                  # Landing page Hallo Jurnal
 │   │   ├── beranda/                  # Beranda warga (laporan aktif & feed)
 │   │   ├── lapor/                    # Formulir pengaduan & aspirasi warga
 │   │   ├── feed-publik/              # Feed publik seluruh laporan warga
@@ -174,7 +174,7 @@ d:\jurnalvibes-website/
 
 | URL Path | Akses | Deskripsi & Komponen Kunci |
 | :--- | :--- | :--- |
-| `/` | Publik | Beranda utama Jurnal Wave (Hero Carousel, Berita Pilihan, Polling, Cuaca, Banner Halo Jurnal). |
+| `/` | Publik | Beranda utama Jurnal Wave (Hero Carousel, Berita Pilihan, Polling, Cuaca, Banner Hallo Jurnal). |
 | `/artikel/[id]` | Publik | Halaman baca berita penuh, kredit reporter/redaktur, tagar, dan rekomendasi artikel terkait. |
 | `/berita` | Publik | Kanal berita umum, politik, pemerintahan, dan hukum Sukabumi. |
 | `/lifestyle` | Publik | Kanal wisata, kuliner legendaris, tradisi, dan gaya hidup warga Sukabumi. |
@@ -351,7 +351,7 @@ Salah satu keunggulan teknis dari portal ini adalah arsitektur **Zero-Downtime H
 
 ## 9. FITUR-FITUR UTAMA SISTEM
 
-### 9.1 Ekosistem Halo Jurnal (Aspirasi Warga)
+### 9.1 Ekosistem Hallo Jurnal (Aspirasi Warga)
 1. **Formulir Aduan Presisi**:
    * Pilihan jenis: Pengaduan, Aspirasi, Informasi, atau Permohonan Bantuan.
    * Pilihan kategori: Infrastruktur, Lingkungan Hidup, Pelayanan Publik, Keamanan, Kesehatan, Pendidikan, dan Anggaran.
@@ -424,4 +424,4 @@ npm run start
 ---
 
 ## 11. KESIMPULAN
-Projek **Media Jurnal Sukabumi (Jurnal Wave & Halo Jurnal)** telah terbangun dengan fondasi arsitektur modern berstandar enterprise. Seluruh komponen telah diuji bebas dari galat kompilasi (**0 TypeScript errors**), memiliki estetika tipografi editorial yang elegan, responsif di seluruh ukuran layar, serta memiliki ketahanan data hybrid yang tangguh untuk melayani kebutuhan informasi dan advokasi publik warga Sukabumi secara berkelanjutan.
+Projek **Media Jurnal Sukabumi (Jurnal Wave & Hallo Jurnal)** telah terbangun dengan fondasi arsitektur modern berstandar enterprise. Seluruh komponen telah diuji bebas dari galat kompilasi (**0 TypeScript errors**), memiliki estetika tipografi editorial yang elegan, responsif di seluruh ukuran layar, serta memiliki ketahanan data hybrid yang tangguh untuk melayani kebutuhan informasi dan advokasi publik warga Sukabumi secara berkelanjutan.

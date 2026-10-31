@@ -294,7 +294,7 @@ function ChatDeskContent() {
         body: JSON.stringify({
           ticketNumber: targetTicket || targetId,
           senderId: 'admin-redaksi',
-          senderName: '🛡️ Redaksi Halo Jurnal',
+          senderName: '🛡️ Redaksi Hallo Jurnal',
           role: 'admin',
           message: text,
         }),
@@ -307,12 +307,12 @@ function ChatDeskContent() {
             id: json.data.id,
             ticketNumber: json.data.ticketNumber,
             sender_id: json.data.sender_id,
-            sender_name: json.data.sender_name || '🛡️ Redaksi Halo Jurnal',
+            sender_name: json.data.sender_name || '🛡️ Redaksi Hallo Jurnal',
             role: json.data.role || 'redaksi',
             message: json.data.message,
             created_at: json.data.created_at,
             profiles: {
-              full_name: json.data.sender_name || '🛡️ Redaksi Halo Jurnal',
+              full_name: json.data.sender_name || '🛡️ Redaksi Hallo Jurnal',
               role: 'admin',
             },
           }
@@ -338,12 +338,12 @@ function ChatDeskContent() {
       id: `chat-admin-${Date.now()}`,
       laporan_id: targetId,
       sender_id: 'admin-redaksi',
-      sender_name: '🛡️ Redaksi Halo Jurnal',
+      sender_name: '🛡️ Redaksi Hallo Jurnal',
       role: 'redaksi',
       message: text,
       created_at: new Date().toISOString(),
       profiles: {
-        full_name: '🛡️ Redaksi Halo Jurnal',
+        full_name: '🛡️ Redaksi Hallo Jurnal',
         role: 'admin',
       },
     }
@@ -622,7 +622,7 @@ function ChatDeskContent() {
                               isAdmin ? 'text-[#c00015]' : 'text-slate-800'
                             }`}
                           >
-                            {isAdmin ? 'Redaksi Halo Jurnal' : (msg.sender_name || msg.profiles?.full_name || 'Pelapor')}
+                            {isAdmin ? 'Redaksi Hallo Jurnal' : (msg.sender_name || msg.profiles?.full_name || 'Pelapor')}
                           </span>
                           <span>•</span>
                           <span>

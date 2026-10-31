@@ -4,10 +4,10 @@ import { ChevronRight } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Kebijakan Privasi',
-  description: 'Kebijakan privasi perlindungan data pengguna dan kerahasiaan identitas pelapor di platform Halo Jurnal Sukabumi.',
+  description: 'Kebijakan privasi perlindungan data pengguna dan kerahasiaan identitas pelapor di platform Hallo Jurnal Sukabumi.',
   openGraph: {
-    title: 'Kebijakan Privasi | Halo Jurnal',
-    description: 'Kebijakan privasi perlindungan data pengguna dan kerahasiaan identitas pelapor di platform Halo Jurnal Sukabumi.',
+    title: 'Kebijakan Privasi | Hallo Jurnal',
+    description: 'Kebijakan privasi perlindungan data pengguna dan kerahasiaan identitas pelapor di platform Hallo Jurnal Sukabumi.',
   },
 }
 
@@ -17,7 +17,7 @@ export default function HaloJurnalKebijakanPrivasiPage() {
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-on-surface-variant dark:text-gray-400">
         <Link href="/halo-jurnal" className="hover:text-primary transition-colors">
-          Halo Jurnal
+          Hallo Jurnal
         </Link>
         <ChevronRight className="w-3 h-3" />
         <span className="text-on-surface dark:text-white font-semibold">Kebijakan Privasi</span>
@@ -29,14 +29,14 @@ export default function HaloJurnalKebijakanPrivasiPage() {
           Kebijakan Privasi (Privacy Policy)
         </h1>
         <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 mt-2">
-          Komitmen resmi PT Media Jurnal Sukabumi dalam menjaga kerahasiaan data pribadi seluruh pelapor di Halo Jurnal.
+          Komitmen resmi PT Media Jurnal Sukabumi dalam menjaga kerahasiaan data pribadi seluruh pelapor di Hallo Jurnal.
         </p>
       </header>
 
       {/* Konten Kebijakan Privasi */}
       <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-6">
         <p>
-          Di <strong>Halo Jurnal</strong> yang dikelola secara independen oleh <strong>PT Media Jurnal Sukabumi</strong>, privasi dan keselamatan para pelapor adalah prioritas mutlak kami. Dokumen Kebijakan Privasi ini menguraikan jenis informasi yang kami kumpulkan, bagaimana informasi tersebut digunakan, dan komitmen kami dalam melindungi identitas Anda.
+          Di <strong>Hallo Jurnal</strong> yang dikelola secara independen oleh <strong>PT Media Jurnal Sukabumi</strong>, privasi dan keselamatan para pelapor adalah prioritas mutlak kami. Dokumen Kebijakan Privasi ini menguraikan jenis informasi yang kami kumpulkan, bagaimana informasi tersebut digunakan, dan komitmen kami dalam melindungi identitas Anda.
         </p>
 
         <section className="pt-1">

@@ -208,7 +208,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       ],
     },
     {
-      title: 'Halo Jurnal (Layanan Warga)',
+      title: 'Hallo Jurnal (Layanan Warga)',
       items: [
         {
           name: 'Dashboard Pemantauan',
@@ -304,7 +304,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 </span>
               </div>
               <span className="text-[10px] text-slate-500 font-medium mt-0.5">
-                Pusat Kendali Jurnal Wave &amp; Halo Jurnal
+                Pusat Kendali Jurnal Wave &amp; Hallo Jurnal
               </span>
             </div>
           </Link>
@@ -390,7 +390,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           >
             <span className="flex items-center gap-2">
               <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-              <span>Lihat Portal Halo Jurnal</span>
+              <span>Lihat Portal Hallo Jurnal</span>
             </span>
             <span className="text-[10px] text-slate-400 font-mono">↗</span>
           </Link>

@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
  * Mengirimkan email OTP resmi untuk reset kata sandi warga
  */
 export async function sendResetPasswordOtp(toEmail: string, otpCode: string, residentName?: string) {
-  const senderAddress = process.env.SMTP_FROM || 'Halo Jurnal Sukabumi <jurnalvibes2@gmail.com>'
+  const senderAddress = process.env.SMTP_FROM || 'Hallo Jurnal Sukabumi <jurnalvibes2@gmail.com>'
   const displayName = residentName || 'Warga Sukabumi'
 
   const htmlContent = `
@@ -22,7 +22,7 @@ export async function sendResetPasswordOtp(toEmail: string, otpCode: string, res
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kode OTP Reset Kata Sandi - Halo Jurnal</title>
+  <title>Kode OTP Reset Kata Sandi - Hallo Jurnal</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 32px 16px;">
@@ -34,7 +34,7 @@ export async function sendResetPasswordOtp(toEmail: string, otpCode: string, res
           <tr>
             <td style="background-color: #c00015; padding: 24px 32px; text-align: left;">
               <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">
-                Halo Jurnal
+                Hallo Jurnal
               </h1>
               <p style="margin: 4px 0 0 0; color: #fee2e2; font-size: 12px; font-weight: 500;">
                 Aspirasi &amp; Aduan Warga Sukabumi
@@ -49,7 +49,7 @@ export async function sendResetPasswordOtp(toEmail: string, otpCode: string, res
                 Halo, ${displayName}!
               </p>
               <p style="margin: 0 0 24px 0; font-size: 13px; line-height: 1.6; color: #475569;">
-                Kami menerima permintaan untuk mengatur ulang kata sandi akun warga Anda di <strong>Halo Jurnal</strong>. Gunakan kode verifikasi (OTP) berikut untuk melanjutkan:
+                Kami menerima permintaan untuk mengatur ulang kata sandi akun warga Anda di <strong>Hallo Jurnal</strong>. Gunakan kode verifikasi (OTP) berikut untuk melanjutkan:
               </p>
 
               <!-- OTP Box -->
@@ -68,7 +68,7 @@ export async function sendResetPasswordOtp(toEmail: string, otpCode: string, res
               <!-- Peringatan Keamanan -->
               <div style="background-color: #fff1f2; border-left: 4px solid #e11d48; border-radius: 6px; padding: 12px 16px; margin-bottom: 24px;">
                 <p style="margin: 0; font-size: 12px; color: #9f1239; line-height: 1.5;">
-                  <strong>Penting:</strong> Jangan pernah memberikan kode OTP ini kepada siapa pun, termasuk pihak yang mengatasnamakan tim redaksi Halo Jurnal.
+                  <strong>Penting:</strong> Jangan pernah memberikan kode OTP ini kepada siapa pun, termasuk pihak yang mengatasnamakan tim redaksi Hallo Jurnal.
                 </p>
               </div>
 
@@ -102,8 +102,8 @@ export async function sendResetPasswordOtp(toEmail: string, otpCode: string, res
   const mailOptions = {
     from: senderAddress,
     to: toEmail,
-    subject: `[Halo Jurnal] ${otpCode} adalah Kode OTP Reset Kata Sandi Anda`,
-    text: `Halo, ${displayName}. Kode OTP reset kata sandi Anda di Halo Jurnal adalah: ${otpCode}. Kode ini berlaku selama 10 menit. Jangan bagikan kode ini kepada siapa pun.`,
+    subject: `[Hallo Jurnal] ${otpCode} adalah Kode OTP Reset Kata Sandi Anda`,
+    text: `Halo, ${displayName}. Kode OTP reset kata sandi Anda di Hallo Jurnal adalah: ${otpCode}. Kode ini berlaku selama 10 menit. Jangan bagikan kode ini kepada siapa pun.`,
     html: htmlContent,
   }
 

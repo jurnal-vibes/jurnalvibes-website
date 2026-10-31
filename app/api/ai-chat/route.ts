@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { findRelevantSukabumiKnowledge } from '@/data/sukabumiKnowledge'
 
-const SYSTEM_PROMPT = `Anda adalah "Jurnal Wave AI", asisten virtual resmi untuk portal berita Jurnal Wave dan layanan pengaduan warga Halo Jurnal Sukabumi.
+const SYSTEM_PROMPT = `Anda adalah "Jurnal Wave AI", asisten virtual resmi untuk portal berita Jurnal Wave dan layanan pengaduan warga Hallo Jurnal Sukabumi.
 
 Aturan Penting Format & Gaya Menjawab:
 1. DILARANG KERAS menggunakan simbol bintang (*) sama sekali. Jangan gunakan tanda bintang tunggal (*) maupun ganda (**) untuk mencetak tebal, miring, atau penanda daftar. Tulis teks secara bersih dan mengalir natural.
@@ -23,15 +23,15 @@ Aturan Penting Format & Gaya Menjawab:
    - Jika Anda tidak yakin dengan lokasi cabang suatu tempat, katakan dengan jujur dan sarankan memeriksa Google Maps atau artikel di Jurnal Wave. JANGAN MENGARANG LOKASI PALSU.
 6. Pengetahuan Layanan:
    - Info lowongan kerja Sukabumi ada di menu /loker.
-   - Pengaduan fasilitas umum (jalan rusak, sampah, lampu PJU mati) di Halo Jurnal: pandu warga melapor di /halo-jurnal/lapor dan cek status di /halo-jurnal/laporan-saya.`
+   - Pengaduan fasilitas umum (jalan rusak, sampah, lampu PJU mati) di Hallo Jurnal: pandu warga melapor di /halo-jurnal/lapor dan cek status di /halo-jurnal/laporan-saya.`
 
 // Smart Fallback jika API key belum diisi atau kuota habis
 function generateSmartFallback(query: string): string {
   const lower = query.toLowerCase()
 
-  // 1. Pengaduan & Halo Jurnal
+  // 1. Pengaduan & Hallo Jurnal
   if (lower.includes('lapor') || lower.includes('aduan') || lower.includes('rusak') || lower.includes('sampah') || lower.includes('jalan') || lower.includes('lampu') || lower.includes('pju') || lower.includes('halo jurnal') || lower.includes('hallo jurnal') || lower.includes('pengaduan')) {
-    return '📢 **Layanan Pengaduan Halo Jurnal:**\n\nUntuk menyampaikan keluhan seperti jalan berlubang, tumpukan sampah, atau fasilitas umum rusak:\n1. Kunjungi menu **/halo-jurnal/lapor**\n2. Masukkan judul laporan dan pilih kecamatan di Sukabumi\n3. Unggah bukti foto/video kondisi lapangan\n4. Kirim laporan dan pantau status penanganannya di **/halo-jurnal/laporan-saya**.\n\nLaporan kamu akan segera diverifikasi tim redaksi dan diteruskan ke instansi dinas terkait!'
+    return '📢 **Layanan Pengaduan Hallo Jurnal:**\n\nUntuk menyampaikan keluhan seperti jalan berlubang, tumpukan sampah, atau fasilitas umum rusak:\n1. Kunjungi menu **/halo-jurnal/lapor**\n2. Masukkan judul laporan dan pilih kecamatan di Sukabumi\n3. Unggah bukti foto/video kondisi lapangan\n4. Kirim laporan dan pantau status penanganannya di **/halo-jurnal/laporan-saya**.\n\nLaporan kamu akan segera diverifikasi tim redaksi dan diteruskan ke instansi dinas terkait!'
   }
 
   if (lower.includes('kopi') || lower.includes('cikole') || lower.includes('kuliner') || lower.includes('makan') || lower.includes('nongkrong')) {
@@ -55,7 +55,7 @@ function generateSmartFallback(query: string): string {
   }
 
   if (lower.includes('halo') || lower.includes('hai') || lower.includes('pagi') || lower.includes('siang') || lower.includes('malam') || lower.includes('sampurasun')) {
-    return 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada yang bisa saya bantu terkait berita Sukabumi, kuliner hits, info loker, atau cara lapor aduan di Halo Jurnal?'
+    return 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada yang bisa saya bantu terkait berita Sukabumi, kuliner hits, info loker, atau cara lapor aduan di Hallo Jurnal?'
   }
 
   return `✨ Terima kasih atas pertanyaannya! Saya adalah asisten cerdas Jurnal Wave. 
@@ -64,7 +64,7 @@ Kamu bisa menanyakan berbagai hal seputar:
 • 📰 **Berita Terkini & Kategori Populer**
 • ☕ **Rekomendasi Kuliner & Wisata Sukabumi**
 • 💼 **Info Lowongan Kerja (/loker)**
-• 📢 **Panduan Melapor Fasilitas Umum di Halo Jurnal (/halo-jurnal)**
+• 📢 **Panduan Melapor Fasilitas Umum di Hallo Jurnal (/halo-jurnal)**
 
 Ada topik spesifik yang ingin kamu ketahui lebih lanjut?`
 }

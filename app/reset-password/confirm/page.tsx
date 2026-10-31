@@ -47,7 +47,7 @@ export default function ConfirmResetPasswordPage() {
             Buat Kata Sandi Baru
           </h1>
           <p className="text-secondary text-xs sm:text-sm mt-1">
-            Masukkan kata sandi baru untuk akun Halo Jurnal Anda.
+            Masukkan kata sandi baru untuk akun Hallo Jurnal Anda.
           </p>
         </div>
 

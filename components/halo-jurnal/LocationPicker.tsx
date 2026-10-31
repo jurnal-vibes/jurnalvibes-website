@@ -307,7 +307,7 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
         const { latitude, longitude, accuracy } = pos.coords
         if (!isInsideSukabumi(latitude, longitude)) {
           setGeoError(
-            `Lokasi GPS terdeteksi di luar batas Sukabumi (${latitude.toFixed(4)}, ${longitude.toFixed(4)}). Halo Jurnal dikhususkan untuk wilayah Kota dan Kabupaten Sukabumi.`
+            `Lokasi GPS terdeteksi di luar batas Sukabumi (${latitude.toFixed(4)}, ${longitude.toFixed(4)}). Hallo Jurnal dikhususkan untuk wilayah Kota dan Kabupaten Sukabumi.`
           )
           setIsGeocoding(false)
           return

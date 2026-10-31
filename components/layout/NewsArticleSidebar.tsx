@@ -161,13 +161,13 @@ export function NewsArticleSidebar({
       )}
 
       {/* ============================================================== */}
-      {/* 3. HALO JURNAL (Desain Seragam dengan Terpopuler) */}
+      {/* 3. HALLO JURNAL (Desain Seragam dengan Terpopuler) */}
       {/* ============================================================== */}
       <section className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
         <div className="flex items-center gap-2 mb-2">
           <span className="w-1.5 h-4 bg-[#c00015] rounded-xs inline-block" />
           <h3 className="font-heading font-black text-sm tracking-wider uppercase text-slate-900 dark:text-white">
-            HALO JURNAL
+            HALLO JURNAL
           </h3>
         </div>
         <div className="w-full border-b border-slate-100 dark:border-slate-800 relative mb-3.5">
@@ -182,7 +182,7 @@ export function NewsArticleSidebar({
             Punya Keluhan Fasilitas Publik di Sukabumi?
           </h4>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
-            Laporkan jalan rusak, lampu PJU mati, atau fasilitas publik langsung ke Meja Redaksi Halo Jurnal untuk dikawal bersama.
+            Laporkan jalan rusak, lampu PJU mati, atau fasilitas publik langsung ke Meja Redaksi Hallo Jurnal untuk dikawal bersama.
           </p>
           <Link
             href="/halo-jurnal/lapor"

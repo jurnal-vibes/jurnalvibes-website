@@ -18,7 +18,7 @@ export const ChatbotButton: React.FC = () => {
     {
       id: '1',
       sender: 'ai',
-      text: 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada berita terkini, rekomendasi kuliner Cikole, tempat wisata Sukabumi, info loker, atau panduan Halo Jurnal yang ingin kamu tanyakan?'
+      text: 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada berita terkini, rekomendasi kuliner Cikole, tempat wisata Sukabumi, info loker, atau panduan Hallo Jurnal yang ingin kamu tanyakan?'
     }
   ]);
 
@@ -129,7 +129,7 @@ export const ChatbotButton: React.FC = () => {
       {
         id: '1',
         sender: 'ai',
-        text: 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada berita terkini, rekomendasi kuliner Cikole, tempat wisata Sukabumi, info loker, atau panduan Halo Jurnal yang ingin kamu tanyakan?'
+        text: 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada berita terkini, rekomendasi kuliner Cikole, tempat wisata Sukabumi, info loker, atau panduan Hallo Jurnal yang ingin kamu tanyakan?'
       }
     ]);
     setInputText('');
@@ -341,7 +341,7 @@ export const ChatbotButton: React.FC = () => {
                 Info Loker
               </button>
               <button
-                onClick={() => handleSendMessage('Bagaimana cara membuat laporan di Halo Jurnal?')}
+                onClick={() => handleSendMessage('Bagaimana cara membuat laporan di Hallo Jurnal?')}
                 disabled={isAiTyping}
                 className="bg-slate-100 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50"
               >

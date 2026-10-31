@@ -54,7 +54,7 @@ export default async function HaloJurnalLandingPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="w-full h-full object-cover object-center"
-            alt="Halo Jurnal Wave Banner"
+            alt="Hallo Jurnal Wave Banner"
             src="/hero-banner.webp"
           />
         </div>

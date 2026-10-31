@@ -54,14 +54,14 @@ export default function TentangKamiPage() {
             Portal berita <strong>Jurnal Wave</strong> beroperasi di bawah naungan badan hukum pers resmi <strong>PT. Media Jurnal Sukabumi</strong>. Kami berdedikasi menyajikan jurnalisme yang independen, berimbang, dan mendalam seputar dinamika serta peristiwa di Kota dan Kabupaten Sukabumi.
           </p>
           <p>
-            Berpegang teguh pada Kode Etik Jurnalistik dan Undang-Undang Pers, redaksi kami berkomitmen mengawal kepentingan masyarakat. Sebagai wujud nyata keterbukaan informasi dan advokasi publik, kami juga mengoperasikan <strong>Halo Jurnal</strong>—kanal interaktif aspirasi dan aduan warga untuk mendorong peningkatan fasilitas serta pelayanan publik di Sukabumi.
+            Berpegang teguh pada Kode Etik Jurnalistik dan Undang-Undang Pers, redaksi kami berkomitmen mengawal kepentingan masyarakat. Sebagai wujud nyata keterbukaan informasi dan advokasi publik, kami juga mengoperasikan <strong>Hallo Jurnal</strong>—kanal interaktif aspirasi dan aduan warga untuk mendorong peningkatan fasilitas serta pelayanan publik di Sukabumi.
           </p>
           <div className="pt-1">
             <Link
               href="/halo-jurnal"
               className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#c00015] hover:text-[#a00012] hover:underline transition-colors group"
             >
-              <span>Jelajahi Portal Layanan Warga: Halo Jurnal</span>
+              <span>Jelajahi Portal Layanan Warga: Hallo Jurnal</span>
               <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>

@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
           create: [
             {
               status: 'diterima',
-              note: 'Laporan baru diterima oleh sistem Halo Jurnal (Menunggu Review Redaksi)',
+              note: 'Laporan baru diterima oleh sistem Hallo Jurnal (Menunggu Review Redaksi)',
             },
           ],
         },

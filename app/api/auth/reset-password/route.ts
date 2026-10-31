@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            message: 'Alamat email ini belum terdaftar di sistem Halo Jurnal.',
+            message: 'Alamat email ini belum terdaftar di sistem Hallo Jurnal.',
           },
           { status: 404 }
         )

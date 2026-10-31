@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith('/reset-password') ||
     pathname.startsWith('/auth')
 
-  // Dedicated sub-portal layout for Halo Jurnal
+  // Dedicated sub-portal layout for Hallo Jurnal
   const isHaloJurnal = pathname.startsWith('/halo-jurnal')
 
   if (isAuthPage || isHaloJurnal) {

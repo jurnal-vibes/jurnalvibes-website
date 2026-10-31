@@ -1,5 +1,5 @@
 # DOKUMENTASI SISTEM INFORMASI MEDIA DIGITAL & ADVOKASI PUBLIK
-## PT. Media Jurnal Sukabumi (Jurnal Wave & Halo Jurnal)
+## PT. Media Jurnal Sukabumi (Jurnal Wave & Hallo Jurnal)
 *Dokumentasi Teknis Komprehensif untuk Laporan Magang dan Artikel Jurnal Pengabdian Masyarakat*
 
 ---
@@ -12,10 +12,10 @@ Sistem ini dikembangkan pada **PT. Media Jurnal Sukabumi**, Divisi Teknologi Inf
 ### 1.2 Tujuan Pengembangan Sistem
 Tujuan utama pengembangan sistem adalah membangun platform media digital *hyperlocal* modern yang memadukan dua fungsi strategis:
 1. **Jurnal Wave**: Kanal diseminasi berita, artikel peristiwa, gaya hidup (*lifestyle*), lowongan kerja (*loker*), otomotif, teknologi, sains, olahraga, serta video vertikal (*Wave Reels*) wilayah Sukabumi.
-2. **Halo Jurnal**: Kanal advokasi publik dan jurnalisme warga (*citizen journalism*) yang memfasilitasi pelaporan permasalahan infrastruktur, lingkungan, pelayanan publik, sosial, hingga keamanan secara transparan dan terukur.
+2. **Hallo Jurnal**: Kanal advokasi publik dan jurnalisme warga (*citizen journalism*) yang memfasilitasi pelaporan permasalahan infrastruktur, lingkungan, pelayanan publik, sosial, hingga keamanan secara transparan dan terukur.
 
 ### 1.3 Latar Belakang dan Masalah yang Diselesaikan
-* **Ketiadaan Kanal Aspirasi Warga yang Terintegrasi dengan Pers Lokal**: Selama ini masyarakat menyampaikan keluhan fasilitas umum secara sporadis melalui media sosial tanpa kepastian tindak lanjut verifikasi jurnalis. Halo Jurnal memecahkan masalah ini dengan menyediakan alur pelaporan berbasis nomor tiket otomatis, pemetaan titik kejadian menggunakan geolokasi interaktif (GIS), obrolan dua arah (*two-way chat*) langsung ke meja redaksi, serta moderasi ke kanal feed publik.
+* **Ketiadaan Kanal Aspirasi Warga yang Terintegrasi dengan Pers Lokal**: Selama ini masyarakat menyampaikan keluhan fasilitas umum secara sporadis melalui media sosial tanpa kepastian tindak lanjut verifikasi jurnalis. Hallo Jurnal memecahkan masalah ini dengan menyediakan alur pelaporan berbasis nomor tiket otomatis, pemetaan titik kejadian menggunakan geolokasi interaktif (GIS), obrolan dua arah (*two-way chat*) langsung ke meja redaksi, serta moderasi ke kanal feed publik.
 * **Aksesibilitas Informasi di Era Digital**: Pembaca memiliki mobilitas tinggi dan sebagian masyarakat berkebutuhan khusus (tunanetra/lansia) membutuhkan metode konsumsi berita tanpa harus membaca teks layar. Sistem menyelesaikan ini dengan menghadirkan pemutar audio berita (*Text-to-Speech*) suara pria resmi bahasa Indonesia (`id-ID-ArdiNeural`) dengan kontrol Media Session API.
 * **Pergeseran Tren Konsumsi Video Pendek**: Generasi muda dan masyarakat umum beralih ke format video vertikal. Sistem menjawab kebutuhan ini melalui modul *Wave Reels* yang mengagregasi video pendek seputar peristiwa Sukabumi dengan filter kategori dan analitik tayangan.
 * **Transparansi Kerja Meja Redaksi**: Redaksi membutuhkan dasbor terpadu untuk menyaring aduan warga, memverifikasi fakta lapangan, mengarsipkan berkas foto bukti, dan mempublikasikan tindak lanjut berita secara terstruktur.
@@ -31,14 +31,14 @@ Berdasarkan implementasi kode pada `prisma/schema.prisma`, `middleware.ts`, dan 
 * Memutar audio TTS (*Text-to-Speech*) pada halaman detail berita.
 * Melihat informasi cuaca terkini dan prakiraan cuaca satelit 8 hari serta 192 jam wilayah Sukabumi.
 * Menyimpan artikel favorit ke bookmark peramban (*browser localStorage*).
-* Membaca umpan laporan warga yang telah disetujui redaksi (*Feed Publik Halo Jurnal*).
+* Membaca umpan laporan warga yang telah disetujui redaksi (*Feed Publik Hallo Jurnal*).
 * Melacak status aduan tertentu menggunakan input nomor tiket laporan.
 
 ### 2.2 Warga Terdaftar (*Citizen User*)
 * Model data: `CitizenUser` (`prisma/schema.prisma:113-125`).
 * Mendaftar dan masuk ke akun warga melalui `/daftar` dan `/login`.
 * Mengirimkan laporan masalah publik melalui `/halo-jurnal/lapor` lengkap dengan koordinat geolokasi peta (*pinpoint Leaflet*), deskripsi peristiwa, dan unggahan lampiran bukti visual.
-* Mengakses dasbor pribadi `/halo-jurnal/laporan-saya` untuk memantau tahapan proses laporan (*Diterima*, *Diproses*, *Ditindaklanjuti*, *Ditayangkan*, *Ditolak*).
+* Mengakses dasbor pribadi `/halo-jurnal/laporan-saya` untuk memantau tahapan proses laporan (*Diterima*, *Diproses*, *Ditindaklanjuti*, *Selesai*, *Ditolak*).
 * Melakukan komunikasi dua arah (*two-way chat*) secara privat dengan meja redaksi per nomor tiket laporan (`ChatMessage`).
 * Memberikan dukungan publik (*support/vote*) pada laporan warga lain di kanal feed publik (`ReportSupport`).
 * Mengelola profil data diri dan melakukan pemulihan kata sandi via kode OTP email resmi.
@@ -60,7 +60,7 @@ Berdasarkan implementasi kode pada `prisma/schema.prisma`, `middleware.ts`, dan 
 ### 3.1 Portal Berita & Lifestyle (Jurnal Wave)
 | Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
 | :--- | :--- | :--- | :--- |
-| `/` | Beranda Portal | Hero Carousel berita utama swipeable, Berita Terkini, Widget Wave Reels, Banner Halo Jurnal, Kategori Unggulan, Widget Cuaca, Chatbot AI. | `app/page.tsx`, `app/HomeClient.tsx` |
+| `/` | Beranda Portal | Hero Carousel berita utama swipeable, Berita Terkini, Widget Wave Reels, Banner Hallo Jurnal, Kategori Unggulan, Widget Cuaca, Chatbot AI. | `app/page.tsx`, `app/HomeClient.tsx` |
 | `/berita` | Kanal Berita | Daftar liputan peristiwa Sukabumi dengan filter sub-kategori (Semua, Kampus, Sekolah). | `app/berita/page.tsx`, `app/berita/BeritaClient.tsx` |
 | `/artikel/[id]` | Detail Artikel Berita | Teks berita lengkap, lead ringkasan, box *BACA JUGA*, Audio TTS Player presenter pria ArdiNeural dengan Media Session API, pengatur ukuran teks (A-/A/A+), tombol bagikan media sosial, bookmark. | `app/artikel/[id]/page.tsx`, `app/artikel/[id]/ArticleDetailView.tsx` |
 | `/lifestyle` | Kanal Lifestyle | Berita gaya hidup, tren anak muda, kuliner (*culinary*), busana (*style*), dan wisata (*traveling*) Sukabumi. | `app/lifestyle/page.tsx`, `app/lifestyle/LifestyleClient.tsx` |
@@ -79,15 +79,19 @@ Berdasarkan implementasi kode pada `prisma/schema.prisma`, `middleware.ts`, dan 
 | `/kebijakan-privasi` | Kebijakan Privasi | Pernyataan perlindungan data pribadi dan privasi pengguna. | `app/kebijakan-privasi/page.tsx` |
 | `/hubungi-kami` | Hubungi Redaksi | Formulir kontak redaksi, alamat kantor, dan saluran komunikasi resmi. | `app/hubungi-kami/page.tsx` |
 
-### 3.2 Layanan Aduan & Partisipasi Warga (Halo Jurnal)
+### 3.2 Layanan Aduan & Partisipasi Warga (Hallo Jurnal)
 | Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
 | :--- | :--- | :--- | :--- |
-| `/halo-jurnal` | Beranda Halo Jurnal | Ringkasan statistik laporan, peta sebaran titik aduan, panduan alur advokasi, cuplikan laporan publik terhangat. | `app/halo-jurnal/page.tsx`, `app/halo-jurnal/beranda/page.tsx` |
-| `/halo-jurnal/lapor` | Formulir Pengaduan | Pemilihan kategori aduan, isian kronologi masalah, titik koordinat peta Leaflet GIS (otomatis ambil titik lat/lng), unggah berkas foto bukti. | `app/halo-jurnal/lapor/page.tsx`, `components/halo-jurnal/LocationPicker.tsx` |
+| `/halo-jurnal` | Beranda Hallo Jurnal | Ringkasan statistik laporan, peta sebaran titik aduan, panduan alur advokasi, cuplikan laporan publik terhangat. | `app/halo-jurnal/page.tsx`, `app/halo-jurnal/beranda/page.tsx` |
+| `/halo-jurnal/lapor` | Formulir Pengaduan | Pemilihan kategori aduan, isian kronologi masalah, dan pemetaan spasial via modul LocationPicker: tab opsi **"Peta & Titik GPS"** vs **"Ketik Manual Saja"**, tombol **"Lokasi Saya (GPS)"** (isi pin otomatis dari posisi GPS perangkat), **geser pin (draggable)** atau klik peta, **pencarian lokasi** nama tempat Sukabumi dengan tombol **"Cari"**, dua tampilan peta (**"Peta Jalan"** dan **"Satelit"**), **alamat otomatis** dari koordinat pin (reverse geocoding) & ketik manual, kolom **patokan lokasi** untuk memandu petugas lapangan, serta kewajiban mengunggah **lampiran bukti foto/video**. | `app/halo-jurnal/lapor/page.tsx`, `components/halo-jurnal/LocationPicker.tsx` |
 | `/halo-jurnal/laporan/[id]` | Detail Tiket Aduan | Pelacakan status laporan (stepper visual), koordinat peta lokasi, galeri bukti foto, tab obrolan privat dua arah (*two-way chat*) dengan redaksi, dan tombol vote dukungan warga. | `app/halo-jurnal/laporan/[id]/page.tsx` |
-| `/halo-jurnal/laporan-saya` | Riwayat Aduan Saya | Dasbor pelapor menampilkan daftar aduan milik akun warga yang sedang login, nomor tiket unik, tanggal, dan status verifikasi. | `app/halo-jurnal/laporan-saya/page.tsx` |
+| `/halo-jurnal/laporan-saya` | Riwayat Aduan Saya | Dasbor pelapor menampilkan daftar aduan milik akun warga yang sedang login, nomor tiket unik, tanggal, dan status penanganan. | `app/halo-jurnal/laporan-saya/page.tsx` |
 | `/halo-jurnal/feed-publik` | Kanal Feed Publik | Umpan linimasa laporan warga yang telah diverifikasi dan disetujui tayang oleh redaksi, filter kategori aduan, dan counter dukungan warga. | `app/halo-jurnal/feed-publik/page.tsx`, `components/halo-jurnal/RecentPublicReports.tsx` |
 | `/halo-jurnal/profil` | Profil Akun Warga | Pengelolaan biodata warga, nomor telepon, dan domisili kecamatan. | `app/halo-jurnal/profil/page.tsx` |
+| `/halo-jurnal/tentang` | Tentang Hallo Jurnal | Informasi visi misi, latar belakang kanal advokasi publik, dan tim redaksi Hallo Jurnal. | `app/halo-jurnal/tentang/page.tsx` |
+| `/halo-jurnal/hubungi-kami` | Hubungi Hallo Jurnal | Formulir kontak dan saluran komunikasi resmi kanal Hallo Jurnal. | `app/halo-jurnal/hubungi-kami/page.tsx` |
+| `/halo-jurnal/kebijakan-privasi` | Kebijakan Privasi Hallo Jurnal | Pernyataan perlindungan data pribadi pelapor dan pengguna Hallo Jurnal. | `app/halo-jurnal/kebijakan-privasi/page.tsx` |
+| `/halo-jurnal/syarat-ketentuan` | Syarat & Ketentuan Hallo Jurnal | Ketentuan penggunaan layanan pelaporan dan partisipasi warga. | `app/halo-jurnal/syarat-ketentuan/page.tsx` |
 
 ### 3.3 Autentikasi Pengguna
 | Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
@@ -97,15 +101,32 @@ Berdasarkan implementasi kode pada `prisma/schema.prisma`, `middleware.ts`, dan 
 | `/reset-password` | Reset Kata Sandi | Permintaan kode verifikasi OTP 6-digit via email SMTP Gmail (`nodemailer`), verifikasi OTP berbatas waktu 15 menit, dan pembaruan sandi baru. | `app/reset-password/page.tsx`, `app/api/auth/reset-password/route.ts` |
 
 ### 3.4 Dasbor Meja Redaksi (Admin Dashboard)
+Struktur meja redaksi terbagi ke dalam 3 kelompok navigasi operasional sesuai implementasi pada `components/admin/AdminSidebar.tsx`:
+
+#### A. Jurnal Wave CMS (Portal Berita & Multimedia)
 | Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
 | :--- | :--- | :--- | :--- |
-| `/admin` / `/halo-jurnal/admin` | Dasbor Utama Meja Redaksi | Metrik statistik aduan masuk, persentase penyelesaian, visualisasi tren kategori, rekapitulasi artikel berita terbit. | `app/halo-jurnal/admin/page.tsx`, `components/admin/AdminSidebar.tsx` |
-| `/halo-jurnal/admin/laporan` | Manajemen Laporan Warga | Tabel data laporan warga (`table-fixed`), filter status, filter kategori, verifikasi berkas, perubahan status perkara, penambahan catatan tindak lanjut, penyuntingan visibilitas publik, pembukaan modal chat pelapor. | `app/halo-jurnal/admin/laporan/page.tsx` |
-| `/halo-jurnal/admin/berita` | CMS Manajemen Berita | Pencatatan artikel berita baru, pengunggahan cover image, penyuntingan isi berita, penugasan reporter & redaktur pelaksana, penandaan status *Headline Carousel* & *Editor's Pick*. | `app/halo-jurnal/admin/berita/page.tsx` |
-| `/halo-jurnal/admin/reels` | CMS Manajemen Wave Reels | Penambahan tautan video pendek reels, pengaturan thumbnail, kategori video, pembuat konten, dan hitung views. | `app/halo-jurnal/admin/reels/page.tsx` |
-| `/halo-jurnal/admin/warga` | Manajemen Warga Terdaftar | Tabel direktori warga terdaftar, nomor kontak, domisili, dan status verifikasi akun. | `app/halo-jurnal/admin/warga/page.tsx` |
-| `/halo-jurnal/admin/kategori` | Pengaturan Taksonomi | Manajemen kategori kanal berita dan klasifikasi laporan warga. | `app/halo-jurnal/admin/kategori/page.tsx` |
-| `/halo-jurnal/admin/pengaturan` | Pengaturan Sistem Redaksi | Konfigurasi informasi meja redaksi dan parameter operasional. | `app/halo-jurnal/admin/pengaturan/page.tsx` |
+| `/halo-jurnal/admin` | Dashboard Media | Metrik statistik portal berita, rekapitulasi artikel terbit, metrik video reels, ringkasan performa media. | `app/halo-jurnal/admin/page.tsx`, `components/admin/AdminSidebar.tsx` |
+| `/halo-jurnal/admin/berita` | Artikel Berita | CMS penulisan dan penyuntingan artikel berita, pengunggahan foto sampul, penugasan reporter & redaktur pelaksana, penandaan status *Headline Carousel* & *Editor's Pick*. | `app/halo-jurnal/admin/berita/page.tsx` |
+| `/halo-jurnal/admin/kategori` | Kategori & Headline | Pengaturan taksonomi kategori portal berita, penataan urutan rubrik, dan kurasi headline. | `app/halo-jurnal/admin/kategori/page.tsx` |
+| `/halo-jurnal/admin/reels` | Wave Reels | CMS kurasi video pendek vertikal, penambahan tautan video reels (TikTok/Instagram), thumbnail, kategori video, pembuat konten, dan hitung views. | `app/halo-jurnal/admin/reels/page.tsx` |
+| `/halo-jurnal/admin/loker` | Lowongan Kerja | CMS manajemen info lowongan pekerjaan dan rekrutmen wilayah Sukabumi. | `app/halo-jurnal/admin/loker/page.tsx` |
+
+#### B. Hallo Jurnal (Layanan & Partisipasi Warga)
+| Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
+| :--- | :--- | :--- | :--- |
+| `/halo-jurnal/admin/halo` | Dashboard Pemantauan | Dasbor ringkasan statistik aduan masuk, persentase penyelesaian laporan warga, distribusi kategori aduan, dan metrik penanganan. | `app/halo-jurnal/admin/halo/page.tsx` |
+| `/halo-jurnal/admin/laporan` | Buku Induk Laporan | Tabel induk seluruh laporan aduan warga (`table-fixed`), filter status (diterima, diproses, ditindaklanjuti, selesai, ditolak), filter kategori, pencarian tiket/nama. | `app/halo-jurnal/admin/laporan/page.tsx` |
+| `/halo-jurnal/admin/laporan/[id]` | Detail Investigasi & Meja Eksekusi | Panel Meja Eksekusi Redaksi: penentuan **Tahap Penanganan** (*Diterima*, *Diproses*, *Ditindaklanjuti*, *Selesai*, *Ditolak*), pengaturan **Hak Tayang Feed Warga** (*Tayang di Feed Publik* vs *Privat/Arsip Redaksi*), pengisian Catatan Progres Redaksi (rilis resmi dinas), tombol aksi redaksi (**Hubungi via WhatsApp** ke kontak pelapor dan **Buka Chat di Web**), tautan titik peta Google Maps, dan log kronologi riwayat milestone penanganan. | `app/halo-jurnal/admin/laporan/[id]/page.tsx` |
+| `/halo-jurnal/admin/chat` | Chat Warga | Pusat komunikasi langsung dua arah (*two-way chat*) antara redaksi dengan warga pelapor yang terarsip per tiket laporan. | `app/halo-jurnal/admin/chat/page.tsx` |
+| `/halo-jurnal/admin/feed-publik` | Moderasi Feed Publik | Pengelolaan dan moderasi visibilitas laporan warga yang tampil di linimasa feed publik Hallo Jurnal. | `app/halo-jurnal/admin/feed-publik/page.tsx` |
+| `/halo-jurnal/admin/warga` | Warga Terdaftar | Tabel direktori warga terdaftar, nomor WhatsApp/telepon, email, domisili kecamatan, dan status verifikasi akun. | `app/halo-jurnal/admin/warga/page.tsx` |
+
+#### C. Pengaturan
+| Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
+| :--- | :--- | :--- | :--- |
+| `/halo-jurnal/admin/pengguna` | Tim Redaksi | Manajemen direktori staf redaksi dan hak akses akun admin/editor. | `app/halo-jurnal/admin/pengguna/page.tsx` |
+| `/halo-jurnal/admin/pengaturan` | Pengaturan Web | Konfigurasi informasi identitas redaksi, narasi portal, dan parameter operasional. | `app/halo-jurnal/admin/pengaturan/page.tsx` |
 
 ---
 
@@ -184,7 +205,7 @@ d:\jurnalvibes-website/
 │   ├── dummyArticles.ts              # Dataset artikel berita lokal Sukabumi
 │   ├── dummyJobs.ts                  # Dataset lowongan kerja wilayah Sukabumi
 │   ├── dummyPolls.ts                 # Dataset polling pembaca dan metadata reels
-│   ├── dummyReports.ts               # Dataset awal laporan warga Halo Jurnal
+│   ├── dummyReports.ts               # Dataset awal laporan warga Hallo Jurnal
 │   ├── haloJurnalCategories.ts       # Taksonomi kategori dan ikon aduan masyarakat
 │   ├── sukabumiKnowledge.ts          # Basis pengetahuan ensiklopedia daerah Sukabumi
 │   ├── sukabumiPOI.ts                # Titik landmark koordinat penting Kota/Kab Sukabumi
@@ -202,9 +223,9 @@ d:\jurnalvibes-website/
 │   │   ├── NewsCard.tsx              # Kartu display berita standar dengan cover, tag, & waktu
 │   │   └── ReelsSection.tsx          # Carousel video vertikal Wave Reels di beranda
 │   ├── halo-jurnal/
-│   │   ├── HaloJurnalFooter.tsx      # Footer tematik kanal Halo Jurnal
-│   │   ├── HaloJurnalHeader.tsx      # Header navigasi tematik Halo Jurnal
-│   │   ├── HaloJurnalShell.tsx       # Pembungkus layout konsisten kanal Halo Jurnal
+│   │   ├── HaloJurnalFooter.tsx      # Footer tematik kanal Hallo Jurnal
+│   │   ├── HaloJurnalHeader.tsx      # Header navigasi tematik Hallo Jurnal
+│   │   ├── HaloJurnalShell.tsx       # Pembungkus layout konsisten kanal Hallo Jurnal
 │   │   ├── LocationPicker.tsx        # Komponen peta interaktif Leaflet untuk penentuan titik koordinat
 │   │   └── RecentPublicReports.tsx   # Daftar feed laporan aduan yang disetujui tayang
 │   ├── layout/
@@ -279,9 +300,9 @@ Menyimpan naskah artikel berita, kategori editorial, visual, serta metadata jurn
 * `updatedAt` (`DateTime`, `@updatedAt`): Waktu pembaruan terakhir.
 
 ### 6.2 `Report` (Tabel: `reports`)
-Menyimpan data laporan pengaduan masalah warga masyarakat pada kanal Halo Jurnal.
+Menyimpan data laporan pengaduan masalah warga masyarakat pada kanal Hallo Jurnal.
 * `id` (`String`, Primary Key, default `cuid()`): ID internal laporan.
-* `ticketNumber` (`VarChar(50)`, Unique): Nomor tiket resmi pelapor (misal: `HJ-20261028-XXXX`).
+* `ticketNumber` (`VarChar(50)`, Unique): Nomor tiket unik berbasis tanggal.
 * `title` (`VarChar(255)`): Ringkasan pokok permasalahan laporan.
 * `description` (`Text`): Penjelasan kronologi dan rincian masalah di lapangan.
 * `reportType` (`VarChar(50)`, default `"infrastruktur"`): Kategori aduan (`infrastruktur`, `lingkungan`, `pelayanan`, `sosial`, `keamanan`).
@@ -291,7 +312,7 @@ Menyimpan data laporan pengaduan masalah warga masyarakat pada kanal Halo Jurnal
 * `pelaporName` (`VarChar(100)`, default `"Warga Sukabumi"`): Nama pelapor.
 * `pelaporPhone` (`VarChar(50)`, opsional): Nomor WhatsApp/telepon pelapor.
 * `pelaporEmail` (`VarChar(100)`, opsional): Alamat email pelapor.
-* `status` (`VarChar(50)`, default `"diterima"`): Tahapan laporan (`diterima`, `diproses`, `ditindaklanjuti`, `ditayangkan`, `ditolak`).
+* `status` (`VarChar(50)`, default `"diterima"`): Tahapan laporan (`diterima`, `diproses`, `ditindaklanjuti`, `selesai`, `ditolak`).
 * `isPublic` (`Boolean`, default `true`): Penanda apakah laporan tayang di kanal feed publik.
 * `createdAt` (`DateTime`, default `now()`): Waktu pengiriman aduan.
 * `updatedAt` (`DateTime`, `@updatedAt`): Waktu pembaruan status aduan.
@@ -333,7 +354,7 @@ Menyimpan akun staf dan pimpinan meja redaksi pengelola portal.
 * `createdAt` & `updatedAt`: Timestamp audit akun.
 
 ### 6.7 `CitizenUser` (Tabel: `citizen_users`)
-Menyimpan identitas akun warga masyarakat pengguna portal Halo Jurnal.
+Menyimpan identitas akun warga masyarakat pengguna portal Hallo Jurnal.
 * `id` (`String`, Primary Key): ID pengguna warga.
 * `email` (`VarChar(100)`, Unique): Email identitas masuk.
 * `fullName` (`VarChar(100)`): Nama lengkap sesuai KTP.
@@ -415,7 +436,7 @@ Antarmuka dibangun secara adaptif memanfaatkan titik henti (*breakpoint*) Tailwi
 * **Mobile (< 640px)**:
   * Navigasi utama diringkas ke dalam *Mobile Quick Category Bar* horizontal dengan fitur geser (*no-scrollbar*).
   * Pemutar audio TTS beralih menjadi *floating player bar* tersemat di bagian bawah layar agar tidak menghalangi pembacaan teks artikel.
-  * Form laporan Halo Jurnal mengaktifkan kontrol peta dengan *single-touch pan* terisolasi agar pengguna tidak macet saat menggulir layar.
+  * Form laporan Hallo Jurnal mengaktifkan kontrol peta dengan *single-touch pan* terisolasi agar pengguna tidak macet saat menggulir layar.
   * Tabel admin diubah secara responsif menggunakan container pembungkus horizontal (`overflow-x-auto`) atau kartu ringkas.
 * **Tablet (640px - 1023px)**:
   * Hero Carousel menampilkan grid proporsi `2/1` dengan navigasi gestur sentuh geser (*swipe touch gesture*).
@@ -427,7 +448,7 @@ Antarmuka dibangun secara adaptif memanfaatkan titik henti (*breakpoint*) Tailwi
 ### 8.2 Sistem Desain (Design System Tokens)
 Sesuai standarisasi pada `app/globals.css` dan `RANCANGAN_BACKEND_DAN_SISTEM.md:28-61`:
 * **Warna Utama Brand**:
-  * `Primary Carmine Red`: `#c00015` (Warna aksen utama brand Jurnal Wave dan Halo Jurnal).
+  * `Primary Carmine Red`: `#c00015` (Warna aksen utama brand Jurnal Wave dan Hallo Jurnal).
   * `Primary Dark`: `#a00012` (State tombol hover).
   * `Primary Subtle Tint`: `#fef2f2` (Background badge dan active highlight).
 * **Matriks Monokrom (Slate Matrix)**:
@@ -472,22 +493,29 @@ Sesuai standarisasi pada `app/globals.css` dan `RANCANGAN_BACKEND_DAN_SISTEM.md:
                     └──► [Baca Teks / Simpan Bookmark / Bagikan]
 ```
 
-### 9.2 Alur Pengaduan Warga (Halo Jurnal)
+### 9.2 Alur Pengaduan Warga (Hallo Jurnal)
 ```
 [Warga] ──► Akses /halo-jurnal/lapor
                │
                ▼
     1. Pilih Kategori Masalah (Infrastruktur/Lingkungan/Pelayanan/Sosial/Keamanan)
     2. Isi Judul & Deskripsi Kronologi
-    3. Tandai Titik Peta GIS Leaflet (Latitude & Longitude otomatis terkunci)
-    4. Unggah Foto Bukti Kejadian
-    5. Masukkan Identitas Kontak
+    3. Tentukan Lokasi Kejadian (Modul LocationPicker):
+       ├── Mode Tab: "Peta & Titik GPS" atau "Ketik Manual Saja"
+       ├── Opsi Otomatis: Klik tombol "Lokasi Saya (GPS)" untuk isi pin dari posisi perangkat
+       ├── Opsi Interaktif: Geser pin (draggable) atau klik langsung pada peta
+       ├── Opsi Pencarian: Ketik nama tempat Sukabumi lalu tekan tombol "Cari"
+       ├── Opsi Layer Tampilan: Pilih "Peta Jalan" atau "Satelit"
+       ├── Alamat terisi otomatis dari titik pin (reverse geocoding) & dapat disunting
+       └── Isi kolom "Patokan Lokasi" (membantu petugas menemukan titik di lapangan)
+    4. Unggah Berkas Lampiran Bukti Foto atau Video (Wajib untuk Pengaduan)
+    5. Masukkan Identitas Kontak Pelapor
                │
                ▼
     [Klik "Kirim Laporan"] ──► POST /api/reports
                │
                ▼
-    Sistem Menerbitkan Nomor Tiket Unik (misal: HJ-20261028-XXXX)
+    Sistem Menerbitkan Nomor Tiket Unik Berbasis Tanggal
                │
                ▼
     Laporan Masuk Status: "Diterima"
@@ -501,13 +529,17 @@ Sesuai standarisasi pada `app/globals.css` dan `RANCANGAN_BACKEND_DAN_SISTEM.md:
 ```
 [Redaksi] ──► Login Meja Redaksi (/login) ──► Dasbor Admin (/halo-jurnal/admin)
                     │
-                    ├──► [Manajemen Laporan Warga (/halo-jurnal/admin/laporan)]
+                    ├──► [Buku Induk Laporan (/halo-jurnal/admin/laporan)]
                     │           │
-                    │           ├── Periksa Bukti Foto & Koordinat Peta
-                    │           ├── Hubungi Pelapor via Obrolan Langsung (Chat)
-                    │           ├── Koordinasi Lapangan / Konfirmasi Dinas Terkait
-                    │           ├── Update Status: Diterima ──► Diproses ──► Ditindaklanjuti
-                    │           └── Setujui Visibilitas: Ditayangkan (Tayang di Feed Publik)
+                    │           ├── Masuk ke Detail Investigasi (/halo-jurnal/admin/laporan/[id])
+                    │           ├── Periksa Bukti Visual & Titik Koordinat Peta GIS Leaflet / Google Maps
+                    │           ├── Hubungi Pelapor via Chat Warga Dua Arah / Kontak WhatsApp
+                    │           ├── Koordinasi Lapangan & Konfirmasi Dinas Terkait
+                    │           ├── [Meja Eksekusi Redaksi]:
+                    │           │     ├── Pilih Tahap Penanganan: Diterima ──► Diproses ──► Ditindaklanjuti ──► Selesai (atau Ditolak)
+                    │           │     ├── Tetapkan Hak Tayang Feed Warga: "Tayang di Feed Publik" (isPublic: true) vs "Privat (Arsip Redaksi)" (isPublic: false)
+                    │           │     └── Input Catatan Progres Redaksi (Rilis Resmi Dinas / Klarifikasi)
+                    │           └── Klik "Simpan Keputusan Redaksi" (Otomatis Catat ke Log Status & Notifikasi Warga)
                     │
                     ├──► [Manajemen Artikel Berita (/halo-jurnal/admin/berita)]
                     │           ├── Tulis Artikel Berita Baru / Liputan Khusus
@@ -533,7 +565,7 @@ Berdasarkan analisis 202 commit riwayat Git dari tanggal **29 Agustus 2026 hingg
    * *Bukti Commit*: `feat: Migrasi Jurnal Vibes ke Next.js App Router` (29 Agustus 2026).
    * Menyiapkan fondasi Next.js App Router, konfigurasi TypeScript, perancangan komponen `HeaderNav`, `Footer`, dan desain logo hybrid transparan.
 2. **Tahap 2: Implementasi Modul Utama & Ekosistem Data (September 2026)**
-   * Mengembangkan modul Berita Terkini, kanal tematik, agregasi data cuaca Open-Meteo, integrasi GIS Leaflet, perancangan skema Prisma PostgreSQL Neon DB, serta pembuatan modul advokasi Halo Jurnal.
+   * Mengembangkan modul Berita Terkini, kanal tematik, agregasi data cuaca Open-Meteo, integrasi GIS Leaflet, perancangan skema Prisma PostgreSQL Neon DB, serta pembuatan modul advokasi Hallo Jurnal.
 3. **Tahap 3: Fitur Multimedia, Aksesibilitas TTS & Meja Redaksi (Oktober 2026)**
    * Mengintegrasikan pemutar video pendek *Wave Reels*, autentikasi JWT aman, sistem reset OTP email, mesin Edge TTS suara pria ArdiNeural, integrasi Media Session API, serta dasbor meja redaksi.
 4. **Tahap 4: Refinement, Pengujian Multi-Perangkat & Optimasi (Akhir Oktober 2026)**
@@ -629,22 +661,40 @@ graph TD
     Root --> Cuaca["/cuaca (Detail Satelit Cuaca)"]
     Root --> Bookmark["/bookmark (Artikel Tersimpan)"]
     Root --> Indeks["/indeks-berita (Kalender Berita)"]
-    Root --> Info["Informasi (/tentang-kami, /pedoman-media-siber, /kebijakan-privasi)"]
+    Root --> Info["Informasi (/tentang-kami, /pedoman-media-siber, /kebijakan-privasi, /hubungi-kami)"]
     
-    %% Halo Jurnal Warga
+    %% Hallo Jurnal Warga
     Root --> HaloJurnal["/halo-jurnal (Beranda Advokasi Warga)"]
     HaloJurnal --> HJLapor["/halo-jurnal/lapor (Formulir Aduan & Peta GIS)"]
     HaloJurnal --> HJTiket["/halo-jurnal/laporan/[id] (Pelacakan Tiket & Chat)"]
     HaloJurnal --> HJSaya["/halo-jurnal/laporan-saya (Daftar Aduan Saya)"]
     HaloJurnal --> HJFeed["/halo-jurnal/feed-publik (Umpan Aduan Publik)"]
+    HaloJurnal --> HJProfil["/halo-jurnal/profil (Profil Akun Warga)"]
+    HaloJurnal --> HJInfo["Informasi Hallo Jurnal (/tentang, /hubungi-kami, dll)"]
     
-    %% Autentikasi & Meja Redaksi
+    %% Autentikasi
     Root --> Auth["Autentikasi (/login, /daftar, /reset-password)"]
-    Auth --> AdminDash["Meja Redaksi (/halo-jurnal/admin)"]
-    AdminDash --> AdminLaporan["/halo-jurnal/admin/laporan (Moderasi Aduan)"]
+    
+    %% Meja Redaksi
+    Auth --> AdminDash["Dashboard Media (/halo-jurnal/admin)"]
+    
+    %% Grup 1: Jurnal Wave CMS
     AdminDash --> AdminBerita["/halo-jurnal/admin/berita (CMS Berita)"]
-    AdminDash --> AdminReels["/halo-jurnal/admin/reels (CMS Video)"]
-    AdminDash --> AdminWarga["/halo-jurnal/admin/warga (Direktori Akun)"]
+    AdminDash --> AdminKategori["/halo-jurnal/admin/kategori (Kategori & Headline)"]
+    AdminDash --> AdminReels["/halo-jurnal/admin/reels (CMS Wave Reels)"]
+    AdminDash --> AdminLoker["/halo-jurnal/admin/loker (CMS Lowongan Kerja)"]
+    
+    %% Grup 2: Hallo Jurnal Layanan Warga
+    AdminDash --> AdminHalo["/halo-jurnal/admin/halo (Dashboard Pemantauan)"]
+    AdminDash --> AdminLaporan["/halo-jurnal/admin/laporan (Buku Induk Laporan)"]
+    AdminLaporan --> AdminDetailLaporan["/halo-jurnal/admin/laporan/[id] (Meja Eksekusi Redaksi)"]
+    AdminDash --> AdminChat["/halo-jurnal/admin/chat (Pusat Chat Warga)"]
+    AdminDash --> AdminFeed["/halo-jurnal/admin/feed-publik (Moderasi Feed Publik)"]
+    AdminDash --> AdminWarga["/halo-jurnal/admin/warga (Warga Terdaftar)"]
+    
+    %% Grup 3: Pengaturan
+    AdminDash --> AdminPengguna["/halo-jurnal/admin/pengguna (Tim Redaksi)"]
+    AdminDash --> AdminPengaturan["/halo-jurnal/admin/pengaturan (Pengaturan Web)"]
 ```
 
 ### 11.3 Diagram Arsitektur Komponen Antarmuka
@@ -704,7 +754,7 @@ classDiagram
 sequenceDiagram
     autonumber
     actor W as Warga (Pelapor)
-    participant UI as Portal Halo Jurnal
+    participant UI as Portal Hallo Jurnal
     participant API as Backend API Next.js
     participant DB as PostgreSQL Neon DB
     actor R as Meja Redaksi (Editor)
@@ -713,7 +763,7 @@ sequenceDiagram
     W->>UI: Klik tombol "Kirim Laporan"
     UI->>API: POST /api/reports (Payload data + lampiran)
     API->>DB: INSERT into 'reports' & 'report_attachments'
-    API-->>UI: Respon sukses + Nomor Tiket (HJ-XXXXX)
+    API-->>UI: Respon sukses + Nomor Tiket Berbasis Tanggal
     UI-->>W: Tampilkan nomor tiket & navigasi ke rute pelacakan
 
     Note over R,DB: Redaksi memantau dasbor masuk
@@ -730,12 +780,13 @@ sequenceDiagram
     
     W->>UI: Buka tiket aduan, terima pesan & balas chat
     
-    R->>UI: Ubah status menjadi "Ditindaklanjuti" + Catatan progres
-    R->>UI: Setujui visibilitas "Tampilkan di Feed Publik"
-    UI->>API: PATCH /api/reports (Status update)
+    R->>UI: Pilih Tahap Penanganan ("Ditindaklanjuti" / "Selesai") + Catatan progres
+    R->>UI: Tetapkan Hak Tayang Feed Warga ("Tayang di Feed Publik" / "Privat")
+    R->>UI: Klik "Simpan Keputusan Redaksi"
+    UI->>API: PATCH /api/reports (Payload: status, isPublic, note)
     API->>DB: UPDATE reports & INSERT into 'report_status_logs'
     API-->>UI: Sukses update
-    UI-->>W: Stepper status di layar warga otomatis terbarukan
+    UI-->>W: Stepper status & visibilitas feed publik otomatis terbarukan
 ```
 
 ### 11.5 Diagram Hubungan Entitas Basis Data (Entity Relationship Diagram)
@@ -937,9 +988,9 @@ Berdasarkan kompilasi 202 commit riwayat Git repositori `jurnal-vibes/jurnalvibe
   * Implementasi kanal berita, filter sub-kategori kampus/sekolah, dan halaman lowongan kerja (`/loker`).
   * Integrasi data satelit cuaca Open-Meteo pada widget navbar dan halaman detail cuaca.
 * **Minggu 3 & 4 September 2026**:
-  * Pengembangan arsitektur kanal advokasi publik **Halo Jurnal**.
+  * Pengembangan arsitektur kanal advokasi publik **Hallo Jurnal**.
   * Integrasi sistem pemetaan koordinat GIS menggunakan Leaflet dan OpenStreetMap.
-  * Pembuatan sistem tiket aduan otomatis (`HJ-YYYYMMDD-XXXX`) dan alur pelaporan warga.
+  * Pembuatan sistem nomor tiket unik berbasis tanggal dan alur pelaporan warga.
   * Perancangan dasbor awal meja redaksi (`/halo-jurnal/admin`) untuk verifikasi laporan.
 
 ### 13.3 Periode Oktober 2026 (100 Commit)
@@ -975,20 +1026,39 @@ Berikut adalah 6 (enam) aspek unggulan dari arsitektur proyek yang berpotensi ti
   * Git commit `d73d35a`, `bf08f72`, `01ad79a`.
 
 ### 2. Digitalisasi Advokasi Publik dan Jurnalisme Warga Berbasis Sistem Informasi Geografis (GIS) Leaflet
-* **Fokus Masalah**: Menjembatani aspirasi keluhan infrastruktur dan layanan publik warga Sukabumi ke meja redaksi media pers dengan validasi titik koordinat presisi.
-* **Solusi Teknis**: Pembuatan formulir pelaporan interaktif terintegrasi peta Leaflet OpenStreetMap yang secara otomatis mengunci koordinat latitude/longitude, nomor tiket unik berbasis tanggal, sistem log status audit transparan, serta moderasi feed publik.
+* **Fokus Masalah**: Menjembatani aspirasi keluhan infrastruktur dan layanan publik warga Sukabumi ke meja redaksi media pers dengan validasi titik koordinat presisi tinggi tanpa bergantung pada lisensi API komersial berbayar.
+* **Solusi Teknis**:
+  * **Interaktivitas Pemetaan Ganda**: Tab pemilihan mode antara **"Peta & Titik GPS"** dan **"Ketik Manual Saja"** untuk menjamin fleksibilitas pelapor di berbagai kondisi koneksi.
+  * **Integrasi Sensor GPS Perangkat (W3C Geolocation API)**: Tombol **"Lokasi Saya (GPS)"** yang secara instan mengambil koordinat lintang/bujur fisik gawai pelapor (`navigator.geolocation.getCurrentPosition`), dilengkapi validasi pembatas area batas wilayah Kota dan 47 Kecamatan Kabupaten Sukabumi (`SUKABUMI_BOUNDS`).
+  * **Manipulasi Titik Spasial Fleksibel**: Kemudahan menggeser pin penanda (*draggable marker*) maupun klik langsung pada peta untuk memposisikan titik laporan ke gang sempit atau ruas jalan spesifik.
+  * **Pencarian Tempat Cerdas & POI Lokal**: Input pencarian tempat yang terhubung secara instan (0 ms) ke basis data landmark lokal Sukabumi (`data/sukabumiPOI.ts`: kampus, sekolah, kantor pemerintah, RS) dan geocoding online OpenStreetMap Nominatim secara *debounced* dilengkapi tombol **"Cari"**.
+  * **Lapisan Peta Dinamis (Dual-Layer Switcher)**: Pemilih layer peta melayang (*floating switcher*) yang memungkinkan pelapor beralih antara tampilan **"Peta Jalan"** (*Roadmap*) dan citra **"Satelit"** (*Satellite Imagery*) beresolusi tinggi.
+  * **Penyelarasan Alamat Otomatis & Patokan Fisik**: Reverse geocoding otomatis dari koordinat ke alamat tekstual, dipadukan dengan kolom input **"Patokan Lokasi"** (misal: "Dekat Indomaret / Depan Masjid") untuk mempermudah jurnalis memvalidasi lokasi di lapangan.
+  * **Validasi Berkas Bukti Visual**: Formulir mewajibkan pengunggahan lampiran bukti foto atau video nyata kejadian guna memastikan laporan aduan valid dan terverifikasi sebelum masuk ke meja redaksi.
 * **Bukti Kode di Proyek**:
-  * `components/halo-jurnal/LocationPicker.tsx` (Komponen interaktif peta Leaflet).
-  * `app/halo-jurnal/lapor/page.tsx` (Formulir pelaporan dan penandaan titik masalah).
+  * `components/halo-jurnal/LocationPicker.tsx:8-20` (Definisi batas koordinat wilayah Sukabumi `SUKABUMI_BOUNDS` dan fungsi `isInsideSukabumi`).
+  * `components/halo-jurnal/LocationPicker.tsx:568-594` (Tab pemilih mode "Peta & Titik GPS" vs "Ketik Manual Saja").
+  * `components/halo-jurnal/LocationPicker.tsx:600-653` (Input pencarian tempat pintar dan tombol "Cari").
+  * `components/halo-jurnal/LocationPicker.tsx:655-668` (Tombol "Lokasi Saya (GPS)" via Geolocation API).
+  * `components/halo-jurnal/LocationPicker.tsx:748-776` (Tombol pemilih layer peta "Peta Jalan" dan "Satelit").
+  * `components/halo-jurnal/LocationPicker.tsx:90-108` (Penggabungan alamat otomatis dengan kolom "Patokan Lokasi").
+  * `app/halo-jurnal/lapor/page.tsx:660-720` (Validasi wajib unggah lampiran bukti foto/video pengaduan).
   * `prisma/schema.prisma:37-84` (Skema relasi tabel `reports`, `report_attachments`, dan `report_status_logs`).
 
-### 3. Arsitektur Komunikasi Dua Arah Real-time antara Warga dan Redaksi Pers Daerah
-* **Fokus Masalah**: Menghilangkan hambatan komunikasi antara wartawan peliput dan pelapor masalah masyarakat yang kerap terputus setelah laporan dikirim.
-* **Solusi Teknis**: Implementasi sistem obrolan dua arah (*two-way chat*) berbasis nomor tiket aduan yang memisahkan kanal percakapan per kasus secara privat, aman, dan dapat ditinjau langsung dari dasbor redaksi.
+### 3. Arsitektur Komunikasi Dua Arah Berbasis Nomor Tiket (Ticket-Scoped Threading)
+* **Fokus Masalah**: Menghilangkan hambatan komunikasi antara wartawan peliput dan pelapor masalah masyarakat yang kerap terputus setelah laporan dikirim, tanpa membebani infrastruktur serverless dengan koneksi persisten yang mahal.
+* **Solusi Teknis**:
+  * **Threading Terisolasi per Nomor Tiket**: Percakapan dibatasi (*scoped*) secara ketat per `ticketNumber` sehingga privasi antar-kasus terjamin dan tidak saling silang.
+  * **Mekanisme Sinkronisasi Auto-Polling Berkala (Interval 5 Detik)**: Pada antarmuka pelapor (`app/halo-jurnal/laporan/[id]/page.tsx`), sistem menjalankan polling otomatis setiap 5000 ms (`setInterval`) untuk menarik pesan terbaru dari endpoint `/api/chat` tanpa overhead WebSocket pada lingkungan serverless Next.js.
+  * **Sinkronisasi Antar-Tab via Browser Event**: Di meja redaksi (`app/halo-jurnal/admin/chat/page.tsx`), sistem memanfaatkan event listener `window.addEventListener('storage')` dan `focus` sehingga pesan yang dikirim/diterima langsung sinkron antar-tab dan jendela peramban.
+  * **Umpan Balik Audio Interaktif (Web Audio API)**: Menghasilkan notifikasi nada harmonis ramah secara sintetis via osilator audio peramban (`AudioContext`, frekuensi 587.33Hz ke 880Hz) saat balasan dari tim redaksi masuk.
+  * **Ketahanan Data Berlapis (*Dual-Layer Persistence*)**: Pesan disimpan secara permanen pada tabel `chat_messages` PostgreSQL Neon DB via Prisma ORM, dengan fallback cache ke browser `localStorage` (`halo_jurnal_chat_{ticketNumber}`) untuk mitigasi koneksi seluler lambat.
 * **Bukti Kode di Proyek**:
-  * `app/api/chat/route.ts` (Endpoint pengiriman dan penarikan percakapan tiket).
-  * `app/halo-jurnal/laporan/[id]/page.tsx` (Antarmuka obrolan pelapor).
-  * `prisma/schema.prisma:86-97` (Model data `ChatMessage`).
+  * `app/api/chat/route.ts:15-128` (Endpoint `GET` & `POST` validasi Zod dan otorisasi sesi admin).
+  * `app/halo-jurnal/laporan/[id]/page.tsx:58-77` (Fungsi `playNotificationChime` Web Audio API).
+  * `app/halo-jurnal/laporan/[id]/page.tsx:254-260` (Mekanisme polling berkala interval 5 detik).
+  * `app/halo-jurnal/admin/chat/page.tsx:113-265` (Pusat kendali meja chat redaksi, scanner unread, dan multi-tab storage listener).
+  * `prisma/schema.prisma:86-97` (Skema tabel `chat_messages`).
 
 ### 4. Strategi Ketahanan Data Multi-Tier (Multi-Tier Data Resilience) pada Media Siber Hyperlocal
 * **Fokus Masalah**: Menjaga ketersediaan konten portal media daerah agar tetap 100% dapat diakses pembaca meskipun serverless database mengalami *cold-start* atau batas kuota koneksi pooling.
@@ -1024,7 +1094,7 @@ Poin-poin berikut **tidak tercatat di dalam kode maupun repositori Git** dan waj
 1. **Metode dan Jadwal Pengumpulan Kebutuhan** `[PERLU DATA DARI SAYA]`:
    * Tanggal dan jadwal wawancara dengan Pimpinan Redaksi, Editor, dan Jurnalis PT. Media Jurnal Sukabumi.
    * Notula rapat dan daftar kebutuhan awal yang disampaikan oleh pihak redaksi sebelum sistem dibangun.
-   * Catatan hasil observasi alur kerja manual redaksi saat menerima pengaduan warga sebelum ada sistem Halo Jurnal.
+   * Catatan hasil observasi alur kerja manual redaksi saat menerima pengaduan warga sebelum ada sistem Hallo Jurnal.
 
 2. **Metode Evaluasi dan Umpan Balik Pengguna** `[PERLU DATA DARI SAYA]`:
    * Kuesioner pengujian kepuasan pengguna (misalnya metode *System Usability Scale / SUS* atau *Technology Acceptance Model / TAM*) jika ada disebarkan ke staf redaksi atau warga.

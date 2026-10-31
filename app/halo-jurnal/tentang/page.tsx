@@ -79,7 +79,7 @@ export default function HaloJurnalTentangPage() {
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/20 h-64 sm:h-80 lg:h-96">
               <img
                 src="/hero-banner.webp"
-                alt="Tim Redaksi Halo Jurnal Sukabumi"
+                alt="Tim Redaksi Hallo Jurnal Sukabumi"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -138,7 +138,7 @@ export default function HaloJurnalTentangPage() {
                 3. Diskusi Langsung
               </h3>
               <p className="text-secondary text-xs leading-relaxed max-w-[220px]">
-                Berinteraksi langsung dengan Admin Halo Jurnal untuk proses klarifikasi data.
+                Berinteraksi langsung dengan Admin Hallo Jurnal untuk proses klarifikasi data.
               </p>
             </div>
 
@@ -213,7 +213,7 @@ export default function HaloJurnalTentangPage() {
             <div className="h-40 sm:h-48 lg:h-auto lg:flex-[3] min-h-0 rounded-xl overflow-hidden border border-outline-variant/80 shadow-2xs relative">
               <img
                 src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1000&q=80"
-                alt="Aktivitas Redaksi & Liputan Lapangan Halo Jurnal"
+                alt="Aktivitas Redaksi & Liputan Lapangan Hallo Jurnal"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -249,7 +249,7 @@ export default function HaloJurnalTentangPage() {
                 PT. Media Jurnal Sukabumi
               </h2>
               <p className="text-secondary text-xs sm:text-sm font-medium mt-1">
-                Badan Hukum Resmi Penerbit Media Siber &amp; Pengelola Halo Jurnal
+                Badan Hukum Resmi Penerbit Media Siber &amp; Pengelola Hallo Jurnal
               </p>
             </div>
 
@@ -263,7 +263,7 @@ export default function HaloJurnalTentangPage() {
           </div>
 
           <p className="text-secondary text-xs sm:text-sm leading-relaxed mb-8 max-w-4xl">
-            Kanal advokasi publik <strong className="text-on-surface">Halo Jurnal</strong> dan portal berita <strong className="text-on-surface">Jurnal Wave</strong> beroperasi di bawah naungan badan hukum pers resmi <strong className="text-on-surface">PT. Media Jurnal Sukabumi</strong>. Kami berkomitmen menyajikan jurnalisme independen, memfasilitasi transparansi kebijakan, dan mengawal tindak lanjut aspirasi seluruh warga Sukabumi secara profesional.
+            Kanal advokasi publik <strong className="text-on-surface">Hallo Jurnal</strong> dan portal berita <strong className="text-on-surface">Jurnal Wave</strong> beroperasi di bawah naungan badan hukum pers resmi <strong className="text-on-surface">PT. Media Jurnal Sukabumi</strong>. Kami berkomitmen menyajikan jurnalisme independen, memfasilitasi transparansi kebijakan, dan mengawal tindak lanjut aspirasi seluruh warga Sukabumi secara profesional.
           </p>
 
           {/* 3 Box Grid: Susunan Redaksi, Legalitas Resmi, Rekening Resmi */}

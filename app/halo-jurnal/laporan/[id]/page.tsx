@@ -181,8 +181,8 @@ export default function HaloJurnalLaporanDetailPage() {
         dbMessages = json.data.map((m: any) => ({
           id: m.id,
           sender_id: m.sender_id || m.senderId,
-          sender: m.sender_name || (m.role === 'redaksi' || m.role === 'admin' ? 'Redaksi Halo Jurnal' : 'Warga Pelapor'),
-          sender_name: m.sender_name || (m.role === 'redaksi' || m.role === 'admin' ? 'Redaksi Halo Jurnal' : 'Warga Pelapor'),
+          sender: m.sender_name || (m.role === 'redaksi' || m.role === 'admin' ? 'Redaksi Hallo Jurnal' : 'Warga Pelapor'),
+          sender_name: m.sender_name || (m.role === 'redaksi' || m.role === 'admin' ? 'Redaksi Hallo Jurnal' : 'Warga Pelapor'),
           role: m.role || 'warga',
           message: m.message,
           created_at: m.created_at,
@@ -211,11 +211,11 @@ export default function HaloJurnalLaporanDetailPage() {
         const pelapor = (report as any).pelaporName || (report as any).nama_pelapor || 'Warga'
         const initialSystemMessage = {
           id: `sys-${Date.now()}`,
-          sender: 'Redaksi Halo Jurnal',
-          sender_name: 'Redaksi Halo Jurnal',
+          sender: 'Redaksi Hallo Jurnal',
+          sender_name: 'Redaksi Hallo Jurnal',
           role: 'admin',
           avatar: '/logo-white.png',
-          message: `Halo ${pelapor}, laporan Anda dengan Nomor Tiket #${ticket} telah diterima oleh Redaksi Halo Jurnal. Tim kami sedang memverifikasi laporan Anda. Anda dapat berkoordinasi langsung dengan tim redaksi melalui ruang obrolan ini.`,
+          message: `Halo ${pelapor}, laporan Anda dengan Nomor Tiket #${ticket} telah diterima oleh Redaksi Hallo Jurnal. Tim kami sedang memverifikasi laporan Anda. Anda dapat berkoordinasi langsung dengan tim redaksi melalui ruang obrolan ini.`,
           created_at: new Date().toISOString(),
           timestamp: 'Baru saja',
           isSystem: true,
@@ -517,8 +517,8 @@ export default function HaloJurnalLaporanDetailPage() {
 
             let title = isStory ? 'Cerita Inspirasi Diterima' : 'Laporan Diterima'
             let defaultNote = isStory
-              ? 'Cerita inspirasi telah masuk ke meja kurasi redaksi Halo Jurnal.'
-              : 'Laporan telah diverifikasi oleh tim Halo Jurnal.'
+              ? 'Cerita inspirasi telah masuk ke meja kurasi redaksi Hallo Jurnal.'
+              : 'Laporan telah diverifikasi oleh tim Hallo Jurnal.'
 
             if (isStory) {
               if (log.status === 'selesai') {
@@ -598,7 +598,7 @@ export default function HaloJurnalLaporanDetailPage() {
         status: 'diterima',
         title: 'Cerita Inspirasi Diterima',
         date: formatLogDate(createdAt),
-        catatan: 'Cerita inspirasi Anda berhasil diterima di meja kurasi redaksi Halo Jurnal.',
+        catatan: 'Cerita inspirasi Anda berhasil diterima di meja kurasi redaksi Hallo Jurnal.',
       })
       return items
     }
@@ -774,7 +774,7 @@ export default function HaloJurnalLaporanDetailPage() {
               </span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Laporan ini disembunyikan dari Feed Publik warga oleh Redaksi Halo Jurnal. Hanya pemilik nomor tiket{' '}
+              Laporan ini disembunyikan dari Feed Publik warga oleh Redaksi Hallo Jurnal. Hanya pemilik nomor tiket{' '}
               <code className="text-amber-300 font-mono font-bold">{ticketDisplayId}</code> dan admin redaksi yang
               dapat memantau penanganan ini. Dukungan publik dinonaktifkan.
             </p>
@@ -1159,7 +1159,9 @@ export default function HaloJurnalLaporanDetailPage() {
                         msg.profiles?.role === 'redaksi' ||
                         msg.profiles?.role === 'superadmin' ||
                         msg.sender === 'Redaksi Halo Jurnal' ||
+                        msg.sender === 'Redaksi Hallo Jurnal' ||
                         msg.sender_name === 'Redaksi Halo Jurnal' ||
+                        msg.sender_name === 'Redaksi Hallo Jurnal' ||
                         msg.sender_name === 'Admin Redaksi' ||
                         (msg.sender_name && msg.sender_name.toLowerCase().includes('redaksi')) ||
                         msg.isSystem === true
@@ -1191,7 +1193,7 @@ export default function HaloJurnalLaporanDetailPage() {
                               <>
                                 <span className="font-bold text-primary flex items-center gap-1">
                                   <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                                  Redaksi Halo Jurnal
+                                  Redaksi Hallo Jurnal
                                 </span>
                                 <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.2 rounded">
                                   Redaksi
