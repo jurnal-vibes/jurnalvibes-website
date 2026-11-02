@@ -116,9 +116,17 @@ const LOANWORD_PHONETICS: [RegExp, string][] = [
   [/\bRp\s*([\d.,]+)/gi, '$1 rupiah'],
 ];
 
-export function ArticleDetailView({ id, initialData }: { id: string; initialData?: Article }) {
+export function ArticleDetailView({
+  id,
+  initialData,
+  initialAllArticles = []
+}: {
+  id: string;
+  initialData?: Article;
+  initialAllArticles?: Article[];
+}) {
   const [article, setArticle] = useState<Article>(initialData as Article);
-  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [allArticles, setAllArticles] = useState<Article[]>(initialAllArticles || []);
   const [isSaved, setIsSaved] = useState<boolean>(() => (initialData?.id ? isArticleSaved(initialData.id) : false));
   const [headerCopied, setHeaderCopied] = useState<boolean>(false);
   const [fontSize, setFontSize] = useState<FontSize>('md');
@@ -433,11 +441,28 @@ export function ArticleDetailView({ id, initialData }: { id: string; initialData
   }, [isAudioActive, isPlaying, article.title, article.categoryLabel, article.imageUrl, totalDuration]);
 
   useEffect(() => {
+    if (initialData?.id && initialData.id === id) {
+      setArticle(initialData);
+    }
+  }, [id, initialData]);
+
+  useEffect(() => {
+    if (initialAllArticles && initialAllArticles.length > 0) {
+      setAllArticles(initialAllArticles);
+    }
+  }, [initialAllArticles]);
+
+  useEffect(() => {
     async function loadData() {
       try {
+        const needArticle = !article?.id || article.id !== id;
+        const needList = !allArticles || allArticles.length === 0;
+
+        if (!needArticle && !needList) return;
+
         const [singleData, listData] = await Promise.all([
-          fetchArticleById(id),
-          fetchArticles()
+          needArticle ? fetchArticleById(id) : Promise.resolve(null),
+          needList ? fetchArticles() : Promise.resolve(null),
         ]);
         if (singleData) {
           setArticle(singleData);

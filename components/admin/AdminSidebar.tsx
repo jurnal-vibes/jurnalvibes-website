@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Film,
   Briefcase,
+  Vote,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -203,6 +204,12 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           name: 'Lowongan Kerja',
           href: '/halo-jurnal/admin/loker',
           icon: Briefcase,
+          badge: null,
+        },
+        {
+          name: 'Polling Pembaca',
+          href: '/halo-jurnal/admin/polling',
+          icon: Vote,
           badge: null,
         },
       ],

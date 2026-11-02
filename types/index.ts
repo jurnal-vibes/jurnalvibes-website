@@ -75,6 +75,10 @@ export interface PollOption {
 export interface Poll {
   id: string;
   question: string;
+  category?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  totalVotes?: number;
   options: PollOption[];
 }
 
