@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ArticleDetailView } from './ArticleDetailView';
-import { fetchArticleById } from '@/lib/wordpress';
+import { fetchArticleById, fetchArticles } from '@/lib/wordpress';
 
 interface ArticleDetailPageProps {
   params: Promise<{ id: string }>;
@@ -60,11 +60,18 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
 export default async function ArticleDetailPage({ params }: ArticleDetailPageProps) {
   const { id } = await params;
   let article = null;
+  let allArticles: any[] = [];
 
   try {
-    const wpArticle = await fetchArticleById(id);
+    const [wpArticle, wpArticles] = await Promise.all([
+      fetchArticleById(id),
+      fetchArticles()
+    ]);
     if (wpArticle) {
       article = wpArticle;
+    }
+    if (wpArticles && wpArticles.length > 0) {
+      allArticles = wpArticles;
     }
   } catch {}
 
@@ -72,5 +79,5 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
     notFound();
   }
 
-  return <ArticleDetailView id={id} initialData={article} />;
+  return <ArticleDetailView id={id} initialData={article} initialAllArticles={allArticles} />;
 }

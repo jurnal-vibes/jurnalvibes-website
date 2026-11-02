@@ -8,6 +8,7 @@ import { NewsCard } from '@/components/cards/NewsCard';
 import { HomeCategorySection } from '@/components/cards/HomeCategorySection';
 import { ReelsSection } from '@/components/cards/ReelsSection';
 import { HalloJurnalBanner } from '@/components/cards/HalloJurnalBanner';
+import { PollingWidget } from '@/components/widgets/PollingWidget';
 import { Article, Reel } from '@/types';
 import { fetchArticles } from '@/lib/wordpress';
 
@@ -186,7 +187,10 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
           reverseLayout={true}
         />
 
-        {/* 5. Hallo Jurnal Action Banner (Pemisah ritme visual di tengah halaman) */}
+        {/* 5. Polling Pembaca (Jeda Interaktif di Tengah Halaman) */}
+        <PollingWidget />
+
+        {/* 6. Hallo Jurnal Action Banner (Pemisah ritme visual di tengah halaman) */}
         <HalloJurnalBanner />
 
         {/* 6. Kategori 3: SPORT & E-SPORT (Layout Seling: 1 Besar di Kiri, Kartu Kecil di Kanan) */}
