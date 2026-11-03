@@ -60,9 +60,9 @@ Berdasarkan implementasi kode pada `prisma/schema.prisma`, `middleware.ts`, dan 
 ### 3.1 Portal Berita & Lifestyle (Jurnal Wave)
 | Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
 | :--- | :--- | :--- | :--- |
-| `/` | Beranda Portal | Hero Carousel berita utama swipeable, Berita Terkini, Widget Wave Reels, Banner Hallo Jurnal, Kategori Unggulan, Widget Cuaca, Chatbot AI. | `app/page.tsx`, `app/HomeClient.tsx` |
+| `/` | Beranda Portal | Hero Carousel berita utama swipeable, Berita Terkini, Widget Wave Reels, Banner Hallo Jurnal, Kategori Unggulan, Widget Cuaca, Widget Polling Pembaca Interaktif, Chatbot AI. | `app/page.tsx`, `app/HomeClient.tsx`, `components/widgets/PollingWidget.tsx` |
 | `/berita` | Kanal Berita | Daftar liputan peristiwa Sukabumi dengan filter sub-kategori (Semua, Kampus, Sekolah). | `app/berita/page.tsx`, `app/berita/BeritaClient.tsx` |
-| `/artikel/[id]` | Detail Artikel Berita | Teks berita lengkap, lead ringkasan, box *BACA JUGA*, Audio TTS Player presenter pria ArdiNeural dengan Media Session API, pengatur ukuran teks (A-/A/A+), tombol bagikan media sosial, bookmark. | `app/artikel/[id]/page.tsx`, `app/artikel/[id]/ArticleDetailView.tsx` |
+| `/artikel/[id]` | Detail Artikel Berita | Teks berita lengkap, lead ringkasan, box *BACA JUGA*, Audio TTS Player presenter pria ArdiNeural dengan Media Session API, pengatur ukuran teks (A-/A/A+), tombol bagikan media sosial, bookmark, serta optimasi Server-Side Data Fetching (*Zero Layout Shift* instan untuk sidebar Berita Terpopuler). | `app/artikel/[id]/page.tsx`, `app/artikel/[id]/ArticleDetailView.tsx`, `components/layout/NewsArticleSidebar.tsx` |
 | `/lifestyle` | Kanal Lifestyle | Berita gaya hidup, tren anak muda, kuliner (*culinary*), busana (*style*), dan wisata (*traveling*) Sukabumi. | `app/lifestyle/page.tsx`, `app/lifestyle/LifestyleClient.tsx` |
 | `/loker` | Lowongan Kerja | Informasi peluang karir dan rekrutmen kerja terkini di wilayah Sukabumi dan sekitarnya. | `app/loker/page.tsx`, `components/cards/JobCard.tsx` |
 | `/loker/[id]` | Detail Lowongan Kerja | Rincian kualifikasi posisi, deskripsi tugas, narasi profil instansi perekrut, dan tata cara pengiriman lamaran. | `app/loker/[id]/page.tsx` |
@@ -115,6 +115,7 @@ Struktur meja redaksi terbagi ke dalam 3 kelompok navigasi operasional sesuai im
 | `/halo-jurnal/admin/kategori` | Kategori & Headline | Pengaturan taksonomi kategori portal berita, penataan urutan rubrik, dan kurasi headline. | `app/halo-jurnal/admin/kategori/page.tsx` |
 | `/halo-jurnal/admin/reels` | Wave Reels | CMS kurasi video pendek vertikal, penambahan tautan video reels (TikTok/Instagram), thumbnail, kategori video, pembuat konten, dan hitung views. | `app/halo-jurnal/admin/reels/page.tsx` |
 | `/halo-jurnal/admin/loker` | Lowongan Kerja | CMS manajemen info lowongan pekerjaan dan rekrutmen wilayah Sukabumi. | `app/halo-jurnal/admin/loker/page.tsx` |
+| `/halo-jurnal/admin/polling` | Polling Pembaca | CMS manajemen polling aspirasi publik: form input topik/pertanyaan, generator draf cerdas berbasis Google Gemini AI (`gemini-flash-lite-latest`) dengan *Context-Aware Entity Parser* lokal, pratinjau live 2-kolom responsif, tombol toggle status tayang (*Aktif*/*Nonaktif*) interaktif, dan penghapusan polling permanen. | `app/halo-jurnal/admin/polling/page.tsx`, `lib/polls.ts` |
 
 #### B. Hallo Jurnal (Layanan & Partisipasi Warga)
 | Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
@@ -155,7 +156,7 @@ Struktur meja redaksi terbagi ke dalam 3 kelompok navigasi operasional sesuai im
 | **Validasi Skema** | `zod` | `^4.6.7` | Validasi tipe dan struktur data input dari payload request API. | Mencegah injeksi payload malformed pada endpoint registrasi dan pelaporan. |
 | **Layanan Email OTP** | `nodemailer` | `^10.2.1` | Pengiriman kode OTP 6-digit pemulihan sandi via protokol SMTP Google Mail. | Menjamin kode reset sandi sampai ke kotak masuk email pelapor secara instan (`lib/mail.ts`). |
 | **Layanan Cuaca Satelit**| Open-Meteo Satellite API | REST v1 | Pengambilan data cuaca, suhu, kelembapan, angin, dan AQI Sukabumi secara berkala. | Layanan cuaca akurat tanpa batasan API key komersial (`lib/weather.ts`). |
-| **Layanan AI Chatbot & RAG** | Google Gemini API (gemini-flash-lite-latest) & Local Engine | REST Native Fetch | Asisten berita cerdas dan panduan advokasi warga Sukabumi dengan arsitektur RAG & smart fallback. | Menggunakan native fetch REST API ke model gemini-flash-lite tanpa beban dependensi SDK eksternal, diperkaya mesin RAG lokal (mengambil 8 artikel terkini dari database + basis pengetahuan regional Sukabumi di `data/sukabumiKnowledge.ts`), serta Smart Fallback Engine berbasis aturan kata kunci saat offline atau kuota habis (`app/api/ai-chat/route.ts`). |
+| **Layanan AI & Generatif** | Google Gemini API (`gemini-flash-lite-latest`) & Smart Entity Engine | REST Native Fetch (v1beta, Key format `AQ...`) | Asisten berita cerdas RAG dan generator draf polling otomatis berbasis pemahaman entitas kontekstual. | Menggunakan native fetch REST API ke model resmi `gemini-flash-lite-latest` tanpa dependensi SDK eksternal. Diterapkan pada 2 fitur strategis: (1) Chatbot AI asisten berita dengan RAG lokal Sukabumi (`app/api/ai-chat/route.ts`), dan (2) Generator Draf Polling Pembaca (`app/api/polls/generate-ai/route.ts`) yang dilengkapi *Context-Aware Entity Parser* lokal untuk mengekstrak duel entitas spesifik (misal nama tim laga bola, tokoh, atau isu publik) secara presisi tanpa menjadikannya template generik. |
 | **Package Manager** | npm | v11+ | Manajemen paket dependensi pustaka JavaScript. | Terlihat dari keberadaan file `package-lock.json`. |
 | **Linter Kode** | ESLint & Next Linter | `^9` / `16.4.3` | Pemeriksaan kepatuhan standar sintaksis kode dan aturan Next.js. | Dikonfigurasi pada `eslint.config.mjs` dan skrip `npm run lint`. |
 | **Version Control** | Git & GitHub | Git 2.x | Pelacak riwayat perubahan kode, branching, dan kolaborasi tim magang. | Terlihat dari 204 commit riwayat git dan alur Pull Request di repositori `jurnal-vibes/jurnalvibes-website` (29 Agustus – 31 Oktober 2026). |
@@ -243,6 +244,7 @@ d:\jurnalvibes-website/
 │   └── widgets/
 │       ├── ChatbotButton.tsx         # Floating button asisten virtual AI
 │       ├── EditorsPickWidget.tsx     # Widget daftar artikel pilihan redaksi
+│       ├── PollingWidget.tsx         # Widget polling interaktif beranda warga (desain compact anti-zoom)
 │       └── WeatherWidget.tsx         # Widget cuaca ringkas pada navbar
 │
 └── app/                              # Next.js App Router (Rute Halaman & Endpoint Backend API)
@@ -262,6 +264,7 @@ d:\jurnalvibes-website/
     ├── login/ / daftar/              # Halaman autentikasi pengguna
     ├── reset-password/               # Halaman reset sandi akun warga via OTP
     ├── halo-jurnal/                  # Direktori kanal jurnalisme warga (publik & admin)
+    │   └── admin/polling/            # Modul CMS manajemen polling pembaca (Live Preview 2-Kolom)
     └── api/                          # Backend REST Route Handlers
         ├── articles/                 # Endpoint CRUD & kueri artikel berita
         ├── reports/                  # Endpoint pengiriman & kueri laporan aduan
@@ -272,6 +275,9 @@ d:\jurnalvibes-website/
         ├── auth/reset-password/      # Endpoint permintaan & verifikasi OTP email
         ├── weather/                  # Endpoint agregasi cuaca Open-Meteo
         ├── ai-chat/                  # Endpoint asisten percakapan cerdas Gemini AI
+        ├── polls/                    # Endpoint CRUD & kueri polling aktif beranda
+        ├── polls/vote/               # Endpoint pencatatan suara / vote warga pada polling
+        ├── polls/generate-ai/        # Endpoint generator topik polling presisi Gemini AI
         └── admin/citizens/           # Endpoint administrasi akun warga oleh redaksi
 ```
 
@@ -279,7 +285,7 @@ d:\jurnalvibes-website/
 
 ## 6. Struktur Database dan Model Data (Prisma ORM)
 
-Skema database PostgreSQL didefinisikan pada file [`prisma/schema.prisma`](file:///d:/jurnalvibes-website/prisma/schema.prisma) dengan 10 model relasional (catatan: pada komentar dokumentasi file skema terdapat lompatan penomoran dari nomor 5 langsung ke nomor 7 sehingga nomor model terakhir tertulis 11, namun secara aktual entitas tabel yang terdefinisi berjumlah tepat 10 model):
+Skema database PostgreSQL didefinisikan pada file [`prisma/schema.prisma`](file:///d:/jurnalvibes-website/prisma/schema.prisma) dengan 12 model relasional:
 
 ### 6.1 `Article` (Tabel: `articles`)
 Menyimpan naskah artikel berita, kategori editorial, visual, serta metadata jurnalis.
@@ -399,6 +405,25 @@ Menyimpan video pendek vertikal (*Wave Reels*) peristiwa dan lifestyle Sukabumi.
 * `viewsCount` (`VarChar(50)`, default `"0"`): Jumlah akumulasi tayangan video.
 * `createdAt` & `updatedAt`: Timestamp audit rekaman video.
 
+### 6.11 `Poll` (Tabel: `polls`)
+Menyimpan data topik polling pembaca, kategori rubrik, dan status keaktifan tayang pada beranda portal.
+* `id` (`String`, Primary Key, default `cuid()`): ID unik rekaman polling.
+* `question` (`VarChar(500)`): Kalimat pertanyaan polling yang diajukan meja redaksi.
+* `category` (`VarChar(100)`, default `"Umum"`, opsional): Kategori isu polling (misal: "Sport & E-Sport", "Isu Publik", "Lifestyle").
+* `isActive` (`Boolean`, default `true`): Penanda status tayang aktif di portal publik (hanya 1 polling aktif dalam satu waktu).
+* `createdAt` (`DateTime`, default `now()`): Waktu pembuatan polling.
+* `updatedAt` (`DateTime`, `@updatedAt`): Waktu pembaruan polling.
+* Relasi: Memiliki banyak opsi pilihan jawaban `options` (`PollOption[]` dengan aturan cascade delete `onDelete: Cascade`).
+
+### 6.12 `PollOption` (Tabel: `poll_options`)
+Menyimpan daftar opsi jawaban dan akumulasi perolehan suara masyarakat pada setiap polling.
+* `id` (`String`, Primary Key, default `cuid()`): ID unik opsi jawaban.
+* `pollId` (`String`): Foreign key relasi ke model induk `Poll` (`onDelete: Cascade`).
+* `text` (`VarChar(255)`): Narasi teks opsi jawaban.
+* `votes` (`Int`, default `0`): Akumulasi perolehan suara pada opsi tersebut.
+* `createdAt` (`DateTime`, default `now()`): Waktu opsi dibuat.
+* Index: `@@index([pollId])` untuk optimasi performa kueri penghitungan suara per topik polling.
+
 ---
 
 ## 7. Sumber Data dan Cara Sistem Mengambilnya
@@ -442,12 +467,14 @@ Antarmuka dibangun secara adaptif memanfaatkan titik henti (*breakpoint*) Tailwi
   * Pemutar audio TTS beralih menjadi *floating player bar* tersemat di bagian bawah layar agar tidak menghalangi pembacaan teks artikel.
   * Form laporan Hallo Jurnal mengaktifkan kontrol peta dengan *single-touch pan* terisolasi agar pengguna tidak macet saat menggulir layar.
   * Tabel admin diubah secara responsif menggunakan container pembungkus horizontal (`overflow-x-auto`) atau kartu ringkas.
+  * **Widget Polling Pembaca Anti-Zoom**: Teks filler deskriptif generik dihilangkan, padding kartu dirampingkan (`p-3 sm:p-5`), skala font pertanyaan dibuat proporsional (`text-xs sm:text-sm md:text-base`), serta tombol opsi dibuat padat (`py-2 px-2.5` dengan `gap-1.5`) guna mencegah tampilan terasa "nge-zoom" atau mendominasi seluruh layar ponsel.
 * **Tablet (640px - 1023px)**:
   * Hero Carousel menampilkan grid proporsi `2/1` dengan navigasi gestur sentuh geser (*swipe touch gesture*).
   * Quick Category Bar navbar diselaraskan secara simetris (`max-w-container-max mx-auto px-4 md:px-6`) agar lurus vertikal dengan logo brand.
+  * Widget polling mengadopsi grid seimbang antara kolom pertanyaan dan kolom opsi pilihan jawaban tanpa memakan ruang vertikal berlebih.
 * **Desktop (≥ 1024px)**:
   * Menampilkan navigasi penuh: 6 menu editorial ramping dengan menu dropdown bertingkat (*Berita ▾*, *Lifestyle ▾*, *Eksplor ▾*).
-  * Tata letak dua kolom editorial ala koran digital: kolom utama naskah artikel (kiri) bersanding dengan *NewsArticleSidebar* sticky (kanan) yang memuat Berita Terpopuler, Video Populer, dan Aduan Warga.
+  * Tata letak dua kolom editorial ala koran digital: kolom utama naskah artikel (kiri) bersanding dengan *NewsArticleSidebar* sticky (kanan) yang memuat Berita Terpopuler, Video Populer, dan Aduan Warga. Sidebar artikel dioptimasi dengan Server-Side Data Fetching paralel (`Promise.all([fetchArticleById(id), fetchArticles()])`) sehingga widget **TERPOPULER** langsung muncul di posisi teratas sejak detik ke-0 (*Zero Layout Shift* / tanpa jeda loading).
 
 ### 8.2 Sistem Desain (Design System Tokens)
 Sesuai standarisasi pada `app/globals.css` dan `RANCANGAN_BACKEND_DAN_SISTEM.md:28-61`:
