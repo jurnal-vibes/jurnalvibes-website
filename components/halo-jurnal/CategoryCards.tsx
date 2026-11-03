@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, AlertTriangle, Lightbulb, Info, BookOpen } from 'lucide-react'
 
 interface CategoryCardsProps {
   isLoggedIn?: boolean
@@ -22,30 +22,35 @@ export default function CategoryCards({ isLoggedIn: _isLoggedIn }: CategoryCards
       title: 'Pengaduan',
       desc: 'Laporkan masalah pelayanan publik, jalan rusak, fasilitas, atau ketertiban.',
       actionText: 'Buat Laporan',
+      icon: AlertTriangle,
     },
     {
       type: 'aspirasi' as const,
       title: 'Aspirasi',
       desc: 'Sampaikan gagasan, usulan konstruktif, atau harapan demi kemajuan Sukabumi.',
       actionText: 'Kirim Aspirasi',
+      icon: Lightbulb,
     },
     {
       type: 'informasi' as const,
       title: 'Informasi',
       desc: 'Ajukan permohonan keterbukaan informasi dan data publik instansi daerah.',
       actionText: 'Minta Informasi',
+      icon: Info,
     },
     {
       type: 'inspirasi' as const,
       title: 'Inspirasi',
       desc: 'Ceritakan kisah inspiratif dan karya gotong royong warga untuk dipublikasikan.',
       actionText: 'Bagikan Cerita',
+      icon: BookOpen,
     },
   ]
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
       {cards.map((card) => {
+        const Icon = card.icon
         return (
           <div
             key={card.type}
@@ -56,6 +61,11 @@ export default function CategoryCards({ isLoggedIn: _isLoggedIn }: CategoryCards
             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#c00015]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
             <div>
+              {/* Minimalist Monochromatic Icon Badge (Opsi 1) */}
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-center mb-2.5 sm:mb-4 text-slate-700 dark:text-slate-300 group-hover:text-[#c00015] dark:group-hover:text-rose-400 group-hover:border-red-200/80 dark:group-hover:border-rose-900/40 group-hover:bg-red-50/40 dark:group-hover:bg-rose-950/20 transition-all duration-300">
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:scale-110" />
+              </div>
+
               <h3 className="font-heading font-bold text-sm sm:text-base md:text-lg text-slate-900 dark:text-slate-100 mb-1 sm:mb-2 tracking-tight group-hover:text-[#c00015] dark:group-hover:text-rose-400 transition-colors">
                 {card.title}
               </h3>
