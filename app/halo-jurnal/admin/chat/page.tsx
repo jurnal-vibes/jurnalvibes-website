@@ -277,7 +277,14 @@ function ChatDeskContent() {
     }
     window.addEventListener('storage', handleStorage)
     window.addEventListener('focus', handleStorage)
+
+    const pollInterval = setInterval(() => {
+      loadActiveMessages()
+      scanAllTicketChats()
+    }, 3000)
+
     return () => {
+      clearInterval(pollInterval)
       window.removeEventListener('storage', handleStorage)
       window.removeEventListener('focus', handleStorage)
     }

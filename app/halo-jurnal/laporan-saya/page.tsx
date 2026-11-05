@@ -14,6 +14,8 @@ import {
   Check,
   ArrowRight,
   ShieldCheck,
+  Play,
+  Video as VideoIcon,
 } from 'lucide-react'
 
 export default function HaloJurnalLaporanSayaPage() {
@@ -200,103 +202,102 @@ export default function HaloJurnalLaporanSayaPage() {
   }
 
   return (
-    <div className="w-full max-w-container-max mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-20">
-      {/* 1. Header Halaman */}
-      <div className="mb-5">
-        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      {/* 1. Header Page */}
+      <div>
+        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
           Aduan Saya
         </h1>
-        <p className="text-secondary text-xs sm:text-sm mt-1">
+        <p className="text-secondary text-xs sm:text-sm">
           Pantau seluruh aduan dan koordinasi langsung dengan redaksi Hallo Jurnal.
         </p>
       </div>
 
-      {!user && !loading ? (
-        <div className="text-center py-14 bg-surface rounded-2xl border border-outline-variant/70 p-6 sm:p-10 shadow-2xs max-w-lg mx-auto my-8">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
-            <ShieldCheck className="w-7 h-7" />
+      {!user ? (
+        /* Unauthenticated State */
+        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-10 shadow-xs max-w-md mx-auto w-full">
+          <div className="w-14 h-14 rounded-2xl bg-[#c00015]/10 text-[#c00015] flex items-center justify-center mx-auto mb-4">
+            <ClipboardList className="w-7 h-7" />
           </div>
-          <h2 className="font-heading font-bold text-lg text-on-surface mb-2">
-            Masuk untuk Memantau Aduan Anda
+          <h2 className="font-heading font-bold text-lg text-slate-900 dark:text-slate-100 mb-2">
+            Anda Belum Masuk
           </h2>
-          <p className="text-xs sm:text-sm text-secondary mb-6 leading-relaxed">
-            Riwayat aduan terikat khusus dengan akun Anda agar aman dan dapat dipantau langsung.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+            Masuk ke akun warga Anda untuk melihat riwayat aduan yang telah Anda kirimkan ke tim redaksi.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/login?redirect=/halo-jurnal/laporan-saya"
-              className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-semibold transition-all shadow-xs"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs text-center"
             >
-              Masuk Akun
+              Masuk ke Akun
             </Link>
             <Link
-              href="/halo-jurnal/lapor"
-              className="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant text-on-surface text-xs sm:text-sm font-medium transition-all"
+              href="/halo-jurnal"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-all text-center"
             >
-              Buat Pengaduan Baru
+              Kembali ke Beranda
             </Link>
           </div>
         </div>
       ) : (
         <>
-          {/* 2. Overview Card: Total Aduan */}
-          <div className="mb-6">
-            <div className="p-4 rounded-2xl bg-surface border border-outline-variant/70 flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-2xs">
+          {/* 2. Statistik Ringkas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="col-span-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#c00015] text-white flex items-center justify-center shadow-xs">
                   <ClipboardList className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="font-heading font-bold text-sm text-on-surface block leading-tight">
+                  <h3 className="font-heading font-bold text-sm text-slate-900 dark:text-slate-100">
                     Total Pengaduan Anda
-                  </span>
-                  <span className="text-xs text-secondary mt-0.5 block">
+                  </h3>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
                     Seluruh aduan yang telah Anda kirimkan
-                  </span>
+                  </p>
                 </div>
               </div>
-              <span className="font-heading font-black text-2xl text-on-surface">
+              <span className="font-heading font-black text-2xl text-slate-900 dark:text-slate-100">
                 {totalCount}
               </span>
             </div>
           </div>
 
-          {/* 3. Search & Sort Bar */}
-          <div className="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl p-2.5 sm:p-3 mb-6 shadow-2xs">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-              {/* Search Input */}
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari judul aduan atau ID tiket..."
-                  className="w-full pl-9 pr-9 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#c00015]/20 focus:border-[#c00015] transition-all shadow-2xs"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Sort Dropdown */}
-              <div className="relative">
-                <select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value)}
-                  className="w-full appearance-none pl-3 pr-8 py-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-[#c00015] cursor-pointer shadow-2xs"
+          {/* 3. Toolbar Pencarian & Filter */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            {/* Input Search */}
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari judul aduan atau ID tiket..."
+                className="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-[#c00015] focus:ring-1 focus:ring-[#c00015] transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5"
                 >
-                  <option value="Terbaru">Terbaru</option>
-                  <option value="Terlama">Terlama</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative shrink-0">
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="w-full sm:w-auto appearance-none pl-3.5 pr-8 py-2.5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:border-[#c00015] cursor-pointer"
+              >
+                <option value="Terbaru">Terbaru</option>
+                <option value="Terlama">Terlama</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
@@ -366,7 +367,7 @@ export default function HaloJurnalLaporanSayaPage() {
                       </div>
                     </div>
 
-                    {/* Content: Title, Description + Photo */}
+                    {/* Content: Title, Description + Photo / Video Thumbnail */}
                     <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-3">
                       <div className="flex-1 min-w-0">
                         <Link
@@ -383,19 +384,51 @@ export default function HaloJurnalLaporanSayaPage() {
                         </p>
                       </div>
 
-                      {imgUrl && (
-                        <Link
-                          href={`/halo-jurnal/laporan/${report.id}`}
-                          className="shrink-0 w-full sm:w-36 h-36 sm:h-24 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-800 block shadow-2xs"
-                          title="Lihat lampiran"
-                        >
-                          <img
-                            src={imgUrl}
-                            alt={report.judul}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </Link>
-                      )}
+                      {imgUrl && (() => {
+                        const fileType = report.laporan_lampiran?.[0]?.file_type || ''
+                        const isVideo =
+                          fileType.startsWith('video/') ||
+                          imgUrl.startsWith('data:video/') ||
+                          imgUrl.endsWith('.mp4') ||
+                          imgUrl.endsWith('.webm') ||
+                          imgUrl.endsWith('.mov')
+
+                        return (
+                          <Link
+                            href={`/halo-jurnal/laporan/${report.id}`}
+                            className="shrink-0 w-full sm:w-36 h-36 sm:h-24 rounded-xl overflow-hidden bg-slate-900 border border-slate-200/70 dark:border-slate-800 block shadow-2xs relative group/thumb"
+                            title={isVideo ? 'Putar video bukti pengaduan' : 'Lihat foto lampiran'}
+                          >
+                            {isVideo ? (
+                              <div className="w-full h-full relative flex items-center justify-center bg-black">
+                                <video
+                                  src={imgUrl}
+                                  className="w-full h-full object-cover opacity-85 group-hover/thumb:opacity-100 group-hover/thumb:scale-105 transition-all duration-300"
+                                  muted
+                                  playsInline
+                                  preload="metadata"
+                                />
+                                <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/10 transition-colors" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center text-[#c00015] group-hover/thumb:scale-110 transition-transform">
+                                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                                  </div>
+                                </div>
+                                <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-semibold tracking-wide uppercase flex items-center gap-1">
+                                  <VideoIcon className="w-2.5 h-2.5" />
+                                  <span>Video</span>
+                                </span>
+                              </div>
+                            ) : (
+                              <img
+                                src={imgUrl}
+                                alt={report.judul}
+                                className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300"
+                              />
+                            )}
+                          </Link>
+                        )
+                      })()}
                     </div>
 
                     {/* Footer: Chat Admin & Detail Link */}
