@@ -64,9 +64,14 @@ export default async function HaloJurnalLandingPage() {
             Suara Anda, Wadah Kami
           </h1>
 
-          <p className="text-white/90 text-xs sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto drop-shadow-sm font-medium">
-            Sampaikan aspirasi, aduan pelayanan publik, dan inspirasi Anda secara langsung dan transparan kepada redaksi Jurnal Wave.
+          <p className="text-white/90 text-xs sm:text-base md:text-lg leading-relaxed mb-5 sm:mb-6 max-w-2xl mx-auto drop-shadow-sm font-medium">
+            Sampaikan aduan pelayanan publik Anda secara langsung dan transparan kepada redaksi Jurnal Wave.
           </p>
+
+          {/* 2 Tombol Aksi (Photo 2) */}
+          <div className="mb-6 sm:mb-8">
+            <CategoryCards />
+          </div>
 
           {/* Search Bar */}
           <form
@@ -80,7 +85,7 @@ export default async function HaloJurnalLandingPage() {
                 <input
                   name="search"
                   className="flex-1 bg-transparent border-none outline-none px-3 py-2 text-on-surface placeholder:text-secondary text-xs sm:text-base min-w-0"
-                  placeholder="Cari laporan publik, jalan rusak, fasilitas..."
+                  placeholder="Cari aduan publik, jalan rusak, fasilitas..."
                   type="text"
                 />
               </div>
@@ -88,17 +93,14 @@ export default async function HaloJurnalLandingPage() {
                 type="submit"
                 className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>Cari Laporan</span>
+                <span>Cari Aduan</span>
               </button>
             </div>
           </form>
         </div>
       </section>
 
-      {/* Category Cards Section */}
-      <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 -mt-14 sm:-mt-20 md:-mt-32 relative z-30 pb-8 sm:pb-12">
-        <CategoryCards />
-      </section>
+      
 
       {/* Recent Reports Grid */}
       <section className="bg-surface-container-low/60 border-y border-outline-variant/60 py-8 sm:py-10 px-4 sm:px-6 md:px-8">
@@ -106,7 +108,7 @@ export default async function HaloJurnalLandingPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-5 sm:mb-6">
             <div>
               <h2 className="font-heading font-bold text-xl sm:text-2xl text-on-surface tracking-tight">
-                Laporan Publik Terkini
+                Aduan Publik Terkini
               </h2>
               <p className="text-secondary text-xs sm:text-sm mt-0.5">
                 Pantau perkembangan penanganan pengaduan masyarakat secara terbuka.
@@ -117,7 +119,7 @@ export default async function HaloJurnalLandingPage() {
               href="/halo-jurnal/feed-publik"
               className="group inline-flex items-center gap-1.5 text-primary hover:text-primary-dark font-semibold text-xs sm:text-sm transition-colors cursor-pointer self-start sm:self-auto"
             >
-              <span className="group-hover:underline underline-offset-4">Lihat Semua Laporan</span>
+              <span className="group-hover:underline underline-offset-4">Lihat Semua Aduan</span>
               <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
           </div>
@@ -137,8 +139,8 @@ export default async function HaloJurnalLandingPage() {
                   {totalLaporan || 0}
                 </span>
                 <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  <span className="sm:hidden">Laporan</span>
-                  <span className="hidden sm:inline">Laporan Masuk</span>
+                  <span className="sm:hidden">Aduan</span>
+                  <span className="hidden sm:inline">Aduan Masuk</span>
                 </span>
                 <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                   Aspirasi warga

@@ -4,24 +4,19 @@ import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import {
   FileText,
-  Clock,
   ArrowRight,
   ExternalLink,
   MessageSquare,
-  CheckCircle2,
-  AlertCircle,
   Search,
-  MapPin,
-  Tag,
-  BarChart3,
-  ShieldCheck,
+  Globe,
+  Lock,
   Inbox,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
 
 export default function AdminHaloJurnalDashboardPage() {
   const [reportsList, setReportsList] = useState<DummyReport[]>([])
-  const [statusFilter, setStatusFilter] = useState<string>('semua')
+  const [tabFilter, setTabFilter] = useState<'semua' | 'publik' | 'privat'>('semua')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [unreadChatCount, setUnreadChatCount] = useState<number>(0)
 
@@ -56,7 +51,7 @@ export default function AdminHaloJurnalDashboardPage() {
           }
         }
       } catch (err) {
-        console.warn('Gagal memuat laporan Hallo Jurnal:', err)
+        console.warn('Gagal memuat aduan Hallo Jurnal:', err)
       }
 
       if (typeof window !== 'undefined') {
@@ -115,129 +110,42 @@ export default function AdminHaloJurnalDashboardPage() {
     }
   }, [])
 
-  // Normalisasi Kategori Rapi
-  const formatCategory = (cat: string) => {
-    if (!cat) return 'Umum'
-    const clean = cat.trim()
-    const lower = clean.toLowerCase()
-    if (lower.includes('keamanan') || lower.includes('tertib')) return 'Keamanan'
-    if (lower.includes('lingkungan') || lower.includes('sampah')) return 'Lingkungan'
-    if (lower.includes('infrastruktur') || lower.includes('jalan')) return 'Infrastruktur'
-    if (lower.includes('anggaran') || lower.includes('keuangan')) return 'Anggaran'
-    if (lower.includes('kesehatan') || lower.includes('medis')) return 'Kesehatan'
-    if (lower.includes('pendidikan') || lower.includes('sekolah')) return 'Pendidikan'
-    if (lower.includes('pelayanan') || lower.includes('layanan')) return 'Layanan Publik'
-    return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase()
-  }
-
-  // Metrics Resmi Sinkron dengan Alur Tiket & Warga
+  // Metrics Aduan Warga
   const totalReports = reportsList.length
-  const diterimaReports = reportsList.filter((r) => r.status === 'diterima').length
-  const diprosesReports = reportsList.filter((r) => r.status === 'diproses').length
-  const ditindaklanjutiReports = reportsList.filter((r) => r.status === 'ditindaklanjuti').length
-  const selesaiReports = reportsList.filter((r) => r.status === 'selesai').length
+  const totalPublik = useMemo(
+    () => reportsList.filter((r) => r.is_public || (r as any).visibilitas === 'publik').length,
+    [reportsList]
+  )
+  const totalPrivat = totalReports - totalPublik
 
-  // Sebaran Isu Warga (Top Kategori Masalah)
-  const categoryStats = useMemo(() => {
-    const counts: Record<string, number> = {}
-    reportsList.forEach((r) => {
-      const cat = formatCategory(r.kategori)
-      counts[cat] = (counts[cat] || 0) + 1
-    })
-    const total = reportsList.length || 1
-    return Object.entries(counts)
-      .map(([name, count]) => ({
-        name,
-        count,
-        percentage: Math.round((count / total) * 100),
-      }))
-      .sort((a, b) => b.count - a.count)
-  }, [reportsList])
-
-  // Filtered reports untuk tabel operasional resmi
+  // Filtered reports
   const filteredReports = useMemo(() => {
     return reportsList.filter((item) => {
-      if (statusFilter !== 'semua') {
-        if (item.status !== statusFilter) return false
-      }
+      const isItemPublic = item.is_public || (item as any).visibilitas === 'publik'
+      if (tabFilter === 'publik' && !isItemPublic) return false
+      if (tabFilter === 'privat' && isItemPublic) return false
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase()
         const matchTicket = item.nomor_tiket?.toLowerCase().includes(q)
         const matchTitle = item.judul?.toLowerCase().includes(q)
         const matchDesc = item.deskripsi?.toLowerCase().includes(q)
-        const matchLoc = item.lokasi?.toLowerCase().includes(q)
-        if (!matchTicket && !matchTitle && !matchDesc && !matchLoc) return false
+        if (!matchTicket && !matchTitle && !matchDesc) return false
       }
       return true
     })
-  }, [reportsList, statusFilter, searchQuery])
-
-  // Status Badge Bersih
-  const renderStatusBadge = (status: DummyReport['status'], jenisOrKategori?: string) => {
-    const isStory = (jenisOrKategori || '').toLowerCase().includes('inspirasi')
-    if (isStory) {
-      if (status === 'selesai') {
-        return (
-          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Disetujui & Tayang
-          </span>
-        )
-      }
-      if (status === 'ditindaklanjuti') {
-        return (
-          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-300">
-            🌟 Liputan Berita
-          </span>
-        )
-      }
-      if (status === 'diproses') {
-        return (
-          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
-            Sedang Dikurasi
-          </span>
-        )
-      }
-      if (status === 'ditolak') {
-        return (
-          <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-            Tidak Lolos
-          </span>
-        )
-      }
-      return (
-        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
-          Menunggu Kurasi
-        </span>
-      )
-    }
-
-    const labels: Record<string, string> = {
-      diterima: 'Diterima',
-      diproses: 'Diproses',
-      ditindaklanjuti: 'Ditindaklanjuti',
-      selesai: 'Selesai',
-      ditolak: 'Ditolak',
-    }
-    const label = labels[status] || status
-
-    return (
-      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
-        {label}
-      </span>
-    )
-  }
+  }, [reportsList, tabFilter, searchQuery])
 
   return (
     <div className="space-y-6">
-      {/* 1. Header Khusus Dashboard Pemantauan Hallo Jurnal */}
+      {/* 1. Header Dashboard Pemantauan Hallo Jurnal */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
             Dashboard Pemantauan Hallo Jurnal
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Ruang kendali cepat verifikasi aduan masuk, sebaran isu masyarakat, dan tindak lanjut laporan aktif.
+            Ruang kendali cepat verifikasi aduan masuk, moderasi tayang, dan respon pesan warga.
           </p>
         </div>
 
@@ -265,8 +173,8 @@ export default function AdminHaloJurnalDashboardPage() {
         </div>
       </div>
 
-      {/* 2. Lima Kartu Metrik Hallo Jurnal (Sinkron 1-to-1 dengan Alur Tiket & Warga) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* 2. Kartu Metrik Aduan Warga (Selaras dengan Pilihan Warga) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -277,127 +185,64 @@ export default function AdminHaloJurnalDashboardPage() {
           <p className="text-2xl font-extrabold font-heading text-slate-900">
             {totalReports}
           </p>
-          <p className="text-[11px] text-slate-500">Semua laporan warga</p>
+          <p className="text-[11px] text-slate-500">Semua aduan terdaftar</p>
         </div>
 
         <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Diterima
+              Tayang Publik
             </span>
-            <Inbox className="w-4 h-4 text-slate-400" />
+            <Globe className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {diterimaReports}
+            {totalPublik}
           </p>
-          <p className="text-[11px] text-slate-500">Menunggu verifikasi awal</p>
+          <p className="text-[11px] text-slate-500">Terbuka di portal warga</p>
         </div>
 
         <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Diproses
+              Aduan Privat
             </span>
-            <Clock className="w-4 h-4 text-slate-400" />
+            <Lock className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {diprosesReports}
+            {totalPrivat}
           </p>
-          <p className="text-[11px] text-slate-500">Pemeriksaan & investigasi</p>
+          <p className="text-[11px] text-slate-500">Tertutup khusus redaksi</p>
         </div>
 
         <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Ditindaklanjuti
+              Pesan Warga
             </span>
-            <ShieldCheck className="w-4 h-4 text-slate-400" />
+            <MessageSquare className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {ditindaklanjutiReports}
+            {unreadChatCount}
           </p>
-          <p className="text-[11px] text-slate-500">Penanganan dinas/instansi</p>
-        </div>
-
-        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 col-span-2 sm:col-span-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Selesai
-            </span>
-            <CheckCircle2 className="w-4 h-4 text-slate-400" />
-          </div>
-          <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {selesaiReports}
-          </p>
-          <p className="text-[11px] text-slate-500">Laporan tuntas diselesaikan</p>
+          <p className="text-[11px] text-slate-500">Pesan belum terbaca</p>
         </div>
       </div>
 
-      {/* 3. Widget Sebaran Isu Warga (Top Kategori Masalah) */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-          <div>
-            <h2 className="text-sm font-heading font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-[#c00015]" />
-              <span>Sebaran Isu Masyarakat Sukabumi</span>
-              <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
-                {totalReports} Laporan Terdaftar
-              </span>
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Pemetaan topik keluhan warga untuk menentukan fokus liputan redaksi dan atensi stakeholder.
-            </p>
-          </div>
-          {categoryStats.length > 0 && (
-            <div className="text-xs text-slate-600 bg-slate-50 px-3 py-1 rounded-lg border border-slate-200">
-              Top Isu:{' '}
-              <span className="font-bold text-slate-900">
-                {categoryStats[0].name} ({categoryStats[0].percentage}%)
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {categoryStats.slice(0, 4).map((cat) => (
-            <div
-              key={cat.name}
-              className="p-3 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-2 hover:bg-slate-50 transition"
-            >
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-800 line-clamp-1">{cat.name}</span>
-                <span className="text-slate-500 font-mono text-[11px]">
-                  {cat.count} ({cat.percentage}%)
-                </span>
-              </div>
-              <div className="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="bg-[#c00015] h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.max(cat.percentage, 8)}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 4. Panel Tabel Aduan Sinkron dengan Alur Tiket & Warga */}
+      {/* 3. Panel Tabel Aduan Warga */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
         {/* Filter Bar */}
         <div className="p-3.5 sm:p-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             {[
-              { key: 'semua', label: `Total Aduan (${totalReports})` },
-              { key: 'diterima', label: `Diterima (${diterimaReports})` },
-              { key: 'diproses', label: `Diproses (${diprosesReports})` },
-              { key: 'ditindaklanjuti', label: `Ditindaklanjuti (${ditindaklanjutiReports})` },
-              { key: 'selesai', label: `Selesai (${selesaiReports})` },
+              { key: 'semua' as const, label: `Semua Aduan (${totalReports})` },
+              { key: 'publik' as const, label: `Tayang Publik (${totalPublik})` },
+              { key: 'privat' as const, label: `Privat (${totalPrivat})` },
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setStatusFilter(tab.key)}
+                onClick={() => setTabFilter(tab.key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                  statusFilter === tab.key
+                  tabFilter === tab.key
                     ? 'bg-[#c00015] text-white shadow-2xs'
                     : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
                 }`}
@@ -413,22 +258,22 @@ export default function AdminHaloJurnalDashboardPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nomor tiket, judul, lokasi..."
+              placeholder="Cari nomor tiket atau judul pengaduan..."
               className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-white border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#c00015]"
             />
           </div>
         </div>
 
-        {/* Tabel Laporan Aduan */}
+        {/* Tabel Pengaduan */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 text-slate-500 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
               <tr>
-                <th className="py-3 px-4">No. Tiket</th>
-                <th className="py-3 px-4">Uraian Laporan</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Tanggal Masuk</th>
-                <th className="py-3 px-4 text-right">Aksi</th>
+                <th className="py-3 px-4 w-[160px]">No. Tiket</th>
+                <th className="py-3 px-4">Uraian Pengaduan</th>
+                <th className="py-3 px-4 w-[120px]">Visibilitas</th>
+                <th className="py-3 px-4 w-[140px]">Tanggal Masuk</th>
+                <th className="py-3 px-4 text-right w-[110px]">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -436,55 +281,57 @@ export default function AdminHaloJurnalDashboardPage() {
                 <tr>
                   <td colSpan={5} className="py-10 text-center text-slate-400 space-y-1">
                     <p className="font-semibold text-slate-700">Tidak ada aduan dalam filter ini</p>
-                    <p className="text-[11px]">Semua laporan pada kategori ini sudah tertangani atau belum tersedia.</p>
+                    <p className="text-[11px]">Belum ada data aduan yang sesuai dengan kriteria pencarian.</p>
                   </td>
                 </tr>
               ) : (
-                filteredReports.slice(0, 10).map((rep) => (
-                  <tr key={rep.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3.5 px-4 whitespace-nowrap font-mono font-semibold text-slate-800">
-                      {rep.nomor_tiket}
-                    </td>
-                    <td className="py-3.5 px-4 max-w-sm">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
-                          {formatCategory(rep.kategori)}
-                        </span>
-                      </div>
-                      <h4 className="font-semibold text-slate-900 line-clamp-1">
-                        {rep.judul}
-                      </h4>
-                      <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
-                        {rep.deskripsi}
-                      </p>
-                      {rep.lokasi && (
-                        <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3 text-[#c00015] shrink-0" />
-                          <span className="line-clamp-1">{rep.lokasi}</span>
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {renderStatusBadge(rep.status, (rep as any).jenis || rep.kategori)}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap text-slate-500 text-[11px]">
-                      {new Date(rep.created_at).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap text-right">
-                      <Link
-                        href={`/halo-jurnal/admin/laporan/${rep.id}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition"
-                      >
-                        <span>Detail Tiket</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                filteredReports.slice(0, 10).map((rep) => {
+                  const isItemPublic = rep.is_public || (rep as any).visibilitas === 'publik'
+                  return (
+                    <tr key={rep.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3.5 px-4 whitespace-nowrap font-mono font-semibold text-slate-800">
+                        {rep.nomor_tiket}
+                      </td>
+                      <td className="py-3.5 px-4 max-w-sm">
+                        <h4 className="font-semibold text-slate-900 line-clamp-1">
+                          {rep.judul}
+                        </h4>
+                        <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+                          {rep.deskripsi}
+                        </p>
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {isItemPublic ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            <Globe className="w-3 h-3 text-slate-400" />
+                            <span>Publik</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            <Lock className="w-3 h-3 text-slate-400" />
+                            <span>Privat</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-500 text-[11px]">
+                        {new Date(rep.created_at).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap text-right">
+                        <Link
+                          href={`/halo-jurnal/admin/laporan/${rep.id}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition"
+                        >
+                          <span>Detail Tiket</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

@@ -234,10 +234,10 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
       return { section: 'Hallo Jurnal', page: 'Dashboard Pemantauan', sectionHref: '/halo-jurnal/admin/halo' }
     }
     if (pathname?.startsWith('/halo-jurnal/admin/laporan/')) {
-      return { section: 'Hallo Jurnal', page: 'Detail Investigasi Laporan', sectionHref: '/halo-jurnal/admin/laporan' }
+      return { section: 'Hallo Jurnal', page: 'Detail Pengaduan Warga', sectionHref: '/halo-jurnal/admin/laporan' }
     }
     if (pathname === '/halo-jurnal/admin/laporan') {
-      return { section: 'Hallo Jurnal', page: 'Buku Induk Laporan', sectionHref: '/halo-jurnal/admin/laporan' }
+      return { section: 'Hallo Jurnal', page: 'Buku Induk Pengaduan', sectionHref: '/halo-jurnal/admin/laporan' }
     }
     if (pathname === '/halo-jurnal/admin/chat') {
       return { section: 'Hallo Jurnal', page: 'Pusat Chat Warga', sectionHref: '/halo-jurnal/admin/chat' }

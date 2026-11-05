@@ -9,78 +9,33 @@ export const REPORT_CATEGORIES_BY_TYPE: Record<ReportType, string[]> = {
     'Kesehatan',
     'Lainnya',
   ],
-  aspirasi: [
-    'Pembangunan Daerah',
-    'Program Kemasyarakatan',
-    'Inovasi Pelayanan',
-    'Fasilitas Umum',
-    'Lainnya',
-  ],
-  informasi: [
-    'Kebijakan',
-    'Data Statistik',
-    'Anggaran',
-    'Laporan Kegiatan',
-    'Lainnya',
-  ],
-  inspirasi: [
-    'Gotong Royong',
-    'Prestasi Warga',
-    'UMKM & Ekonomi Lokal',
-    'Komunitas & Kegiatan Sosial',
-    'Lainnya',
-  ],
+  aspirasi: [],
+  informasi: [],
+  inspirasi: [],
 }
 
 // Seluruh daftar kategori unik yang selaras di semua halaman Hallo Jurnal
 export const ALL_REPORT_CATEGORIES: string[] = [
-  // Pengaduan
   'Infrastruktur',
+  'Pelayanan Publik',
   'Kebersihan Lingkungan',
   'Keamanan & Ketertiban',
-  'Pelayanan Publik',
   'Kesehatan',
-  // Aspirasi
-  'Pembangunan Daerah',
-  'Program Kemasyarakatan',
-  'Inovasi Pelayanan',
-  'Fasilitas Umum',
-  // Informasi
-  'Kebijakan',
-  'Data Statistik',
-  'Anggaran',
-  'Laporan Kegiatan',
-  // Inspirasi
-  'Gotong Royong',
-  'Prestasi Warga',
-  'UMKM & Ekonomi Lokal',
-  'Komunitas & Kegiatan Sosial',
-  // Umum
   'Lainnya',
 ]
 
 /**
  * Mendapatkan daftar kategori yang selaras berdasarkan jenis laporan yang dipilih.
- * Jika 'Semua Jenis' atau tidak ditentukan, mengembalikan seluruh kategori.
  */
-export function getCategoriesForJenis(jenis?: string | null): string[] {
-  if (!jenis || jenis === 'Semua Jenis') {
-    return ALL_REPORT_CATEGORIES
-  }
-
-  const key = jenis.toLowerCase().trim() as ReportType
-  if (REPORT_CATEGORIES_BY_TYPE[key]) {
-    return REPORT_CATEGORIES_BY_TYPE[key]
-  }
-
+export function getCategoriesForJenis(_jenis?: string | null): string[] {
   return ALL_REPORT_CATEGORIES
 }
 
 /**
- * Normalisasi nama kategori (misal: 'ANGGARAN' -> 'Anggaran', 'keamanan' -> 'Keamanan & Ketertiban')
+ * Normalisasi nama kategori (misal: 'keamanan' -> 'Keamanan & Ketertiban')
  */
 export function normalizeCategoryName(rawCategory?: string | null): string {
-  if (!rawCategory) return 'Lainnya'
+  if (!rawCategory) return 'Pengaduan Warga'
   const trimmed = rawCategory.trim()
   const lower = trimmed.toLowerCase()
 
@@ -90,21 +45,15 @@ export function normalizeCategoryName(rawCategory?: string | null): string {
   // Alias kompatibilitas jika ada data lama
   if (lower === 'keamanan') return 'Keamanan & Ketertiban'
   if (lower === 'kebersihan') return 'Kebersihan Lingkungan'
-  if (lower === 'pembangunan') return 'Pembangunan Daerah'
+  if (lower === 'pembangunan') return 'Infrastruktur'
+  if (lower === 'pengaduan' || lower === 'pengaduan warga') return 'Pengaduan Warga'
 
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
 }
 
 /**
- * Mendapatkan jenis laporan ('pengaduan' | 'aspirasi' | 'informasi' | 'inspirasi') berdasarkan nama kategori.
+ * Mendapatkan jenis laporan ('pengaduan') berdasarkan nama kategori.
  */
-export function getJenisForCategory(category?: string | null): ReportType {
-  if (!category) return 'pengaduan'
-  const norm = normalizeCategoryName(category).toLowerCase()
-  for (const [jenis, cats] of Object.entries(REPORT_CATEGORIES_BY_TYPE)) {
-    if (cats.some((c) => c.toLowerCase() === norm)) {
-      return jenis as ReportType
-    }
-  }
+export function getJenisForCategory(_category?: string | null): ReportType {
   return 'pengaduan'
 }

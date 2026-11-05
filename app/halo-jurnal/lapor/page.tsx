@@ -1,206 +1,65 @@
 'use client'
 
 import { useState, useEffect, useRef, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import LocationPicker from '@/components/halo-jurnal/LocationPicker'
 import {
-  AlertTriangle,
-  Lightbulb,
-  Info,
-  BookOpen,
   UploadCloud,
   Send,
   Loader2,
-  CheckCircle2,
-  HelpCircle,
   X,
   FileText,
-  Calendar,
-  MapPin,
-  Eye,
   Image as ImageIcon,
+  Video as VideoIcon,
   User,
   ShieldCheck,
   LogIn,
+  Info,
 } from 'lucide-react'
-
-type ReportType = 'pengaduan' | 'aspirasi' | 'informasi' | 'inspirasi'
-
-interface FormConfig {
-  headerTitle: string
-  headerDesc: string
-  titleLabel: string
-  titlePlaceholder: string
-  descLabel: string
-  descPlaceholder: string
-  locationLabel: string
-  categories: string[]
-  submitText: string
-  sidebarInfo: string
-}
-
-import { REPORT_CATEGORIES_BY_TYPE } from '@/data/haloJurnalCategories'
-
-const formConfigs: Record<ReportType, FormConfig> = {
-  pengaduan: {
-    headerTitle: 'Formulir Pengaduan Warga',
-    headerDesc:
-      'Formulir resmi pelaporan masalah atau keluhan pelayanan publik. Pastikan data yang Anda masukkan valid untuk mempercepat proses penanganan.',
-    titleLabel: 'Judul Pengaduan',
-    titlePlaceholder: 'Contoh: Jalan rusak berlubang di depan RT 05 Cisaat',
-    descLabel: 'Detail Pengaduan / Keluhan',
-    descPlaceholder: 'Jelaskan masalah yang Anda alami secara detail dan kronologinya...',
-    locationLabel: 'Lokasi Kejadian',
-    categories: REPORT_CATEGORIES_BY_TYPE.pengaduan,
-    submitText: 'Kirim Pengaduan',
-    sidebarInfo:
-      'Laporan pengaduan Anda akan ditindaklanjuti oleh tim Redaksi Jurnal Sukabumi dalam waktu 2x24 jam.',
-  },
-  aspirasi: {
-    headerTitle: 'Formulir Aspirasi & Usulan',
-    headerDesc: 'Formulir penyampaian ide, gagasan, atau harapan warga untuk kemajuan bersama Sukabumi.',
-    titleLabel: 'Judul Aspirasi / Usulan',
-    titlePlaceholder: 'Contoh: Usulan revitalisasi taman bermain di RW 03',
-    descLabel: 'Rincian Ide / Usulan',
-    descPlaceholder: 'Jelaskan ide atau harapan Anda untuk kemajuan bersama...',
-    locationLabel: 'Lokasi Target / Scope Usulan',
-    categories: REPORT_CATEGORIES_BY_TYPE.aspirasi,
-    submitText: 'Kirim Aspirasi',
-    sidebarInfo:
-      'Aspirasi Anda akan didokumentasikan dan dipublikasikan untuk menjadi pertimbangan instansi terkait.',
-  },
-  informasi: {
-    headerTitle: 'Permohonan Informasi Publik',
-    headerDesc:
-      'Ajukan permintaan data atau kebijakan resmi melalui sistem keterbukaan informasi yang dikelola tim Jurnal Sukabumi.',
-    titleLabel: 'Judul Permohonan',
-    titlePlaceholder: 'Contoh: Permintaan Data Anggaran Kebersihan 2024',
-    descLabel: 'Rincian Permohonan',
-    descPlaceholder:
-      'Jelaskan informasi apa yang Anda butuhkan dan untuk keperluan apa secara mendetail.',
-    locationLabel: 'Wilayah / Scope Informasi',
-    categories: REPORT_CATEGORIES_BY_TYPE.informasi,
-    submitText: 'Ajukan Permohonan',
-    sidebarInfo:
-      'Permohonan akan diproses maksimal 10 hari kerja sesuai UU Keterbukaan Informasi Publik.',
-  },
-  inspirasi: {
-    headerTitle: 'Bagikan Cerita Inspirasi',
-    headerDesc:
-      'Ceritakan kegiatan positif atau inovasi yang terjadi di lingkungan Anda untuk menginspirasi warga Sukabumi lainnya!',
-    titleLabel: 'Judul Cerita',
-    titlePlaceholder: 'Contoh: Gotong Royong Warga Bersihkan Sungai Cimandiri',
-    descLabel: 'Ceritakan Kegiatannya',
-    descPlaceholder:
-      'Ceritakan kegiatan atau hal positif yang terjadi, siapa yang terlibat, dan dampaknya...',
-    locationLabel: 'Lokasi Kegiatan (Opsional)',
-    categories: REPORT_CATEGORIES_BY_TYPE.inspirasi,
-    submitText: 'Bagikan Cerita',
-    sidebarInfo:
-      'Cerita Anda akan diverifikasi oleh Redaksi. Setelah disetujui, cerita akan tayang di Feed Publik.',
-  },
-}
-
-const instansiList = [
-  'Dinas Pekerjaan Umum & Tata Ruang',
-  'Dinas Kesehatan',
-  'Dinas Lingkungan Hidup',
-  'Satpol PP',
-  'Dinas Pendidikan',
-  'Dinas Perhubungan',
-  'Dinas Sosial',
-  'Lainnya',
-]
-
-const jenisInformasiList = REPORT_CATEGORIES_BY_TYPE.informasi
 
 function LaporForm() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-
-  const rawType = searchParams.get('type') || 'pengaduan'
-  const initialType: ReportType = ['pengaduan', 'aspirasi', 'informasi', 'inspirasi'].includes(rawType)
-    ? (rawType as ReportType)
-    : 'pengaduan'
-
-  const [activeType, setActiveType] = useState<ReportType>(initialType)
-
-  useEffect(() => {
-    const paramType = searchParams.get('type')
-    if (paramType && ['pengaduan', 'aspirasi', 'informasi', 'inspirasi'].includes(paramType)) {
-      setActiveType(paramType as ReportType)
-    }
-  }, [searchParams])
-
-  const reportType = activeType
-  const config = formConfigs[reportType]
 
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
 
   // Form State
-  const [category, setCategory] = useState('')
-  const [customCategory, setCustomCategory] = useState('')
-  const [instansi, setInstansi] = useState('')
-  const [customInstansi, setCustomInstansi] = useState('')
-  const [jenisInformasi, setJenisInformasi] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [locationData, setLocationData] = useState<{
-    address: string
-    lat: number | null
-    lng: number | null
-  }>({
-    address: '',
-    lat: null,
-    lng: null,
-  })
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [isAnonymous, setIsAnonymous] = useState(true)
+
+  // Identitas & Legalitas
+  const [isAnonymous, setIsAnonymous] = useState(false)
   const [legalAgreed, setLegalAgreed] = useState(false)
 
   useEffect(() => {
-    const checkUser = () => {
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('halo_jurnal_current_user')
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored)
-            if (
-              parsed &&
-              (parsed.id === 'demo-user-id' ||
-                parsed.id === 'warga-demo' ||
-                parsed.email === 'warga@sukabumi.com' ||
-                (typeof parsed.id === 'string' && parsed.id.startsWith('warga-17')))
-            ) {
-              localStorage.removeItem('halo_jurnal_current_user')
-            } else {
-              setUser(parsed)
-              return
-            }
-          } catch {}
+    // Sinkronisasi data user aktif
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('halo_jurnal_current_user')
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored)
+          if (
+            parsed &&
+            (parsed.id === 'demo-user-id' ||
+              parsed.id === 'warga-demo' ||
+              parsed.email === 'warga@sukabumi.com' ||
+              (typeof parsed.id === 'string' && parsed.id.startsWith('warga-17')))
+          ) {
+            localStorage.removeItem('halo_jurnal_current_user')
+            setUser(null)
+          } else {
+            setUser(parsed)
+          }
+        } catch {
+          setUser(null)
         }
       }
-      setUser(null)
     }
-    checkUser()
-    window.addEventListener('storage', checkUser)
-    return () => window.removeEventListener('storage', checkUser)
   }, [])
-
-  const handleTabChange = (newType: ReportType) => {
-    setActiveType(newType)
-    setCategory('')
-    setCustomCategory('')
-    setInstansi('')
-    setCustomInstansi('')
-    setJenisInformasi('')
-    router.push(`/halo-jurnal/lapor?type=${newType}`, { scroll: false })
-  }
 
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -241,6 +100,10 @@ function LaporForm() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0]
+      if (selectedFile.size > 50 * 1024 * 1024) {
+        alert('Ukuran file maksimal 50MB.')
+        return
+      }
       setFile(selectedFile)
 
       if (selectedFile.type.startsWith('image/')) {
@@ -248,11 +111,13 @@ function LaporForm() {
           .then((compressed) => setPreviewUrl(compressed))
           .catch(() => {
             const reader = new FileReader()
-            reader.onload = (ev) => setPreviewUrl(ev.target?.result as string)
+            reader.onload = () => setPreviewUrl(reader.result as string)
             reader.readAsDataURL(selectedFile)
           })
       } else {
-        setPreviewUrl(null)
+        const reader = new FileReader()
+        reader.onload = () => setPreviewUrl(reader.result as string)
+        reader.readAsDataURL(selectedFile)
       }
     }
   }
@@ -261,59 +126,55 @@ function LaporForm() {
     e.preventDefault()
     setDragOver(false)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const selectedFile = e.dataTransfer.files[0]
-      setFile(selectedFile)
-      if (selectedFile.type.startsWith('image/')) {
-        compressImage(selectedFile)
+      const droppedFile = e.dataTransfer.files[0]
+      if (droppedFile.size > 50 * 1024 * 1024) {
+        alert('Ukuran file maksimal 50MB.')
+        return
+      }
+      setFile(droppedFile)
+
+      if (droppedFile.type.startsWith('image/')) {
+        compressImage(droppedFile)
           .then((compressed) => setPreviewUrl(compressed))
           .catch(() => {
             const reader = new FileReader()
-            reader.onload = (ev) => setPreviewUrl(ev.target?.result as string)
-            reader.readAsDataURL(selectedFile)
+            reader.onload = () => setPreviewUrl(reader.result as string)
+            reader.readAsDataURL(droppedFile)
           })
       } else {
-        setPreviewUrl(null)
+        const reader = new FileReader()
+        reader.onload = () => setPreviewUrl(reader.result as string)
+        reader.readAsDataURL(droppedFile)
       }
     }
   }
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
 
-    // Upload bukti pendukung WAJIB minimal 1 file untuk semua laporan
+    if (!user) {
+      alert('Silakan masuk ke akun warga terlebih dahulu untuk mengirim pengaduan.')
+      router.push('/login?redirect=/halo-jurnal/lapor')
+      return
+    }
+
+    if (!title.trim() || !description.trim()) {
+      alert('Mohon isi judul dan deskripsi aduan secara lengkap.')
+      return
+    }
+
     if (!file) {
-      alert('Bukti pendukung (foto/video/dokumen) wajib dilampirkan minimal 1 berkas.')
+      alert('Mohon lampirkan bukti foto atau video pengaduan.')
       return
     }
 
     if (!legalAgreed) {
-      alert('Anda wajib mencentang Pernyataan Pertanggungjawaban Hukum sebelum mengirim laporan.')
+      alert('Anda wajib menyetujui pernyataan pertanggungjawaban hukum.')
       return
-    }
-
-    // Validation
-    if (reportType === 'inspirasi') {
-      if (!category || !title || !description) {
-        alert('Mohon lengkapi Kategori, Judul, dan Isi Cerita.')
-        return
-      }
-    } else if (reportType === 'informasi') {
-      if (!instansi || !jenisInformasi || !title || !description || !locationData.address) {
-        alert('Mohon lengkapi semua field yang wajib (Instansi, Jenis, Judul, Rincian, dan Lokasi).')
-        return
-      }
-    } else {
-      if (!category || !title || !description || !locationData.address) {
-        alert('Mohon lengkapi semua field yang wajib (Kategori, Judul, Isi Laporan, dan Lokasi).')
-        return
-      }
     }
 
     setLoading(true)
     try {
-      // Generate ticket number: JS-YYYYMMDD-XXXX
       const date = new Date()
       const yyyy = date.getFullYear()
       const mm = String(date.getMonth() + 1).padStart(2, '0')
@@ -321,18 +182,10 @@ function LaporForm() {
       const random4 = Math.floor(1000 + Math.random() * 9000)
       const ticketNumber = `JS-${yyyy}${mm}${dd}-${random4}`
 
-      let finalKategori = reportType === 'informasi' ? jenisInformasi : category
-      if (finalKategori === 'Lainnya' && customCategory.trim()) {
-        finalKategori = customCategory.trim()
-      }
-      let finalInstansi = instansi
-      if (reportType === 'informasi' && finalInstansi === 'Lainnya' && customInstansi.trim()) {
-        finalInstansi = customInstansi.trim()
-      }
-
+      const finalKategori = 'Pengaduan Warga'
       const newReportId = `lap-sukabumi-${Date.now()}`
       const pelaporDisplayName = user?.user_metadata?.full_name || user?.full_name || user?.email?.split('@')[0] || 'Warga Sukabumi'
-      const pelaporDomisili = user?.alamat_domisili || user?.detail_alamat || (reportType === 'inspirasi' ? 'Sukabumi' : '')
+      const pelaporDomisili = user?.alamat_domisili || user?.detail_alamat || 'Sukabumi'
 
       const newReportData = {
         id: newReportId,
@@ -349,22 +202,22 @@ function LaporForm() {
         is_anonymous: isAnonymous,
         legal_agreement: true,
         legal_agreed_at: new Date().toISOString(),
-        jenis: reportType,
+        jenis: 'pengaduan',
         kategori: finalKategori,
-        judul: title,
-        deskripsi: description,
-        lokasi: locationData.address || (reportType === 'inspirasi' ? 'Sukabumi' : ''),
-        latitude: locationData.lat,
-        longitude: locationData.lng,
-        instansi_tujuan: reportType === 'informasi' ? finalInstansi : null,
-        jenis_informasi: reportType === 'informasi' ? finalKategori : null,
+        judul: title.trim(),
+        deskripsi: description.trim(),
+        lokasi: pelaporDomisili,
+        latitude: null,
+        longitude: null,
+        instansi_tujuan: null,
+        jenis_informasi: null,
         status: 'diterima',
         is_public: false,
         dukungan_count: 0,
         komentar_count: 0,
         created_at: new Date().toISOString(),
         laporan_lampiran: previewUrl
-          ? [{ id: `lamp-${Date.now()}`, file_url: previewUrl, file_type: file?.type }]
+          ? [{ id: `lamp-${Date.now()}`, file_url: previewUrl, file_type: file?.type || (previewUrl.startsWith('data:video') ? 'video/mp4' : 'image/jpeg') }]
           : [],
         status_log: [
           {
@@ -376,22 +229,22 @@ function LaporForm() {
         ],
       }
 
-      // 1. Kirim laporan ke database MySQL XAMPP via API
+      // Kirim laporan ke database via API
       try {
         await fetch('/api/reports', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ticketNumber,
-            title,
-            description,
+            title: title.trim(),
+            description: description.trim(),
             reportType: finalKategori,
             category: finalKategori,
             kategori: finalKategori,
-            jenis: reportType,
-            address: locationData.address || '',
-            latitude: locationData.lat || null,
-            longitude: locationData.lng || null,
+            jenis: 'pengaduan',
+            address: pelaporDomisili,
+            latitude: null,
+            longitude: null,
             pelaporName: pelaporDisplayName,
             nama_pelapor: pelaporDisplayName,
             pelaporPhone: user?.phone || user?.phone_number || '',
@@ -399,6 +252,9 @@ function LaporForm() {
             pelaporEmail: user?.email || '',
             email: user?.email || '',
             previewUrl: previewUrl || '',
+            attachments: previewUrl
+              ? [{ file_url: previewUrl, file_type: file?.type || (previewUrl.startsWith('data:video') ? 'video/mp4' : 'image/jpeg') }]
+              : [],
             isAnonymous,
             legalAgreement: true,
             domisili: pelaporDomisili,
@@ -408,7 +264,7 @@ function LaporForm() {
         console.warn('Gagal simpan ke database, tetap menyimpan ke local cache:', err)
       }
 
-      // 2. Sinkronkan ke local storage
+      // Sinkronkan ke local storage
       try {
         if (typeof window !== 'undefined') {
           const prev = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
@@ -417,7 +273,7 @@ function LaporForm() {
         }
       } catch {}
 
-      // 3. Buat sesi ruang chat aktif & kirim pesan sambutan otomatis dari Redaksi
+      // Buat sesi ruang chat aktif & kirim pesan sambutan otomatis dari Redaksi
       try {
         const welcomeMessage = {
           id: `msg-welcome-${Date.now()}`,
@@ -435,7 +291,6 @@ function LaporForm() {
         localStorage.setItem(`halo_jurnal_chat_${newReportId}`, JSON.stringify([welcomeMessage]))
       } catch {}
 
-      // Transisi langsung tanpa alert popup bawaan browser
       router.push(`/halo-jurnal/laporan/${newReportId}?sukses=1#chat`)
     } catch (error: any) {
       console.error(error)
@@ -443,51 +298,16 @@ function LaporForm() {
     }
   }
 
-  const tabs = [
-    { type: 'pengaduan' as const, label: 'Pengaduan', icon: AlertTriangle },
-    { type: 'aspirasi' as const, label: 'Aspirasi', icon: Lightbulb },
-    { type: 'informasi' as const, label: 'Informasi', icon: Info },
-    { type: 'inspirasi' as const, label: 'Inspirasi', icon: BookOpen },
-  ]
-
-  const displayCategory =
-    reportType === 'informasi'
-      ? jenisInformasi || 'Pilih Jenis'
-      : category || 'Pilih Kategori'
-
   return (
     <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 pt-6 sm:pt-12 md:pt-16 pb-16">
       {/* Header Info */}
-      <div className="text-left max-w-3xl mb-6">
+      <div className="text-left max-w-3xl mb-8">
         <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight mb-2">
-          {config.headerTitle}
+          Salurkan Aduan Anda di Hallo Jurnal
         </h1>
-        <p className="text-secondary text-xs sm:text-sm leading-relaxed">{config.headerDesc}</p>
-      </div>
-
-      {/* Type Tabs: Pas 4 kolom penuh di mobile tanpa perlu digeser ke kanan */}
-      <div className="grid grid-cols-4 gap-1 sm:gap-2 p-1 sm:p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl mb-8 border border-slate-200/80 dark:border-slate-700/60 max-w-2xl">
-        {tabs.map((tab) => {
-          const Icon = tab.icon
-          const isActive = reportType === tab.type
-          return (
-            <button
-              key={tab.type}
-              type="button"
-              onClick={() => handleTabChange(tab.type)}
-              className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-1 sm:px-3 rounded-xl font-bold tracking-tight transition-all duration-200 cursor-pointer select-none text-center ${
-                isActive
-                  ? 'bg-primary text-white shadow-xs'
-                  : 'text-secondary hover:text-on-surface hover:bg-white/70 dark:hover:bg-slate-700/50'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <span className="text-[10px] sm:text-xs md:text-sm leading-tight">
-                {tab.label}
-              </span>
-            </button>
-          )
-        })}
+        <p className="text-secondary text-xs sm:text-sm leading-relaxed">
+          Wadah aduan online dan komunikasi warga, Anda secara langsung di sini.
+        </p>
       </div>
 
       {/* Main Grid: Form + Sidebar */}
@@ -498,136 +318,16 @@ function LaporForm() {
             onSubmit={handleSubmit}
             className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs space-y-5 sm:space-y-6"
           >
-            {/* Conditional: Instansi for Informasi */}
-            {reportType === 'informasi' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                    Instansi / Lembaga Tujuan <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={instansi}
-                    onChange={(e) => setInstansi(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer"
-                    required
-                  >
-                    <option value="">-- Pilih Instansi Terkait --</option>
-                    {instansiList.map((ins) => (
-                      <option key={ins} value={ins}>
-                        {ins}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {instansi === 'Lainnya' && (
-                  <div className="space-y-1.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <label className="block text-xs font-bold text-on-surface">
-                      Sebutkan Nama Instansi / Lembaga Lainnya <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={customInstansi}
-                      onChange={(e) => setCustomInstansi(e.target.value)}
-                      placeholder="Contoh: Kantor Pertanahan/BPN, Kemenag, Bawaslu..."
-                      className="w-full px-4 py-2 bg-white border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
-                      required
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Conditional: Jenis Informasi vs Category */}
-            {reportType === 'informasi' ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                    Jenis Informasi yang Diminta <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={jenisInformasi}
-                    onChange={(e) => setJenisInformasi(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer"
-                    required
-                  >
-                    <option value="">-- Pilih Jenis Informasi --</option>
-                    {jenisInformasiList.map((jenis) => (
-                      <option key={jenis} value={jenis}>
-                        {jenis}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {jenisInformasi === 'Lainnya' && (
-                  <div className="space-y-1.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <label className="block text-xs font-bold text-on-surface">
-                      Sebutkan Topik Informasi yang Diminta <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={customCategory}
-                      onChange={(e) => setCustomCategory(e.target.value)}
-                      placeholder="Contoh: Rincian Anggaran Beasiswa Daerah..."
-                      className="w-full px-4 py-2 bg-white border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
-                      required
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                    Kategori <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer"
-                    required
-                  >
-                    <option value="">-- Pilih Kategori --</option>
-                    {config.categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {category === 'Lainnya' && (
-                  <div className="space-y-1.5 p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/25 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <label className="block text-xs font-bold text-on-surface">
-                      Sebutkan Kategori / Topik Laporan Anda <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={customCategory}
-                      onChange={(e) => setCustomCategory(e.target.value)}
-                      placeholder="Contoh: Pendidikan Sekolah, Sengketa Lahan, Bantuan Sosial..."
-                      className="w-full px-4 py-2 bg-white border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
-                      required
-                    />
-                    <p className="text-[11px] text-secondary">
-                      Tuliskan topik masalah secara spesifik agar tim redaksi dapat meneruskannya ke dinas yang tepat.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Title */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                {config.titleLabel} <span className="text-rose-500">*</span>
+                Judul Pengaduan <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder={config.titlePlaceholder}
+                placeholder="Contoh: Jalan rusak berlubang di depan RT 05 Cisaat"
                 className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
                 required
               />
@@ -636,36 +336,22 @@ function LaporForm() {
             {/* Description */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                {config.descLabel} <span className="text-rose-500">*</span>
+                Deskripsi Pengaduan <span className="text-rose-500">*</span>
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                rows={5}
-                placeholder={config.descPlaceholder}
+                rows={6}
+                placeholder="Tuliskan kronologi dan rincian masalah yang Anda alami secara mendalam dan detail..."
                 className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary resize-y"
                 required
               />
             </div>
 
-            {/* Location Picker */}
+            {/* File Upload (Wajib untuk Pengaduan) */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                {config.locationLabel}{' '}
-                {reportType !== 'inspirasi' && <span className="text-rose-500">*</span>}
-              </label>
-              <LocationPicker value={locationData} onChange={setLocationData} />
-            </div>
-
-            {/* File Upload (Dinamis: Wajib untuk Pengaduan, Opsional untuk lainnya) */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                Lampiran Bukti Foto/Video{' '}
-                {reportType === 'pengaduan' ? (
-                  <span className="text-rose-500">* (Wajib)</span>
-                ) : (
-                  <span className="text-secondary font-normal lowercase">(opsional)</span>
-                )}
+                Lampiran Bukti Foto/Video <span className="text-rose-500">* (Wajib)</span>
               </label>
               <div
                 onDragOver={(e) => {
@@ -690,30 +376,45 @@ function LaporForm() {
                 />
 
                 {file ? (
-                  <div className="flex items-center justify-between gap-3 p-3 bg-surface-container rounded-xl border border-outline-variant max-w-md mx-auto">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <ImageIcon className="w-4.5 h-4.5" />
+                  <div className="p-3 bg-surface-container rounded-xl border border-outline-variant max-w-md mx-auto space-y-2.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          {file.type.startsWith('video/') ? (
+                            <VideoIcon className="w-4.5 h-4.5" />
+                          ) : (
+                            <ImageIcon className="w-4.5 h-4.5" />
+                          )}
+                        </div>
+                        <div className="min-w-0 text-left">
+                          <p className="text-xs font-bold text-on-surface truncate">{file.name}</p>
+                          <p className="text-[11px] text-secondary">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB • {file.type.startsWith('video/') ? 'Video Bukti' : 'Foto Bukti'} Terpilih
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0 text-left">
-                        <p className="text-xs font-bold text-on-surface truncate">{file.name}</p>
-                        <p className="text-[11px] text-secondary">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB • Lampiran Terpilih
-                        </p>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setFile(null)
+                          setPreviewUrl(null)
+                        }}
+                        className="w-7 h-7 rounded-lg bg-surface-container-high hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950/50 text-secondary flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                        title="Hapus file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setFile(null)
-                        setPreviewUrl(null)
-                      }}
-                      className="w-7 h-7 rounded-lg bg-surface-container-high hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950/50 text-secondary flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                      title="Hapus file"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    {previewUrl && (
+                      <div className="rounded-lg overflow-hidden border border-outline-variant/60 bg-black/5 max-h-48 flex items-center justify-center">
+                        {file.type.startsWith('video/') ? (
+                          <video src={previewUrl} controls className="max-h-44 w-full rounded" />
+                        ) : (
+                          <img src={previewUrl} alt="Preview lampiran" className="max-h-44 w-auto object-contain rounded" />
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
@@ -723,7 +424,7 @@ function LaporForm() {
                     <p className="text-xs sm:text-sm font-semibold text-on-surface mb-1">
                       Klik atau seret file foto/video ke sini
                     </p>
-                    <p className="text-[11px] text-secondary">Format JPG, PNG, MP4 (Maks. 10MB)</p>
+                    <p className="text-[11px] text-secondary">Format JPG, PNG, MP4, WebM (Maks. 50MB)</p>
                   </div>
                 )}
               </div>
@@ -825,7 +526,7 @@ function LaporForm() {
                   className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] cursor-pointer shadow-xs flex items-center justify-center gap-2"
                 >
                   <LogIn className="w-4 h-4" />
-                  <span>Masuk untuk Mengirim Laporan</span>
+                  <span>Masuk untuk Mengirim Aduan</span>
                 </Link>
               </div>
             ) : (
@@ -837,12 +538,12 @@ function LaporForm() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Mengirim Laporan...</span>
+                    <span>Mengirimkan Aduan...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>{config.submitText}</span>
+                    <span>Kirimkan aduanmu secara online</span>
                   </>
                 )}
               </button>
@@ -867,7 +568,7 @@ function LaporForm() {
             <div className="flex items-center gap-2 pb-3.5 mb-4 border-b border-outline-variant/60">
               <FileText className="w-4 h-4 text-primary" />
               <h2 className="font-heading font-bold text-sm text-on-surface">
-                Pratinjau Laporan
+                Pratinjau Aduan
               </h2>
             </div>
 
@@ -890,16 +591,9 @@ function LaporForm() {
 
             {/* Konten Laporan Bergaya Jurnal Wave */}
             <div className="space-y-2.5">
-              {/* Kategori & Tipe */}
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-primary font-bold text-xs uppercase tracking-wider">
-                  {displayCategory && displayCategory !== 'Pilih Kategori' && displayCategory !== 'Pilih Jenis'
-                    ? displayCategory
-                    : reportType}
-                </span>
-                <span className="text-secondary/40">•</span>
-                <span className="px-2 py-0.5 rounded-md bg-surface-container text-secondary text-[10px] font-semibold capitalize">
-                  {reportType}
+                  Pengaduan Warga
                 </span>
               </div>
 
@@ -909,7 +603,7 @@ function LaporForm() {
                   title.trim() ? 'text-on-surface' : 'text-secondary/50 italic font-normal'
                 }`}
               >
-                {title.trim() || 'Judul laporan Anda...'}
+                {title.trim() || 'Judul pengaduan Anda...'}
               </h3>
 
               {/* Deskripsi Laporan */}
@@ -929,23 +623,17 @@ function LaporForm() {
                       </p>
                     ))
                 ) : (
-                  <p>Detail dan kronologi kejadian yang Anda tulis akan ditampilkan di sini.</p>
+                  <p>Kronologi dan rincian aduan yang Anda tulis akan ditampilkan di sini.</p>
                 )}
-              </div>
-
-              {/* Lokasi Kejadian */}
-              <div className="flex items-center gap-1.5 text-xs text-primary font-medium pt-1">
-                <MapPin className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">
-                  {locationData.address || 'Lokasi belum ditentukan'}
-                </span>
               </div>
             </div>
 
             {/* Info Penanganan Ringkas */}
             <div className="p-3 bg-surface-container-low/70 rounded-2xl text-[11px] text-secondary leading-relaxed border border-outline-variant/50 flex items-start gap-2.5 mt-5">
               <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <span>{config.sidebarInfo}</span>
+              <span>
+                Laporan aduan Anda akan ditinjau dan ditindaklanjuti secara langsung oleh tim Redaksi Jurnal Wave dalam waktu 2x24 jam.
+              </span>
             </div>
           </div>
         </div>

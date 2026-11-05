@@ -62,11 +62,14 @@ function mapReportFromDb(item: any, supportCount = 0) {
     created_at: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     createdAt: item.createdAt,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    laporan_lampiran: (item.attachments || []).map((att: any) => ({
-      id: att.id,
-      file_url: att.fileUrl,
-      file_type: att.fileType,
-    })),
+    laporan_lampiran: (item.attachments || []).map((att: any) => {
+      const isVid = (att.fileType && att.fileType.startsWith('video/')) || att.fileUrl?.startsWith('data:video/') || att.fileUrl?.endsWith('.mp4')
+      return {
+        id: att.id,
+        file_url: att.fileUrl,
+        file_type: att.fileType || (isVid ? 'video/mp4' : 'image/jpeg'),
+      }
+    }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     status_log: (item.statusLogs || []).map((log: any) => ({
       id: log.id,
@@ -169,15 +172,33 @@ export async function POST(request: NextRequest) {
       body.nomor_tiket ||
       `TKT-SKB-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
 
-    // Lampiran foto jika ada
-    const attachmentUrls: string[] = []
-    if (data.previewUrl) attachmentUrls.push(data.previewUrl)
-    if (data.imageUrl) attachmentUrls.push(data.imageUrl)
+    // Lampiran berkas (foto/video) jika ada
+    const attachmentItems: { fileUrl: string; fileType: string }[] = []
+    if (data.previewUrl) {
+      const isVid = data.previewUrl.startsWith('data:video/') || data.previewUrl.endsWith('.mp4')
+      attachmentItems.push({
+        fileUrl: data.previewUrl,
+        fileType: isVid ? 'video/mp4' : 'image/jpeg',
+      })
+    }
+    if (data.imageUrl && !attachmentItems.some((a) => a.fileUrl === data.imageUrl)) {
+      attachmentItems.push({
+        fileUrl: data.imageUrl,
+        fileType: 'image/jpeg',
+      })
+    }
     if (Array.isArray(body.attachments)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       body.attachments.forEach((a: any) => {
         const url = typeof a === 'string' ? a : a.file_url || a.fileUrl || a.url
-        if (url) attachmentUrls.push(url)
+        const type = typeof a === 'object' ? a.file_type || a.fileType : null
+        if (url && !attachmentItems.some((att) => att.fileUrl === url)) {
+          const isVid = (type && type.startsWith('video/')) || url.startsWith('data:video/') || url.endsWith('.mp4')
+          attachmentItems.push({
+            fileUrl: url,
+            fileType: type || (isVid ? 'video/mp4' : 'image/jpeg'),
+          })
+        }
       })
     }
 
@@ -196,9 +217,9 @@ export async function POST(request: NextRequest) {
         status: 'diterima',
         isPublic: data.isPublic !== undefined ? Boolean(data.isPublic) : false,
         attachments: {
-          create: attachmentUrls.map((url) => ({
-            fileUrl: url,
-            fileType: 'image/jpeg',
+          create: attachmentItems.map((att) => ({
+            fileUrl: att.fileUrl,
+            fileType: att.fileType,
           })),
         },
         statusLogs: {
@@ -300,6 +321,54 @@ export async function PUT(request: NextRequest) {
     console.error('API Reports PUT error:', error)
     return NextResponse.json(
       { success: false, message: 'Gagal memperbarui laporan: ' + error.message },
+      { status: 500 }
+    )
+  }
+}
+
+// 4. DELETE: Hapus laporan aduan warga secara permanen oleh admin
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getAdminSession(request)
+    if (!session) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Akses ditolak: Anda harus login sebagai admin untuk menghapus aduan warga.',
+        },
+        { status: 401 }
+      )
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id') || searchParams.get('ticketNumber')
+
+    if (!id) {
+      return NextResponse.json({ success: false, message: 'ID atau nomor tiket diperlukan' }, { status: 400 })
+    }
+
+    const existing = await prisma.report.findFirst({
+      where: {
+        OR: [{ id: String(id) }, { ticketNumber: String(id) }],
+      },
+    })
+
+    if (!existing) {
+      return NextResponse.json({ success: false, message: 'Aduan tidak ditemukan' }, { status: 404 })
+    }
+
+    await prisma.report.delete({
+      where: { id: existing.id },
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Aduan berhasil dihapus secara permanen!',
+    })
+  } catch (error: any) {
+    console.error('API Reports DELETE error:', error)
+    return NextResponse.json(
+      { success: false, message: 'Gagal menghapus aduan: ' + error.message },
       { status: 500 }
     )
   }

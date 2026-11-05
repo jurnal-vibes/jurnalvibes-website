@@ -48,6 +48,7 @@ export default function HaloJurnalLaporanDetailPage() {
   const [chatFile, setChatFile] = useState<File | null>(null)
   const [hasLiked, setHasLiked] = useState(false)
   const [isLiking, setIsLiking] = useState(false)
+  const [activePhoto, setActivePhoto] = useState<string | null>(null)
 
   const chatEndRef = useRef<HTMLDivElement>(null)
   const chatFileRef = useRef<HTMLInputElement>(null)
@@ -185,6 +186,8 @@ export default function HaloJurnalLaporanDetailPage() {
           sender_name: m.sender_name || (m.role === 'redaksi' || m.role === 'admin' ? 'Redaksi Hallo Jurnal' : 'Warga Pelapor'),
           role: m.role || 'warga',
           message: m.message,
+          file_url: m.file_url || null,
+          file_type: m.file_type || null,
           created_at: m.created_at,
           profiles: {
             full_name: m.sender_name,
@@ -196,33 +199,53 @@ export default function HaloJurnalLaporanDetailPage() {
       console.warn('Gagal memuat chat dari API:', err)
     }
 
-    let finalMessages: any[] = []
-    if (dbMessages.length > 0) {
-      finalMessages = dbMessages
-    } else if (typeof window !== 'undefined') {
-      const chatKey = report?.nomor_tiket || report?.ticket_number || id
-      let local = JSON.parse(
+    const chatKey = report?.nomor_tiket || report?.ticket_number || id
+    let local: any[] = []
+    if (typeof window !== 'undefined') {
+      local = JSON.parse(
         localStorage.getItem(`halo_jurnal_chat_${chatKey}`) ||
         localStorage.getItem(`halo_jurnal_chat_${id}`) ||
         '[]'
       )
-      if (local.length === 0 && report) {
-        const ticket = report.nomor_tiket || report.ticket_number || id
-        const pelapor = (report as any).pelaporName || (report as any).nama_pelapor || 'Warga'
-        const initialSystemMessage = {
-          id: `sys-${Date.now()}`,
-          sender: 'Redaksi Hallo Jurnal',
-          sender_name: 'Redaksi Hallo Jurnal',
-          role: 'admin',
-          avatar: '/logo-white.png',
-          message: `Halo ${pelapor}, laporan Anda dengan Nomor Tiket #${ticket} telah diterima oleh Redaksi Hallo Jurnal. Tim kami sedang memverifikasi laporan Anda. Anda dapat berkoordinasi langsung dengan tim redaksi melalui ruang obrolan ini.`,
-          created_at: new Date().toISOString(),
-          timestamp: 'Baru saja',
-          isSystem: true,
+    }
+
+    let finalMessages: any[] = []
+    if (dbMessages.length > 0) {
+      // Pertahankan file lampiran dari local cache jika DB belum memuatnya
+      finalMessages = dbMessages.map((dbM) => {
+        if (!dbM.file_url && local.length > 0) {
+          const matched = local.find(
+            (loc: any) =>
+              loc.id === dbM.id ||
+              (loc.created_at === dbM.created_at && (loc.sender_id === dbM.sender_id || loc.message === dbM.message))
+          )
+          if (matched && matched.file_url) {
+            return {
+              ...dbM,
+              file_url: matched.file_url,
+              file_type: matched.file_type,
+            }
+          }
         }
-        local = [initialSystemMessage]
-      }
+        return dbM
+      })
+    } else if (local.length > 0) {
       finalMessages = local
+    } else if (report) {
+      const ticket = report.nomor_tiket || report.ticket_number || id
+      const pelapor = (report as any).pelaporName || (report as any).nama_pelapor || 'Warga'
+      const initialSystemMessage = {
+        id: `sys-${Date.now()}`,
+        sender: 'Redaksi Hallo Jurnal',
+        sender_name: 'Redaksi Hallo Jurnal',
+        role: 'admin',
+        avatar: '/logo-white.png',
+        message: `Halo ${pelapor}, laporan Anda dengan Nomor Tiket #${ticket} telah diterima oleh Redaksi Hallo Jurnal. Tim kami sedang memverifikasi laporan Anda. Anda dapat berkoordinasi langsung dengan tim redaksi melalui ruang obrolan ini.`,
+        created_at: new Date().toISOString(),
+        timestamp: 'Baru saja',
+        isSystem: true,
+      }
+      finalMessages = [initialSystemMessage]
     }
 
     // Periksa notifikasi suara saat ada pesan baru dari pihak redaksi / admin
@@ -399,13 +422,18 @@ export default function HaloJurnalLaporanDetailPage() {
 
     if (!chatMessage.trim() && !chatFile) return
 
+    if (chatFile && chatFile.size > 25 * 1024 * 1024) {
+      alert('Ukuran berkas chat maksimal 25MB.')
+      return
+    }
+
     setIsSendingChat(true)
     try {
       let fileUrl: string | null = null
       let fileType: string | null = null
 
       if (chatFile) {
-        fileType = chatFile.type
+        fileType = chatFile.type || (chatFile.name.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg')
         fileUrl = await new Promise<string>((resolve) => {
           const reader = new FileReader()
           reader.onload = () => resolve(reader.result as string)
@@ -414,20 +442,25 @@ export default function HaloJurnalLaporanDetailPage() {
       }
 
       const ticketNum = report?.nomor_tiket || report?.ticket_number || report?.ticketNumber || id
-      const textMsg = chatMessage.trim() || 'Mengirim berkas'
+      const textMsg = chatMessage.trim()
+      const isVideo = fileType?.startsWith('video/')
+      const fallbackMsg = isVideo ? '🎥 Mengirim video bukti' : '📷 Mengirim foto bukti'
+      const displayMsg = textMsg || (fileUrl ? fallbackMsg : '')
       const senderDisplayName = activeUser?.user_metadata?.full_name || activeUser?.full_name || 'Warga Pelapor'
 
-      // 1. Kirim pesan ke API database Neon DB
+      // 1. Kirim pesan ke API database
       try {
         await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ticketNumber: ticketNum,
-            message: textMsg,
+            message: textMsg || fallbackMsg,
             senderName: senderDisplayName,
             senderId: activeUser?.id || 'warga',
             role: 'warga',
+            fileUrl,
+            fileType,
           }),
         })
       } catch (apiErr) {
@@ -438,7 +471,7 @@ export default function HaloJurnalLaporanDetailPage() {
         id: `chat-warga-${Date.now()}`,
         laporan_id: id,
         sender_id: activeUser?.id || 'warga',
-        message: textMsg,
+        message: displayMsg,
         file_url: fileUrl,
         file_type: fileType,
         created_at: new Date().toISOString(),
@@ -717,7 +750,6 @@ export default function HaloJurnalLaporanDetailPage() {
     report.nomor_tiket ||
     report.ticket_number ||
     (report.id && report.id.startsWith('JS-') ? report.id : `JS-${report.id.substring(0, 8)}`)
-  const timelineItems = getTimelineItems()
 
   return (
     <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 pt-6 pb-20">
@@ -793,7 +825,7 @@ export default function HaloJurnalLaporanDetailPage() {
               : 'text-secondary hover:text-on-surface'
           }`}
         >
-          Detail &amp; Riwayat Aduan
+          Detail Aduan
         </button>
         <button
           type="button"
@@ -825,71 +857,18 @@ export default function HaloJurnalLaporanDetailPage() {
         {/* Left Column: Report Details & Riwayat Status */}
         <div className={`lg:col-span-2 space-y-6 ${mobileTab === 'detail' ? 'block' : 'hidden lg:block'}`}>
           <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-8 shadow-xs">
-            {/* Header: Category + Status + Privacy di kiri, Tombol Bagikan di kanan */}
+            {/* Header: Status Publik/Privat di kiri, Tombol Bagikan di kanan */}
             <div className="flex items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[11px] tracking-wide uppercase">
-                  {normalizeCategoryName(report.kategori) || report.jenis || 'Umum'}
-                </span>
-
-                {/* Status Tag (Linear / Apple Monochromatic Minimalist) */}
-                {report.status === 'selesai' && (
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold tracking-wide ${
-                    isInspirasi
-                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700'
-                  }`}>
-                    <CheckCircle2 className={`w-3.5 h-3.5 stroke-[2.2px] ${isInspirasi ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`} />
-                    <span>{isInspirasi ? 'Disetujui & Tayang' : 'Selesai'}</span>
-                  </span>
-                )}
-                {report.status === 'ditindaklanjuti' && (
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold tracking-wide ${
-                    isInspirasi
-                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700'
-                  }`}>
-                    {isInspirasi ? (
-                      <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2px]" />
-                    ) : (
-                      <ShieldCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                    )}
-                    <span>{isInspirasi ? '🌟 Liputan Berita' : 'Ditindaklanjuti'}</span>
-                  </span>
-                )}
-                {report.status === 'diproses' && (
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold tracking-wide ${
-                    isInspirasi
-                      ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700'
-                  }`}>
-                    <Clock className={`w-3.5 h-3.5 stroke-[2.2px] ${isInspirasi ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'}`} />
-                    <span>{isInspirasi ? 'Sedang Dikurasi' : 'Diproses'}</span>
-                  </span>
-                )}
-                {report.status === 'diterima' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-xs font-semibold tracking-wide">
-                    <Inbox className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 stroke-[2.2px]" />
-                    <span>{isInspirasi ? 'Menunggu Kurasi' : 'Diterima'}</span>
-                  </span>
-                )}
-                {report.status === 'ditolak' && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-semibold tracking-wide">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1" />
-                    <span>{isInspirasi ? 'Tidak Lolos' : 'Ditolak'}</span>
-                  </span>
-                )}
-
-                <span className="text-slate-300 dark:text-slate-700 font-mono">•</span>
+              <div className="flex items-center gap-2">
                 {report.is_public === false ? (
-                  <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-200/80 dark:border-slate-700">
                     <Lock className="w-3.5 h-3.5" />
-                    <span>Privat</span>
+                    <span>Laporan Privat</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-200/80 dark:border-slate-700">
                     <Globe className="w-3.5 h-3.5" />
-                    <span>Publik</span>
+                    <span>Laporan Publik</span>
                   </span>
                 )}
               </div>
@@ -933,11 +912,6 @@ export default function HaloJurnalLaporanDetailPage() {
                     year: 'numeric',
                   })}
                 </span>
-              </div>
-
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-secondary/80" />
-                <span>{report.lokasi || 'Sukabumi, Jawa Barat, Indonesia'}</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -1003,89 +977,50 @@ export default function HaloJurnalLaporanDetailPage() {
               </h2>
               {report.laporan_lampiran && report.laporan_lampiran.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {report.laporan_lampiran.map((lampiran: any) => (
-                    <a
-                      key={lampiran.id || lampiran.file_url}
-                      href={lampiran.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group rounded-2xl overflow-hidden border border-outline-variant bg-surface-container-high relative block aspect-video"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={lampiran.file_url}
-                        alt="Bukti Lampiran"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </a>
-                  ))}
+                  {report.laporan_lampiran.map((lampiran: any) => {
+                    const isVid =
+                      (lampiran.file_type && lampiran.file_type.startsWith('video/')) ||
+                      lampiran.file_url?.startsWith('data:video/') ||
+                      lampiran.file_url?.endsWith('.mp4') ||
+                      lampiran.file_url?.endsWith('.webm')
+                    if (isVid) {
+                      return (
+                        <div
+                          key={lampiran.id || lampiran.file_url}
+                          className="rounded-2xl overflow-hidden border border-outline-variant bg-black relative block aspect-video"
+                        >
+                          <video
+                            src={lampiran.file_url}
+                            controls
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      )
+                    }
+                    return (
+                      <div
+                        key={lampiran.id || lampiran.file_url}
+                        onClick={() => setActivePhoto(lampiran.file_url)}
+                        className="group rounded-2xl overflow-hidden border border-outline-variant bg-surface-container-high relative block aspect-video cursor-pointer"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={lampiran.file_url}
+                          alt="Bukti Lampiran"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold">
+                          Perbesar ↗
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="p-3.5 rounded-xl bg-surface-container-low/70 border border-outline-variant/60 text-xs text-secondary">
                   Tidak ada berkas lampiran yang dilampirkan.
                 </div>
               )}
-            </div>
-
-            {/* Section: Riwayat Status (Tampilan Sangat Ramping & Bersih) */}
-            <div className="pt-2">
-              <div className="pb-2.5 mb-4 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="font-heading font-bold text-base sm:text-lg text-slate-900 dark:text-slate-100">
-                  {isInspirasi ? 'Riwayat Kurasi Editorial' : 'Riwayat Status'}
-                </h2>
-              </div>
-
-              <div className="relative pl-6 space-y-4 before:absolute before:left-[9px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-slate-200 dark:before:bg-slate-800">
-                {timelineItems.map((item, idx) => {
-                  const status = (item.status || '').toLowerCase()
-                  return (
-                    <div key={item.id || idx} className="relative group">
-                      {/* Timeline Node Icon (Monochrome Editorial Minimalist - No Rainbow AI Slop) */}
-                      <div className="absolute -left-6 top-0.5">
-                        <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
-                            idx === 0
-                              ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 ring-4 ring-white dark:ring-slate-900 shadow-2xs'
-                              : 'bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 ring-4 ring-white dark:ring-slate-900'
-                          }`}
-                        >
-                          {status === 'selesai' ? (
-                            <Check className="w-2.5 h-2.5 stroke-[2.5]" />
-                          ) : status === 'ditolak' ? (
-                            <X className="w-2.5 h-2.5 stroke-[2.5]" />
-                          ) : (
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                idx === 0
-                                  ? 'bg-white dark:bg-slate-900'
-                                  : 'bg-slate-400 dark:bg-slate-500'
-                              }`}
-                            />
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Content: Judul, Tanggal, & Catatan Mengalir Rapi Tanpa Kotak Tebal */}
-                      <div className="pl-2">
-                        <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-                          <h3 className="font-heading font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
-                            {item.title}
-                          </h3>
-                          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
-                            {item.date}
-                          </span>
-                        </div>
-
-                        {item.catatan && (
-                          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-0.5 font-normal">
-                            {item.catatan}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
             </div>
 
             {/* Tombol Cepat Buka Chat untuk Mobile (Hanya untuk Pemilik Laporan / Admin) */}
@@ -1229,21 +1164,41 @@ export default function HaloJurnalLaporanDetailPage() {
                             }`}
                           >
                             <p className="whitespace-pre-line">{msg.message}</p>
-                            {msg.file_url && (
-                              <a
-                                href={msg.file_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-2 block rounded-lg overflow-hidden border border-outline-variant/40"
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={msg.file_url}
-                                  alt="Lampiran chat"
-                                  className="max-h-36 object-cover rounded-lg"
-                                />
-                              </a>
-                            )}
+                            {msg.file_url && (() => {
+                              const isVid =
+                                (msg.file_type && msg.file_type.startsWith('video/')) ||
+                                msg.file_url.startsWith('data:video/') ||
+                                msg.file_url.endsWith('.mp4') ||
+                                msg.file_url.endsWith('.webm')
+                              if (isVid) {
+                                return (
+                                  <div className="mt-2 rounded-lg overflow-hidden border border-outline-variant/40 bg-black max-w-xs">
+                                    <video
+                                      src={msg.file_url}
+                                      controls
+                                      className="max-h-48 w-full object-contain"
+                                    />
+                                  </div>
+                                )
+                              }
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => setActivePhoto(msg.file_url)}
+                                  className="mt-2 block rounded-lg overflow-hidden border border-outline-variant/40 hover:opacity-90 transition text-left cursor-pointer group/img relative"
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={msg.file_url}
+                                    alt="Lampiran chat"
+                                    className="max-h-48 object-cover rounded-lg group-hover/img:scale-105 transition-transform duration-200"
+                                  />
+                                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition flex items-center justify-center text-white text-[11px] font-semibold">
+                                    Perbesar ↗
+                                  </div>
+                                </button>
+                              )
+                            })()}
                           </div>
                         </div>
                       )
@@ -1279,14 +1234,14 @@ export default function HaloJurnalLaporanDetailPage() {
                       onChange={(e) => {
                         if (e.target.files?.[0]) setChatFile(e.target.files[0])
                       }}
-                      accept="image/*"
+                      accept="image/*,video/*"
                       className="hidden"
                     />
                     <button
                       type="button"
                       onClick={() => chatFileRef.current?.click()}
                       className="p-2 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer shrink-0"
-                      title="Lampirkan foto"
+                      title="Lampirkan foto atau video"
                     >
                       <Paperclip className="w-4 h-4" />
                     </button>
@@ -1378,6 +1333,34 @@ export default function HaloJurnalLaporanDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal Lightbox Foto Resolusi Penuh */}
+      {activePhoto && (
+        <div
+          onClick={() => setActivePhoto(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xs cursor-pointer animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl max-h-[90vh] flex items-center justify-center"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={activePhoto}
+              alt="Foto Bukti Diperbesar"
+              className="max-h-[85vh] max-w-full w-auto rounded-xl object-contain shadow-2xl"
+            />
+            <button
+              type="button"
+              onClick={() => setActivePhoto(null)}
+              className="absolute top-2 right-2 sm:-top-3 sm:-right-3 p-2 bg-slate-900/90 hover:bg-black text-white rounded-full shadow-lg transition cursor-pointer"
+              title="Tutup foto"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

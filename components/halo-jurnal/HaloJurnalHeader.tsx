@@ -121,7 +121,7 @@ export default function HaloJurnalHeader() {
     },
     {
       href: '/halo-jurnal/lapor',
-      label: 'Buat Laporan',
+      label: 'Buat Pengaduan',
       icon: PlusCircle,
     },
     {
@@ -131,7 +131,7 @@ export default function HaloJurnalHeader() {
     },
     {
       href: '/halo-jurnal/laporan-saya',
-      label: 'Laporan Saya',
+      label: 'Aduan Saya',
       icon: FileText,
     },
     {
@@ -181,7 +181,7 @@ export default function HaloJurnalHeader() {
             href={user ? '/halo-jurnal/beranda' : '/halo-jurnal'}
             onClick={handleLogoClick}
             className="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none"
-            title="Hallo Jurnal - Layanan Aspirasi & Pengaduan Warga"
+            title="Hallo Jurnal - Layanan Pengaduan Warga"
           >
             {/* Ikon Megafon Asli (Tanpa Efek AI / Ping / Gradien) */}
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shadow-2xs overflow-hidden shrink-0">
@@ -198,7 +198,7 @@ export default function HaloJurnalHeader() {
                 Hallo Jurnal
               </span>
               <span className="text-[10px] sm:text-[11px] text-secondary font-medium tracking-tight mt-1 leading-tight">
-                Aspirasi &amp; Aduan Sukabumi
+                Layanan Pengaduan Sukabumi
               </span>
             </div>
           </Link>
@@ -279,7 +279,7 @@ export default function HaloJurnalHeader() {
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-bold text-lg leading-none text-on-surface tracking-tight">Hallo Jurnal</span>
-              <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">Aspirasi &amp; Aduan Sukabumi</span>
+              <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">Layanan Pengaduan Sukabumi</span>
             </div>
           </div>
           <button

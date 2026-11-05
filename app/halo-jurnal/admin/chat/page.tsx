@@ -16,6 +16,7 @@ import {
   Clock,
   FileText,
   ArrowLeft,
+  X,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
 
@@ -34,6 +35,7 @@ function ChatDeskContent() {
   const [inputText, setInputText] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [mobilePane, setMobilePane] = useState<'inbox' | 'chat'>('inbox')
+  const [activePhoto, setActivePhoto] = useState<string | null>(null)
   const chatScrollRef = useRef<HTMLDivElement>(null)
 
   // Map ringkasan pesan terakhir per tiket
@@ -214,18 +216,35 @@ function ChatDeskContent() {
 
     let merged = dbMessages
     if (typeof window !== 'undefined') {
+      const local = JSON.parse(
+        localStorage.getItem(`halo_jurnal_chat_${targetId}`) ||
+        (targetTicket ? localStorage.getItem(`halo_jurnal_chat_${targetTicket}`) : null) ||
+        '[]'
+      )
       if (dbMessages.length > 0) {
-        merged = dbMessages
-        localStorage.setItem(`halo_jurnal_chat_${targetId}`, JSON.stringify(dbMessages))
+        // Gabungkan lampiran berkas dari penyimpanan lokal jika API DB belum menyediakannya
+        merged = dbMessages.map((dbM) => {
+          if (!dbM.file_url && local.length > 0) {
+            const matched = local.find(
+              (loc: any) =>
+                loc.id === dbM.id ||
+                (loc.created_at === dbM.created_at && (loc.sender_id === dbM.sender_id || loc.message === dbM.message))
+            )
+            if (matched && matched.file_url) {
+              return {
+                ...dbM,
+                file_url: matched.file_url,
+                file_type: matched.file_type,
+              }
+            }
+          }
+          return dbM
+        })
+        localStorage.setItem(`halo_jurnal_chat_${targetId}`, JSON.stringify(merged))
         if (targetTicket) {
-          localStorage.setItem(`halo_jurnal_chat_${targetTicket}`, JSON.stringify(dbMessages))
+          localStorage.setItem(`halo_jurnal_chat_${targetTicket}`, JSON.stringify(merged))
         }
       } else {
-        const local = JSON.parse(
-          localStorage.getItem(`halo_jurnal_chat_${targetId}`) ||
-          (targetTicket ? localStorage.getItem(`halo_jurnal_chat_${targetTicket}`) : null) ||
-          '[]'
-        )
         merged = local
       }
     }
@@ -426,7 +445,7 @@ function ChatDeskContent() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari tiket, judul, lokasi..."
+                placeholder="Cari tiket atau judul pengaduan..."
                 className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#c00015] transition"
               />
             </div>
@@ -563,10 +582,7 @@ function ChatDeskContent() {
                         Identitas Dirahasiakan di Publik
                       </span>
                       <span>•</span>
-                      <span className="truncate flex items-center gap-0.5 text-slate-400">
-                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                        <span className="truncate">{currentReport.lokasi}</span>
-                      </span>
+                      <span className="font-medium text-slate-600">{currentReport.is_public ? 'Tayang Publik' : 'Privat'}</span>
                     </div>
                   </div>
                 </div>
@@ -577,8 +593,8 @@ function ChatDeskContent() {
                   target="_blank"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 text-xs font-semibold transition shadow-2xs shrink-0 cursor-pointer"
                 >
-                  <span className="hidden sm:inline">Buka Berkas</span>
-                  <span className="sm:hidden">Berkas</span>
+                  <span className="hidden sm:inline">Detail Aduan</span>
+                  <span className="sm:hidden">Detail</span>
                   <ExternalLink className="w-3 h-3 text-slate-400" />
                 </Link>
               </div>
@@ -641,20 +657,40 @@ function ChatDeskContent() {
                           }`}
                         >
                           <p className="whitespace-pre-line">{msg.message}</p>
-                          {msg.file_url && (
-                            <a
-                              href={msg.file_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-2 block rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition"
-                            >
-                              <img
-                                src={msg.file_url}
-                                alt="Lampiran bukti"
-                                className="max-h-48 w-auto object-cover rounded"
-                              />
-                            </a>
-                          )}
+                          {msg.file_url && (() => {
+                            const isVid =
+                              (msg.file_type && msg.file_type.startsWith('video/')) ||
+                              msg.file_url.startsWith('data:video/') ||
+                              msg.file_url.endsWith('.mp4') ||
+                              msg.file_url.endsWith('.webm')
+                            if (isVid) {
+                              return (
+                                <div className="mt-2 rounded-lg overflow-hidden border border-slate-200 bg-black max-w-sm">
+                                  <video
+                                    src={msg.file_url}
+                                    controls
+                                    className="max-h-52 w-full object-contain"
+                                  />
+                                </div>
+                              )
+                            }
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => setActivePhoto(msg.file_url)}
+                                className="mt-2 block rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition text-left cursor-pointer group/img relative"
+                              >
+                                <img
+                                  src={msg.file_url}
+                                  alt="Lampiran bukti"
+                                  className="max-h-48 w-auto object-cover rounded group-hover/img:scale-105 transition-transform duration-200"
+                                />
+                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition flex items-center justify-center text-white text-[11px] font-semibold">
+                                  Perbesar ↗
+                                </div>
+                              </button>
+                            )
+                          })()}
                         </div>
                       </div>
                     )
@@ -670,7 +706,7 @@ function ChatDeskContent() {
                   {[
                     {
                       label: 'Minta Foto Bukti',
-                      text: 'Halo Bapak/Ibu pelapor, mohon bantuannya untuk mengirimkan foto atau video bukti tambahan dari sudut berbeda di lokasi.',
+                      text: 'Halo Bapak/Ibu pelapor, mohon bantuannya untuk mengirimkan foto bukti tambahan terkait aduan ini.',
                     },
                     {
                       label: 'Konfirmasi Patokan Titik',
@@ -729,6 +765,33 @@ function ChatDeskContent() {
           )}
         </div>
       </div>
+
+      {/* Modal Lightbox Foto Resolusi Penuh */}
+      {activePhoto && (
+        <div
+          onClick={() => setActivePhoto(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xs cursor-pointer animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl max-h-[90vh] flex items-center justify-center"
+          >
+            <img
+              src={activePhoto}
+              alt="Foto Bukti Diperbesar"
+              className="max-h-[85vh] max-w-full w-auto rounded-xl object-contain shadow-2xl"
+            />
+            <button
+              type="button"
+              onClick={() => setActivePhoto(null)}
+              className="absolute top-2 right-2 sm:-top-3 sm:-right-3 p-2 bg-slate-900/90 hover:bg-black text-white rounded-full shadow-lg transition cursor-pointer"
+              title="Tutup foto"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

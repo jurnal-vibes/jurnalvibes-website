@@ -345,14 +345,14 @@ export default function AdminModerasiFeedPublikPage() {
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="p-3 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500">
           <span>
-            Menampilkan <strong>{filteredReports.length}</strong> laporan
+            Menampilkan <strong>{filteredReports.length}</strong> aduan
           </span>
         </div>
 
         {filteredReports.length === 0 ? (
           <div className="py-12 px-4 text-center space-y-2">
             <FileText className="w-8 h-8 text-slate-300 mx-auto" />
-            <p className="text-sm font-semibold text-slate-800">Tidak ada laporan yang sesuai kriteria</p>
+            <p className="text-sm font-semibold text-slate-800">Tidak ada aduan yang sesuai kriteria</p>
             <p className="text-xs text-slate-400">Coba sesuaikan filter atau kata kunci pencarian.</p>
           </div>
         ) : (
@@ -361,8 +361,8 @@ export default function AdminModerasiFeedPublikPage() {
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
                 <tr>
                   <th className="py-3.5 px-4 whitespace-nowrap w-[140px]">No. Tiket</th>
-                  <th className="py-3.5 px-4 min-w-[220px]">Judul &amp; Lokasi Aduan</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap w-[160px]">Status</th>
+                  <th className="py-3.5 px-4 min-w-[220px]">Judul Pengaduan</th>
+                  
                   <th className="py-3.5 px-4 whitespace-nowrap w-[110px]">Visibilitas</th>
                   <th className="py-3.5 px-4 whitespace-nowrap w-[100px] text-center">Dukungan</th>
                   <th className="py-3.5 px-4 whitespace-nowrap w-[125px] text-center">Aksi</th>
@@ -387,12 +387,7 @@ export default function AdminModerasiFeedPublikPage() {
                       >
                         {report.judul}
                       </Link>
-                      <p className="text-[11px] text-slate-500 truncate mt-0.5">{report.lokasi}</p>
-                    </td>
-
-                    {/* Status Penanganan */}
-                    <td className="py-3.5 px-4 whitespace-nowrap align-middle">
-                      {getStatusBadge(report.status, (report as any).jenis || report.kategori)}
+                      
                     </td>
 
                     {/* Status Visibilitas (Ghost Minimalist) */}
