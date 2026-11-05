@@ -189,7 +189,13 @@ export default function AdminDetailLaporanPage() {
     }
     window.addEventListener('storage', handleStorageChange)
     window.addEventListener('focus', handleStorageChange)
+
+    const pollInterval = setInterval(() => {
+      syncChatMessages()
+    }, 3000)
+
     return () => {
+      clearInterval(pollInterval)
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('focus', handleStorageChange)
     }
