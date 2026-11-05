@@ -84,11 +84,11 @@ Berdasarkan implementasi kode pada `prisma/schema.prisma`, `middleware.ts`, dan 
 ### 3.2 Layanan Aduan & Partisipasi Warga (Hallo Jurnal)
 | Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
 | :--- | :--- | :--- | :--- |
-| `/halo-jurnal` | Beranda Hallo Jurnal | Ringkasan statistik laporan, peta sebaran titik aduan, panduan alur advokasi, cuplikan laporan publik terhangat. | `app/halo-jurnal/page.tsx`, `app/halo-jurnal/beranda/page.tsx` |
-| `/halo-jurnal/lapor` | Formulir Pengaduan & Partisipasi | Pemilihan **4 Saluran Partisipasi** (*Pengaduan*, *Aspirasi*, *Informasi*, *Inspirasi*) dengan sub-kategori spesifik yang dinamis, isian kronologi masalah/gagasan, dan pemetaan spasial via modul LocationPicker: tab opsi **"Peta & Titik GPS"** vs **"Ketik Manual Saja"**, tombol **"Lokasi Saya (GPS)"** (isi pin otomatis dari posisi GPS perangkat), **geser pin (draggable)** atau klik peta, **pencarian lokasi** nama tempat Sukabumi dengan tombol **"Cari"**, dua tampilan peta (**"Peta Jalan"** dan **"Satelit"**), **alamat otomatis** dari koordinat pin (reverse geocoding) & ketik manual, kolom **patokan lokasi** untuk memandu petugas lapangan, serta kewajiban mengunggah **lampiran bukti foto/video** (wajib pada pengaduan). | `app/halo-jurnal/lapor/page.tsx`, `components/halo-jurnal/LocationPicker.tsx` |
+| `/halo-jurnal` | Beranda Hallo Jurnal | Hero ilustrasi interaktif dengan bilah pencarian laporan instan, **Kartu Fokus Pengaduan Warga** ([`CategoryCards.tsx`](file:///d:/jurnalvibes-website/components/halo-jurnal/CategoryCards.tsx)) berdesain monokrom netral presisi dengan ikon `AlertTriangle` dan micro-interaction warna brand Hallo Jurnal (`#c00015`), ringkasan statistik laporan, peta sebaran titik aduan, panduan alur advokasi, serta cuplikan laporan publik terhangat. | `app/halo-jurnal/page.tsx`, `app/halo-jurnal/beranda/page.tsx`, `components/halo-jurnal/CategoryCards.tsx` |
+| `/halo-jurnal/lapor` | Formulir Pengaduan Online | Formulir aduan warga yang disederhanakan (*Anti-Ribet*): tanpa tab/kategori dan tanpa peta spasial guna mempercepat pelaporan, terdiri atas input **Judul Pengaduan**, **Deskripsi Laporan Pengaduan Mendalam/Kronologis**, unggah **Lampiran Bukti Foto/Video** (wajib), verifikasi data akun warga, jaminan kerahasiaan identitas publik (UU PDP), serta persetujuan **Pernyataan Pertanggungjawaban Hukum Sah** dengan tombol aksi *"Kirimkan aduanmu secara online"*. | `app/halo-jurnal/lapor/page.tsx` |
 | `/halo-jurnal/laporan/[id]` | Detail Tiket Aduan | Pelacakan status laporan (stepper visual), koordinat peta lokasi, galeri bukti foto, tab obrolan privat dua arah (*two-way chat*) dengan redaksi, dan tombol vote dukungan warga. | `app/halo-jurnal/laporan/[id]/page.tsx` |
 | `/halo-jurnal/laporan-saya` | Riwayat Aduan Saya | Dasbor pelapor menampilkan daftar aduan milik akun warga yang sedang login, nomor tiket unik, tanggal, dan status penanganan. | `app/halo-jurnal/laporan-saya/page.tsx` |
-| `/halo-jurnal/feed-publik` | Kanal Feed Publik | Umpan linimasa laporan warga yang telah diverifikasi dan disetujui tayang oleh redaksi, filter kategori aduan, dan counter dukungan warga. | `app/halo-jurnal/feed-publik/page.tsx`, `components/halo-jurnal/RecentPublicReports.tsx` |
+| `/halo-jurnal/feed-publik` | Kanal Feed Publik | Umpan linimasa aduan warga yang telah diverifikasi dan disetujui tayang oleh redaksi, filter status penanganan aduan (Diterima, Diproses, Ditindaklanjuti, Selesai), dan tombol counter dukungan warga. | `app/halo-jurnal/feed-publik/page.tsx`, `components/halo-jurnal/RecentPublicReports.tsx` |
 | `/halo-jurnal/profil` | Profil Akun Warga | Pengelolaan biodata warga, nomor telepon, dan domisili kecamatan. | `app/halo-jurnal/profil/page.tsx` |
 | `/halo-jurnal/tentang` | Tentang Hallo Jurnal | Informasi visi misi, latar belakang kanal advokasi publik, dan tim redaksi Hallo Jurnal. | `app/halo-jurnal/tentang/page.tsx` |
 | `/halo-jurnal/hubungi-kami` | Hubungi Hallo Jurnal | Formulir kontak dan saluran komunikasi resmi kanal Hallo Jurnal. | `app/halo-jurnal/hubungi-kami/page.tsx` |
@@ -121,7 +121,7 @@ Struktur meja redaksi terbagi ke dalam 3 kelompok navigasi operasional sesuai im
 | Rute Halaman | Nama Halaman | Fitur Utama | Bukti File Sumber |
 | :--- | :--- | :--- | :--- |
 | `/halo-jurnal/admin/halo` | Dashboard Pemantauan | Dasbor ringkasan 5 metrik aduan (*Total*, *Diterima*, *Diproses*, *Ditindaklanjuti*, *Selesai*), widget sebaran persentase kategori isu warga Sukabumi, dan antrean verifikasi aktif. | `app/halo-jurnal/admin/halo/page.tsx` |
-| `/halo-jurnal/admin/laporan` | Buku Induk Laporan | Tabel induk seluruh laporan aduan warga (`table-fixed`), filter status (diterima, diproses, ditindaklanjuti, selesai, ditolak), filter kategori, pencarian tiket/nama. | `app/halo-jurnal/admin/laporan/page.tsx` |
+| `/halo-jurnal/admin/laporan` | Buku Induk Laporan | Tabel induk seluruh arsip laporan aduan warga (`table-fixed`), tab filter status cepat 1-to-1 (*Semua Laporan*, *Diterima*, *Diproses*, *Ditindaklanjuti*, *Selesai*), filter dropdown kategori isu & visibilitas (*Publik* / *Privat*), pencarian nomor tiket/nama/lokasi, serta **Fitur Ekspor CSV Nyata** (tombol *Ekspor CSV* dengan generator file spreadsheet CSV otomatis ber-timestamp `laporan-halo-jurnal-YYYY-MM-DD.csv` berbasis standar RFC-4180 UTF-8 mencakup kolom Nomor Tiket, Tanggal, Judul Laporan, Kategori, Status, Visibilitas, Lokasi, dan Jumlah Dukungan untuk kebutuhan rekapitulasi data dan audit meja redaksi). | `app/halo-jurnal/admin/laporan/page.tsx` |
 | `/halo-jurnal/admin/laporan/[id]` | Detail Investigasi & Meja Eksekusi | Panel Meja Eksekusi Redaksi: kartu profil pelapor dilengkapi lencana **"Warga Terverifikasi"** (ikon ShieldCheck), lencana privasi **"Identitas Otomatis Dirahasiakan di Publik"**, serta kotak status validasi **"Pernyataan Pertanggungjawaban Hukum Sah"** (komitmen kesiapan bertanggung jawab secara hukum atas kebenaran laporan); tombol aksi redaksi (**Hubungi via WhatsApp** ke nomor kontak pelapor dan **Buka Chat di Web**); peninjauan bukti visual foto/video; navigasi koordinat titik kejadian via tautan langsung Google Maps (`maps.google.com/?q=lat,lng`); penentuan **Tahap Penanganan** (*Diterima*, *Diproses*, *Ditindaklanjuti*, *Selesai*, *Ditolak*); pengaturan **Hak Tayang Feed Warga** (*Tayang di Feed Publik* vs *Privat/Arsip Redaksi*); pengisian Catatan Progres Redaksi (rilis resmi dinas); dan audit log kronologi riwayat milestone penanganan. | `app/halo-jurnal/admin/laporan/[id]/page.tsx` |
 | `/halo-jurnal/admin/chat` | Chat Warga | Pusat komunikasi langsung dua arah (*two-way chat*) antara redaksi dengan warga pelapor yang terarsip per tiket laporan. | `app/halo-jurnal/admin/chat/page.tsx` |
 | `/halo-jurnal/admin/feed-publik` | Moderasi Feed Publik | Pengelolaan dan moderasi visibilitas laporan warga yang tampil di linimasa feed publik Hallo Jurnal. | `app/halo-jurnal/admin/feed-publik/page.tsx` |
@@ -221,13 +221,14 @@ d:\jurnalvibes-website/
 │   │   ├── AdminHeader.tsx           # Topbar dasbor meja redaksi dan notifikasi
 │   │   └── AdminSidebar.tsx          # Navigasi samping meja redaksi dengan counter badge
 │   ├── cards/
-│   │   ├── HalloJurnalBanner.tsx     # Banner ajakan partisipasi advokasi publik
+│   │   ├── HalloJurnalBanner.tsx     # Banner ajakan partisipasi pengaduan online warga ("Salurkan Aduan Anda di Hallo Jurnal")
 │   │   ├── HeroCarousel.tsx          # Slider berita utama interaktif (swipe/drag touch gesture)
 │   │   ├── HomeCategorySection.tsx   # Blok artikel per kategori di halaman utama
 │   │   ├── JobCard.tsx               # Kartu display informasi lowongan kerja
 │   │   ├── NewsCard.tsx              # Kartu display berita standar dengan cover, tag, & waktu
 │   │   └── ReelsSection.tsx          # Carousel video vertikal Wave Reels di beranda
 │   ├── halo-jurnal/
+│   │   ├── CategoryCards.tsx         # Kartu aksi saluran pengaduan warga berdesain monokrom netral & hover dinamis brand Hallo Jurnal
 │   │   ├── HaloJurnalFooter.tsx      # Footer tematik kanal Hallo Jurnal
 │   │   ├── HaloJurnalHeader.tsx      # Header navigasi tematik Hallo Jurnal
 │   │   ├── HaloJurnalShell.tsx       # Pembungkus layout konsisten kanal Hallo Jurnal
@@ -468,6 +469,7 @@ Antarmuka dibangun secara adaptif memanfaatkan titik henti (*breakpoint*) Tailwi
   * Form laporan Hallo Jurnal mengaktifkan kontrol peta dengan *single-touch pan* terisolasi agar pengguna tidak macet saat menggulir layar.
   * Tabel admin diubah secara responsif menggunakan container pembungkus horizontal (`overflow-x-auto`) atau kartu ringkas.
   * **Widget Polling Pembaca Anti-Zoom**: Teks filler deskriptif generik dihilangkan, padding kartu dirampingkan (`p-3 sm:p-5`), skala font pertanyaan dibuat proporsional (`text-xs sm:text-sm md:text-base`), serta tombol opsi dibuat padat (`py-2 px-2.5` dengan `gap-1.5`) guna mencegah tampilan terasa "nge-zoom" atau mendominasi seluruh layar ponsel.
+  * **4 Kartu Partisipasi Warga Proporsional (Anti-AI Slop & Monokrom Netral)**: Pada beranda Hallo Jurnal, 4 kartu saluran partisipasi (`Pengaduan`, `Aspirasi`, `Informasi`, `Inspirasi`) disusun dalam grid 2-kolom ringkas di perangkat bergerak dengan wadah ikon kompak `32×32px` (`w-8 h-8`) dan teks lead padat agar tidak memenuhi layar ponsel secara berlebihan. Desain menjauhi skema warna-warni pelangi murahan (*AI slop*) dengan mengadopsi wadah monokrom netral (`bg-slate-50 dark:bg-slate-800/80` ber-border halus `border-slate-200/80` dan teks `slate-700 dark:text-slate-300`), serta bereaksi dengan micro-interaction warna brand Hallo Jurnal (`#c00015`) dan animasi skala mikro `scale-110` saat disentuh/di-hover.
 * **Tablet (640px - 1023px)**:
   * Hero Carousel menampilkan grid proporsi `2/1` dengan navigasi gestur sentuh geser (*swipe touch gesture*).
   * Quick Category Bar navbar diselaraskan secara simetris (`max-w-container-max mx-auto px-4 md:px-6`) agar lurus vertikal dengan logo brand.
@@ -564,6 +566,9 @@ Sesuai standarisasi pada `app/globals.css` dan `RANCANGAN_BACKEND_DAN_SISTEM.md:
                     │
                     ├──► [Buku Induk Laporan (/halo-jurnal/admin/laporan)]
                     │           │
+                    │           ├── Tab Filter Cepat Status: Semua ──► Diterima ──► Diproses ──► Ditindaklanjuti ──► Selesai
+                    │           ├── Filter Dropdown: Kategori Masalah, Visibilitas (Publik / Privat), & Kolom Pencarian Tiket
+                    │           ├── Ekspor CSV Nyata: Unduh instan rekapitulasi data laporan (.csv) ber-timestamp
                     │           ├── Masuk ke Detail Investigasi (/halo-jurnal/admin/laporan/[id])
                     │           ├── Verifikasi Akuntabilitas & Privasi Pelapor:
                     │           │     ├── Lencana "Warga Terverifikasi" (ShieldCheck) & Domisili Pelapor
@@ -774,9 +779,15 @@ classDiagram
 
     class HaloJurnalShell {
         +HaloJurnalHeader nav
-        +LocationPicker leafletGIS
+        +CategoryCards PengaduanCard
         +RecentPublicReports feed
         +HaloJurnalFooter footer
+    }
+
+    class AdminLaporanView {
+        +StatusQuickTabs filterStatus
+        +ExportCSVButton handleExportCSV
+        +MasterReportTable table
     }
 
     class AdminSidebar {
@@ -790,6 +801,7 @@ classDiagram
     AppShell --> ArticleDetailView
     AppShell --> HaloJurnalShell
     HaloJurnalShell --> AdminSidebar
+    AdminSidebar --> AdminLaporanView
 ```
 
 ### 11.4 Diagram Alur Proses Laporan Warga & Moderasi Redaksi
@@ -1055,6 +1067,18 @@ Berdasarkan kompilasi 204 commit riwayat Git repositori `jurnal-vibes/jurnalvibe
     * Penguatan mekanisme URL decoding dan server-side cache fallback untuk mencegah error 404 pada artikel berita (`16ce808`).
   * **31 Oktober 2026**:
     * Penyelarasan penamaan brand universal Hallo Jurnal di seluruh antarmuka publik, rute navigasi, serta pemutakhiran dokumentasi sistem arsitektur (`bab6104`).
+* **Minggu 1 November 2026 (1–5 November 2026 - Ekspansi Modul Interaktif & Refinement UI)**:
+  * **1 November 2026**:
+    * Integrasi dan audit menyeluruh tabel Buku Induk & Arsip Laporan Warga (`/halo-jurnal/admin/laporan`) dengan implementasi **Fitur Ekspor CSV Nyata** (`handleExportCSV`) yang menghasilkan berkas spreadsheet `.csv` berbasis standar RFC-4180 terenkoding UTF-8 dengan penamaan otomatis ber-timestamp (`laporan-halo-jurnal-YYYY-MM-DD.csv`).
+  * **2 November 2026**:
+    * Pengembangan modul polling pembaca interaktif: model Prisma relasional `Poll` & `PollOption`, API endpoints `/api/polls`, `/api/polls/vote`, dan generator draf polling presisi `/api/polls/generate-ai` berbantuan Google Gemini AI (`326e3b4`).
+    * Pembangunan antarmuka CMS Redaksi Polling di `/halo-jurnal/admin/polling` (fitur live preview 2-kolom, toggle tayang aktif/nonaktif, dan hapus polling).
+    * Optimalisasi Server-Side Data Fetching paralel (`Promise.all([fetchArticleById, fetchArticles])`) pada halaman detail artikel `/artikel/[id]` untuk mengeliminasi jeda loading (*Zero Layout Shift*) pada sidebar berita terpopuler.
+  * **3 November 2026**:
+    * Perancangan ulang visual 4 Kartu Saluran Partisipasi Publik Hallo Jurnal (`CategoryCards.tsx`) menggunakan paradigma **Monokrom Netral & Anti-AI Slop**: integrasi ikon terstandarisasi (`AlertTriangle`, `Lightbulb`, `Info`, `BookOpen`), wadah slate netral elegan, micro-interaction hover warna brand `#c00015`, dan penataan grid responsif 2-kolom di perangkat bergerak (`026282f`).
+    * Pemutakhiran menyeluruh dokumen arsitektur dan spesifikasi sistem (`docs/dokumentasi-sistem.md`) agar sinkron 1-to-1 dengan kode produksi terkini.
+  * **5 November 2026**:
+    * Penyesuaian formulir dan kanal partisipasi Hallo Jurnal atas arahan redaksi: menyederhanakan antarmuka menjadi 1 kartu aksi fokus **Pengaduan Warga** ([`CategoryCards.tsx`](file:///d:/jurnalvibes-website/components/halo-jurnal/CategoryCards.tsx)), mengeliminasi pemilih kategori dan peta lokasi guna mempercepat pengiriman aduan warga, pembaruan tagline resmi, serta penyesuaian tombol aksi *"Kirimkan aduanmu secara online"*.
 
 ---
 
@@ -1151,7 +1175,9 @@ Berikut adalah 9 (sembilan) aspek unggulan dari arsitektur proyek yang berpotens
   * **Verifikasi Identitas di Meja Redaksi**: Pada panel meja investigasi redaksi (`/halo-jurnal/admin/laporan/[id]`), redaksi dapat melihat lencana **"Warga Terverifikasi"** (`ShieldCheck`) yang terhubung langsung ke akun terdaftar `CitizenUser`, nomor WhatsApp, dan domisili kecamatan.
   * **Pernyataan Pertanggungjawaban Hukum Sah**: Setiap pengirim aduan wajib menyetujui pernyataan hukum yang terekam pada sistem: *"Pelapor telah menyetujui pernyataan siap hadir dan bertanggung jawab secara hukum atas kebenaran laporan ini."* Hal ini memberikan landasan hukum yang kuat bagi redaksi media sebelum melakukan konfirmasi dan peliputan investigasi ke dinas instansi terkait.
   * **Aksi Komunikasi Satu Klik Redaksi**: Panel investigasi redaksi dilengkapi tombol hijau cepat **"Hubungi via WhatsApp"** dan tombol **"Buka Chat di Web"** untuk memvalidasi bukti langsung ke pelapor dalam hitungan detik.
+  * **Portabilitas & Audit Data Meja Redaksi via Ekspor CSV Instan**: Untuk keperluan rekapitulasi advokasi, koordinasi formal dengan pemerintah daerah, dan audit internal media pers, modul Buku Induk Laporan dilengkapi mesin ekspor CSV mandiri berbasis browser (`handleExportCSV`). Fitur ini mengonversi dataset laporan terfilter secara instan ke format spreadsheet `.csv` (RFC-4180 terenkoding UTF-8) ber-timestamp `laporan-halo-jurnal-YYYY-MM-DD.csv` tanpa membebani memori server (*Zero Server-Overhead Client Export*).
 * **Bukti Kode di Proyek**:
+  * `app/halo-jurnal/admin/laporan/page.tsx:296-343` (Implementasi mesin unduh CSV `handleExportCSV` dan tombol antarmuka).
   * `app/halo-jurnal/admin/laporan/[id]/page.tsx:640-687` (Komponen lencana Warga Terverifikasi, status kerahasiaan identitas publik, dan box Pernyataan Pertanggungjawaban Hukum Sah).
   * `app/halo-jurnal/admin/laporan/[id]/page.tsx:660-679` (Tombol aksi redaksi WhatsApp & Web Chat).
   * `prisma/schema.prisma:113-125` (Model relasional `CitizenUser` dan verifikasi akun).

@@ -22,10 +22,10 @@ export const HalloJurnalBanner: React.FC = () => {
           />
         </div>
 
-        {/* Right Side: Content (Desktop ukuran & gaya asli 100%, Mobile 'di Hallo Jurnal' baris baru merah) */}
+        {/* Right Side: Content */}
         <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left max-w-xl">
           <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight text-on-surface mb-3">
-            Salurkan Laporan &amp; Aspirasimu
+            Salurkan Aduan Anda
             <br />
             <span className="text-primary">
               di Hallo Jurnal
@@ -33,14 +33,14 @@ export const HalloJurnalBanner: React.FC = () => {
           </h2>
 
           <p className="text-secondary text-xs sm:text-sm leading-relaxed mb-5 max-w-lg">
-            Wadah laporan dan komunikasi online untuk seluruh warga Sukabumi. Sampaikan aduan fasilitas publik, laporan peristiwa terkini, atau aspirasi Anda secara langsung, cepat, dan transparan.
+            Wadah aduan online dan komunikasi warga, anda secara langsung disini.
           </p>
 
           <Link
-            href="/halo-jurnal"
+            href="/halo-jurnal/lapor"
             className="inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary-dark text-white font-extrabold text-xs sm:text-sm px-6 py-2.5 sm:px-7 sm:py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer group"
           >
-            <span>Kirim Laporan Online</span>
+            <span>Kirimkan aduanmu secara online</span>
             <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

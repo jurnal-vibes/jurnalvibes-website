@@ -44,19 +44,31 @@ export default function TentangKamiPage() {
         {/* Header Artikel */}
         <header className="border-b border-outline-variant dark:border-slate-800 pb-5">
           <h1 className="font-headline-xl text-3xl md:text-4xl font-bold text-on-surface dark:text-white leading-tight">
-            Tentang Kami
+            Tentang Jurnal Wave
           </h1>
+          <p className="text-sm md:text-base text-primary font-semibold mt-2">
+            Jurnal Wave — Suara Baru, Informasi Terkini
+          </p>
         </header>
 
         {/* Konten Redaksional */}
-        <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-4">
-          <p>
-            Portal berita <strong>Jurnal Wave</strong> beroperasi di bawah naungan badan hukum pers resmi <strong>PT. Media Jurnal Sukabumi</strong>. Kami berdedikasi menyajikan jurnalisme yang independen, berimbang, dan mendalam seputar dinamika serta peristiwa di Kota dan Kabupaten Sukabumi.
+        <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-4 text-justify [&>p]:text-justify">
+          <p className="text-justify leading-relaxed" style={{ textAlign: 'justify' }}>
+            <strong>Jurnal Wave</strong> merupakan portal media digital yang berada di bawah naungan perusahaan pers resmi <strong>PT Media Jurnal Sukabumi</strong>. Hadir sebagai wajah baru media informasi, Jurnal Wave berkomitmen menyajikan berita aktual, inspiratif, independen, dan berimbang dengan perspektif yang segar serta relevan dengan perkembangan zaman.
           </p>
-          <p>
-            Berpegang teguh pada Kode Etik Jurnalistik dan Undang-Undang Pers, redaksi kami berkomitmen mengawal kepentingan masyarakat. Sebagai wujud nyata keterbukaan informasi dan advokasi publik, kami juga mengoperasikan <strong>Hallo Jurnal</strong>—kanal interaktif aspirasi dan aduan warga untuk mendorong peningkatan fasilitas serta pelayanan publik di Sukabumi.
+          <p className="text-justify leading-relaxed" style={{ textAlign: 'justify' }}>
+            Mengusung semangat jurnalisme modern, Jurnal Wave hadir untuk menangkap berbagai dinamika kehidupan masyarakat, mulai dari isu sosial, pendidikan, budaya, komunitas, kreativitas, hingga perkembangan generasi muda di Kota dan Kabupaten Sukabumi khususnya.
           </p>
-          <div className="pt-1">
+          <p className="text-justify leading-relaxed" style={{ textAlign: 'justify' }}>
+            Kami percaya bahwa setiap suara memiliki arti dan setiap peristiwa layak mendapatkan ruang pemberitaan. Karena itu, Jurnal Wave tidak hanya menjadi sumber informasi, tetapi juga ruang ekspresi, inspirasi, dan partisipasi publik.
+          </p>
+          <p className="text-justify leading-relaxed" style={{ textAlign: 'justify' }}>
+            Dengan berpegang teguh pada Kode Etik Jurnalistik dan Undang-Undang Pers, kami berupaya menghadirkan informasi yang akurat, terpercaya, dan bertanggung jawab.
+          </p>
+          <p className="text-justify leading-relaxed" style={{ textAlign: 'justify' }}>
+            Sebagai bagian dari komitmen terhadap keterbukaan informasi, Jurnal Wave juga menghadirkan <strong>Hallo Jurnal</strong>, kanal interaktif yang menjadi ruang aspirasi, pengaduan, dan penyampaian informasi masyarakat. Melalui kanal ini, kami ingin membangun jembatan komunikasi antara warga, media, dan para pemangku kepentingan.
+          </p>
+          <div className="pt-2">
             <Link
               href="/halo-jurnal"
               className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#c00015] hover:text-[#a00012] hover:underline transition-colors group"

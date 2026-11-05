@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import {
   FileText,
@@ -11,70 +11,17 @@ import {
   RotateCcw,
   X,
   MessageSquare,
-  MapPin,
-  ChevronDown,
+  Trash2,
+  Globe,
+  Lock,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
-import {
-  ALL_REPORT_CATEGORIES,
-  REPORT_CATEGORIES_BY_TYPE,
-  normalizeCategoryName,
-} from '@/data/haloJurnalCategories'
 
 export default function AdminLaporanPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState<string>('semua')
-  const [selectedCategory, setSelectedCategory] = useState<string>('semua')
-  const [selectedVisibility, setSelectedVisibility] = useState<string>('semua')
-
-  // Helper normalisasi kategori (hindari all-caps kasar & nama kepanjangan)
-  const formatCategory = (cat: string) => {
-    if (!cat) return 'Umum'
-    const clean = cat.trim()
-    const lower = clean.toLowerCase()
-    if (lower.includes('keamanan') || lower.includes('tertib')) return 'Keamanan'
-    if (lower.includes('lingkungan') || lower.includes('sampah')) return 'Lingkungan'
-    if (lower.includes('infrastruktur') || lower.includes('jalan')) return 'Infrastruktur'
-    if (lower.includes('anggaran') || lower.includes('keuangan')) return 'Anggaran'
-    if (lower.includes('kesehatan') || lower.includes('medis')) return 'Kesehatan'
-    if (lower.includes('pendidikan') || lower.includes('sekolah')) return 'Pendidikan'
-    if (lower.includes('pelayanan') || lower.includes('layanan')) return 'Layanan Publik'
-    // Selalu format menjadi Title Case rapi
-    return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase()
-  }
-
-  // Status badge styling bersih (Mendukung alur tiket reguler & alur kurasi inspirasi)
-  const getStatusBadge = (status: DummyReport['status'], jenis?: string) => {
-    const isInspirasi = (jenis || '').toLowerCase() === 'inspirasi'
-    if (isInspirasi) {
-      const labels: Record<string, string> = {
-        diterima: 'Menunggu Kurasi',
-        diproses: 'Sedang Dikurasi',
-        ditindaklanjuti: '🌟 Liputan Berita',
-        selesai: 'Disetujui & Tayang',
-        ditolak: 'Tidak Lolos',
-      }
-      return (
-        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200">
-          {labels[status] || status}
-        </span>
-      )
-    }
-
-    const labels: Record<string, string> = {
-      diterima: 'Diterima',
-      diproses: 'Diproses',
-      ditindaklanjuti: 'Ditindaklanjuti',
-      selesai: 'Selesai',
-      ditolak: 'Ditolak',
-    }
-    const label = labels[status] || status
-    return (
-      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
-        {label}
-      </span>
-    )
-  }
+  const [selectedVisibility, setSelectedVisibility] = useState<'semua' | 'publik' | 'privat'>('semua')
+  const [reportsList, setReportsList] = useState<DummyReport[]>([])
+  const [chatCounts, setChatCounts] = useState<Record<string, number>>({})
 
   // Format tanggal rapi
   const formatDate = (dateStr: string) => {
@@ -90,11 +37,8 @@ export default function AdminLaporanPage() {
     }
   }
 
-  const [reportsList, setReportsList] = useState<DummyReport[]>([])
-  const [chatCounts, setChatCounts] = useState<Record<string, number>>({})
-
   // Scan jumlah pesan chat warga aktif
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
         const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
@@ -147,7 +91,7 @@ export default function AdminLaporanPage() {
   }, [])
 
   // Muat laporan dari MySQL via /api/reports (dengan fallback localStorage)
-  React.useEffect(() => {
+  useEffect(() => {
     const loadReports = async () => {
       try {
         const res = await fetch('/api/reports', { cache: 'no-store' })
@@ -159,10 +103,9 @@ export default function AdminLaporanPage() {
           }
         }
       } catch (err) {
-        console.warn('Gagal memuat laporan live admin:', err)
+        console.warn('Gagal memuat aduan Buku Induk via API:', err)
       }
 
-      // Fallback lokal jika offline
       if (typeof window !== 'undefined') {
         try {
           const overrides = JSON.parse(
@@ -171,29 +114,30 @@ export default function AdminLaporanPage() {
           const userReports = JSON.parse(
             localStorage.getItem('halo_jurnal_user_reports') || '[]'
           )
+
           const combined = [...userReports]
           const unique = new Map<string, any>()
           combined.forEach((item) => {
-            const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
+            const key = item.nomor_tiket || item.id || item.ticket_number
             if (key && !unique.has(key)) {
               unique.set(key, item)
             }
           })
+
           const updated = Array.from(unique.values()).map((r) => {
             const saved = overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
             if (saved) {
               return {
                 ...r,
-                status: saved.status || r.status,
                 is_public: saved.is_public !== undefined ? saved.is_public : r.is_public,
-                status_log: saved.status_log || r.status_log,
               }
             }
             return r
           })
+
           setReportsList(updated)
         } catch (err) {
-          console.error('Error loading reports fallback:', err)
+          console.error('Error loading reports in admin buku induk:', err)
         }
       }
     }
@@ -207,27 +151,7 @@ export default function AdminLaporanPage() {
     }
   }, [])
 
-  // Kategori khusus yang diketik manual oleh warga (di luar master bawaan)
-  const customCategoriesFromReports = useMemo(() => {
-    const defaultSet = new Set<string>(
-      ALL_REPORT_CATEGORIES.map((c) => c.toLowerCase().trim())
-    )
-    const customSet = new Set<string>()
-    reportsList.forEach((r) => {
-      const clean = (r.kategori || '').trim()
-      if (
-        clean &&
-        !defaultSet.has(clean.toLowerCase()) &&
-        clean.toLowerCase() !== 'semua' &&
-        clean.toLowerCase() !== 'lainnya'
-      ) {
-        customSet.add(clean)
-      }
-    })
-    return Array.from(customSet)
-  }, [reportsList])
-
-  // Filter laporan
+  // Filter aduan
   const filteredReports = useMemo(() => {
     return reportsList.filter((r) => {
       // 1. Pencarian
@@ -236,82 +160,96 @@ export default function AdminLaporanPage() {
         const matchTitle = r.judul?.toLowerCase().includes(q)
         const matchTicket = r.nomor_tiket?.toLowerCase().includes(q)
         const matchDesc = r.deskripsi?.toLowerCase().includes(q)
-        const matchLoc = r.lokasi?.toLowerCase().includes(q)
-        if (!matchTitle && !matchTicket && !matchDesc && !matchLoc) return false
+        if (!matchTitle && !matchTicket && !matchDesc) return false
       }
 
-      // 2. Status
-      if (selectedStatus !== 'semua' && r.status !== selectedStatus) {
-        return false
-      }
-
-      // 3. Kategori
-      if (selectedCategory !== 'semua') {
-        const normalizedItem = normalizeCategoryName(r.kategori).toLowerCase()
-        const normalizedTarget = selectedCategory.toLowerCase()
-        if (normalizedItem !== normalizedTarget && (r.kategori || '').toLowerCase() !== normalizedTarget) {
-          return false
-        }
-      }
-
-      // 4. Visibilitas
-      if (selectedVisibility === 'publik' && !r.is_public) return false
-      if (selectedVisibility === 'privat' && r.is_public) return false
+      // 2. Visibilitas
+      const isPublic = r.is_public || (r as any).visibilitas === 'publik'
+      if (selectedVisibility === 'publik' && !isPublic) return false
+      if (selectedVisibility === 'privat' && isPublic) return false
 
       return true
     })
-  }, [reportsList, searchQuery, selectedStatus, selectedCategory, selectedVisibility])
+  }, [reportsList, searchQuery, selectedVisibility])
 
-  // Hitung jumlah tiap status untuk tab (Sinkron 1-to-1 dengan Alur Tiket Warga)
-  const statusCounts = useMemo(() => {
-    return {
-      semua: reportsList.length,
-      diterima: reportsList.filter((r) => r.status === 'diterima').length,
-      diproses: reportsList.filter((r) => r.status === 'diproses').length,
-      ditindaklanjuti: reportsList.filter((r) => r.status === 'ditindaklanjuti').length,
-      selesai: reportsList.filter((r) => r.status === 'selesai').length,
-    }
-  }, [reportsList])
+  const totalPublik = useMemo(
+    () => reportsList.filter((r) => r.is_public || (r as any).visibilitas === 'publik').length,
+    [reportsList]
+  )
+  const totalPrivat = reportsList.length - totalPublik
 
   const PAGE_SIZE = 10
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
-  // Reset pagination saat filter atau pencarian berubah
-  React.useEffect(() => {
+  useEffect(() => {
     setVisibleCount(PAGE_SIZE)
-  }, [searchQuery, selectedStatus, selectedCategory, selectedVisibility])
+  }, [searchQuery, selectedVisibility])
 
   const visibleReports = useMemo(() => {
     return filteredReports.slice(0, visibleCount)
   }, [filteredReports, visibleCount])
 
+  const handleDeleteReport = async (id: string, ticketNumber?: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus aduan "${ticketNumber || id}" secara permanen? Data yang dihapus tidak dapat dipulihkan.`)) {
+      return
+    }
+
+    try {
+      await fetch(`/api/reports?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      try {
+        const userReports = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
+        const filtered = userReports.filter(
+          (r: any) =>
+            r.id !== id &&
+            r.nomor_tiket !== id &&
+            r.ticket_number !== id &&
+            (!ticketNumber || r.nomor_tiket !== ticketNumber)
+        )
+        localStorage.setItem('halo_jurnal_user_reports', JSON.stringify(filtered))
+        window.dispatchEvent(new Event('storage'))
+      } catch {}
+    }
+
+    setReportsList((prev) =>
+      prev.filter(
+        (r) =>
+          r.id !== id &&
+          r.nomor_tiket !== id &&
+          (!ticketNumber || r.nomor_tiket !== ticketNumber)
+      )
+    )
+  }
+
   const handleResetFilter = () => {
     setSearchQuery('')
-    setSelectedStatus('semua')
-    setSelectedCategory('semua')
     setSelectedVisibility('semua')
     setVisibleCount(PAGE_SIZE)
   }
 
-  // Fitur Nyata: Ekspor CSV yang langsung mengunduh file
+  // Ekspor CSV bersih
   const handleExportCSV = () => {
-    const headers = ['Nomor Tiket', 'Tanggal', 'Judul Laporan', 'Kategori', 'Status', 'Visibilitas', 'Lokasi', 'Dukungan']
+    const headers = ['Nomor Tiket', 'Tanggal', 'Judul Pengaduan', 'Visibilitas', 'Dukungan']
     const rows = filteredReports.map((r) => [
       `"${r.nomor_tiket}"`,
       `"${formatDate(r.created_at)}"`,
       `"${r.judul.replace(/"/g, '""')}"`,
-      `"${r.kategori}"`,
-      `"${r.status}"`,
       `"${r.is_public ? 'Publik' : 'Privat'}"`,
-      `"${r.lokasi.replace(/"/g, '""')}"`,
       r.dukungan_count || 0,
     ])
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n')
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n')
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement('a')
     link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `laporan-halo-jurnal-${new Date().toISOString().slice(0, 10)}.csv`)
+    link.setAttribute(
+      'download',
+      `aduan-halo-jurnal-${new Date().toISOString().slice(0, 10)}.csv`
+    )
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -323,19 +261,18 @@ export default function AdminLaporanPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h1 className="text-xl font-heading font-bold text-slate-900 tracking-tight">
-            Buku Induk &amp; Arsip Laporan Warga
+            Buku Induk &amp; Arsip Pengaduan Warga
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Database arsip lengkap seluruh riwayat pengaduan dan aspirasi warga Sukabumi yang masuk ke redaksi.
+            Database arsip lengkap seluruh riwayat pengaduan warga Sukabumi yang masuk ke redaksi.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Tombol Ekspor CSV Nyata Berfungsi */}
           <button
             onClick={handleExportCSV}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition shadow-2xs cursor-pointer hover:border-[#c00015]/40 hover:text-[#c00015]"
-            title="Unduh data laporan ke format CSV / Excel"
+            title="Unduh data aduan ke format CSV"
           >
             <Download className="w-3.5 h-3.5 text-slate-500" />
             <span>Ekspor CSV</span>
@@ -343,28 +280,26 @@ export default function AdminLaporanPage() {
         </div>
       </div>
 
-      {/* 2. Status Tab Cepat (Sinkron 1-to-1 dengan Alur Tiket Warga) */}
+      {/* 2. Tab Filter Visibilitas Aduan */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {[
-          { key: 'semua', label: 'Semua Laporan', count: statusCounts.semua },
-          { key: 'diterima', label: 'Diterima', count: statusCounts.diterima },
-          { key: 'diproses', label: 'Diproses', count: statusCounts.diproses },
-          { key: 'ditindaklanjuti', label: 'Ditindaklanjuti', count: statusCounts.ditindaklanjuti },
-          { key: 'selesai', label: 'Selesai', count: statusCounts.selesai },
+          { key: 'semua' as const, label: 'Semua Aduan', count: reportsList.length },
+          { key: 'publik' as const, label: 'Feed Publik', count: totalPublik },
+          { key: 'privat' as const, label: 'Aduan Privat', count: totalPrivat },
         ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setSelectedStatus(tab.key)}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition cursor-pointer ${
-              selectedStatus === tab.key
-                ? 'bg-[#c00015] text-white font-semibold shadow-2xs'
+            onClick={() => setSelectedVisibility(tab.key)}
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+              selectedVisibility === tab.key
+                ? 'bg-[#c00015] text-white shadow-2xs'
                 : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200'
             }`}
           >
             <span>{tab.label}</span>
             <span
               className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                selectedStatus === tab.key
+                selectedVisibility === tab.key
                   ? 'bg-black/20 text-white'
                   : 'bg-slate-100 text-slate-500'
               }`}
@@ -375,18 +310,17 @@ export default function AdminLaporanPage() {
         ))}
       </div>
 
-      {/* 3. Panel Filter & Search Bar */}
-      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3">
+      {/* 3. Panel Search Bar & Filter */}
+      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center gap-3">
-          {/* Search Bar */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nomor tiket, judul masalah, atau lokasi jalan..."
-              className="w-full pl-9 pr-8 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#c00015] focus:ring-1 focus:ring-[#c00015] transition"
+              placeholder="Cari nomor tiket atau judul pengaduan..."
+              className="w-full pl-9 pr-8 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#c00015] transition"
             />
             {searchQuery && (
               <button
@@ -399,110 +333,37 @@ export default function AdminLaporanPage() {
             )}
           </div>
 
-          {/* Filter Dropdown Kategori Terkelompok Rapi (Opsi 2 <optgroup>) */}
-          <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full md:w-auto">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-700 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
+          {(searchQuery || selectedVisibility !== 'semua') && (
+            <button
+              onClick={handleResetFilter}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs text-slate-600 hover:text-[#c00015] hover:bg-slate-100 rounded-lg transition cursor-pointer border border-slate-200"
+              title="Reset Filter"
             >
-              <option value="semua">Semua Kategori</option>
-
-              <optgroup label="── PENGADUAN WARGA ──">
-                {REPORT_CATEGORIES_BY_TYPE.pengaduan
-                  .filter((c) => c !== 'Lainnya')
-                  .map((cat) => (
-                    <option key={`pengaduan-${cat}`} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-              </optgroup>
-
-              <optgroup label="── ASPIRASI & USULAN ──">
-                {REPORT_CATEGORIES_BY_TYPE.aspirasi
-                  .filter((c) => c !== 'Lainnya')
-                  .map((cat) => (
-                    <option key={`aspirasi-${cat}`} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-              </optgroup>
-
-              <optgroup label="── PERMOHONAN INFORMASI ──">
-                {REPORT_CATEGORIES_BY_TYPE.informasi
-                  .filter((c) => c !== 'Lainnya')
-                  .map((cat) => (
-                    <option key={`informasi-${cat}`} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-              </optgroup>
-
-              <optgroup label="── CERITA INSPIRASI ──">
-                {REPORT_CATEGORIES_BY_TYPE.inspirasi
-                  .filter((c) => c !== 'Lainnya')
-                  .map((cat) => (
-                    <option key={`inspirasi-${cat}`} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-              </optgroup>
-
-              {customCategoriesFromReports.length > 0 && (
-                <optgroup label="── KATEGORI KHUSUS WARGA ──">
-                  {customCategoriesFromReports.map((cat) => (
-                    <option key={`custom-${cat}`} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
-
-            {/* Filter Visibilitas */}
-            <select
-              value={selectedVisibility}
-              onChange={(e) => setSelectedVisibility(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-700 focus:bg-white focus:outline-none focus:border-[#c00015] cursor-pointer"
-            >
-              <option value="semua">Semua Visibilitas</option>
-              <option value="publik">Feed Publik</option>
-              <option value="privat">Privat / Tertutup</option>
-            </select>
-
-            {/* Tombol Reset Filter */}
-            {(searchQuery || selectedCategory !== 'semua' || selectedVisibility !== 'semua') && (
-              <button
-                onClick={handleResetFilter}
-                className="inline-flex items-center justify-center gap-1 px-2.5 py-2 text-xs text-slate-500 hover:text-[#c00015] hover:bg-slate-100 rounded-lg transition cursor-pointer"
-                title="Reset Filter"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset</span>
-              </button>
-            )}
-          </div>
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Filter</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 4. Tabel Tabular Laporan */}
+      {/* 4. Tabel Tabular Aduan */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="p-3 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500">
           <span>
-            Menampilkan <strong>{Math.min(visibleCount, filteredReports.length)}</strong> dari <strong>{filteredReports.length}</strong> laporan
+            Menampilkan <strong>{Math.min(visibleCount, filteredReports.length)}</strong> dari{' '}
+            <strong>{filteredReports.length}</strong> pengaduan
           </span>
           <span className="text-[11px]">Diurutkan berdasarkan tanggal terbaru</span>
         </div>
 
         {filteredReports.length === 0 ? (
-          /* Empty State */
           <div className="py-12 px-4 text-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
               <FileText className="w-6 h-6" />
             </div>
             <div className="space-y-1">
               <p className="text-sm font-semibold text-slate-800">
-                Tidak ada laporan yang sesuai
+                Tidak ada aduan yang sesuai
               </p>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 Coba ubah kata kunci pencarian atau reset filter untuk menampilkan semua data.
@@ -513,21 +374,18 @@ export default function AdminLaporanPage() {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Semua Filter</span>
+              <span>Reset Filter</span>
             </button>
           </div>
         ) : (
-          /* Tabel Data Tabular Simpel & Rapi (Desktop Pas, Mobile Scrollable) */
           <div className="w-full overflow-x-auto [scrollbar-width:thin]">
-            <table className="w-full min-w-[850px] table-fixed text-left text-xs">
+            <table className="w-full min-w-[750px] table-fixed text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
                 <tr>
-                  <th className="py-3.5 px-4 whitespace-nowrap w-[155px]">No. Tiket &amp; Tanggal</th>
-                  <th className="py-3.5 px-4 min-w-[220px]">Judul Aduan &amp; Lokasi</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap w-[130px]">Kategori</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap w-[160px]">Status</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap w-[100px] text-center">Dukungan</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap w-[120px] text-center">Aksi</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[200px]">No. Tiket &amp; Tanggal</th>
+                  <th className="py-3.5 px-4">Judul Pengaduan</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[110px] text-center">Dukungan</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap w-[130px] text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -536,21 +394,21 @@ export default function AdminLaporanPage() {
                     chatCounts[report.id] ||
                     (report.nomor_tiket ? chatCounts[report.nomor_tiket] : 0) ||
                     0
+                  const isItemPublic = report.is_public || (report as any).visibilitas === 'publik'
 
                   return (
                     <tr key={report.id} className="hover:bg-slate-50/70 transition-colors">
-                      {/* No. Tiket, Tanggal & Badge Publik/Privat Rapi Sejajar */}
                       <td className="py-3.5 px-4 whitespace-nowrap align-middle">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded-md">
                             {report.nomor_tiket}
                           </span>
-                          {report.is_public ? (
-                            <span className="text-[10px] font-semibold text-[#c00015] bg-red-500/10 px-1.5 py-0.5 rounded-md">
+                          {isItemPublic ? (
+                            <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200">
                               Publik
                             </span>
                           ) : (
-                            <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">
+                            <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200">
                               Privat
                             </span>
                           )}
@@ -569,7 +427,6 @@ export default function AdminLaporanPage() {
                         </p>
                       </td>
 
-                      {/* Judul & Lokasi */}
                       <td className="py-3.5 px-4 align-middle min-w-0 overflow-hidden">
                         <Link
                           href={`/halo-jurnal/admin/laporan/${report.id}`}
@@ -578,33 +435,15 @@ export default function AdminLaporanPage() {
                         >
                           {report.judul}
                         </Link>
-                        <p className="text-slate-500 text-[11px] truncate mt-1 flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span className="truncate">{report.lokasi}</span>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {report.deskripsi}
                         </p>
                       </td>
 
-                      {/* Kategori Rapi (Ghost Plain Text) */}
-                      <td className="py-3.5 px-4 whitespace-nowrap align-middle min-w-0 overflow-hidden">
-                        <span
-                          className="text-xs font-medium text-slate-700 truncate inline-block"
-                          title={report.kategori}
-                        >
-                          {formatCategory(report.kategori)}
-                        </span>
-                      </td>
-
-                      {/* Status Penanganan / Kurasi */}
-                      <td className="py-3.5 px-4 whitespace-nowrap align-middle">
-                        {getStatusBadge(report.status, report.jenis || report.kategori)}
-                      </td>
-
-                      {/* Dukungan Warga */}
                       <td className="py-3.5 px-4 whitespace-nowrap align-middle text-center text-slate-700 font-semibold text-xs">
                         {report.dukungan_count || 0} suara
                       </td>
 
-                      {/* Tombol Aksi Bersih & Simetris */}
                       <td className="py-3.5 px-4 whitespace-nowrap text-center align-middle">
                         <div className="inline-flex items-center justify-center gap-1.5">
                           <Link
@@ -622,6 +461,14 @@ export default function AdminLaporanPage() {
                             <span>Detail</span>
                             <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-white transition-colors" />
                           </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteReport(report.id, report.nomor_tiket)}
+                            className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition cursor-pointer"
+                            title="Hapus Aduan Ini"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -632,22 +479,16 @@ export default function AdminLaporanPage() {
           </div>
         )}
 
-        {/* Tombol Muat Lebih Banyak (Load More) */}
-        {filteredReports.length > visibleCount ? (
-          <div className="p-3.5 border-t border-slate-200 bg-slate-50/50 text-center">
+        {visibleCount < filteredReports.length && (
+          <div className="p-3 border-t border-slate-100 text-center bg-slate-50/50">
             <button
               onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white hover:bg-[#c00015] hover:text-white hover:border-[#c00015] text-slate-700 border border-slate-200 text-xs font-semibold transition shadow-2xs cursor-pointer group"
+              className="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition shadow-2xs cursor-pointer"
             >
-              <span>Lihat Lebih Banyak ({filteredReports.length - visibleCount} laporan lagi)</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors" />
+              Muat Lebih Banyak ({filteredReports.length - visibleCount} lagi)
             </button>
           </div>
-        ) : filteredReports.length > PAGE_SIZE ? (
-          <div className="p-3 border-t border-slate-100 bg-slate-50/30 text-center text-[11px] text-slate-400">
-            <span>Seluruh {filteredReports.length} laporan telah ditampilkan</span>
-          </div>
-        ) : null}
+        )}
       </div>
     </div>
   )

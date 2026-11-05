@@ -130,7 +130,7 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
   if (!reports || reports.length === 0) {
     return (
       <div className="col-span-full text-center py-12 text-secondary bg-surface rounded-2xl border border-outline-variant/60">
-        Belum ada laporan publik saat ini. Jadilah yang pertama menyampaikan laporan!
+        Belum ada aduan publik saat ini. Jadilah yang pertama menyampaikan aduan!
       </div>
     )
   }
@@ -180,14 +180,7 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
                 </div>
               )}
 
-              {/* Floating Status Badge (Top-Left) */}
-              <div className="absolute top-2 left-2 z-10">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-black/65 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-semibold tracking-wide capitalize">
-                  {status === 'selesai'
-                    ? (report.jenis === 'inspirasi' ? 'Tayang' : 'Selesai')
-                    : status}
-                </span>
-              </div>
+              
 
               {/* Floating Date Badge (Top-Right) */}
               <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[9px] sm:text-[10px] font-medium text-white flex items-center gap-1">
@@ -208,12 +201,9 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
               </div>
 
               <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-outline-variant/40 text-[10px] sm:text-[11px] text-secondary mt-auto">
-                <div className="flex items-center gap-1 min-w-0">
-                  <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary shrink-0" />
-                  <span className="truncate">{report.lokasi || 'Sukabumi'}</span>
-                </div>
+                <span className="text-secondary/70">Aduan Publik Warga</span>
                 <span className="text-primary font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform text-[10px] sm:text-[11px]">
-                  Detail &rarr;
+                  Detail Aduan &rarr;
                 </span>
               </div>
             </div>

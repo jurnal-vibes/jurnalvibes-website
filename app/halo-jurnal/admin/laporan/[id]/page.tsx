@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -16,6 +16,7 @@ import {
   X,
   Check,
   MessageSquare,
+  Trash2,
   ChevronDown,
   ChevronUp,
   Phone,
@@ -24,6 +25,7 @@ import {
 import { DummyReport } from '@/data/dummyReports'
 
 export default function AdminDetailLaporanPage() {
+  const router = useRouter()
   const params = useParams()
   const id = params?.id as string
 
@@ -398,6 +400,41 @@ export default function AdminDetailLaporanPage() {
     }, 3500)
   }
 
+  const handleDeleteReport = async () => {
+    if (
+      !confirm(
+        `Apakah Anda yakin ingin menghapus aduan "${report.nomor_tiket}" secara permanen? Data yang dihapus tidak dapat dipulihkan.`
+      )
+    ) {
+      return
+    }
+
+    try {
+      await fetch(`/api/reports?id=${encodeURIComponent(report.id)}`, {
+        method: 'DELETE',
+      })
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      try {
+        const userReports = JSON.parse(
+          localStorage.getItem('halo_jurnal_user_reports') || '[]'
+        )
+        const filtered = userReports.filter(
+          (r: any) =>
+            r.id !== report.id &&
+            r.nomor_tiket !== report.id &&
+            r.ticket_number !== report.id &&
+            r.nomor_tiket !== report.nomor_tiket
+        )
+        localStorage.setItem('halo_jurnal_user_reports', JSON.stringify(filtered))
+        window.dispatchEvent(new Event('storage'))
+      } catch {}
+    }
+
+    router.replace('/halo-jurnal/admin/laporan')
+  }
+
   // Format kategori (Title Case)
   const formatCategory = (cat?: string) => {
     if (!cat) return 'Umum'
@@ -513,13 +550,9 @@ export default function AdminDetailLaporanPage() {
               <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md">
                 {report.nomor_tiket}
               </span>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold ${currentBadge.bg}`}
-              >
-                {currentBadge.label}
-              </span>
+              
               {report.is_public ? (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                   Tayang Publik
                 </span>
               ) : (
@@ -529,7 +562,7 @@ export default function AdminDetailLaporanPage() {
               )}
             </div>
             <h1 className="text-xl font-heading font-extrabold text-slate-900 tracking-tight">
-              Tinjauan Aduan Warga
+              Tinjauan Pengaduan Warga
             </h1>
           </div>
         </div>
@@ -570,10 +603,7 @@ export default function AdminDetailLaporanPage() {
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 text-xs">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-md text-xs">
-                  {formatCategory(report.kategori)}
-                </span>
-                <span className="font-medium text-slate-500 bg-slate-100/70 px-2 py-0.5 rounded-md uppercase text-[10px] tracking-wider">
-                  {report.jenis || 'Aspirasi'}
+                  Pengaduan Warga
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-slate-400">
@@ -602,24 +632,7 @@ export default function AdminDetailLaporanPage() {
               </div>
             </div>
 
-            {/* Lokasi Kejadian */}
-            <div className="flex items-start gap-2.5 text-xs pt-3 border-t border-slate-100">
-              <MapPin className="w-4 h-4 text-[#c00015] shrink-0 mt-0.5" />
-              <div className="space-y-0.5 flex-1">
-                <p className="font-semibold text-slate-900">{report.lokasi}</p>
-                <div className="flex items-center gap-2 text-slate-500 text-[11px]">
-                  <a
-                    href={`https://maps.google.com/?q=${report.latitude},${report.longitude}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[#c00015] hover:underline font-semibold inline-flex items-center gap-1"
-                  >
-                    <span>Buka Titik Peta di Google Maps</span>
-                    <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
-                </div>
-              </div>
-            </div>
+            
 
             {/* Identitas Pelapor Terintegrasi */}
             {(() => {
@@ -640,17 +653,13 @@ export default function AdminDetailLaporanPage() {
                         <span className="font-bold text-slate-900 text-sm">
                           {pelaporNama}
                         </span>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                          <ShieldCheck className="w-3.5 h-3.5 text-slate-600" />
-                          Warga Terverifikasi
-                        </span>
+                        
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
                           Identitas Otomatis Dirahasiakan di Publik
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
-                        <span>Alamat: {(report as any).alamat_domisili || (report as any).domisili || (report as any).address || 'Sukabumi, Jawa Barat'}</span>
-                        <span>•</span>
+                        
                         <span>Kontak WA: <strong>{rawPhone}</strong></span>
                       </div>
                     </div>
@@ -682,44 +691,65 @@ export default function AdminDetailLaporanPage() {
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 text-[11px] text-amber-900 flex items-start gap-2">
                     <Check className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                     <span>
-                      <strong>Pernyataan Pertanggungjawaban Hukum Sah:</strong> Pelapor telah menyetujui pernyataan siap hadir dan bertanggung jawab secara hukum atas kebenaran laporan ini.
+                      <strong>Pernyataan Pertanggungjawaban Hukum Sah:</strong> Pelapor telah menyetujui pernyataan siap hadir dan bertanggung jawab secara hukum atas kebenaran aduan ini.
                     </span>
                   </div>
                 </div>
               )
             })()}
 
-            {/* Galeri Foto Bukti Lampiran */}
+            {/* Galeri Foto/Video Bukti Lampiran */}
             <div className="space-y-2 pt-3 border-t border-slate-100">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Foto Bukti Lampiran ({report.laporan_lampiran?.length || 0})
+                  Berkas Bukti Lampiran ({report.laporan_lampiran?.length || 0})
                 </h3>
-                <span className="text-[11px] text-slate-400">Klik untuk perbesar</span>
+                <span className="text-[11px] text-slate-400">Foto & Video Bukti</span>
               </div>
 
               {report.laporan_lampiran && report.laporan_lampiran.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {report.laporan_lampiran.map((lamp, i) => (
-                    <div
-                      key={lamp.id || i}
-                      onClick={() => setActivePhoto(lamp.file_url)}
-                      className="group cursor-pointer rounded-lg border border-slate-200 overflow-hidden bg-slate-100 aspect-video relative"
-                    >
-                      <img
-                        src={lamp.file_url}
-                        alt={`Bukti aduan ${i + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-200"
-                      />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-medium">
-                        Perbesar ↗
+                  {report.laporan_lampiran.map((lamp, i) => {
+                    const isVid =
+                      (lamp.file_type && lamp.file_type.startsWith('video/')) ||
+                      lamp.file_url?.startsWith('data:video/') ||
+                      lamp.file_url?.endsWith('.mp4') ||
+                      lamp.file_url?.endsWith('.webm')
+                    if (isVid) {
+                      return (
+                        <div
+                          key={lamp.id || i}
+                          className="rounded-lg border border-slate-200 overflow-hidden bg-black aspect-video relative"
+                        >
+                          <video
+                            src={lamp.file_url}
+                            controls
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      )
+                    }
+                    return (
+                      <div
+                        key={lamp.id || i}
+                        onClick={() => setActivePhoto(lamp.file_url)}
+                        className="group cursor-pointer rounded-lg border border-slate-200 overflow-hidden bg-slate-100 aspect-video relative"
+                      >
+                        <img
+                          src={lamp.file_url}
+                          alt={`Bukti aduan ${i + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-200"
+                        />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-medium">
+                          Perbesar ↗
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               ) : (
                 <p className="text-xs text-slate-500 italic p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  Pelapor tidak mengunggah lampiran foto fisik.
+                  Pelapor tidak mengunggah lampiran foto/video fisik.
                 </p>
               )}
             </div>
@@ -748,88 +778,20 @@ export default function AdminDetailLaporanPage() {
 
         {/* ================= KOLOM KANAN (5 Col): MEJA EKSEKUSI REDAKSI ================= */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Panel Form Keputusan Terpadu */}
+          {/* Panel Hak Tayang Aduan Warga */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 sm:p-5 space-y-4">
             <h3 className="text-xs font-heading font-bold text-slate-900 uppercase tracking-wider pb-3 border-b border-slate-100">
-              Meja Eksekusi Redaksi
+              Moderasi Hak Tayang
             </h3>
 
             <form onSubmit={handleSaveAction} className="space-y-4">
-              {/* 1. Tahapan Penanganan / Alur Kurasi Inspirasi */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-800">
-                    {isInspirasi ? 'Alur Kurasi Editorial' : 'Tahap Penanganan'}
-                  </label>
-                  {isInspirasi && (
-                    <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                      Rubrik Inspirasi
-                    </span>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
-                  {(isInspirasi
-                    ? [
-                        { key: 'diterima', label: 'Menunggu Kurasi' },
-                        { key: 'diproses', label: 'Sedang Dikurasi' },
-                        { key: 'ditindaklanjuti', label: '🌟 Angkat Berita' },
-                        { key: 'selesai', label: '✅ Tayang Publik' },
-                        { key: 'ditolak', label: 'Tidak Lolos' },
-                      ]
-                    : [
-                        { key: 'diterima', label: 'Diterima' },
-                        { key: 'diproses', label: 'Diproses' },
-                        { key: 'ditindaklanjuti', label: 'Ditindaklanjuti' },
-                        { key: 'selesai', label: 'Selesai' },
-                        { key: 'ditolak', label: 'Ditolak' },
-                      ]
-                  ).map((st, idx) => {
-                    const isSelected = currentStatus === st.key
-                    const isFull = idx === 4
-                    return (
-                      <button
-                        key={st.key}
-                        type="button"
-                        onClick={() => setCurrentStatus(st.key as DummyReport['status'])}
-                        className={`py-2 px-2 text-center rounded-lg font-semibold text-xs transition cursor-pointer flex items-center justify-center whitespace-nowrap ${
-                          isFull ? 'col-span-2' : 'col-span-1'
-                        } ${
-                          isSelected
-                            ? 'bg-[#c00015] text-white shadow-2xs'
-                            : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs'
-                        }`}
-                      >
-                        {st.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Banner Aksi Cepat Angkat ke Berita Portal jika Inspirasi Terpilih */}
-              {isInspirasi && currentStatus === 'ditindaklanjuti' && (
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <span>🌟 Inspirasi Terpilih Jadi Berita</span>
-                  </div>
-                  <p className="text-[11px] text-amber-800 leading-relaxed">
-                    Cerita ini diputuskan redaksi untuk diangkat menjadi artikel berita resmi di portal Jurnal Sukabumi.
-                  </p>
-                  <Link
-                    href="/admin/berita"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#c00015] hover:bg-[#a00012] text-white rounded-lg font-bold text-xs shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <span>Buka Meja Redaksi Berita</span>
-                    <ExternalLink className="w-3 h-3 opacity-80" />
-                  </Link>
-                </div>
-              )}
-
-              {/* 2. Visibilitas Feed Publik (Segmented Control Bersih) */}
-              <div className="pt-2 border-t border-slate-100 space-y-1.5">
                 <label className="block text-xs font-bold text-slate-800">
-                  Hak Tayang Feed Warga
+                  Visibilitas Feed Warga
                 </label>
+                <p className="text-[11px] text-slate-500">
+                  Tentukan apakah aduan ini dapat diakses secara terbuka di Feed Publik atau disimpan sebagai arsip privat.
+                </p>
 
                 <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
                   <button
@@ -858,21 +820,7 @@ export default function AdminDetailLaporanPage() {
                 </div>
               </div>
 
-              {/* 3. Catatan Progres Redaksi */}
-              <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
-                  Catatan Progres Redaksi (Opsional)
-                </label>
-                <textarea
-                  rows={2}
-                  value={editorialNote}
-                  onChange={(e) => setEditorialNote(e.target.value)}
-                  placeholder="Ketik rilis atau catatan resmi tindak lanjut dinas..."
-                  className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#c00015] leading-relaxed transition"
-                />
-              </div>
-
-              {/* Tombol Simpan Tunggal dengan Micro-Feedback */}
+              {/* Tombol Simpan Hak Tayang */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -882,67 +830,21 @@ export default function AdminDetailLaporanPage() {
                     : 'bg-[#c00015] hover:bg-[#a00012] disabled:opacity-50 text-white'
                 }`}
               >
-                {actionSuccess ? '✓ Keputusan Berhasil Disimpan' : 'Simpan Keputusan Redaksi'}
+                {actionSuccess ? '✓ Hak Tayang Berhasil Disimpan' : 'Simpan Pengaturan Hak Tayang'}
               </button>
             </form>
-          </div>
 
-          {/* Timeline Riwayat Kronologi Penanganan (Bersih, Kompak & Expandable) */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Kronologi Riwayat Penanganan
-                </h3>
-                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
-                  {cleanedLogs.length}
-                </span>
-              </div>
-              <span className="text-[11px] text-slate-400">Arsip Milestone</span>
+            {/* Tombol Hapus Aduan */}
+            <div className="pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={handleDeleteReport}
+                className="w-full py-2 px-3 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 border border-rose-200 transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Hapus Aduan Ini Secara Permanen</span>
+              </button>
             </div>
-
-            {/* Riwayat Logs (Default: 3 Terbaru agar Tidak Menumpuk ke Bawah) */}
-            <div className="relative pl-4 space-y-3.5 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-              {visibleLogs.map((log, idx) => (
-                <div key={log.id || idx} className="relative text-xs space-y-1">
-                  <span className="absolute -left-4 top-1 w-2.5 h-2.5 rounded-full bg-slate-700 ring-4 ring-slate-100" />
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 capitalize">
-                      Tahap: {log.status}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      {formatDate(log.created_at)}
-                    </span>
-                  </div>
-                  <p className="text-slate-600 text-[11px] leading-relaxed bg-slate-50 p-2.5 rounded border border-slate-100">
-                    {log.catatan}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Tombol Buka / Tutup Riwayat Lengkap */}
-            {cleanedLogs.length > 3 && (
-              <div className="pt-1 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAllLogs(!showAllLogs)}
-                  className="w-full py-2 px-3 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-                >
-                  {showAllLogs ? (
-                    <>
-                      <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Tampilkan Lebih Ringkas (3 Terbaru)</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Lihat Semua Riwayat ({cleanedLogs.length - 3} lainnya)</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -954,11 +856,20 @@ export default function AdminDetailLaporanPage() {
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xs cursor-pointer"
         >
           <div className="relative max-w-4xl max-h-[90vh] flex items-center justify-center">
-            <img
-              src={activePhoto}
-              alt="Foto Bukti Diperbesar"
-              className="max-h-[85vh] max-w-full w-auto rounded-xl object-contain shadow-2xl"
-            />
+            {activePhoto.startsWith('data:video/') || activePhoto.endsWith('.mp4') || activePhoto.endsWith('.webm') ? (
+              <video
+                src={activePhoto}
+                controls
+                autoPlay
+                className="max-h-[85vh] max-w-full rounded-xl shadow-2xl"
+              />
+            ) : (
+              <img
+                src={activePhoto}
+                alt="Foto Bukti Diperbesar"
+                className="max-h-[85vh] max-w-full w-auto rounded-xl object-contain shadow-2xl"
+              />
+            )}
             <button
               onClick={() => setActivePhoto(null)}
               className="absolute top-2 right-2 sm:-top-3 sm:-right-3 p-2 bg-slate-900/90 hover:bg-black text-white rounded-full shadow-lg transition"

@@ -224,7 +224,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           badge: null,
         },
         {
-          name: 'Buku Induk Laporan',
+          name: 'Buku Induk Pengaduan',
           href: '/halo-jurnal/admin/laporan',
           icon: FileText,
           badge: counts.pendingReports > 0 ? String(counts.pendingReports) : null,
