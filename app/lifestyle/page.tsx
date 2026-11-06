@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { LifestyleClient } from './LifestyleClient';
 import { fetchArticles } from '@/lib/wordpress';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Lifestyle & Culture',

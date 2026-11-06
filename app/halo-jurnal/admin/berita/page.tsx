@@ -21,6 +21,7 @@ import {
   Save,
   Upload,
   Image as ImageIcon,
+  Loader2,
 } from 'lucide-react'
 import { Article, ArticleCategory } from '@/types'
 
@@ -84,6 +85,18 @@ export default function AdminBeritaPage() {
   const [newTags, setNewTags] = useState('')
   const [newIsHero, setNewIsHero] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Helper deduplikasi artikel berdasarkan slug, title, atau id
+  const dedupeArticles = (items: Article[]): Article[] => {
+    const seen = new Set<string>()
+    return items.filter((item) => {
+      const key = (item.slug || item.title || item.id || '').toLowerCase().trim()
+      if (!key || seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }
 
   // Helper otomatis ekstrak 1-2 kalimat pertama dari isi berita untuk ringkasan/subjudul di bawah judul
   const extractAutoExcerpt = (text: string): string => {
@@ -174,9 +187,10 @@ export default function AdminBeritaPage() {
         if (res.ok) {
           const json = await res.json()
           if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            setArticles(json.data)
+            const cleanData = dedupeArticles(json.data)
+            setArticles(cleanData)
             if (typeof window !== 'undefined') {
-              localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data))
+              localStorage.setItem('jurnal_wave_articles', JSON.stringify(cleanData))
             }
             return
           }
@@ -192,7 +206,8 @@ export default function AdminBeritaPage() {
           if (saved) {
             const parsed = JSON.parse(saved)
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setArticles(parsed)
+              const cleanSaved = dedupeArticles(parsed)
+              setArticles(cleanSaved)
               return
             }
           }
@@ -206,10 +221,11 @@ export default function AdminBeritaPage() {
 
   // Helper simpan ke localStorage
   const persistArticles = (updated: Article[]) => {
-    setArticles(updated)
+    const cleanUpdated = dedupeArticles(updated)
+    setArticles(cleanUpdated)
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('jurnal_wave_articles', JSON.stringify(updated))
+        localStorage.setItem('jurnal_wave_articles', JSON.stringify(cleanUpdated))
         // Kirim event realtime agar seluruh tab/halaman publik langsung tersinkron
         window.dispatchEvent(new Event('storage'))
       } catch (err) {
@@ -259,109 +275,114 @@ export default function AdminBeritaPage() {
   // Handle Simpan Berita Baru ke MySQL
   const handleCreateArticle = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newTitle.trim()) return
-
-    let finalCategoryLabel = (CATEGORY_DISPLAY_MAP[newCategory] || newCategory).toUpperCase()
-    if (newCategory === 'berita') {
-      if (newSubCategory === 'kampus') finalCategoryLabel = 'KAMPUS'
-      else if (newSubCategory === 'sekolah') finalCategoryLabel = 'SEKOLAH'
-      else if (newSubCategory === 'daerah') finalCategoryLabel = 'BERITA DAERAH'
-      else finalCategoryLabel = 'BERITA'
-    } else if (newCategory === 'lifestyle') {
-      if (newSubCategory === 'style') finalCategoryLabel = 'STYLE & FASHION'
-      else if (newSubCategory === 'culinary') finalCategoryLabel = 'KULINER'
-      else if (newSubCategory === 'traveling') finalCategoryLabel = 'TRAVELING'
-      else finalCategoryLabel = 'LIFESTYLE'
-    }
-
-    const autoExcerpt = newExcerpt.trim() || extractAutoExcerpt(newContent) || newTitle.trim()
-    const parsedTags = newTags.trim()
-      ? newTags
-          .split(',')
-          .map((t) => t.trim())
-          .filter(Boolean)
-          .map((t) => (t.startsWith('#') ? t : `#${t}`))
-      : ['#BERITA', '#JurnalWave', `#${newCategory.toUpperCase()}`]
-
-    const payload = {
-      title: newTitle.trim(),
-      category: newCategory,
-      categoryLabel: finalCategoryLabel,
-      subCategory: newSubCategory || undefined,
-      excerpt: autoExcerpt,
-      content: newContent.trim() || autoExcerpt,
-      imageUrl:
-        newImageUrl.trim() ||
-        'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80',
-      imageCaption: newImageCaption.trim() || undefined,
-      imageAlt: newImageCaption.trim() || undefined,
-      author: 'Tim Redaksi',
-      reporter: newReporter.trim() || 'Fajar Pratama',
-      redaktur: newRedaktur.trim() || 'Ujang Herlan',
-      tags: parsedTags,
-      isHero: newIsHero,
-      isEditorsPick: false,
-    }
-
-    let createdArticle: Article | null = null
+    if (isSubmitting || !newTitle.trim()) return
+    setIsSubmitting(true)
 
     try {
-      const res = await fetch('/api/articles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      let finalCategoryLabel = (CATEGORY_DISPLAY_MAP[newCategory] || newCategory).toUpperCase()
+      if (newCategory === 'berita') {
+        if (newSubCategory === 'kampus') finalCategoryLabel = 'KAMPUS'
+        else if (newSubCategory === 'sekolah') finalCategoryLabel = 'SEKOLAH'
+        else if (newSubCategory === 'daerah') finalCategoryLabel = 'BERITA DAERAH'
+        else finalCategoryLabel = 'BERITA'
+      } else if (newCategory === 'lifestyle') {
+        if (newSubCategory === 'style') finalCategoryLabel = 'STYLE'
+        else if (newSubCategory === 'culinary') finalCategoryLabel = 'CULINARY'
+        else if (newSubCategory === 'traveling') finalCategoryLabel = 'TRAVELING'
+        else finalCategoryLabel = 'LIFESTYLE'
+      }
 
-      if (res.ok) {
-        const json = await res.json()
-        if (json.success && json.data) {
-          createdArticle = json.data
+      const autoExcerpt = newExcerpt.trim() || extractAutoExcerpt(newContent) || newTitle.trim()
+      const parsedTags = newTags.trim()
+        ? newTags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean)
+            .map((t) => (t.startsWith('#') ? t : `#${t}`))
+        : ['#BERITA', '#JurnalWave', `#${newCategory.toUpperCase()}`]
+
+      const payload = {
+        title: newTitle.trim(),
+        category: newCategory,
+        categoryLabel: finalCategoryLabel,
+        subCategory: newSubCategory || undefined,
+        excerpt: autoExcerpt,
+        content: newContent.trim() || autoExcerpt,
+        imageUrl:
+          newImageUrl.trim() ||
+          'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80',
+        imageCaption: newImageCaption.trim() || undefined,
+        imageAlt: newImageCaption.trim() || undefined,
+        author: 'Tim Redaksi',
+        reporter: newReporter.trim() || 'Fajar Pratama',
+        redaktur: newRedaktur.trim() || 'Ujang Herlan',
+        tags: parsedTags,
+        isHero: newIsHero,
+        isEditorsPick: false,
+      }
+
+      let createdArticle: Article | null = null
+
+      try {
+        const res = await fetch('/api/articles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            createdArticle = json.data
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal simpan ke database, menyimpan ke local storage:', err)
+      }
+
+      if (!createdArticle) {
+        createdArticle = {
+          id: `art-${Date.now()}`,
+          ...payload,
+          slug: newTitle
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, ''),
+          author: 'Tim Redaksi',
+          redaktur: newRedaktur.trim() || 'Ujang Herlan',
+          reporter: newReporter.trim() || 'Fajar Pratama',
+          readTime: '3 min read',
+          createdAt: 'Baru saja',
+          publishedDate: new Date().toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          }),
         }
       }
-    } catch (err) {
-      console.warn('Gagal simpan ke database, menyimpan ke local storage:', err)
+
+      const updated = [createdArticle, ...articles.filter((a) => a.id !== createdArticle!.id && a.slug !== createdArticle!.slug)]
+      persistArticles(updated)
+      setIsCreateModalOpen(false)
+
+      // Reset Form
+      setNewTitle('')
+      setNewCategory('berita')
+      setNewSubCategory('')
+      setNewExcerpt('')
+      setNewContent('')
+      setNewImageUrl('')
+      setNewImageCaption('')
+      setNewReporter('')
+      setNewRedaktur('')
+      setNewTags('')
+      setNewIsHero(false)
+
+      setToastMessage('Berita berhasil diterbitkan ke database!')
+      setTimeout(() => setToastMessage(null), 3500)
+    } finally {
+      setIsSubmitting(false)
     }
-
-    if (!createdArticle) {
-      createdArticle = {
-        id: `art-${Date.now()}`,
-        ...payload,
-        slug: newTitle
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)+/g, ''),
-        author: 'Tim Redaksi',
-        redaktur: newRedaktur.trim() || 'Ujang Herlan',
-        reporter: newReporter.trim() || 'Fajar Pratama',
-        readTime: '3 min read',
-        createdAt: 'Baru saja',
-        publishedDate: new Date().toLocaleDateString('id-ID', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        }),
-      }
-    }
-
-    const updated = [createdArticle, ...articles]
-    persistArticles(updated)
-    setIsCreateModalOpen(false)
-
-    // Reset Form
-    setNewTitle('')
-    setNewCategory('berita')
-    setNewSubCategory('')
-    setNewExcerpt('')
-    setNewContent('')
-    setNewImageUrl('')
-    setNewImageCaption('')
-    setNewReporter('')
-    setNewRedaktur('')
-    setNewTags('')
-    setNewIsHero(false)
-
-    setToastMessage('Berita berhasil diterbitkan ke database!')
-    setTimeout(() => setToastMessage(null), 3500)
   }
 
   // Handle Buka Modal Edit
@@ -373,58 +394,63 @@ export default function AdminBeritaPage() {
   // Handle Simpan Hasil Edit ke Database
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!editingArticle || !editingArticle.title.trim()) return
-
-    let finalCategoryLabel = (CATEGORY_DISPLAY_MAP[editingArticle.category] || editingArticle.category).toUpperCase()
-    const sub = (editingArticle.subCategory || '').toLowerCase()
-    if (editingArticle.category === 'berita') {
-      if (sub === 'kampus') finalCategoryLabel = 'KAMPUS'
-      else if (sub === 'sekolah') finalCategoryLabel = 'SEKOLAH'
-      else if (sub === 'daerah') finalCategoryLabel = 'BERITA DAERAH'
-      else finalCategoryLabel = 'BERITA'
-    } else if (editingArticle.category === 'lifestyle') {
-      if (sub === 'style') finalCategoryLabel = 'STYLE & FASHION'
-      else if (sub === 'culinary') finalCategoryLabel = 'KULINER'
-      else if (sub === 'traveling') finalCategoryLabel = 'TRAVELING'
-      else finalCategoryLabel = 'LIFESTYLE'
-    }
-
-    const autoExcerpt = editingArticle.excerpt?.trim() || extractAutoExcerpt(editingArticle.content || '') || editingArticle.title
-    const captionVal = editingArticle.imageCaption?.trim() || editingArticle.imageAlt?.trim() || undefined
-    const updatedArticle = {
-      ...editingArticle,
-      imageCaption: captionVal,
-      imageAlt: captionVal,
-      categoryLabel: finalCategoryLabel,
-      excerpt: autoExcerpt,
-      slug:
-        editingArticle.slug ||
-        editingArticle.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)+/g, ''),
-    }
+    if (isSubmitting || !editingArticle || !editingArticle.title.trim()) return
+    setIsSubmitting(true)
 
     try {
-      await fetch('/api/articles', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedArticle),
-      })
-    } catch (err) {
-      console.warn('Gagal update ke database:', err)
+      let finalCategoryLabel = (CATEGORY_DISPLAY_MAP[editingArticle.category] || editingArticle.category).toUpperCase()
+      const sub = (editingArticle.subCategory || '').toLowerCase()
+      if (editingArticle.category === 'berita') {
+        if (sub === 'kampus') finalCategoryLabel = 'KAMPUS'
+        else if (sub === 'sekolah') finalCategoryLabel = 'SEKOLAH'
+        else if (sub === 'daerah') finalCategoryLabel = 'BERITA DAERAH'
+        else finalCategoryLabel = 'BERITA'
+      } else if (editingArticle.category === 'lifestyle') {
+        if (sub === 'style') finalCategoryLabel = 'STYLE'
+        else if (sub === 'culinary') finalCategoryLabel = 'CULINARY'
+        else if (sub === 'traveling') finalCategoryLabel = 'TRAVELING'
+        else finalCategoryLabel = 'LIFESTYLE'
+      }
+
+      const autoExcerpt = editingArticle.excerpt?.trim() || extractAutoExcerpt(editingArticle.content || '') || editingArticle.title
+      const captionVal = editingArticle.imageCaption?.trim() || editingArticle.imageAlt?.trim() || undefined
+      const updatedArticle = {
+        ...editingArticle,
+        imageCaption: captionVal,
+        imageAlt: captionVal,
+        categoryLabel: finalCategoryLabel,
+        excerpt: autoExcerpt,
+        slug:
+          editingArticle.slug ||
+          editingArticle.title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, ''),
+      }
+
+      try {
+        await fetch('/api/articles', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedArticle),
+        })
+      } catch (err) {
+        console.warn('Gagal update ke database:', err)
+      }
+
+      const updated = articles.map((a) =>
+        a.id === editingArticle.id ? updatedArticle : a
+      )
+
+      persistArticles(updated)
+      setIsEditModalOpen(false)
+      setEditingArticle(null)
+
+      setToastMessage(`Perubahan artikel "${editingArticle.title}" berhasil disimpan!`)
+      setTimeout(() => setToastMessage(null), 3500)
+    } finally {
+      setIsSubmitting(false)
     }
-
-    const updated = articles.map((a) =>
-      a.id === editingArticle.id ? updatedArticle : a
-    )
-
-    persistArticles(updated)
-    setIsEditModalOpen(false)
-    setEditingArticle(null)
-
-    setToastMessage(`Perubahan artikel "${editingArticle.title}" berhasil disimpan!`)
-    setTimeout(() => setToastMessage(null), 3500)
   }
 
   // Handle Hapus Berita dari Database
@@ -1110,10 +1136,20 @@ export default function AdminBeritaPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  disabled={isSubmitting || isUploading}
+                  className="px-5 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Save className="w-4 h-4" />
-                  <span>Simpan Perubahan Artikel</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>Simpan Perubahan Artikel</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -1414,9 +1450,17 @@ export default function AdminBeritaPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white font-bold transition shadow-xs cursor-pointer"
+                  disabled={isSubmitting || isUploading}
+                  className="px-5 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
-                  Terbitkan Berita
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Menerbitkan...</span>
+                    </>
+                  ) : (
+                    <span>Terbitkan Berita</span>
+                  )}
                 </button>
               </div>
             </form>

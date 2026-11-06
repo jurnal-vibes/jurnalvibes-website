@@ -191,7 +191,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Judul berita wajib diisi' }, { status: 400 })
     }
 
-    let slug = body.slug || body.title
+    const trimmedTitle = body.title.trim()
+
+    // Cek duplikasi submit ganda (jika judul yang sama persis dikirim dalam 15 detik terakhir)
+    const recentDuplicate = await prisma.article.findFirst({
+      where: { title: trimmedTitle },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    if (recentDuplicate) {
+      const timeDiff = Date.now() - new Date(recentDuplicate.createdAt).getTime()
+      if (timeDiff < 15000) {
+        return NextResponse.json(
+          {
+            success: true,
+            message: 'Berita sudah berhasil disimpan sebelumnya.',
+            data: mapArticleFromDb(recentDuplicate),
+          },
+          { status: 200 }
+        )
+      }
+    }
+
+    let slug = body.slug || trimmedTitle
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '')
