@@ -19,13 +19,14 @@ import {
   X,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
+import { useAdminData } from '@/context/AdminDataContext'
 
 function ChatDeskContent() {
   const searchParams = useSearchParams()
   const initialTicketParam = searchParams.get('ticket') || searchParams.get('id')
 
-  // Semua daftar tiket laporan (database + user)
-  const [reports, setReports] = useState<DummyReport[]>([])
+  // Mengambil laporan dari AdminDataContext terpusat (0ms instant render, tidak pernah blank saat pindah menu)
+  const { reports, isLoadingReports, refreshReports } = useAdminData()
   const [selectedTicketId, setSelectedTicketId] = useState<string>(
     initialTicketParam || ''
   )
@@ -52,65 +53,14 @@ function ChatDeskContent() {
     >
   >({})
 
-  // Muat daftar laporan lengkap (Database Neon DB + DUMMY + user created)
+  // Auto-select tiket saat data tersedia
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
-        if (!hasPurgedV2) {
-          localStorage.removeItem('halo_jurnal_read_chats')
-          for (let i = localStorage.length - 1; i >= 0; i--) {
-            const k = localStorage.key(i)
-            if (k && k.startsWith('halo_jurnal_chat_')) {
-              localStorage.removeItem(k)
-            }
-          }
-          localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
-        }
-      } catch {}
+    if (initialTicketParam) {
+      setSelectedTicketId(initialTicketParam)
+    } else if (!selectedTicketId && reports.length > 0) {
+      setSelectedTicketId(reports[0].nomor_tiket || reports[0].id)
     }
-
-    const loadAllReports = async () => {
-      let liveList: DummyReport[] = []
-      try {
-        const res = await fetch('/api/reports', { cache: 'no-store' })
-        if (res.ok) {
-          const json = await res.json()
-          if (json.success && Array.isArray(json.data)) {
-            liveList = json.data
-          }
-        }
-      } catch (err) {
-        console.warn('Gagal memuat live reports chat:', err)
-      }
-
-      if (typeof window !== 'undefined') {
-        try {
-          const userReports = JSON.parse(
-            localStorage.getItem('halo_jurnal_user_reports') || '[]'
-          )
-          const combined = [...liveList, ...userReports]
-          const map = new Map<string, any>()
-          combined.forEach((item) => {
-            const key = item.nomor_tiket || item.id || item.ticket_number
-            if (key && !map.has(key)) map.set(key, item)
-          })
-          const allList = Array.from(map.values())
-          setReports(allList)
-
-          if (initialTicketParam) {
-            setSelectedTicketId(initialTicketParam)
-          } else if (allList.length > 0 && !selectedTicketId) {
-            setSelectedTicketId(allList[0].nomor_tiket || allList[0].id)
-          }
-        } catch (err) {
-          console.error('Error loading reports in chat desk:', err)
-        }
-      }
-    }
-
-    loadAllReports()
-  }, [initialTicketParam])
+  }, [initialTicketParam, reports, selectedTicketId])
 
   // Scan metadata percakapan untuk seluruh tiket
   const scanAllTicketChats = () => {
@@ -481,7 +431,20 @@ function ChatDeskContent() {
 
           {/* List Tiket Percakapan (Scrollable) */}
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100 [scrollbar-width:thin]">
-            {filteredReports.length === 0 ? (
+            {isLoadingReports && filteredReports.length === 0 ? (
+              <div className="p-3 space-y-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="p-3 rounded-xl bg-white border border-slate-100 space-y-2 animate-pulse">
+                    <div className="flex justify-between items-center">
+                      <div className="h-3.5 bg-slate-200 rounded w-24" />
+                      <div className="h-3 bg-slate-100 rounded w-14" />
+                    </div>
+                    <div className="h-3.5 bg-slate-200 rounded w-4/5" />
+                    <div className="h-3 bg-slate-100 rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : filteredReports.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-400 space-y-1">
                 <MessageSquare className="w-8 h-8 text-slate-300 mx-auto" />
                 <p className="font-semibold text-slate-600">Tidak ada percakapan</p>

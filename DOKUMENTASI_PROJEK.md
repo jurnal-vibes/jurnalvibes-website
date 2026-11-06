@@ -184,10 +184,10 @@ d:\jurnalvibes-website/
 | `/reels` | Publik | Feed galeri video pendek reels dengan pemutar modal vertikal interaktif. |
 | `/halo-jurnal` | Warga | Landing page pengenalan layanan aspirasi dan aduan warga Sukabumi. |
 | `/halo-jurnal/beranda` | Warga | Dashboard warga untuk melihat status pengaduan terbaru dan feed warga sekitar. |
-| `/halo-jurnal/lapor` | Warga | Formulir aduan warga multi-kategori, upload bukti foto, dan pemilih titik peta Leaflet. |
+| `/halo-jurnal/lapor` | Warga | Formulir aduan warga ringkas (*Anti-Ribet*), upload bukti foto/video hingga 50MB, dan terproteksi Auth Gate (wajib login). |
 | `/halo-jurnal/feed-publik`| Warga | Feed aspirasi terbuka tempat warga bisa memberi dukungan (suara) dan membaca isu publik. |
-| `/halo-jurnal/laporan/[id]`| Warga | Pelacakan status laporan transparan (`[Menunggu Review]` s/d `[Ditayangkan]`), riwayat audit log, dan percakapan chat langsung. |
-| `/halo-jurnal/laporan-saya`| Warga | Ringkasan riwayat seluruh aduan pribadi yang pernah dikirim oleh warga tersebut. |
+| `/halo-jurnal/laporan/[id]`| Warga | Pelacakan status laporan transparan (`[Diterima]` s/d `[Selesai]`), riwayat audit log, pemutar video, in-app Lightbox foto, dan chat dua arah. |
+| `/halo-jurnal/laporan-saya`| Warga | Ringkasan riwayat aduan warga dilengkapi deteksi cerdas thumbnail video (`.mp4`) berikon play dan badge "VIDEO". |
 | `/halo-jurnal/admin/login` | Redaksi | Gerbang autentikasi staf redaksi dengan sistem cookie sesi terenkripsi. |
 | `/halo-jurnal/admin` | Redaksi | Dashboard analitik: total aduan masuk, aduan ditangani, berita aktif, dan pintasan meja kerja. |
 | `/halo-jurnal/admin/laporan`| Redaksi | Meja manajemen tabular: filter status, pencarian nomor tiket, dan status monokrom rapi. |
@@ -323,7 +323,7 @@ Salah satu keunggulan teknis dari portal ini adalah arsitektur **Zero-Downtime H
    * Hasilnya: Penguji atau pengguna tetap dapat melihat seluruh perubahan data seketika tanpa perlu khawatir apakah database lokal MySQL/PostgreSQL sedang aktif atau mati.
 
 2. **Event Storage Listener**
-   * Antar tab browser (misalnya Tab Warga di `/halo-jurnal/laporan/[id]` dan Tab Admin di `/halo-jurnal/admin/chat`) saling berkomunikasi secara real-time via event listener window `'storage'`.
+   * Komunikasi chat dua arah didukung auto-polling real-time (interval 3 detik di meja redaksi dan 5 detik di sisi warga) serta sinkronisasi antar-tab via event listener window `'storage'` dan `'focus'`.
    * Saat admin mengirim pesan, jendela warga akan langsung merender pesan baru tersebut tanpa perlu refresh halaman manual.
 
 ---

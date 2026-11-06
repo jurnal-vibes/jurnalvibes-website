@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useAdminData } from '@/context/AdminDataContext'
 import {
   LayoutDashboard,
   FileText,
@@ -36,124 +37,24 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     email: 'redaksi@jurnalwave.com',
   })
 
-  // Dynamic badge counts
-  const [counts, setCounts] = useState({
-    pendingReports: 0,
-    unreadChat: 0,
-    articles: 0,
-    reels: 0,
-    jobs: 0,
-  })
+  // Dynamic badge counts dari AdminDataContext terpusat (selalu sinkron 0ms)
+  const { counts } = useAdminData()
 
   useEffect(() => {
-    let isMounted = true
-
-    const updateCounts = async () => {
-      let pending = 0
-      let totalArticles = 0
-
+    // Baca data profil admin yang sedang login
+    if (typeof window !== 'undefined') {
       try {
-        const [resReports, resArticles] = await Promise.all([
-          fetch('/api/reports', { cache: 'no-store' }),
-          fetch('/api/articles', { cache: 'no-store' }),
-        ])
-        if (resReports.ok) {
-          const jsonReports = await resReports.json()
-          if (jsonReports.success && Array.isArray(jsonReports.data)) {
-            pending = jsonReports.data.filter((r: any) => r.status === 'diterima').length
-          }
-        }
-        if (resArticles.ok) {
-          const jsonArticles = await resArticles.json()
-          if (jsonArticles.success && Array.isArray(jsonArticles.data)) {
-            totalArticles = jsonArticles.data.length
+        const savedUser = localStorage.getItem('jurnal_wave_admin_user')
+        if (savedUser) {
+          const parsed = JSON.parse(savedUser)
+          if (parsed.name || parsed.email) {
+            setAdminUser({
+              name: parsed.name || 'Redaksi Jurnal Wave',
+              email: parsed.email || 'redaksi@jurnalwave.com',
+            })
           }
         }
       } catch {}
-
-      if (typeof window !== 'undefined') {
-        try {
-          const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
-          if (!hasPurgedV2) {
-            localStorage.removeItem('halo_jurnal_read_chats')
-            for (let i = localStorage.length - 1; i >= 0; i--) {
-              const k = localStorage.key(i)
-              if (k && k.startsWith('halo_jurnal_chat_')) {
-                localStorage.removeItem(k)
-              }
-            }
-            localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
-          }
-
-          // 2. Chat Warga Belum Dibaca
-          const readSet = new Set<string>(
-            JSON.parse(localStorage.getItem('halo_jurnal_read_chats') || '[]')
-          )
-          let unreadChatCount = 0
-          for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i)
-            if (k && k.startsWith('halo_jurnal_chat_')) {
-              try {
-                const list = JSON.parse(localStorage.getItem(k) || '[]')
-                if (Array.isArray(list)) {
-                  list.forEach((m: any) => {
-                    if (
-                      m.sender_id !== 'admin-redaksi' &&
-                      m.profiles?.role !== 'admin' &&
-                      m.role !== 'admin' &&
-                      !readSet.has(m.id)
-                    ) {
-                      unreadChatCount++
-                    }
-                  })
-                }
-              } catch {}
-            }
-          }
-
-          // 4. Reels count
-          const reelsSaved = JSON.parse(
-            localStorage.getItem('jurnal_wave_reels') || '[]'
-          )
-          const totalReels = Array.isArray(reelsSaved) ? reelsSaved.length : 0
-
-          // 5. Jobs count
-          const jobsSaved = JSON.parse(
-            localStorage.getItem('jurnal_wave_jobs') || '[]'
-          )
-          const totalJobs = Array.isArray(jobsSaved) && jobsSaved.length > 0 ? jobsSaved.length : 5
-
-          if (isMounted) {
-            setCounts({
-              pendingReports: pending,
-              unreadChat: unreadChatCount,
-              articles: totalArticles,
-              reels: totalReels,
-              jobs: totalJobs,
-            })
-
-            // Baca data profil admin yang sedang login
-            const savedUser = localStorage.getItem('jurnal_wave_admin_user')
-            if (savedUser) {
-              const parsed = JSON.parse(savedUser)
-              if (parsed.name || parsed.email) {
-                setAdminUser({
-                  name: parsed.name || 'Redaksi Jurnal Wave',
-                  email: parsed.email || 'redaksi@jurnalwave.com',
-                })
-              }
-            }
-          }
-        } catch {}
-      }
-    }
-
-    updateCounts()
-    window.addEventListener('storage', updateCounts)
-    return () => {
-      isMounted = false
-      window.removeEventListener('storage', updateCounts)
-      window.removeEventListener('focus', updateCounts)
     }
   }, [])
 
@@ -164,6 +65,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     } catch {}
 
     if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('admin_session_valid')
       localStorage.removeItem('jurnal_wave_admin_authenticated')
       localStorage.removeItem('jurnal_wave_admin_user')
     }

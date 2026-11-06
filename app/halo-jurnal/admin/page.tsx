@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { Article, Job } from '@/types'
 import { DUMMY_JOBS } from '@/data/dummyJobs'
+import { useAdminData } from '@/context/AdminDataContext'
 
 const CATEGORY_DISPLAY_MAP: Record<string, string> = {
   berita: 'Berita',
@@ -32,75 +33,24 @@ const CATEGORY_DISPLAY_MAP: Record<string, string> = {
 }
 
 export default function AdminDashboardMediaPage() {
-  const [articlesList, setArticlesList] = useState<Article[]>([])
-  const [reelsCount, setReelsCount] = useState<number>(0)
-  const [jobsList, setJobsList] = useState<Job[]>([])
+  // Mengonsumsi data terpusat dari AdminDataContext (0ms instant render)
+  const { articles: contextArticles, isLoadingArticles, counts } = useAdminData()
+  const [articlesList, setArticlesList] = useState<Article[]>(contextArticles)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    let isMounted = true
-
-    const loadData = async () => {
-      // 1. Load Articles dari API database
-      try {
-        const resArticles = await fetch('/api/articles', { cache: 'no-store' })
-        if (resArticles.ok) {
-          const json = await resArticles.json()
-          if (json.success && Array.isArray(json.data) && isMounted) {
-            setArticlesList(json.data)
-          }
-        }
-      } catch (err) {
-        console.warn('Gagal memuat artikel dari API:', err)
-      }
-
-      // 2. Load Reels & Jobs dari localStorage
-      if (typeof window !== 'undefined') {
-        try {
-          const savedReels = JSON.parse(
-            localStorage.getItem('jurnal_wave_reels') || '[]'
-          )
-          if (isMounted) {
-            setReelsCount(Array.isArray(savedReels) ? savedReels.length : 0)
-          }
-
-          const savedJobs = JSON.parse(
-            localStorage.getItem('jurnal_wave_jobs') || '[]'
-          )
-          if (Array.isArray(savedJobs) && savedJobs.length > 0) {
-            if (isMounted) setJobsList(savedJobs)
-          } else {
-            if (isMounted) setJobsList(DUMMY_JOBS)
-          }
-
-          // Fallback articles if API empty
-          if (articlesList.length === 0) {
-            const savedArticles = JSON.parse(
-              localStorage.getItem('jurnal_wave_articles') || '[]'
-            )
-            if (Array.isArray(savedArticles) && savedArticles.length > 0 && isMounted) {
-              setArticlesList(savedArticles)
-            }
-          }
-        } catch {}
-      }
+    if (contextArticles.length > 0) {
+      setArticlesList(contextArticles)
     }
+  }, [contextArticles])
 
-    loadData()
-    window.addEventListener('storage', loadData)
-    window.addEventListener('focus', loadData)
-
-    return () => {
-      isMounted = false
-      window.removeEventListener('storage', loadData)
-      window.removeEventListener('focus', loadData)
-    }
-  }, [])
+  const reelsCount = counts.reels
+  const totalJobs = counts.jobs
+  const isLoading = isLoadingArticles && articlesList.length === 0
 
   // Metrics
   const totalBerita = articlesList.length
   const headlineBerita = articlesList.filter((a) => a.isHero).length
-  const totalJobs = jobsList.length
   const recentArticles = articlesList.slice(0, 8)
 
   // Handle Toggle On/Off Headline Slider langsung dari Dashboard
@@ -199,7 +149,11 @@ export default function AdminDashboardMediaPage() {
             <Newspaper className="w-4 h-4" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900 group-hover:text-[#c00015]">
-            {totalBerita}
+            {isLoading && articlesList.length === 0 ? (
+              <span className="inline-block w-8 h-7 bg-slate-200 animate-pulse rounded" />
+            ) : (
+              totalBerita
+            )}
           </p>
           <p className="text-[11px] text-slate-500">Artikel tayang aktif</p>
         </Link>
@@ -215,7 +169,11 @@ export default function AdminDashboardMediaPage() {
             <Pin className="w-4 h-4 text-[#c00015] -rotate-45" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-[#c00015]">
-            {headlineBerita}
+            {isLoading && articlesList.length === 0 ? (
+              <span className="inline-block w-8 h-7 bg-slate-200 animate-pulse rounded" />
+            ) : (
+              headlineBerita
+            )}
           </p>
           <p className="text-[11px] text-slate-500">Berita aktif di slider beranda</p>
         </Link>
@@ -285,7 +243,25 @@ export default function AdminDashboardMediaPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {recentArticles.length === 0 ? (
+              {isLoading && articlesList.length === 0 ? (
+                [1, 2, 3, 4].map((i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-9 bg-slate-200 rounded shrink-0" />
+                        <div className="space-y-1">
+                          <div className="h-4 w-44 bg-slate-200 rounded" />
+                          <div className="h-3 w-28 bg-slate-100 rounded" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4"><div className="h-5 w-16 bg-slate-200 rounded" /></td>
+                    <td className="py-3.5 px-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
+                    <td className="py-3.5 px-4"><div className="h-6 w-12 bg-slate-200 rounded" /></td>
+                    <td className="py-3.5 px-4 text-right"><div className="h-7 w-16 bg-slate-200 rounded ml-auto" /></td>
+                  </tr>
+                ))
+              ) : recentArticles.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-10 text-center text-slate-400 space-y-1">
                     <p className="font-semibold text-slate-700">Belum ada artikel berita yang dimuat</p>

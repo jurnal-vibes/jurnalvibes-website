@@ -91,6 +91,14 @@ function mapArticleFromDb(item: any) {
   }
 }
 
+// Server-side in-memory cache untuk memotong latensi API artikel
+let serverArticlesCache: { data: any[]; timestamp: number } | null = null
+const SERVER_ARTICLES_CACHE_TTL_MS = 3000 // 3 detik memory cache
+
+export function invalidateArticlesCache() {
+  serverArticlesCache = null
+}
+
 // 1. GET: Ambil semua artikel dari database
 export async function GET(request: NextRequest) {
   try {
@@ -98,6 +106,19 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
     const slug = searchParams.get('slug')
+
+    // Respons instan (<1ms) jika permintaan umum tanpa filter
+    if (!category && !slug && !limit && serverArticlesCache && Date.now() - serverArticlesCache.timestamp < SERVER_ARTICLES_CACHE_TTL_MS) {
+      return NextResponse.json({
+        success: true,
+        source: 'server-memory-cache',
+        data: serverArticlesCache.data,
+      }, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=6',
+        },
+      })
+    }
 
     // Jika mencari berdasarkan slug spesifik
     if (slug) {
@@ -129,10 +150,19 @@ export async function GET(request: NextRequest) {
       take: limit,
     })
 
+    const mapped = dbArticles.map(mapArticleFromDb)
+
+    if (!category && !slug && !limit) {
+      serverArticlesCache = {
+        data: mapped,
+        timestamp: Date.now(),
+      }
+    }
+
     return NextResponse.json({
       success: true,
       source: 'database',
-      data: dbArticles.map(mapArticleFromDb),
+      data: mapped,
     })
   } catch (error: any) {
     console.error('API Articles GET error:', error)
@@ -220,6 +250,7 @@ export async function POST(request: NextRequest) {
     })
 
     clearServerArticlesCache()
+    invalidateArticlesCache()
 
     return NextResponse.json(
       {
@@ -318,6 +349,7 @@ export async function PUT(request: NextRequest) {
     })
 
     clearServerArticlesCache()
+    invalidateArticlesCache()
 
     return NextResponse.json({
       success: true,
@@ -356,6 +388,7 @@ export async function DELETE(request: NextRequest) {
     })
 
     clearServerArticlesCache()
+    invalidateArticlesCache()
 
     return NextResponse.json({
       success: true,
