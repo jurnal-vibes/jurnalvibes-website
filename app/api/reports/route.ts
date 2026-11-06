@@ -80,12 +80,33 @@ function mapReportFromDb(item: any, supportCount = 0) {
   }
 }
 
+// Server-side in-memory cache untuk percepatan respons API (menghilangkan delay antar komponen)
+let serverReportsCache: { data: any[]; timestamp: number } | null = null
+const SERVER_CACHE_TTL_MS = 3000 // 3 detik memory cache
+
+export function invalidateReportsCache() {
+  serverReportsCache = null
+}
+
 // 1. GET: Ambil semua laporan warga dari database
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const ticket = searchParams.get('ticket')
+
+    // Respons instan (<1ms) dari memory cache server jika tanpa filter spesifik
+    if (!status && !ticket && serverReportsCache && Date.now() - serverReportsCache.timestamp < SERVER_CACHE_TTL_MS) {
+      return NextResponse.json({
+        success: true,
+        source: 'server-memory-cache',
+        data: serverReportsCache.data,
+      }, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=6',
+        },
+      })
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {}
@@ -99,34 +120,47 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    const dbReports = await prisma.report.findMany({
-      where,
-      include: {
-        attachments: true,
-        statusLogs: {
-          orderBy: { createdAt: 'asc' },
+    // Eksekusi query database secara paralel (Promise.all) agar hemat roundtrip latency ke Neon PostgreSQL
+    const [dbReports, countRows] = await Promise.all([
+      prisma.report.findMany({
+        where,
+        include: {
+          attachments: true,
+          statusLogs: {
+            orderBy: { createdAt: 'asc' },
+          },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.$queryRawUnsafe<any[]>(
+        `SELECT "ticketNumber", COUNT(*)::int as count FROM "report_supports" GROUP BY "ticketNumber"`
+      ).catch(() => []),
+    ])
 
     // Hitung dukungan nyata dari tabel report_supports
     const supportCountsMap: Record<string, number> = {}
-    try {
-      const countRows = await prisma.$queryRawUnsafe<any[]>(
-        `SELECT "ticketNumber", COUNT(*)::int as count FROM "report_supports" GROUP BY "ticketNumber"`
-      )
+    if (Array.isArray(countRows)) {
       countRows.forEach((r) => {
-        if (r.ticketNumber) {
+        if (r && r.ticketNumber) {
           supportCountsMap[r.ticketNumber] = Number(r.count) || 0
         }
       })
-    } catch {}
+    }
+
+    const mappedData = dbReports.map((r) => mapReportFromDb(r, supportCountsMap[r.ticketNumber] || 0))
+
+    // Simpan ke server memory cache jika request umum (semua aduan)
+    if (!status && !ticket) {
+      serverReportsCache = {
+        data: mappedData,
+        timestamp: Date.now(),
+      }
+    }
 
     return NextResponse.json({
       success: true,
       source: 'database',
-      data: dbReports.map((r) => mapReportFromDb(r, supportCountsMap[r.ticketNumber] || 0)),
+      data: mappedData,
     })
   } catch (error: any) {
     console.error('API Reports GET error:', error)
@@ -237,6 +271,8 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    invalidateReportsCache()
+
     return NextResponse.json(
       {
         success: true,
@@ -312,6 +348,8 @@ export async function PUT(request: NextRequest) {
       },
     })
 
+    invalidateReportsCache()
+
     return NextResponse.json({
       success: true,
       message: `Status laporan berhasil diubah menjadi ${newStatus}!`,
@@ -360,6 +398,8 @@ export async function DELETE(request: NextRequest) {
     await prisma.report.delete({
       where: { id: existing.id },
     })
+
+    invalidateReportsCache()
 
     return NextResponse.json({
       success: true,

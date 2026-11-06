@@ -67,6 +67,7 @@ export default function AdminLoginPage() {
       if (res.ok && json.success) {
         setSuccessMsg(json.message || 'Login berhasil! Mengalihkan ke dashboard...')
         if (typeof window !== 'undefined') {
+          sessionStorage.setItem('admin_session_valid', 'true')
           localStorage.setItem(
             'jurnal_wave_admin_user',
             JSON.stringify(json.user || { name: 'Admin', email })

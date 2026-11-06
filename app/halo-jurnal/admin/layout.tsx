@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
+import { AdminDataProvider } from '@/context/AdminDataContext'
 import { Loader2 } from 'lucide-react'
 
 export default function AdminLayout({
@@ -14,7 +15,17 @@ export default function AdminLayout({
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  // Sinkronisasi status autentikasi awal agar tidak ada kedipan spinner loading saat refresh
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        if (sessionStorage.getItem('admin_session_valid') === 'true') {
+          return true
+        }
+      } catch {}
+    }
+    return null
+  })
 
   const isLoginPage = pathname === '/halo-jurnal/admin/login'
 
@@ -40,13 +51,22 @@ export default function AdminLayout({
 
         if (data.authenticated) {
           setIsAuthenticated(true)
+          try {
+            sessionStorage.setItem('admin_session_valid', 'true')
+          } catch {}
         } else {
           setIsAuthenticated(false)
+          try {
+            sessionStorage.removeItem('admin_session_valid')
+          } catch {}
           router.replace('/halo-jurnal/admin/login')
         }
       } catch {
         if (!isMounted) return
         setIsAuthenticated(false)
+        try {
+          sessionStorage.removeItem('admin_session_valid')
+        } catch {}
         router.replace('/halo-jurnal/admin/login')
       }
     }
@@ -90,29 +110,31 @@ export default function AdminLayout({
 
   // Layout Dashboard Admin Utama jika sudah terautentikasi
   return (
-    <div className="min-h-screen bg-[#fbf9f9] text-[#1b1c1c] flex font-sans antialiased selection:bg-[#c00015] selection:text-white">
-      {/* Sidebar Navigasi Kiri */}
-      <AdminSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+    <AdminDataProvider>
+      <div className="min-h-screen bg-[#fbf9f9] text-[#1b1c1c] flex font-sans antialiased selection:bg-[#c00015] selection:text-white">
+        {/* Sidebar Navigasi Kiri */}
+        <AdminSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
-      {/* Konten Utama Kanan */}
-      <div className="flex-1 flex flex-col lg:pl-64 min-w-0 transition-all duration-200">
-        {/* Topbar Header */}
-        <AdminHeader onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        {/* Konten Utama Kanan */}
+        <div className="flex-1 flex flex-col lg:pl-64 min-w-0 transition-all duration-200">
+          {/* Topbar Header */}
+          <AdminHeader onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-        {/* Konten Halaman */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
-          {children}
-        </main>
+          {/* Konten Halaman */}
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+            {children}
+          </main>
 
-        {/* Footer Kecil Admin */}
-        <footer className="px-6 py-4 border-t border-slate-200 text-center text-xs text-slate-500 bg-white/50">
-          © 2026 <strong className="text-slate-800 font-semibold">Jurnal Wave</strong> — Meja Redaksi &amp;
-          Pusat Kendali Jurnal Wave &amp; Hallo Jurnal.
-        </footer>
+          {/* Footer Kecil Admin */}
+          <footer className="px-6 py-4 border-t border-slate-200 text-center text-xs text-slate-500 bg-white/50">
+            © 2026 <strong className="text-slate-800 font-semibold">Jurnal Wave</strong> — Meja Redaksi &amp;
+            Pusat Kendali Jurnal Wave &amp; Hallo Jurnal.
+          </footer>
+        </div>
       </div>
-    </div>
+    </AdminDataProvider>
   )
 }

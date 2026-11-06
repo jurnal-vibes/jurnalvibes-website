@@ -13,102 +13,14 @@ import {
   Inbox,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
+import { useAdminData } from '@/context/AdminDataContext'
 
 export default function AdminHaloJurnalDashboardPage() {
-  const [reportsList, setReportsList] = useState<DummyReport[]>([])
+  // Mengonsumsi data terpusat dari AdminDataContext (0ms instant render, tersinkronisasi otomatis)
+  const { reports: reportsList, isLoadingReports: isLoading, counts } = useAdminData()
   const [tabFilter, setTabFilter] = useState<'semua' | 'publik' | 'privat'>('semua')
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [unreadChatCount, setUnreadChatCount] = useState<number>(0)
-
-  useEffect(() => {
-    let isMounted = true
-
-    // Pembersihan otomatis sisa-sisa cache percakapan lama di browser
-    if (typeof window !== 'undefined') {
-      try {
-        const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
-        if (!hasPurgedV2) {
-          localStorage.removeItem('halo_jurnal_read_chats')
-          for (let i = localStorage.length - 1; i >= 0; i--) {
-            const k = localStorage.key(i)
-            if (k && k.startsWith('halo_jurnal_chat_')) {
-              localStorage.removeItem(k)
-            }
-          }
-          localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
-        }
-      } catch {}
-    }
-
-    const loadReports = async () => {
-      try {
-        const res = await fetch('/api/reports', { cache: 'no-store' })
-        if (res.ok) {
-          const json = await res.json()
-          if (json.success && Array.isArray(json.data) && isMounted) {
-            setReportsList(json.data)
-            return
-          }
-        }
-      } catch (err) {
-        console.warn('Gagal memuat aduan Hallo Jurnal:', err)
-      }
-
-      if (typeof window !== 'undefined') {
-        try {
-          const saved = JSON.parse(
-            localStorage.getItem('halo_jurnal_user_reports') || '[]'
-          )
-          if (Array.isArray(saved) && isMounted) {
-            setReportsList(saved)
-          }
-        } catch {}
-      }
-    }
-
-    const loadChatCount = () => {
-      if (typeof window === 'undefined') return
-      try {
-        const readSet = new Set<string>(
-          JSON.parse(localStorage.getItem('halo_jurnal_read_chats') || '[]')
-        )
-        let unread = 0
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i)
-          if (k && k.startsWith('halo_jurnal_chat_')) {
-            try {
-              const list = JSON.parse(localStorage.getItem(k) || '[]')
-              if (Array.isArray(list)) {
-                list.forEach((m: any) => {
-                  if (
-                    m.sender_id !== 'admin-redaksi' &&
-                    m.profiles?.role !== 'admin' &&
-                    m.role !== 'admin' &&
-                    !readSet.has(m.id)
-                  ) {
-                    unread++
-                  }
-                })
-              }
-            } catch {}
-          }
-        }
-        if (isMounted) setUnreadChatCount(unread)
-      } catch {}
-    }
-
-    loadReports()
-    loadChatCount()
-
-    window.addEventListener('storage', loadReports)
-    window.addEventListener('focus', loadReports)
-
-    return () => {
-      isMounted = false
-      window.removeEventListener('storage', loadReports)
-      window.removeEventListener('focus', loadReports)
-    }
-  }, [])
+  const unreadChatCount = counts.unreadChat
 
   // Metrics Aduan Warga
   const totalReports = reportsList.length
@@ -183,7 +95,11 @@ export default function AdminHaloJurnalDashboardPage() {
             <FileText className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {totalReports}
+            {isLoading && reportsList.length === 0 ? (
+              <span className="inline-block w-8 h-7 bg-slate-200 animate-pulse rounded" />
+            ) : (
+              totalReports
+            )}
           </p>
           <p className="text-[11px] text-slate-500">Semua aduan terdaftar</p>
         </div>
@@ -196,7 +112,11 @@ export default function AdminHaloJurnalDashboardPage() {
             <Globe className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {totalPublik}
+            {isLoading && reportsList.length === 0 ? (
+              <span className="inline-block w-8 h-7 bg-slate-200 animate-pulse rounded" />
+            ) : (
+              totalPublik
+            )}
           </p>
           <p className="text-[11px] text-slate-500">Terbuka di portal warga</p>
         </div>
@@ -209,7 +129,11 @@ export default function AdminHaloJurnalDashboardPage() {
             <Lock className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {totalPrivat}
+            {isLoading && reportsList.length === 0 ? (
+              <span className="inline-block w-8 h-7 bg-slate-200 animate-pulse rounded" />
+            ) : (
+              totalPrivat
+            )}
           </p>
           <p className="text-[11px] text-slate-500">Tertutup khusus redaksi</p>
         </div>
@@ -222,7 +146,11 @@ export default function AdminHaloJurnalDashboardPage() {
             <MessageSquare className="w-4 h-4 text-slate-400" />
           </div>
           <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {unreadChatCount}
+            {isLoading && reportsList.length === 0 ? (
+              <span className="inline-block w-8 h-7 bg-slate-200 animate-pulse rounded" />
+            ) : (
+              unreadChatCount
+            )}
           </p>
           <p className="text-[11px] text-slate-500">Pesan belum terbaca</p>
         </div>
@@ -234,9 +162,18 @@ export default function AdminHaloJurnalDashboardPage() {
         <div className="p-3.5 sm:p-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             {[
-              { key: 'semua' as const, label: `Semua Aduan (${totalReports})` },
-              { key: 'publik' as const, label: `Tayang Publik (${totalPublik})` },
-              { key: 'privat' as const, label: `Privat (${totalPrivat})` },
+              {
+                key: 'semua' as const,
+                label: isLoading && reportsList.length === 0 ? 'Semua Aduan' : `Semua Aduan (${totalReports})`,
+              },
+              {
+                key: 'publik' as const,
+                label: isLoading && reportsList.length === 0 ? 'Tayang Publik' : `Tayang Publik (${totalPublik})`,
+              },
+              {
+                key: 'privat' as const,
+                label: isLoading && reportsList.length === 0 ? 'Privat' : `Privat (${totalPrivat})`,
+              },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -277,7 +214,17 @@ export default function AdminHaloJurnalDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredReports.length === 0 ? (
+              {isLoading && reportsList.length === 0 ? (
+                [1, 2, 3, 4].map((i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="py-3.5 px-4"><div className="h-4 w-28 bg-slate-200 rounded" /></td>
+                    <td className="py-3.5 px-4"><div className="h-4 w-52 bg-slate-200 rounded mb-1" /><div className="h-3 w-36 bg-slate-100 rounded" /></td>
+                    <td className="py-3.5 px-4"><div className="h-5 w-16 bg-slate-200 rounded" /></td>
+                    <td className="py-3.5 px-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
+                    <td className="py-3.5 px-4 text-right"><div className="h-7 w-20 bg-slate-200 rounded ml-auto" /></td>
+                  </tr>
+                ))
+              ) : filteredReports.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-10 text-center text-slate-400 space-y-1">
                     <p className="font-semibold text-slate-700">Tidak ada aduan dalam filter ini</p>

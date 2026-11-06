@@ -16,11 +16,13 @@ import {
   Lock,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
+import { useAdminData } from '@/context/AdminDataContext'
 
 export default function AdminLaporanPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedVisibility, setSelectedVisibility] = useState<'semua' | 'publik' | 'privat'>('semua')
-  const [reportsList, setReportsList] = useState<DummyReport[]>([])
+  // Mengambil data terpusat dari AdminDataContext (0ms instant render, tersinkronisasi)
+  const { reports: reportsList, isLoadingReports: isLoading, refreshReports } = useAdminData()
   const [chatCounts, setChatCounts] = useState<Record<string, number>>({})
 
   // Format tanggal rapi
@@ -90,60 +92,8 @@ export default function AdminLaporanPage() {
     }
   }, [])
 
-  // Muat laporan dari MySQL via /api/reports (dengan fallback localStorage)
+  // Baca query pencarian dari parameter URL jika ada
   useEffect(() => {
-    const loadReports = async () => {
-      try {
-        const res = await fetch('/api/reports', { cache: 'no-store' })
-        if (res.ok) {
-          const json = await res.json()
-          if (json.success && Array.isArray(json.data)) {
-            setReportsList(json.data)
-            return
-          }
-        }
-      } catch (err) {
-        console.warn('Gagal memuat aduan Buku Induk via API:', err)
-      }
-
-      if (typeof window !== 'undefined') {
-        try {
-          const overrides = JSON.parse(
-            localStorage.getItem('halo_jurnal_status_overrides') || '{}'
-          )
-          const userReports = JSON.parse(
-            localStorage.getItem('halo_jurnal_user_reports') || '[]'
-          )
-
-          const combined = [...userReports]
-          const unique = new Map<string, any>()
-          combined.forEach((item) => {
-            const key = item.nomor_tiket || item.id || item.ticket_number
-            if (key && !unique.has(key)) {
-              unique.set(key, item)
-            }
-          })
-
-          const updated = Array.from(unique.values()).map((r) => {
-            const saved = overrides[r.id] || (r.nomor_tiket ? overrides[r.nomor_tiket] : null)
-            if (saved) {
-              return {
-                ...r,
-                is_public: saved.is_public !== undefined ? saved.is_public : r.is_public,
-              }
-            }
-            return r
-          })
-
-          setReportsList(updated)
-        } catch (err) {
-          console.error('Error loading reports in admin buku induk:', err)
-        }
-      }
-    }
-
-    loadReports()
-
     if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search)
       const q = sp.get('search')
@@ -213,14 +163,7 @@ export default function AdminLaporanPage() {
       } catch {}
     }
 
-    setReportsList((prev) =>
-      prev.filter(
-        (r) =>
-          r.id !== id &&
-          r.nomor_tiket !== id &&
-          (!ticketNumber || r.nomor_tiket !== ticketNumber)
-      )
-    )
+    await refreshReports()
   }
 
   const handleResetFilter = () => {
@@ -356,7 +299,17 @@ export default function AdminLaporanPage() {
           <span className="text-[11px]">Diurutkan berdasarkan tanggal terbaru</span>
         </div>
 
-        {filteredReports.length === 0 ? (
+        {isLoading && reportsList.length === 0 ? (
+          <div className="p-6 space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center justify-between gap-4 animate-pulse">
+                <div className="h-4 bg-slate-200 rounded w-1/4" />
+                <div className="h-4 bg-slate-200 rounded w-1/2" />
+                <div className="h-4 bg-slate-200 rounded w-1/6" />
+              </div>
+            ))}
+          </div>
+        ) : filteredReports.length === 0 ? (
           <div className="py-12 px-4 text-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
               <FileText className="w-6 h-6" />
