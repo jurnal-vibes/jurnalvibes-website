@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { CategoryTemplate } from '@/components/layout/CategoryTemplate';
 import { fetchArticles } from '@/lib/wordpress';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'Science',
   description: 'Riset ilmiah, sains populer, dan perkembangan teknologi seputar Sukabumi.',

@@ -758,6 +758,7 @@ export function ArticleDetailView({
             const raw = (article.categoryLabel || article.category || 'BERITA').toUpperCase();
             if (raw === 'INFRASTRUKTUR') return 'BERITA';
             if (raw === 'WISATA') return 'TRAVELING';
+            if (raw === 'STYLE & FASHION') return 'STYLE';
             return raw;
           })()}
         </span>

@@ -66,6 +66,13 @@ export function normalizeArticleCategory(category?: string, categoryLabel?: stri
     };
   }
 
+  if (upperLabel === 'STYLE & FASHION' || cat === 'style & fashion') {
+    return {
+      category: 'lifestyle',
+      categoryLabel: 'STYLE',
+    };
+  }
+
   if (cat === 'sains' || cat === 'sains & lingkungan') {
     cat = 'science';
   } else if (cat === 'kesehatan') {

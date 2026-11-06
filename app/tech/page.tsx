@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { CategoryTemplate } from '@/components/layout/CategoryTemplate';
 import { fetchArticles } from '@/lib/wordpress';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'Technology & Innovation',
   description: 'Kabar dunia teknologi, AI, gadget terbaru, dan lanskap startup digital Sukabumi.',

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Sparkles, ArrowLeft } from 'lucide-react';
@@ -11,53 +11,113 @@ export function LifestyleClient({ initialArticles = [] }: { initialArticles?: Ar
   const searchParams = useSearchParams();
   const sub = searchParams.get('sub')?.toLowerCase() || '';
 
-  const [articles] = useState<Article[]>(initialArticles);
+  const [articles, setArticles] = useState<Article[]>(initialArticles);
 
-  const allLifestyleArticles = articles.filter(
-    a =>
-      a.category === 'lifestyle' ||
-      ['KULINER', 'WISATA', 'TRAVELING', 'MUSIK', 'EVENT LOKAL', 'FASHION', 'KOMUNITAS'].includes(
-        (a.categoryLabel || '').toUpperCase()
-      ) ||
-      ['KULINER', 'WISATA', 'TRAVELING', 'MUSIK', 'EVENT LOKAL', 'FASHION'].includes(
-        (a.subCategory || '').toUpperCase()
-      )
-  );
+  useEffect(() => {
+    const deduplicate = (items: Article[]): Article[] => {
+      const seen = new Set<string>();
+      return items.filter(item => {
+        const key = (item.slug || item.id || item.title || '').toLowerCase().trim();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
+    const syncArticles = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_articles');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setArticles(prev => deduplicate([...parsed, ...prev]));
+            }
+          }
+        } catch {}
+      }
+    };
+
+    syncArticles();
+
+    fetch('/api/articles')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setArticles(prev => deduplicate([...json.data, ...prev]));
+        }
+      })
+      .catch(() => {});
+
+    window.addEventListener('storage', syncArticles);
+    window.addEventListener('focus', syncArticles);
+    return () => {
+      window.removeEventListener('storage', syncArticles);
+      window.removeEventListener('focus', syncArticles);
+    };
+  }, []);
+
+  const allLifestyleArticles = articles.filter(a => {
+    const cat = (a.category || '').toLowerCase().trim();
+    const catLabel = (a.categoryLabel || '').toUpperCase().trim();
+    const subCat = (a.subCategory || '').toLowerCase().trim();
+
+    return (
+      cat === 'lifestyle' ||
+      cat === 'kuliner' ||
+      cat === 'wisata' ||
+      ['LIFESTYLE', 'STYLE', 'CULINARY', 'KULINER', 'WISATA', 'TRAVELING', 'MUSIK', 'EVENT LOKAL', 'FASHION', 'KOMUNITAS'].some(k => catLabel.includes(k)) ||
+      ['style', 'culinary', 'kuliner', 'wisata', 'traveling', 'musik', 'event lokal', 'fashion'].includes(subCat)
+    );
+  });
 
   const filteredArticles = allLifestyleArticles.filter(article => {
     if (!sub || sub === 'semua') return true;
 
+    const catLabel = (article.categoryLabel || '').toUpperCase().trim();
+    const subCat = (article.subCategory || '').toLowerCase().trim();
+    const titleLower = (article.title || '').toLowerCase();
+
     if (sub === 'style' || sub === 'fashion') {
       return (
-        (article.categoryLabel || '').toUpperCase() === 'FASHION' ||
-        (article.subCategory || '').toUpperCase() === 'FASHION' ||
-        article.title.toLowerCase().includes('fashion') ||
-        article.title.toLowerCase().includes('style') ||
-        article.title.toLowerCase().includes('outfit')
+        subCat === 'style' ||
+        subCat === 'fashion' ||
+        catLabel === 'STYLE' ||
+        catLabel === 'FASHION' ||
+        catLabel.includes('STYLE') ||
+        titleLower.includes('style') ||
+        titleLower.includes('fashion') ||
+        titleLower.includes('outfit')
       );
     }
     if (sub === 'culinary' || sub === 'kuliner') {
       return (
-        (article.categoryLabel || '').toUpperCase() === 'KULINER' ||
-        (article.subCategory || '').toUpperCase() === 'KULINER' ||
-        article.title.toLowerCase().includes('kuliner') ||
-        article.title.toLowerCase().includes('makanan') ||
-        article.title.toLowerCase().includes('jajanan') ||
-        article.title.toLowerCase().includes('kopi') ||
-        article.title.toLowerCase().includes('cafe')
+        subCat === 'culinary' ||
+        subCat === 'kuliner' ||
+        catLabel === 'CULINARY' ||
+        catLabel === 'KULINER' ||
+        catLabel.includes('KULINER') ||
+        catLabel.includes('CULINARY') ||
+        titleLower.includes('kuliner') ||
+        titleLower.includes('makanan') ||
+        titleLower.includes('jajanan') ||
+        titleLower.includes('kopi') ||
+        titleLower.includes('cafe')
       );
     }
     if (sub === 'traveling' || sub === 'wisata') {
       return (
-        (article.categoryLabel || '').toUpperCase() === 'TRAVELING' ||
-        (article.categoryLabel || '').toUpperCase() === 'WISATA' ||
-        (article.subCategory || '').toUpperCase() === 'TRAVELING' ||
-        (article.subCategory || '').toUpperCase() === 'WISATA' ||
-        article.title.toLowerCase().includes('travel') ||
-        article.title.toLowerCase().includes('wisata') ||
-        article.title.toLowerCase().includes('curug') ||
-        article.title.toLowerCase().includes('pantai') ||
-        article.title.toLowerCase().includes('ciletuh')
+        subCat === 'traveling' ||
+        subCat === 'wisata' ||
+        catLabel === 'TRAVELING' ||
+        catLabel === 'WISATA' ||
+        catLabel.includes('TRAVEL') ||
+        catLabel.includes('WISATA') ||
+        titleLower.includes('travel') ||
+        titleLower.includes('wisata') ||
+        titleLower.includes('curug') ||
+        titleLower.includes('pantai') ||
+        titleLower.includes('ciletuh')
       );
     }
     return true;

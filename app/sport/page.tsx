@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { CategoryTemplate } from '@/components/layout/CategoryTemplate';
 import { fetchArticles } from '@/lib/wordpress';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'Sport & E-Sport',
   description: 'Kabar seputar olahraga, kompetisi lokal, dan turnamen E-Sport Sukabumi.',

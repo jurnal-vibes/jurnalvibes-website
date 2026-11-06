@@ -29,7 +29,6 @@ export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setArticles(parsed);
-            return;
           }
         }
       } catch {}
@@ -49,6 +48,27 @@ export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
       }
       loadArticles();
     }
+
+    const handleSync = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_articles');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setArticles(parsed);
+            }
+          }
+        } catch {}
+      }
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('focus', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
   }, [initialArticles.length]);
 
   // Filter berdasarkan sub-kategori
