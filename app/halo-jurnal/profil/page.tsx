@@ -11,46 +11,8 @@ import {
   Check,
   X,
   Loader2,
-  MapPin,
   CheckCircle2,
 } from 'lucide-react'
-
-// Helper untuk mengekstrak komponen alamat terstruktur dari kalimat domisili gabungan
-function parseDomisili(domisiliStr: string) {
-  if (!domisiliStr || typeof domisiliStr !== 'string') {
-    return { detailAlamat: '', rtRw: '', kelurahan: '', kecamatan: '' }
-  }
-
-  const raw = domisiliStr.trim()
-
-  // Format baku pendaftaran: "${detail}, RT/RW ${rtRw}, Kel. ${kelurahan}, Kec. ${kecamatan}, Sukabumi"
-  const kecMatch = raw.match(/Kec\.?\s*([^,]+)/i)
-  const kelMatch = raw.match(/Kel\.?\s*([^,]+)/i)
-  const rtRwMatch = raw.match(/RT\/?RW\s*([^,]+)/i)
-
-  const kecamatan = kecMatch ? kecMatch[1].trim() : ''
-  const kelurahan = kelMatch ? kelMatch[1].trim() : ''
-  const rtRw = rtRwMatch ? rtRwMatch[1].trim() : ''
-
-  // Ambil detail alamat awal sebelum ", RT/RW" atau ", Kel." atau ", Kec."
-  let detailAlamat = raw
-  const splitIdx = raw.search(/,\s*RT\/?RW/i)
-  if (splitIdx !== -1) {
-    detailAlamat = raw.substring(0, splitIdx).trim()
-  } else {
-    const splitKel = raw.search(/,\s*Kel\.?/i)
-    if (splitKel !== -1) {
-      detailAlamat = raw.substring(0, splitKel).trim()
-    } else {
-      const splitKec = raw.search(/,\s*Kec\.?/i)
-      if (splitKec !== -1) {
-        detailAlamat = raw.substring(0, splitKec).trim()
-      }
-    }
-  }
-
-  return { detailAlamat, rtRw, kelurahan, kecamatan }
-}
 
 export default function HaloJurnalProfilPage() {
   const [user, setUser] = useState<any>(null)
@@ -62,10 +24,6 @@ export default function HaloJurnalProfilPage() {
   // Edit fields
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
-  const [kecamatan, setKecamatan] = useState('')
-  const [kelurahan, setKelurahan] = useState('')
-  const [rtRw, setRtRw] = useState('')
-  const [detailAlamat, setDetailAlamat] = useState('')
 
   useEffect(() => {
     fetchProfile()
@@ -104,55 +62,12 @@ export default function HaloJurnalProfilPage() {
         setUser(null)
         setFullName('')
         setPhone('')
-        setKecamatan('')
-        setKelurahan('')
-        setRtRw('')
-        setDetailAlamat('')
         return
       }
 
-      // Smart Parser: jika kecamatan/kelurahan/rt_rw belum ada di objek user, ekstrak dari alamat_domisili
-      let resolvedKec = localUser.kecamatan || ''
-      let resolvedKel = localUser.kelurahan || ''
-      let resolvedRtRw = localUser.rt_rw || ''
-      let resolvedDetail = localUser.detail_alamat || ''
-
-      const domisiliSource = localUser.alamat_domisili || localUser.domisili || ''
-      if ((!resolvedKec || !resolvedKel || !resolvedRtRw || !resolvedDetail) && domisiliSource) {
-        const parsed = parseDomisili(domisiliSource)
-        if (!resolvedKec) resolvedKec = parsed.kecamatan
-        if (!resolvedKel) resolvedKel = parsed.kelurahan
-        if (!resolvedRtRw) resolvedRtRw = parsed.rtRw
-        if (!resolvedDetail) resolvedDetail = parsed.detailAlamat
-      }
-
-      const syncedUser = {
-        ...localUser,
-        kecamatan: resolvedKec,
-        kelurahan: resolvedKel,
-        rt_rw: resolvedRtRw,
-        detail_alamat: resolvedDetail,
-      }
-
-      // Sinkronkan kembali ke localStorage agar terstruktur permanen
-      if (
-        localUser.kecamatan !== resolvedKec ||
-        localUser.kelurahan !== resolvedKel ||
-        localUser.rt_rw !== resolvedRtRw ||
-        localUser.detail_alamat !== resolvedDetail
-      ) {
-        try {
-          localStorage.setItem('halo_jurnal_current_user', JSON.stringify(syncedUser))
-        } catch {}
-      }
-
-      setUser(syncedUser)
-      setFullName(syncedUser.full_name || syncedUser.name || '')
-      setPhone(syncedUser.phone || syncedUser.phone_number || '')
-      setKecamatan(resolvedKec)
-      setKelurahan(resolvedKel)
-      setRtRw(resolvedRtRw)
-      setDetailAlamat(resolvedDetail)
+      setUser(localUser)
+      setFullName(localUser.full_name || localUser.name || '')
+      setPhone(localUser.phone || localUser.phone_number || '')
     } catch (err) {
       console.error('Fetch profile error:', err)
       setUser(null)
@@ -165,24 +80,16 @@ export default function HaloJurnalProfilPage() {
     e.preventDefault()
     setSaving(true)
 
-    const fullDomisili = `${detailAlamat.trim()}, RT/RW ${rtRw.trim()}, Kel. ${kelurahan.trim()}, Kec. ${kecamatan.trim()}, Sukabumi`
-
     const updated = {
       ...(user || {}),
       full_name: fullName.trim(),
       name: fullName.trim(),
       phone: phone.trim(),
       phone_number: phone.trim(),
-      kecamatan: kecamatan.trim(),
-      kelurahan: kelurahan.trim(),
-      rt_rw: rtRw.trim(),
-      detail_alamat: detailAlamat.trim(),
-      alamat_domisili: fullDomisili,
       user_metadata: {
         ...(user?.user_metadata || {}),
         full_name: fullName.trim(),
         phone: phone.trim(),
-        alamat_domisili: fullDomisili,
       },
     }
 
@@ -202,7 +109,6 @@ export default function HaloJurnalProfilPage() {
             email: user.email,
             fullName: fullName.trim(),
             phone: phone.trim(),
-            domisili: fullDomisili,
           }),
         }).catch(() => {})
       } catch {}
@@ -344,50 +250,6 @@ export default function HaloJurnalProfilPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-500 mb-1">Kecamatan</label>
-              <input
-                type="text"
-                value={kecamatan}
-                onChange={(e) => setKecamatan(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#c00015]"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-500 mb-1">Kelurahan / Desa</label>
-              <input
-                type="text"
-                value={kelurahan}
-                onChange={(e) => setKelurahan(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#c00015]"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-500 mb-1">RT / RW</label>
-              <input
-                type="text"
-                value={rtRw}
-                onChange={(e) => setRtRw(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#c00015]"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-medium text-slate-500 mb-1">Detail Jalan &amp; Patokan Rumah</label>
-            <textarea
-              value={detailAlamat}
-              onChange={(e) => setDetailAlamat(e.target.value)}
-              rows={2}
-              className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#c00015] resize-none"
-              required
-            />
-          </div>
-
           <div className="flex justify-end gap-2.5 pt-3">
             <button
               type="button"
@@ -408,7 +270,7 @@ export default function HaloJurnalProfilPage() {
         </form>
       ) : (
         /* 3. Tampilan Detail Data Profil Resmi (Unified After UX Card) */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs space-y-7">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs">
           {/* Section: Kontak & Identitas */}
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
@@ -440,45 +302,6 @@ export default function HaloJurnalProfilPage() {
                 <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-1">Alamat Email</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm block truncate">{user?.email || '-'}</span>
               </div>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-100 dark:border-slate-800/80" />
-
-          {/* Section: Domisili Resmi */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
-                <MapPin className="w-4 h-4 stroke-[2px]" />
-              </div>
-              <div>
-                <h2 className="font-heading font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 tracking-tight">
-                  Domisili Resmi Pelapor
-                </h2>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Wilayah domisili tempat tinggal saat ini</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 pt-1">
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
-                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-0.5">Kecamatan</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm capitalize">{user?.kecamatan || '-'}</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
-                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-0.5">Kelurahan / Desa</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm capitalize">{user?.kelurahan || '-'}</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 col-span-2 sm:col-span-1">
-                <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-0.5">RT / RW</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">{user?.rt_rw || '-'}</span>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
-              <span className="text-slate-400 dark:text-slate-500 text-[11px] block mb-1">Alamat Lengkap</span>
-              <p className="font-medium text-slate-800 dark:text-slate-200 leading-relaxed text-xs sm:text-sm">
-                {user?.alamat_domisili || user?.detail_alamat || 'Sukabumi, Jawa Barat'}
-              </p>
             </div>
           </div>
         </div>
