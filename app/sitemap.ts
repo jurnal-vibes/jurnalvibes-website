@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next';
 import { Article } from '@/types';
 import { fetchArticles } from '@/lib/wordpress';
 
+export const revalidate = 300; // Regenerasi sitemap tiap 5 menit
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jurnalwave.com';
 

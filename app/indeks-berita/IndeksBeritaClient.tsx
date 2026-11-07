@@ -567,7 +567,7 @@ export function IndeksBeritaClient() {
                   >
                     <div className="flex flex-row gap-3.5 sm:gap-4 group cursor-pointer w-full items-start sm:items-center">
                       <Link
-                        href={`/artikel/${article.id}`}
+                        href={`/artikel/${article.slug || article.id}`}
                         className="relative w-28 sm:w-40 md:w-44 aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden shrink-0 block bg-slate-100 dark:bg-slate-800"
                       >
                         {/* eslint-disable-next-img-element */}
@@ -581,7 +581,7 @@ export function IndeksBeritaClient() {
                         <span className="text-[#c00015] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider">
                           {(article.categoryLabel || article.category || 'BERITA').toUpperCase()}
                         </span>
-                        <Link href={`/artikel/${article.id}`}>
+                        <Link href={`/artikel/${article.slug || article.id}`}>
                           <h3 className="text-xs sm:text-base font-bold text-slate-900 dark:text-zinc-100 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug">
                             {article.title}
                           </h3>

@@ -24,10 +24,12 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
       ? article.imageUrl
       : FALLBACK_IMAGE;
 
+  const articleSlug = article.slug || article.id;
+
   if (variant === 'grid') {
     return (
       <article className="group bg-surface rounded-2xl border border-outline-variant/60 hover:border-primary/40 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col">
-        <Link href={`/artikel/${article.id}`} className="relative h-48 overflow-hidden block bg-slate-100 dark:bg-slate-800">
+        <Link href={`/artikel/${articleSlug}`} className="relative h-48 overflow-hidden block bg-slate-100 dark:bg-slate-800">
           {/* eslint-disable-next-img-element */}
           <img
             src={validImage}
@@ -42,7 +44,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
           <span className="text-primary font-bold text-xs uppercase tracking-wider mb-2">
             {displayCategory}
           </span>
-          <Link href={`/artikel/${article.id}`}>
+          <Link href={`/artikel/${articleSlug}`}>
             <h3 className="font-bold text-on-surface text-base sm:text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
               {article.title}
             </h3>
@@ -58,7 +60,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
   return (
     <article className="flex flex-row gap-3.5 sm:gap-4 group cursor-pointer border-t border-slate-100 dark:border-zinc-800 py-2.5 sm:py-3.5 w-full items-start sm:items-center">
       <Link
-        href={`/artikel/${article.id}`}
+        href={`/artikel/${articleSlug}`}
         className="relative w-28 sm:w-40 md:w-44 aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden shrink-0 block bg-slate-100 dark:bg-slate-800"
       >
         {/* eslint-disable-next-img-element */}
@@ -75,7 +77,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
         <span className="text-[#c00015] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider">
           {displayCategory}
         </span>
-        <Link href={`/artikel/${article.id}`}>
+        <Link href={`/artikel/${articleSlug}`}>
           <h3 className="text-xs sm:text-base font-bold text-slate-900 dark:text-zinc-100 group-hover:text-[#c00015] transition-colors line-clamp-2 leading-snug">
             {article.title}
           </h3>

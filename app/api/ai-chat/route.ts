@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
       recentArticlesList = dbArticles
         .map(
           (a, i) =>
-            `${i + 1}. [Kategori ${a.category.toUpperCase()}] "${a.title}" (Link: /artikel/${a.id}) - ${a.excerpt}`
+            `${i + 1}. [Kategori ${a.category.toUpperCase()}] "${a.title}" (Link: /artikel/${a.slug || a.id}) - ${a.excerpt}`
         )
         .join('\n')
     } catch {}
@@ -148,7 +148,7 @@ ${localKnowledge ? `Wawasan Lokal Sukabumi Terverifikasi Khusus untuk Pertanyaan
 Daftar Berita & Artikel Terkini yang Sedang Tayang di Jurnal Wave:
 ${recentArticlesList}
 
-(Bila pengunjung bertanya tentang berita terbaru, update hari ini, atau topik yang terkait berita di atas, sebutkan judul artikel dan berikan link rujukan /artikel/[id] agar pembaca bisa langsung membacanya).`
+(Bila pengunjung bertanya tentang berita terbaru, update hari ini, atau topik yang terkait berita di atas, sebutkan judul artikel dan berikan link rujukan /artikel/[slug] agar pembaca bisa langsung membacanya).`
 
     // Panggil Google Gemini Flash-Lite API (respons instan, stabil, dan konsisten)
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${apiKey}`

@@ -224,7 +224,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
                   {article.categoryLabel || article.category || 'BERITA'}
                 </Badge>
               </div>
-              <Link href={`/artikel/${article.id}`} onClick={handleLinkClick}>
+              <Link href={`/artikel/${article.slug || article.id}`} onClick={handleLinkClick}>
                 <h2 className="text-white text-sm sm:text-lg md:text-xl font-bold hover:text-red-200 transition-colors cursor-pointer line-clamp-2 leading-snug">
                   {article.title}
                 </h2>
