@@ -132,7 +132,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
                   {searchResults.map(article => (
                     <Link
                       key={article.id}
-                      href={`/artikel/${article.id}`}
+                      href={`/artikel/${article.slug || article.id}`}
                       onClick={onClose}
                       className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 rounded-2xl hover:bg-surface-variant/50 dark:hover:bg-slate-800/60 border border-transparent hover:border-outline-variant/40 transition-all group cursor-pointer"
                     >

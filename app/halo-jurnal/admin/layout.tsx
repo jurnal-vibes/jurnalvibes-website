@@ -15,17 +15,8 @@ export default function AdminLayout({
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  // Sinkronisasi status autentikasi awal agar tidak ada kedipan spinner loading saat refresh
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        if (sessionStorage.getItem('admin_session_valid') === 'true') {
-          return true
-        }
-      } catch {}
-    }
-    return null
-  })
+  // Status autentikasi konsisten null pada initial render untuk mencegah hydration mismatch
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
   const isLoginPage = pathname === '/halo-jurnal/admin/login'
 
@@ -35,6 +26,13 @@ export default function AdminLayout({
       setIsAuthenticated(true)
       return
     }
+
+    // Baca cache sesi klien segera setelah hidrasi selesai agar transisi instan
+    try {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('admin_session_valid') === 'true') {
+        setIsAuthenticated(true)
+      }
+    } catch {}
 
     let isMounted = true
 

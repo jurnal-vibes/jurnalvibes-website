@@ -60,6 +60,209 @@ const formatSubCategory = (sub: string) => {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
 }
 
+// Stop words bahasa Indonesia untuk ekstraksi kata kunci berita
+const INDO_STOP_WORDS = new Set([
+  'dan', 'yang', 'di', 'ke', 'dari', 'untuk', 'pada', 'ini', 'itu', 'dengan',
+  'atau', 'ada', 'tidak', 'saat', 'telah', 'akan', 'bisa', 'cara', 'begini',
+  'oleh', 'juga', 'karena', 'dalam', 'tentang', 'lebih', 'sudah', 'saya', 'kamu',
+  'dia', 'mereka', 'kita', 'kami', 'bikin', 'membuat', 'jadi', 'hasil', 'hasilnya',
+  'pakai', 'menggunakan', 'sebuah', 'para', 'pun', 'jika', 'agar', 'sangat', 'seperti',
+  'serta', 'hingga', 'lagi', 'bahwa', 'bagi', 'terus', 'belum', 'harus', 'dapat',
+  'hal', 'namun', 'antara', 'setiap', 'terhadap', 'kembali', 'setelah', 'sebelum',
+  'melalui', 'atas', 'bawah', 'depan', 'belakang', 'tengah', 'baru', 'lama', 'satu',
+  'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh',
+  'orang', 'hari', 'tahun', 'bulan', 'waktu', 'secara', 'saja', 'tersebut', 'banyak'
+])
+
+export const generateSmartTags = (
+  title: string,
+  category: string,
+  subCategory?: string,
+  content?: string
+): string => {
+  const tags: string[] = ['#JurnalWave', '#Sukabumi']
+
+  // 1. Tag Kategori Wajib
+  const catMap: Record<string, string> = {
+    berita: 'Berita',
+    lifestyle: 'Lifestyle',
+    loker: 'Loker',
+    otomotif: 'Otomotif',
+    sport: 'Sport',
+    tech: 'Teknologi',
+    science: 'Science',
+    health: 'Health',
+    kuliner: 'Kuliner',
+    wisata: 'Wisata',
+    hiburan: 'Hiburan',
+  }
+  const catLabel = catMap[category.toLowerCase()] || (category.charAt(0).toUpperCase() + category.slice(1).toLowerCase())
+  if (catLabel && !tags.some(t => t.toLowerCase() === `#${catLabel.toLowerCase()}`)) {
+    tags.push(`#${catLabel}`)
+  }
+
+  // 2. Tag Sub-Kategori Wajib (jika ada)
+  if (subCategory && subCategory.trim()) {
+    const subClean = subCategory.trim()
+    const subLabel = subClean.charAt(0).toUpperCase() + subClean.slice(1).toLowerCase()
+    if (!tags.some(t => t.toLowerCase() === `#${subLabel.toLowerCase()}`)) {
+      tags.push(`#${subLabel}`)
+    }
+  }
+
+  // 3. Ekstraksi Kata Kunci Cerdas dari Judul Berita
+  if (title && title.trim()) {
+    const words = title
+      .replace(/[^\w\s]/gi, ' ')
+      .split(/\s+/)
+      .map(w => w.trim())
+      .filter(w => {
+        const lower = w.toLowerCase()
+        if (lower.length < 3 && lower !== 'ai' && lower !== 'ev' && lower !== 'ui' && lower !== 'ux') return false
+        if (INDO_STOP_WORDS.has(lower)) return false
+        if (/^\d+$/.test(w)) return false
+        return true
+      })
+
+    const extracted: string[] = []
+    const seen = new Set<string>(tags.map(t => t.slice(1).toLowerCase()))
+
+    for (const word of words) {
+      const lower = word.toLowerCase()
+      if (!seen.has(lower)) {
+        seen.add(lower)
+        const formatted = lower === 'ai' ? 'AI' : lower === 'ev' ? 'EV' : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        extracted.push(`#${formatted}`)
+        if (extracted.length >= 4) break
+      }
+    }
+
+    // 4. Jika kata kunci judul masih kurang dari 2 dan ada isi berita, ambil kata kunci dari isi berita
+    if (extracted.length < 2 && content && content.trim()) {
+      const contentWords = content
+        .replace(/[^\w\s]/gi, ' ')
+        .split(/\s+/)
+        .map(w => w.trim())
+        .filter(w => {
+          const lower = w.toLowerCase()
+          return lower.length >= 4 && !INDO_STOP_WORDS.has(lower) && !seen.has(lower) && !/^\d+$/.test(w)
+        })
+
+      for (const cw of contentWords) {
+        const lower = cw.toLowerCase()
+        if (!seen.has(lower)) {
+          seen.add(lower)
+          const formatted = cw.charAt(0).toUpperCase() + cw.slice(1).toLowerCase()
+          extracted.push(`#${formatted}`)
+          if (extracted.length >= 3) break
+        }
+      }
+    }
+
+    tags.push(...extracted)
+  }
+
+  return tags.join(', ')
+}
+
+// Kata sambung yang dilarang berada di awal kalimat Subjudul / Lead
+const INVALID_START_WORDS = /^(tetapi|namun|sementara|adapun|sedangkan|dan|atau|bahkan|sehingga|maka|pasalnya|sebab|karena|oleh karena itu|kemudian|selanjutnya|selain itu|di sisi lain|meski|meskipun|walaupun|padahal|lantaran)\b/i
+
+/**
+ * Menyaring kalimat pemikat (hook / lead) terbaik dari naskah berita
+ * yang menarik perhatian pembaca, bersih tanpa kata sambung gantung dan tanpa kutipan putus.
+ */
+export const generateSmartLead = (title: string, content: string): string => {
+  if (!content || !content.trim()) return ''
+
+  // 1. Bersihkan naskah dari tag/komentar dan wire headers
+  const clean = content
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/^(JURNALWAVE\.COM|JURNAL WAVE|JURNALVIBES\.COM|JURNAL VIBES)(\s*[-–—]\s*)/i, '')
+    .replace(/^([A-Z\s]+)\s*[-–—]\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  if (!clean) return ''
+
+  // 2. Pecah ke dalam kalimat-kalimat
+  const rawSentences = clean.match(/[^.!?]+[.!?]+/g) || []
+
+  // 3. Filter ketat kalimat yang layak menjadi subjudul pemikat
+  const validCandidates = rawSentences
+    .map((s) => s.trim())
+    .filter((s) => {
+      // Panjang ideal subjudul antara 45 sampai 160 karakter
+      if (s.length < 45 || s.length > 165) return false
+
+      // Tolak kalimat yang diawali tanda kutip, strip, atau koma
+      if (/^["'“”„«\-,–—]/.test(s)) return false
+
+      // Tolak kalimat yang diakhiri tanda kutip gantung tanpa pasangan awal
+      const quotesCount = (s.match(/["'“”„«»]/g) || []).length
+      if (quotesCount % 2 !== 0) return false
+
+      // Tolak kalimat yang diawali kata sambung gantung (Tetapi, Namun, Sementara, dll.)
+      if (INVALID_START_WORDS.test(s)) return false
+
+      // Tolak teks administratif editorial
+      if (/^(baca juga|editor|reporter|foto:|penulis:|dokumen|sumber:)/i.test(s)) return false
+
+      return true
+    })
+
+  if (validCandidates.length === 0) {
+    // Jika tidak ada yang lolos kriteria ketat, cari kalimat pertama yang bersih dari kata sambung
+    const firstClean = rawSentences
+      .map((s) => s.trim())
+      .find((s) => s.length >= 40 && !INVALID_START_WORDS.test(s) && !/^["'“”]/.test(s))
+    if (firstClean) {
+      return firstClean.length > 160 ? firstClean.slice(0, 155).replace(/\s+\S*$/, '') + '...' : firstClean
+    }
+    return ''
+  }
+
+  // Kata kunci penanda daya tarik berita (Hook Keywords)
+  const HOOK_KEYWORDS = /(berhasil|sukses|resmi|mencatat|tercatat|sorotan|penting|terungkap|memastikan|lonjakan|dampak|fenomena|kemenangan|potensi|langkah|strategi|perhatian|unggulan|puncak|fokus|diimbau|ajang|persiapan|sejarah|prestasi|antusias|viral)/i
+
+  let bestLead = ''
+  let bestScore = -100
+
+  for (let idx = 0; idx < validCandidates.length; idx++) {
+    const s = validCandidates[idx]
+    let score = 0
+
+    // Poin daya tarik kata kunci berita
+    const matches = s.match(new RegExp(HOOK_KEYWORDS.source, 'gi'))
+    if (matches) {
+      score += matches.length * 4
+    }
+
+    // Poin panjang ideal (65-130 karakter enak dibaca dalam 1 tarikan nafas)
+    if (s.length >= 65 && s.length <= 130) {
+      score += 3
+    }
+
+    // Kurangi nilai jika kalimat mirip/menjiplak judul
+    if (title && s.toLowerCase().includes(title.toLowerCase().trim())) {
+      score -= 5
+    }
+
+    // Beri sedikit prioritas untuk kalimat di awal/tengah cerita (alur pengait alami)
+    if (idx <= 3) {
+      score += 2
+    }
+
+    if (score > bestScore) {
+      bestScore = score
+      bestLead = s
+    }
+  }
+
+  return bestLead || validCandidates[0] || ''
+}
+
 export default function AdminBeritaPage() {
   const [articles, setArticles] = useState<Article[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -86,6 +289,26 @@ export default function AdminBeritaPage() {
   const [newIsHero, setNewIsHero] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isTagsManuallyEdited, setIsTagsManuallyEdited] = useState(false)
+  const [isExcerptManuallyEdited, setIsExcerptManuallyEdited] = useState(false)
+
+  // Otomatis isi dan perbarui tagar ketika judul, kategori, sub-kategori, atau isi berita terisi
+  useEffect(() => {
+    if (isTagsManuallyEdited) return
+    const autoTags = generateSmartTags(newTitle, newCategory, newSubCategory, newContent)
+    setNewTags(autoTags)
+  }, [newTitle, newCategory, newSubCategory, newContent, isTagsManuallyEdited])
+
+  // Otomatis pilih kalimat pemikat (lead) ketika judul atau isi berita terisi
+  useEffect(() => {
+    if (isExcerptManuallyEdited) return
+    if (!newContent.trim()) {
+      setNewExcerpt('')
+      return
+    }
+    const auto = generateSmartLead(newTitle, newContent)
+    setNewExcerpt(auto)
+  }, [newTitle, newContent, isExcerptManuallyEdited])
 
   // Helper deduplikasi artikel berdasarkan slug, title, atau id
   const dedupeArticles = (items: Article[]): Article[] => {
@@ -96,18 +319,6 @@ export default function AdminBeritaPage() {
       seen.add(key)
       return true
     })
-  }
-
-  // Helper otomatis ekstrak 1-2 kalimat pertama dari isi berita untuk ringkasan/subjudul di bawah judul
-  const extractAutoExcerpt = (text: string): string => {
-    if (!text.trim()) return ''
-    const clean = text.replace(/\s+/g, ' ').trim()
-    const sentences = clean.match(/[^.!?]+[.!?]+/g)
-    if (sentences && sentences.length > 0) {
-      const firstTwo = sentences.slice(0, 2).join(' ').trim()
-      return firstTwo.length > 220 ? firstTwo.slice(0, 220) + '...' : firstTwo
-    }
-    return clean.slice(0, 180) + (clean.length > 180 ? '...' : '')
   }
 
   // Helper kompres dan konversi gambar ke Base64 optimal
@@ -292,14 +503,14 @@ export default function AdminBeritaPage() {
         else finalCategoryLabel = 'LIFESTYLE'
       }
 
-      const autoExcerpt = newExcerpt.trim() || extractAutoExcerpt(newContent) || newTitle.trim()
-      const parsedTags = newTags.trim()
-        ? newTags
-            .split(',')
-            .map((t) => t.trim())
-            .filter(Boolean)
-            .map((t) => (t.startsWith('#') ? t : `#${t}`))
-        : ['#BERITA', '#JurnalWave', `#${newCategory.toUpperCase()}`]
+      const cleanContent = (newContent || '').replace(/<!--[\s\S]*?-->/g, '').trim()
+      const autoExcerpt = newExcerpt.trim() || generateSmartLead(newTitle, cleanContent)
+      const rawTags = newTags.trim() || generateSmartTags(newTitle, newCategory, newSubCategory, cleanContent)
+      const parsedTags = rawTags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .map((t) => (t.startsWith('#') ? t : `#${t}`))
 
       const payload = {
         title: newTitle.trim(),
@@ -307,7 +518,7 @@ export default function AdminBeritaPage() {
         categoryLabel: finalCategoryLabel,
         subCategory: newSubCategory || undefined,
         excerpt: autoExcerpt,
-        content: newContent.trim() || autoExcerpt,
+        content: cleanContent || autoExcerpt,
         imageUrl:
           newImageUrl.trim() ||
           'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80',
@@ -376,6 +587,8 @@ export default function AdminBeritaPage() {
       setNewReporter('')
       setNewRedaktur('')
       setNewTags('')
+      setIsTagsManuallyEdited(false)
+      setIsExcerptManuallyEdited(false)
       setNewIsHero(false)
 
       setToastMessage('Berita berhasil diterbitkan ke database!')
@@ -387,7 +600,18 @@ export default function AdminBeritaPage() {
 
   // Handle Buka Modal Edit
   const handleOpenEdit = (article: Article) => {
-    setEditingArticle({ ...article })
+    let initialTags = article.tags
+    if (!initialTags || (Array.isArray(initialTags) && initialTags.length === 0)) {
+      initialTags = generateSmartTags(article.title, article.category, article.subCategory, article.content)
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+    }
+    let initialExcerpt = article.excerpt
+    if (!initialExcerpt || !initialExcerpt.trim()) {
+      initialExcerpt = generateSmartLead(article.title, article.content)
+    }
+    setEditingArticle({ ...article, tags: initialTags, excerpt: initialExcerpt })
     setIsEditModalOpen(true)
   }
 
@@ -412,10 +636,12 @@ export default function AdminBeritaPage() {
         else finalCategoryLabel = 'LIFESTYLE'
       }
 
-      const autoExcerpt = editingArticle.excerpt?.trim() || extractAutoExcerpt(editingArticle.content || '') || editingArticle.title
+      const cleanContent = (editingArticle.content || '').replace(/<!--[\s\S]*?-->/g, '').trim()
+      const autoExcerpt = editingArticle.excerpt?.trim() || generateSmartLead(editingArticle.title, cleanContent)
       const captionVal = editingArticle.imageCaption?.trim() || editingArticle.imageAlt?.trim() || undefined
       const updatedArticle = {
         ...editingArticle,
+        content: cleanContent,
         imageCaption: captionVal,
         imageAlt: captionVal,
         categoryLabel: finalCategoryLabel,
@@ -516,7 +742,11 @@ export default function AdminBeritaPage() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => {
+              setIsTagsManuallyEdited(false)
+              setIsExcerptManuallyEdited(false)
+              setIsCreateModalOpen(true)
+            }}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -1079,13 +1309,13 @@ export default function AdminBeritaPage() {
                 />
               </div>
 
-              {/* Ringkasan / Lead Berita */}
+              {/* Subjudul / Lead Berita */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block font-semibold text-slate-700">
-                    Ringkasan / Lead Berita:
+                    Subjudul / Lead Berita:
                   </label>
-                  <span className="text-[11px] text-slate-400">Opsional</span>
+                  <span className="text-[11px] text-slate-400">Teks pengait di bawah judul</span>
                 </div>
                 <textarea
                   rows={2}
@@ -1093,13 +1323,14 @@ export default function AdminBeritaPage() {
                   onChange={(e) =>
                     setEditingArticle({ ...editingArticle, excerpt: e.target.value })
                   }
-                  placeholder="Ketik ringkasan, atau kosongkan agar otomatis menggunakan kalimat awal naskah..."
-                  className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                  placeholder="Ketik subjudul pemikat, atau kosongkan agar sistem otomatis memilih kalimat pemikat..."
+                  className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] leading-relaxed"
                 />
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Teks pengantar di bawah judul artikel. Jika dikosongkan, sistem otomatis menggunakan kalimat awal naskah.
+                  Kalimat pemikat yang tampil tepat di bawah judul artikel berita (khas portal media siber).
                 </p>
               </div>
+
 
               {/* Posisi Berita (Headline Slider) */}
               <div className="pt-2 border-t border-slate-100">
@@ -1284,8 +1515,11 @@ export default function AdminBeritaPage() {
                   <input
                     type="text"
                     value={newTags}
-                    onChange={(e) => setNewTags(e.target.value)}
-                    placeholder="Contoh: #BERITA, #Sukabumi, #Trending"
+                    onChange={(e) => {
+                      setNewTags(e.target.value)
+                      setIsTagsManuallyEdited(Boolean(e.target.value.trim()))
+                    }}
+                    placeholder="#JurnalWave, #Sukabumi, #Trending"
                     className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
                   />
                 </div>
@@ -1403,25 +1637,29 @@ export default function AdminBeritaPage() {
                 />
               </div>
 
-              {/* Ringkasan / Lead Berita */}
+              {/* Subjudul / Lead Berita (Otomatis Terisi) */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block font-semibold text-slate-700">
-                    Ringkasan / Lead Berita:
+                    Subjudul / Lead Berita:
                   </label>
-                  <span className="text-[11px] text-slate-400">Opsional</span>
+                  <span className="text-[11px] text-emerald-600 font-semibold">⚡ Otomatis Kalimat Pemikat</span>
                 </div>
                 <textarea
                   rows={2}
                   value={newExcerpt}
-                  onChange={(e) => setNewExcerpt(e.target.value)}
-                  placeholder="Ketik ringkasan, atau kosongkan agar otomatis menggunakan kalimat awal naskah..."
-                  className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015]"
+                  onChange={(e) => {
+                    setNewExcerpt(e.target.value)
+                    setIsExcerptManuallyEdited(Boolean(e.target.value.trim()))
+                  }}
+                  placeholder="Ketik subjudul pengait, atau biarkan kosong agar sistem otomatis memilih kalimat pemikat terbaik dari naskah..."
+                  className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:outline-none focus:border-[#c00015] leading-relaxed"
                 />
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Teks pengantar di bawah judul artikel. Jika dikosongkan, sistem otomatis menggunakan kalimat awal naskah.
+                  Kalimat pengait yang tampil tepat di bawah judul artikel berita. Otomatis memilih kalimat pemikat yang menarik perhatian pembaca jika dikosongkan.
                 </p>
               </div>
+
 
               {/* Pilihan Headline Slider */}
               <div className="pt-2 border-t border-slate-100">

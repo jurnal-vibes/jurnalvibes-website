@@ -75,7 +75,7 @@ export function NewsArticleSidebar({
               return (
                 <Link
                   key={item.id}
-                  href={`/artikel/${item.id}`}
+                  href={`/artikel/${item.slug || item.id}`}
                   className="group p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs flex items-center gap-3 transition-all"
                 >
                   {/* Thumbnail Foto */}

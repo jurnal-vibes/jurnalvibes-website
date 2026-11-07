@@ -162,7 +162,8 @@ export function ArticleDetailView({
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Perkiraan durasi membaca / TTS (~125 kata per menit) jika durasi asli belum terload
-  const fullArticleSpeechText = `${article?.title || ''} ${article?.excerpt || ''} ${article?.content || ''}`.trim();
+  const cleanContentForSpeech = (article?.content || '').replace(/<!--[\s\S]*?-->/g, '').trim();
+  const fullArticleSpeechText = `${article?.title || ''} ${article?.excerpt || ''} ${cleanContentForSpeech}`.trim();
   const wordCount = fullArticleSpeechText ? fullArticleSpeechText.split(/\s+/).length : 0;
   const estimatedDuration = Math.max(15, Math.round((wordCount / 125) * 60));
   const totalDuration = audioDuration > 0 ? audioDuration : estimatedDuration;
@@ -210,7 +211,8 @@ export function ArticleDetailView({
       return;
     }
 
-    const rawText = `${article?.title || ''}. ${article?.excerpt || ''}. ${article?.content || ''}`;
+    const speechContent = (article?.content || '').replace(/<!--[\s\S]*?-->/g, '').trim();
+    const rawText = `${article?.title || ''}. ${article?.excerpt || ''}. ${speechContent}`;
     const cleanText = rawText
       .replace(/<[^>]*>/g, ' ')
       .replace(/[*_#`~[\]()]/g, ' ')
@@ -678,8 +680,12 @@ export function ArticleDetailView({
     const raw = article?.content || '';
     if (!raw.trim()) return [];
 
+    // Filter otomatis: bersihkan komentar HTML mentah (seperti <!--TAGS:...--> atau <!--KEYWORDS:...-->) agar tidak bocor ke pembaca
+    const cleaned = raw.replace(/<!--[\s\S]*?-->/g, '').trim();
+    if (!cleaned) return [];
+
     // Pisahkan berdasarkan jeda baris
-    const rawBlocks = raw.split(/\r?\n+/).map(p => p.trim()).filter(Boolean);
+    const rawBlocks = cleaned.split(/\r?\n+/).map(p => p.trim()).filter(Boolean);
 
     // Pecah blok teks yang terlalu panjang (>320 char / multi kalimat) menjadi paragraf 2-3 kalimat yang nyaman dibaca
     const formatted: string[] = [];
@@ -706,7 +712,7 @@ export function ArticleDetailView({
       }
     }
 
-    return formatted.length > 0 ? formatted : [raw.trim()];
+    return formatted.length > 0 ? formatted : [cleaned];
   }, [article?.content]);
 
   // Topik Terkait Dinamis dari Artikel Jurnal Wave (Deduplikasi Bersih)
@@ -717,11 +723,17 @@ export function ArticleDetailView({
     } else if (typeof article?.tags === 'string' && (article.tags as string).trim()) {
       rawList = (article.tags as string).split(',').map(t => t.trim());
     } else {
-      rawList = [
-        article?.categoryLabel || article?.category || 'Berita',
-        article?.subCategory || 'Sukabumi',
-        'Jurnal Wave',
-      ];
+      // Deteksi cerdas: jika ada tagar di dalam komentar <!--TAGS: ...-->, serap ke daftar topik
+      const tagCommentMatch = article?.content?.match(/<!--TAGS:\s*([^>]+)-->/i);
+      if (tagCommentMatch && tagCommentMatch[1]) {
+        rawList = tagCommentMatch[1].split(',').map(t => t.trim());
+      } else {
+        rawList = [
+          article?.categoryLabel || article?.category || 'Berita',
+          article?.subCategory || 'Sukabumi',
+          'Jurnal Wave',
+        ];
+      }
     }
 
     const seen = new Set<string>();
@@ -773,14 +785,15 @@ export function ArticleDetailView({
             {article.title}
           </h1>
 
-          {/* Lead / Subjudul / Standfirst (Ringkasan Intisari Artikel di Bawah Judul) */}
-          {article.excerpt && (
+          {/* Subjudul / Lead Berita (Kalimat Pemikat di Bawah Judul) */}
+          {article.excerpt && article.excerpt.trim() && (
             <div className="border-l-[3.5px] border-slate-900 dark:border-slate-100 pl-4 py-1 -mt-1">
               <p className="font-serif italic text-sm sm:text-[15.5px] leading-relaxed text-slate-700 dark:text-slate-300">
-                {article.excerpt}
+                {article.excerpt.trim()}
               </p>
             </div>
           )}
+
 
           {/* Baris Meta Penulis & Tanggal (Persis SukabumiUpdate) */}
           <div className="border-t border-b border-slate-200/80 dark:border-slate-800 py-2.5 my-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -908,7 +921,7 @@ export function ArticleDetailView({
           {/* Baris Utilitas Baca: Dengarkan Artikel (Kiri) & Ukuran Teks (Kanan) */}
           <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
           {/* Sisi Kiri: Trigger Dengarkan Artikel */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
             <button
               type="button"
               onClick={handlePlayToggle}
@@ -1063,7 +1076,7 @@ export function ArticleDetailView({
                       <div className="w-1 self-stretch min-h-[1.5rem] bg-[#c00015] rounded-full shrink-0" />
                       <div className="flex-1 min-w-0">
                         <Link
-                          href={`/artikel/${rec1.id}`}
+                          href={`/artikel/${rec1.slug || rec1.id}`}
                           className="group flex flex-wrap items-baseline gap-1.5 text-xs sm:text-[13.5px] leading-snug"
                         >
                           <span className="text-[#c00015] font-extrabold tracking-wider uppercase shrink-0">
@@ -1085,7 +1098,7 @@ export function ArticleDetailView({
                       <div className="w-1 self-stretch min-h-[1.5rem] bg-[#c00015] rounded-full shrink-0" />
                       <div className="flex-1 min-w-0">
                         <Link
-                          href={`/artikel/${rec2.id}`}
+                          href={`/artikel/${rec2.slug || rec2.id}`}
                           className="group flex flex-wrap items-baseline gap-1.5 text-xs sm:text-[13.5px] leading-snug"
                         >
                           <span className="text-[#c00015] font-extrabold tracking-wider uppercase shrink-0">
@@ -1350,6 +1363,8 @@ export function ArticleDetailView({
         }}
         className="hidden"
       />
+
+
     </div>
   );
 }
