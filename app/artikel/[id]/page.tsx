@@ -15,9 +15,36 @@ export async function generateMetadata({ params }: ArticleDetailPageProps): Prom
   let article = null;
 
   try {
-    const wpArticle = await fetchArticleById(id);
+    const [wpArticle, wpArticles] = await Promise.all([
+      fetchArticleById(id),
+      fetchArticles()
+    ]);
     if (wpArticle) {
       article = wpArticle;
+    } else if (wpArticles && wpArticles.length > 0) {
+      let decodedId = id;
+      try {
+        decodedId = decodeURIComponent(id).trim();
+      } catch {}
+      const lowerId = id.toLowerCase().trim();
+      const lowerDecoded = decodedId.toLowerCase();
+
+      article = wpArticles.find((a) => {
+        const aId = String(a.id || '').trim();
+        const aSlug = String(a.slug || '').trim();
+        const lowerAId = aId.toLowerCase();
+        const lowerASlug = aSlug.toLowerCase();
+        return (
+          aId === id ||
+          aSlug === id ||
+          aId === decodedId ||
+          aSlug === decodedId ||
+          lowerAId === lowerId ||
+          lowerASlug === lowerId ||
+          lowerAId === lowerDecoded ||
+          lowerASlug === lowerDecoded
+        );
+      }) || null;
     }
   } catch {}
 
@@ -96,6 +123,33 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
       allArticles = wpArticles;
     }
   } catch {}
+
+  // Fallback pencarian sekunder jika lookup tunggal tidak langsung match (slug/id case-insensitive & URI encoded)
+  if (!article && allArticles.length > 0) {
+    let decodedId = id;
+    try {
+      decodedId = decodeURIComponent(id).trim();
+    } catch {}
+    const lowerId = id.toLowerCase().trim();
+    const lowerDecoded = decodedId.toLowerCase();
+
+    article = allArticles.find((a) => {
+      const aId = String(a.id || '').trim();
+      const aSlug = String(a.slug || '').trim();
+      const lowerAId = aId.toLowerCase();
+      const lowerASlug = aSlug.toLowerCase();
+      return (
+        aId === id ||
+        aSlug === id ||
+        aId === decodedId ||
+        aSlug === decodedId ||
+        lowerAId === lowerId ||
+        lowerASlug === lowerId ||
+        lowerAId === lowerDecoded ||
+        lowerASlug === lowerDecoded
+      );
+    }) || null;
+  }
 
   if (!article) {
     notFound();

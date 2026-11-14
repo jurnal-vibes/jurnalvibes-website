@@ -21,33 +21,44 @@ export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
 
   useEffect(() => {
-    // 1. Sync from localStorage if present
-    if (typeof window !== 'undefined') {
+    async function loadArticles() {
+      // 1. Prioritaskan data segar dari database via API
       try {
-        const saved = localStorage.getItem('jurnal_wave_articles');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setArticles(parsed);
+        const res = await fetch('/api/articles?category=berita', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setArticles(json.data);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
+            }
+            return;
           }
         }
-      } catch {}
-    }
-
-    // 2. Fetch from DB if initialArticles was empty
-    if (initialArticles.length === 0) {
-      async function loadArticles() {
-        try {
-          const data = await fetchArticles();
-          if (data && data.length > 0) {
-            setArticles(data);
-          }
-        } catch (err) {
-          console.error('Error fetching articles in BeritaPage:', err);
-        }
+      } catch (err) {
+        console.warn('Gagal fetch berita dari server:', err);
       }
-      loadArticles();
+
+      // 2. Gunakan initialArticles dari server jika ada
+      if (initialArticles.length > 0) {
+        setArticles(initialArticles);
+        return;
+      }
+
+      // 3. Fallback ke localStorage hanya jika offline
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_articles');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setArticles(parsed);
+            }
+          }
+        } catch {}
+      }
     }
+    loadArticles();
 
     const handleSync = () => {
       if (typeof window !== 'undefined') {

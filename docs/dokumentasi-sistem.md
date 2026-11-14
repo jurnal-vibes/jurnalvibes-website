@@ -1,8 +1,8 @@
-# DOKUMENTASI SISTEM RESMI JURNAL WAVE & HALLO JURNAL SUKABUMI (VERSI 6.0)
+# DOKUMENTASI SISTEM RESMI JURNAL WAVE & HALLO JURNAL SUKABUMI (VERSI 6.1)
 
 > **Status Dokumen**: Resmi & Terverifikasi terhadap Kode Sumber Berjalan  
-> **Tanggal Pembaruan Terakhir**: 6 November 2026  
-> **Basis Audit**: Kode repositori `d:\jurnalvibes-website` (Git Commit `bce5305` + revisi pembersihan profil warga)  
+> **Tanggal Pembaruan Terakhir**: 7 November 2026  
+> **Basis Audit**: Kode repositori `d:\jurnalvibes-website` (Git Commit `8aad5b3` - standardisasi URL slug SEO kanonikal, canonical auto-redirect, smart lead berita otomatis, subkategori lifestyle, serta cetak biru infrastruktur produksi VPS)  
 > **Sifat Dokumen**: Dokumen teknis komprehensif tunggal sebagai sumber rujukan utama untuk:  
 > 1. **Penulis A (Jurnal Pengabdian Warga)**: Khusus Bab Sisi Warga pada kanal Hallo Jurnal.  
 > 2. **Penulis B (Jurnal Pengabdian Redaksi/Admin)**: Khusus Bab Sisi Admin/Redaksi pada kanal Hallo Jurnal.  
@@ -12,6 +12,7 @@
 
 ## DAFTAR ISI
 
+- [VERIFIKASI PERUBAHAN TERBARU (7 NOVEMBER 2026)](#verifikasi-perubahan-terbaru-7-november-2026)
 - [VERIFIKASI PERUBAHAN TERBARU (6 NOVEMBER 2026)](#verifikasi-perubahan-terbaru-6-november-2026)
 - [BAB 0 - RINGKASAN ARSITEKTUR SISTEM `[DIPAKAI OLEH: SEMUA]`](#bab-0---ringkasan-arsitektur-sistem-dipakai-oleh-semua)
 - [BAB 1 - LANDASAN TEKNIS BERSAMA `[DIPAKAI OLEH: SEMUA]`](#bab-1---landasan-teknis-bersama-dipakai-oleh-semua)
@@ -68,6 +69,20 @@
 
 ---
 
+## VERIFIKASI PERUBAHAN TERBARU (7 NOVEMBER 2026)
+
+Berikut adalah audit faktual per 7 November 2026 atas penyempurnaan arsitektur URL SEO kanonikal, otomasi redaksional smart lead, sinkronisasi subkategori, serta standarisasi infrastruktur hosting:
+
+| Butir Evaluasi | Status Faktual di Kode | Rujukan File & Baris | Catatan & Perilaku Nyata di Sistem |
+| :--- | :---: | :--- | :--- |
+| **a. Standardisasi URL Slug SEO Kanonikal** (Penggantian ID CUID acak ke Slug ramah mesin pencari) | **DITERAPKAN** | `components/cards/NewsCard.tsx:27, 32, 47, 63, 80`, `components/cards/HeroCarousel.tsx:227`, `components/layout/NewsArticleSidebar.tsx:78`, `components/layout/SearchOverlay.tsx:135`, `components/widgets/EditorsPickWidget.tsx:23`, `app/indeks-berita/IndeksBeritaClient.tsx:570, 584`, `app/artikel/[id]/ArticleDetailView.tsx:1079, 1101`, `app/api/ai-chat/route.ts:139, 151` | Seluruh komponen pembaca publik kini mengarahkan tautan berita ke `/artikel/${article.slug}` secara seragam. Tautan acak ID CUID (contoh: `/artikel/cmw4kz197000...`) tidak lagi terekspos di kartu beranda, headline, sidebar, indeks, maupun rekomendasi AI. |
+| **b. Canonical Auto-Redirect (Proteksi ID CUID)** | **DITERAPKAN** | `app/artikel/[id]/page.tsx:104-107` | Jika pengunjung atau bot perayap mengakses artikel menggunakan ID acak (CUID), server otomatis melakukan pengalihan permanen (`redirect('/artikel/' + article.slug)`). Hal ini menjamin skor SEO dan mencegah duplikasi konten di indeks Google. |
+| **c. Fitur Smart Lead / Subjudul Berita Otomatis (CMS Admin)** | **DITERAPKAN** | `app/halo-jurnal/admin/berita/page.tsx:75-132, 1024-1065, 1277-1318`, `app/artikel/[id]/ArticleDetailView.tsx:883-895` | Admin CMS berita dilengkapi tombol `⚡ Otomatis Kalimat Pemikat`. Algoritma `generateSmartLead` menyeleksi kalimat paling menarik dari naskah, memfilter konjungsi koordinatif gantung (`INVALID_START_WORDS`), dan menampilkannya di `ArticleDetailView.tsx` dalam blockquote elegan di bawah judul utama tanpa menduplikasi teks pembuka naskah. |
+| **d. Sinkronisasi Subkategori Lifestyle** | **DITERAPKAN** | `app/lifestyle/LifestyleClient.tsx:40-70`, `components/layout/CategoryTemplate.tsx:55-80` | Rubrik Lifestyle menyajikan 3 subkategori aktif: **Style** (tren gaya hidup anak muda/Gen Z & sosial), **Culinary** (kuliner legendaris & kafe hits), dan **Traveling** (pariwisata & alam Sukabumi). Penamaan label kategori kartu telah disinkronkan. |
+| **e. Cetak Biru Infrastruktur Server 1 Tahun Publik (VPS Mandiri)** | **DITERAPKAN** | Dokumen Arsitektur & `.env.example:1-9` | Menegaskan bahwa arsitektur **Vercel + Neon DB** berfungsi untuk **Tahap Uji Coba/Staging**. Untuk **Fase Produksi Resmi Publik 1 Tahun**, sistem dirancang berjalan mandiri di atas **Cloud VPS Mandiri (KVM Indonesia) + Coolify PaaS Self-Hosted + PostgreSQL Internal + Domain Resmi Kustom** guna menjamin kepatuhan UU PDP No. 27/2022, bebas batasan limit gambar (1.000/bln) Vercel, dan zero cold-start delay. |
+
+---
+
 ## VERIFIKASI PERUBAHAN TERBARU (6 NOVEMBER 2026)
 
 Berikut adalah hasil audit faktual per 6 November 2026 terhadap permintaan penyederhanaan alur Hallo Jurnal oleh Pemimpin Redaksi:
@@ -119,9 +134,17 @@ Berdasarkan `package.json:1-47`:
 - **Ikonografi**: `lucide-react` versi `^1.37.0` dan `react-icons` versi `^5.7.0`.
 
 ### 0.4 Hosting & Infrastruktur
-- **Platform Hosting**: Serverless Cloud Platform Vercel (`next.config.ts:1-40`, `app/api/tts/route.ts:17-19`).
-- **Basis Data**: PostgreSQL hosted on Neon DB Serverless (`prisma/schema.prisma:1-5`).
-- **Penyimpanan Berkas**: Inline Base64 Data-URI / direktori serverless temporary storage (`/tmp/jurnalwave-tts`).
+
+Infrastruktur sistem dirancang dalam dua fase terencana:
+1. **Fase Staging & Uji Coba Pengembang (Saat Ini)**:
+   - **Platform Hosting**: Serverless Cloud Platform Vercel (`next.config.ts:1-40`, `app/api/tts/route.ts:17-19`).
+   - **Basis Data**: PostgreSQL hosted on Neon DB Serverless Singapore (`prisma/schema.prisma:1-5`).
+   - **Penyimpanan Berkas Sementara**: Inline Base64 Data-URI / direktori serverless temporary storage (`/tmp/jurnalwave-tts`).
+2. **Fase Produksi Mandiri (Roadmap Publik 1 Tahun Resmi PT Media Jurnal Sukabumi)**:
+   - **Platform Hosting**: 1 Unit Cloud VPS KVM Mandiri di Indonesia (misal: IDCloudHost / Hostinger KVM, 2 vCPU / 2-4 GB RAM / 50-80 GB NVMe SSD).
+   - **Manajemen Server (PaaS Self-Hosted)**: **Coolify** (platform open-source pengelola container Docker berbasis web) untuk mengeliminasi kerumitan terminal Linux manual, otomatisasi deploy dari Git, dan manajemen sertifikat SSL Let's Encrypt (HTTPS).
+   - **Basis Data**: PostgreSQL mandiri di dalam VPS (unlimited storage tanpa cold-start suspend delay).
+   - **Kepatuhan Privasi**: Memenuhi UU Perlindungan Data Pribadi (UU PDP No. 27/2022) dengan lokasi server di dalam negeri (Data Center Jakarta).
 
 ### 0.5 Peta Modul & Struktur Folder Direktori
 ```text
@@ -833,8 +856,9 @@ Halaman `/halo-jurnal/admin/chat` (`app/halo-jurnal/admin/chat/page.tsx:1-781`) 
 ### 4.1 Kanal Pemberitaan & Halaman Pembaca
 Portal Jurnal Wave menyediakan kanal informasi hiperlokal dan nasional:
 - `/` : Beranda portal berita utama (`app/page.tsx`).
+- `/artikel/[slug]` : Halaman baca artikel berita berbasis URL slug SEO kanonikal (`app/artikel/[id]/page.tsx`, `ArticleDetailView.tsx`). Dilengkapi proteksi canonical auto-redirect dari ID CUID, metadata JSON-LD `NewsArticle` Schema.org resmi Google News, dan subjudul (*smart lead*) berdesain quote editorial.
 - `/berita` : Kanal liputan peristiwa umum dan hukum Sukabumi.
-- `/lifestyle` : Kanal gaya hidup, resep kuliner legendaris, dan tempat ngopi hits Sukabumi.
+- `/lifestyle` : Kanal gaya hidup terbagi atas 3 subkategori terkurasi: Style, Culinary, dan Traveling (`app/lifestyle/LifestyleClient.tsx`).
 - `/loker` : Info lowongan kerja Sukabumi terkurasi (`app/loker/page.tsx`).
 - `/reels` : Pemutar video pendek vertikal Wave Reels Sukabumi (`app/reels/page.tsx`).
 - `/otomotif` : Modifikasi, tips kendaraan, dan kabar otomotif.
@@ -843,7 +867,7 @@ Portal Jurnal Wave menyediakan kanal informasi hiperlokal dan nasional:
 - `/health` : Tips kesehatan dan info medis keluarga.
 - `/cuaca` : Pemantauan cuaca realtime satelit Sukabumi (`app/cuaca/page.tsx`).
 - `/bookmark` : Koleksi artikel tersimpan di browser (`localStorage.getItem('jurnal_wave_bookmarks')`).
-- `/indeks` : Arsip berita kronologis berdasarkan kalender tanggal dan kategori.
+- `/indeks-berita` : Arsip berita kronologis berdasarkan kalender tanggal dan saringan rubrik (`app/indeks-berita/IndeksBeritaClient.tsx`).
 - `/topik/[tag]` : Pengelompokan berita berdasarkan tag topik khusus.
 - `/tentang-kami` : Profil redaksi PT Media Jurnal Sukabumi (`app/tentang-kami/page.tsx`). Tagline resmi: `"Jurnal Wave — Suara Baru, Informasi Terkini"`.
 - `/pedoman-media-siber` : Kepatuhan standar jurnalistik Dewan Pers.
@@ -916,7 +940,8 @@ Modul survei publik di bilah samping berita memungkinkan pembaca memilih opsi at
 Panel CMS berita terintegrasi di bawah naungan `/halo-jurnal/admin`:
 
 ### 5.1 Manajemen Artikel Berita (`/halo-jurnal/admin/berita`)
-- **Struktur Kolom Naskah**: Judul berita, slug URL unik, ringkasan kutipan (*excerpt*), konten isi lengkap (mendukung paragraf format berita), kategori utama (`berita`, `lifestyle`, `tech`, `sport`, `science`, `health`, `otomotif`), label kategori kustom, URL gambar sampul, teks alternatif gambar, nama penulis (*author*), nama reporter lapangan (*reporter*), dan nama redaktur penyunting (*redaktur*).
+- **Struktur Kolom Naskah**: Judul berita, slug URL unik ramah SEO, subjudul / lead berita (*smart lead*), ringkasan kutipan (*excerpt*), konten isi lengkap (mendukung pemformatan naskah pers), kategori utama (`berita`, `lifestyle`, `tech`, `sport`, `science`, `health`, `otomotif`, `kuliner`, `wisata`, `hiburan`), subkategori / label kustom, URL gambar sampul, teks alternatif gambar, nama penulis (*author*), nama reporter lapangan (*reporter*), dan nama redaktur penyunting (*redaktur*).
+- **Otomasi Smart Lead (`generateSmartLead`)**: Formulir tambah dan edit berita dilengkapi tombol `⚡ Otomatis Kalimat Pemikat` yang mengekstrak kalimat pemikat paling representatif dari tubuh naskah secara instan, menyaring konjungsi koordinatif gantung (`INVALID_START_WORDS`), dan menampilkannya di halaman baca sebagai subjudul/lead berdesain quote elegan tanpa menduplikasi paragraf pembuka.
 - **Pengaturan Headline Carousel (Hero Slider)**: Staf redaksi dapat mengaktifkan atau menonaktifkan status `isHero` artikel dengan sekali klik tombol toggle langsung dari tabel tanpa membuka form edit (`app/halo-jurnal/admin/page.tsx:57-90`).
 - **Status Editor's Pick**: Menandai artikel berkualitas tinggi untuk disorot di kolom rekomendasi redaksi.
 
@@ -937,29 +962,28 @@ Panel CMS berita terintegrasi di bawah naungan `/halo-jurnal/admin`:
 
 # BAB 6 - KONTRIBUSI TIM & AUDIT RIWAYAT GIT `[DIPAKAI OLEH: LAPORAN MAGANG & JURNAL]`
 
-Seluruh data pada bab ini diekstraksi secara faktual dari repositori Git proyek per 6 November 2026:
+Seluruh data pada bab ini diekstraksi secara faktual dari repositori Git proyek per 7 November 2026:
 
 ### 6.1 Ringkasan Komit Repositori
-- **Total Komit**: **210 komit** (`git log --oneline | Measure-Object -Line`).
-- **Rentang Waktu Pengembangan**: **29 Agustus 2026** s.d. **6 November 2026**.
+- **Total Komit**: **213 komit** (`git log --oneline | Measure-Object -Line`).
+- **Rentang Waktu Pengembangan**: **29 Agustus 2026** s.d. **7 November 2026**.
 - **Komit Perdana**: Hash `0edadb6` (*"feat: Migrasi Jurnal Vibes ke Next.js App Router"*, 29 Agustus 2026).
-- **Komit Terakhir**: Hash `bce5305` (*"revisi optimasi kecepatan admin dan shared context"*, 6 November 2026).
+- **Komit Terakhir**: Hash `8aad5b3` (*"Update seluruh perbaikan fitur berita, SEO slug, dan optimasi sistem"*, 7 November 2026).
 
 ### 6.2 Kontribusi Komit Berdasarkan Identitas Penulis
 Berdasarkan kueri resmi `git log --format="%aN <%aE>"`:
 
 | No | Nama Penulis di Git | Alamat Email di Git | Jumlah Komit |
 | :---: | :--- | :--- | :---: |
-| 1 | `dmakapeli-prog` | `dmakapeli@gmail.com` | 68 komit |
+| 1 | `dmakapeli-prog` | `dmakapeli@gmail.com` | 71 komit |
 | 2 | `Donie Makapeli` | `donie.makapeli_ti@nusaputra.ac.id` | 58 komit |
-| 3 | `Revan Fatkhurezi` | `fatkhurezir@gmail.com` | 36 komit |
+| 3 | `Revan Fatkhurezi` | `fatkhurezir@gmail.com` | 46 komit |
 | 4 | `dmakapeli` | `dmakapeli@gmail.com` | 31 komit |
-| 5 | `Revan Fatkhurezi` | `revanfatkhureziii@gmail.com` | 10 komit |
+| 5 | `Risma` | `sitirismawati792@gmail.com` | 2 komit |
 | 6 | `jurnalvibes` | `jurnalvibes2@gmail.com` | 2 komit |
-| 7 | `Risma` | `sitirismawati792@gmail.com` | 2 komit |
-| 8 | `sitirismawati792` | `sitirismawati792@gmail.com` | 2 komit |
-| 9 | `Doni` | `dmakapeli@gmail.com` | 1 komit |
-| **Total** | | | **210 komit** |
+| 7 | `sitirismawati792` | `sitirismawati792@gmail.com` | 2 komit |
+| 8 | `Doni` | `dmakapeli@gmail.com` | 1 komit |
+| **Total** | | | **213 komit** |
 
 ### 6.3 Analisis Penulis Dominan per Modul Kunci
 Berdasarkan jejak log perubahan per folder:
@@ -970,9 +994,9 @@ Berdasarkan jejak log perubahan per folder:
 2. **`app/halo-jurnal/laporan`** (Detail Tiket, Stepper & Chat Warga):
    - Kontributor Dominan: `dmakapeli-prog` (17 komit), `Revan Fatkhurezi` (2 komit).
    - Komit Kunci: `ba9796e`, `bab6104` (*"revisi-terbaru31: penyelarasan nama brand Hallo Jurnal"*).
-3. **`app/halo-jurnal/admin`** (Meja Investigasi, Buku Induk & Dashboard Redaksi):
-   - Kontributor Dominan: `dmakapeli-prog` (25 komit), `Revan Fatkhurezi` (1 komit).
-   - Komit Kunci: `bce5305` (*"revisi optimasi kecepatan admin dan shared context"*), `c6c3d63`.
+3. **`app/halo-jurnal/admin`** (Meja Investigasi, Buku Induk, Smart Lead & Dashboard Redaksi):
+   - Kontributor Dominan: `dmakapeli-prog` (27 komit), `Revan Fatkhurezi` (1 komit).
+   - Komit Kunci: `8aad5b3` (*"Update seluruh perbaikan fitur berita, SEO slug, dan optimasi sistem"*), `bce5305` (*"revisi optimasi kecepatan admin dan shared context"*), `c6c3d63`.
 4. **`app/api/chat`** (Backend REST API Chat Dua Arah):
    - Kontributor Dominan: `dmakapeli-prog` (4 komit).
    - Komit Kunci: `ba9796e`, `bab6104`.
@@ -980,11 +1004,11 @@ Berdasarkan jejak log perubahan per folder:
    - Kontributor Dominan: `dmakapeli-prog` (2 komit).
    - Komit Kunci: `6f1d116` (*"fix: gunakan elemen audio fisik playsinline agar tts langsung play di hp tanpa loading muter"*), `b4e4c7a`.
 6. **`components/cards`** (Banner Hallo Jurnal & Hero Carousel):
-   - Kontributor Dominan: `dmakapeli-prog` (10 komit), `Donie Makapeli` (8 komit), `Revan Fatkhurezi` (5 komit).
-   - Komit Kunci: `0dcc601` (*"feat: tambahkan fitur gesture swipe dan drag geser pada banner Headline"*), `ba9796e`.
+   - Kontributor Dominan: `dmakapeli-prog` (11 komit), `Donie Makapeli` (8 komit), `Revan Fatkhurezi` (5 komit).
+   - Komit Kunci: `8aad5b3`, `0dcc601` (*"feat: tambahkan fitur gesture swipe dan drag geser pada banner Headline"*), `ba9796e`.
 7. **`components/layout`** (Navbar, Header Navigasi & AppShell):
-   - Kontributor Dominan: `Donie Makapeli` (40 komit), `dmakapeli-prog` (15 komit), `Revan Fatkhurezi` (8 komit).
-   - Komit Kunci: `89f695c` (*"fix: selaraskan mobile category bar dengan container logo dan konten artikel"*), `bab6104`.
+   - Kontributor Dominan: `Donie Makapeli` (40 komit), `dmakapeli-prog` (16 komit), `Revan Fatkhurezi` (8 komit).
+   - Komit Kunci: `8aad5b3`, `89f695c` (*"fix: selaraskan mobile category bar dengan container logo dan konten artikel"*), `bab6104`.
 8. **`lib`** (Utilitas Autentikasi, Mailer, Prisma & Cache):
    - Kontributor Dominan: `dmakapeli-prog` (14 komit), `Revan Fatkhurezi` (5 komit), `Donie Makapeli` (1 komit).
    - Komit Kunci: `bce5305`, `be4a4f2` (*"revisi pendaftaran akun dan verifikasi otp email"*).
@@ -993,7 +1017,7 @@ Berdasarkan jejak log perubahan per folder:
    - Komit Kunci: `326e3b4` (*"revisi modul polling pembaca dan perbaikan delay sidebar artikel"*), `bab6104`.
 
 ### 6.4 Kronologi Distribusi Komit Mingguan
-Distribusi 210 komit per minggu kalender ISO sejak komit pertama:
+Distribusi 213 komit per minggu kalender ISO sejak komit pertama:
 
 | Minggu Kalender | Rentang Tanggal | Jumlah Komit | Fokus Utama Pekerjaan |
 | :---: | :--- | :---: | :--- |
@@ -1006,8 +1030,8 @@ Distribusi 210 komit per minggu kalender ISO sejak komit pertama:
 | **2026-W41** | 6 – 12 Oktober 2026 | 6 komit | Pembuatan skema awal relasi database pengaduan warga |
 | **2026-W43** | 20 – 26 Oktober 2026 | 31 komit | Pembuatan ruang chat obrolan tiket & optimasi TTS ArdiNeural |
 | **2026-W44** | 27 Okt – 2 Nov 2026 | 39 komit | Pembangunan panel Buku Induk Admin, polling AI & integrasi JWT |
-| **2026-W45** | 3 – 6 November 2026 | 6 komit | Penyederhanaan alur warga, shared context 0ms, pembersihan profil |
-| **Total** | | **210 komit** | |
+| **2026-W45** | 3 – 7 November 2026 | 9 komit | Penyederhanaan alur warga, shared context 0ms, filter style lifestyle, URL slug SEO kanonikal & smart lead |
+| **Total** | | **213 komit** | |
 
 ---
 

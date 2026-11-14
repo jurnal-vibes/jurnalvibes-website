@@ -23,7 +23,32 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
 
   useEffect(() => {
     async function loadArticles() {
-      // 1. Sync from localStorage if present
+      // 1. Selalu prioritaskan sinkronisasi data segar dari database via API
+      try {
+        const res = await fetch('/api/articles', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setArticles(json.data);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
+            }
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal fetch berita terbaru dari server, menggunakan fallback:', err);
+      }
+
+      // 2. Gunakan initialArticles dari server jika ada
+      if (initialArticles.length > 0) {
+        setArticles(initialArticles);
+        setLoading(false);
+        return;
+      }
+
+      // 3. Fallback terakhir ke localStorage HANYA jika offline / server tidak merespons
       if (typeof window !== 'undefined') {
         try {
           const saved = localStorage.getItem('jurnal_wave_articles');
@@ -31,26 +56,11 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
               setArticles(parsed);
-              setLoading(false);
-              return;
             }
           }
         } catch {}
       }
-
-      // 2. Fetch from DB via API / Prisma if initialArticles was empty
-      if (initialArticles.length === 0) {
-        try {
-          const data = await fetchArticles();
-          if (data && data.length > 0) {
-            setArticles(data);
-          }
-        } catch (err) {
-          console.error('Error fetching articles:', err);
-        } finally {
-          setLoading(false);
-        }
-      }
+      setLoading(false);
     }
 
     loadArticles();
