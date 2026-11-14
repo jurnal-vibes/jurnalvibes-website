@@ -533,6 +533,7 @@ export default function AdminBeritaPage() {
       }
 
       let createdArticle: Article | null = null
+      let apiErrorMessage = ''
 
       try {
         const res = await fetch('/api/articles', {
@@ -541,35 +542,21 @@ export default function AdminBeritaPage() {
           body: JSON.stringify(payload),
         })
 
-        if (res.ok) {
-          const json = await res.json()
-          if (json.success && json.data) {
-            createdArticle = json.data
-          }
+        const json = await res.json().catch(() => null)
+
+        if (res.ok && json?.success && json?.data) {
+          createdArticle = json.data
+        } else {
+          apiErrorMessage = json?.message || `Gagal menyimpan ke database (Status: ${res.status} ${res.statusText})`
         }
-      } catch (err) {
-        console.warn('Gagal simpan ke database, menyimpan ke local storage:', err)
+      } catch (err: any) {
+        console.error('Gagal fetch /api/articles:', err)
+        apiErrorMessage = err?.message || 'Gagal menghubungi server database'
       }
 
       if (!createdArticle) {
-        createdArticle = {
-          id: `art-${Date.now()}`,
-          ...payload,
-          slug: newTitle
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)+/g, ''),
-          author: 'Tim Redaksi',
-          redaktur: newRedaktur.trim() || 'Ujang Herlan',
-          reporter: newReporter.trim() || 'Fajar Pratama',
-          readTime: '3 min read',
-          createdAt: 'Baru saja',
-          publishedDate: new Date().toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          }),
-        }
+        alert(`❌ GAGAL MENERBITKAN BERITA KE DATABASE:\n${apiErrorMessage}\n\nBerita TIDAK disimpan karena gagal masuk ke server database. Silakan pastikan Anda sudah login admin di /halo-jurnal/admin/login dan koneksi server stabil.`)
+        return
       }
 
       const updated = [createdArticle, ...articles.filter((a) => a.id !== createdArticle!.id && a.slug !== createdArticle!.slug)]
@@ -655,13 +642,20 @@ export default function AdminBeritaPage() {
       }
 
       try {
-        await fetch('/api/articles', {
+        const res = await fetch('/api/articles', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedArticle),
         })
-      } catch (err) {
-        console.warn('Gagal update ke database:', err)
+        const json = await res.json().catch(() => null)
+        if (!res.ok || !json?.success) {
+          alert(`❌ GAGAL MEMPERBARUI BERITA:\n${json?.message || `Status: ${res.status}`}\n\nPerubahan tidak tersimpan ke server.`)
+          return
+        }
+      } catch (err: any) {
+        console.error('Gagal update ke database:', err)
+        alert(`❌ GAGAL MEMPERBARUI BERITA:\n${err?.message || 'Koneksi ke server terputus'}`)
+        return
       }
 
       const updated = articles.map((a) =>
@@ -683,11 +677,18 @@ export default function AdminBeritaPage() {
   const handleDeleteArticle = async (id: string, title: string) => {
     if (confirm(`Yakin ingin menghapus artikel: "${title}"?`)) {
       try {
-        await fetch(`/api/articles?id=${encodeURIComponent(id)}`, {
+        const res = await fetch(`/api/articles?id=${encodeURIComponent(id)}`, {
           method: 'DELETE',
         })
-      } catch (err) {
-        console.warn('Gagal menghapus dari database:', err)
+        const json = await res.json().catch(() => null)
+        if (!res.ok || !json?.success) {
+          alert(`❌ GAGAL MENGHAPUS BERITA:\n${json?.message || `Status: ${res.status}`}`)
+          return
+        }
+      } catch (err: any) {
+        console.error('Gagal menghapus dari database:', err)
+        alert(`❌ GAGAL MENGHAPUS BERITA:\n${err?.message || 'Koneksi ke server terputus'}`)
+        return
       }
 
       const updated = articles.filter((a) => a.id !== id)

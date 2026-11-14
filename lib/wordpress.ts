@@ -233,13 +233,26 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
  * Fetches a single article by ID or slug from MySQL API / Prisma with fallbacks.
  */
 export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<Article> {
-  // 1. Server-side fetch from MySQL via Prisma
+  // 1. Server-side fetch from MySQL/PostgreSQL via Prisma
   if (typeof window === 'undefined') {
     try {
+      const cleanInput = (idOrSlug || '').trim();
+      let decoded = cleanInput;
+      try {
+        decoded = decodeURIComponent(cleanInput).trim();
+      } catch {}
+
       const { prisma } = await import('@/lib/prisma');
       const item = await prisma.article.findFirst({
         where: {
-          OR: [{ id: idOrSlug }, { slug: idOrSlug }],
+          OR: [
+            { id: cleanInput },
+            { slug: cleanInput },
+            { id: decoded },
+            { slug: decoded },
+            { slug: cleanInput.toLowerCase() },
+            { slug: decoded.toLowerCase() },
+          ],
         },
       });
       if (item) {
