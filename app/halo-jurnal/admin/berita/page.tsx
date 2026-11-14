@@ -24,6 +24,8 @@ import {
   Loader2,
 } from 'lucide-react'
 import { Article, ArticleCategory } from '@/types'
+import { DEFAULT_ARTICLES } from '@/lib/defaultArticles'
+import { getCachedAdminArticles } from '@/lib/adminCache'
 
 // Daftar Kategori Resmi Jurnal Wave beserta nama tampilannya
 const CATEGORY_DISPLAY_MAP: Record<string, string> = {
@@ -264,7 +266,7 @@ export const generateSmartLead = (title: string, content: string): string => {
 }
 
 export default function AdminBeritaPage() {
-  const [articles, setArticles] = useState<Article[]>([])
+  const [articles, setArticles] = useState<Article[]>(() => getCachedAdminArticles())
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('semua')
   const [selectedFilter, setSelectedFilter] = useState<string>('semua')
@@ -424,7 +426,7 @@ export default function AdminBeritaPage() {
           }
         } catch {}
       }
-      setArticles([])
+      setArticles(DEFAULT_ARTICLES)
     }
 
     loadArticles()
