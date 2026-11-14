@@ -185,7 +185,7 @@ export function NewsArticleSidebar({
             Laporkan jalan rusak, lampu PJU mati, atau fasilitas publik langsung ke Meja Redaksi Hallo Jurnal untuk dikawal bersama.
           </p>
           <Link
-            href="/halo-jurnal/lapor"
+            href="/halo-jurnal"
             className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[#c00015] hover:bg-[#a80012] text-white text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
           >
             <span>Kirim Laporan Warga</span>

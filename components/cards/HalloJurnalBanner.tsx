@@ -37,10 +37,10 @@ export const HalloJurnalBanner: React.FC = () => {
           </p>
 
           <Link
-            href="/halo-jurnal/lapor"
+            href="/halo-jurnal"
             className="inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary-dark text-white font-extrabold text-xs sm:text-sm px-6 py-2.5 sm:px-7 sm:py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer group"
           >
-            <span>Kirimkan aduanmu secara online</span>
+            <span>Buka Layanan Hallo Jurnal</span>
             <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

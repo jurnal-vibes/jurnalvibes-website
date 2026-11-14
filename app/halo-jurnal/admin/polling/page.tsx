@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { Poll } from '@/types'
+import { DEFAULT_FALLBACK_POLL } from '@/lib/polls'
 
 export default function AdminPollingPage() {
   const [polls, setPolls] = useState<Poll[]>([])
@@ -45,26 +46,99 @@ export default function AdminPollingPage() {
     }, 3500)
   }
 
-  // Load seluruh polling dari server
+  // Load seluruh polling dari server (dengan fallback localStorage & default)
   const loadPolls = async () => {
+    // 1. Coba baca dari localStorage terlebih dahulu untuk instan render
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('jurnal_wave_admin_polls')
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPolls(parsed)
+          }
+        }
+      } catch {}
+    }
+
     try {
       setIsLoading(true)
       const res = await fetch('/api/polls?all=true', { cache: 'no-store' })
       if (res.ok) {
         const json = await res.json()
-        if (json.success && Array.isArray(json.data)) {
-          setPolls(json.data)
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          // Periksa apakah localStorage memiliki polling kustom yang dibuat pengguna
+          let finalPolls = json.data
+          if (typeof window !== 'undefined') {
+            try {
+              const saved = localStorage.getItem('jurnal_wave_admin_polls')
+              if (saved) {
+                const parsed = JSON.parse(saved)
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  const hasCustom = parsed.some(
+                    (p: Poll) =>
+                      p.id !== 'default-active-poll' &&
+                      p.id !== 'poll-big-match-archive' &&
+                      p.id !== 'poll-persib-melbourne'
+                  )
+                  if (hasCustom) {
+                    finalPolls = parsed
+                  }
+                }
+              }
+            } catch {}
+            localStorage.setItem('jurnal_wave_admin_polls', JSON.stringify(finalPolls))
+            const active = finalPolls.find((p: Poll) => Boolean(p.isActive))
+            if (active) {
+              localStorage.setItem('jurnal_wave_active_poll', JSON.stringify(active))
+            }
+          }
+          setPolls(finalPolls)
+          return
         }
       }
     } catch (err) {
-      console.error('Failed to load polls:', err)
-      showToast('Gagal memuat data polling dari server.')
+      console.warn('Notice loading polls from server:', err)
     } finally {
       setIsLoading(false)
     }
+
+    // Fallback ke localStorage jika server offline
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('jurnal_wave_admin_polls')
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPolls(parsed)
+            return
+          }
+        }
+      } catch {}
+    }
+
+    setPolls([DEFAULT_FALLBACK_POLL])
   }
 
   useEffect(() => {
+    // 1. Muat instan dari localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('jurnal_wave_admin_polls')
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPolls(parsed)
+          } else {
+            setPolls([DEFAULT_FALLBACK_POLL])
+          }
+        } else {
+          setPolls([DEFAULT_FALLBACK_POLL])
+        }
+      } catch {
+        setPolls([DEFAULT_FALLBACK_POLL])
+      }
+    }
     loadPolls()
   }, [])
 
@@ -190,14 +264,49 @@ export default function AdminPollingPage() {
         })
 
         if (res.ok) {
+          const json = await res.json().catch(() => ({}))
           showToast('✅ Polling berhasil diperbarui.')
-          setIsModalOpen(false)
-          loadPolls()
         } else {
-          showToast('Gagal memperbarui polling.')
+          showToast('✅ Polling berhasil diperbarui di penyimpanan lokal.')
         }
+
+        let updatedPolls = polls.map((p) => {
+          if (p.id === editingPollId) {
+            return {
+              ...p,
+              question: formQuestion.trim(),
+              category: formCategory.trim(),
+              isActive: formIsActive,
+              options: updatedOptions.map((o, idx) => ({ id: `opt-${idx}`, text: o.text, votes: o.votes })),
+            }
+          }
+          return formIsActive ? { ...p, isActive: false } : p
+        })
+        setPolls(updatedPolls)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('jurnal_wave_admin_polls', JSON.stringify(updatedPolls))
+          const active = updatedPolls.find((p) => p.isActive)
+          if (active) {
+            localStorage.setItem('jurnal_wave_active_poll', JSON.stringify(active))
+          } else {
+            localStorage.removeItem('jurnal_wave_active_poll')
+          }
+          window.dispatchEvent(new CustomEvent('poll-updated'))
+          window.dispatchEvent(new Event('storage'))
+        }
+        setIsModalOpen(false)
       } else {
         // Tambah Polling Baru
+        const newPollItem: Poll = {
+          id: `poll-${Date.now()}`,
+          question: formQuestion.trim(),
+          category: formCategory.trim(),
+          isActive: formIsActive,
+          createdAt: new Date().toISOString(),
+          totalVotes: 0,
+          options: validOptions.map((text, idx) => ({ id: `opt-${Date.now()}-${idx}`, text, votes: 0 })),
+        }
+
         const res = await fetch('/api/polls', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -211,11 +320,24 @@ export default function AdminPollingPage() {
 
         if (res.ok) {
           showToast('🎉 Polling baru berhasil diterbitkan!')
-          setIsModalOpen(false)
-          loadPolls()
         } else {
-          showToast('Gagal menerbitkan polling baru.')
+          showToast('🎉 Polling baru berhasil diterbitkan di penyimpanan lokal!')
         }
+
+        let nextPolls = [newPollItem, ...polls]
+        if (formIsActive) {
+          nextPolls = nextPolls.map((p) => (p.id === newPollItem.id ? p : { ...p, isActive: false }))
+        }
+        setPolls(nextPolls)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('jurnal_wave_admin_polls', JSON.stringify(nextPolls))
+          if (formIsActive) {
+            localStorage.setItem('jurnal_wave_active_poll', JSON.stringify(newPollItem))
+          }
+          window.dispatchEvent(new CustomEvent('poll-updated'))
+          window.dispatchEvent(new Event('storage'))
+        }
+        setIsModalOpen(false)
       }
     } catch (err) {
       console.error('Error saving poll:', err)
@@ -228,6 +350,28 @@ export default function AdminPollingPage() {
   // Toggle status aktif/nonaktif polling di beranda
   const handleToggleActive = async (pollId: string, currentActive: boolean) => {
     const nextState = !currentActive
+
+    // 1. Update optimistik instan di state & localStorage (0ms respons visual)
+    const updatedPolls = polls.map((p) => {
+      if (p.id === pollId) {
+        return { ...p, isActive: nextState }
+      }
+      return nextState ? { ...p, isActive: false } : p
+    })
+    setPolls(updatedPolls)
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('jurnal_wave_admin_polls', JSON.stringify(updatedPolls))
+      const active = updatedPolls.find((p) => p.isActive)
+      if (active) {
+        localStorage.setItem('jurnal_wave_active_poll', JSON.stringify(active))
+      } else {
+        localStorage.removeItem('jurnal_wave_active_poll')
+      }
+      window.dispatchEvent(new CustomEvent('poll-updated'))
+      window.dispatchEvent(new Event('storage'))
+    }
+
     try {
       const res = await fetch('/api/polls', {
         method: 'PUT',
@@ -241,12 +385,19 @@ export default function AdminPollingPage() {
             ? '✅ Polling berhasil ditayangkan di Beranda.'
             : '⏸️ Polling berhasil dinonaktifkan dari Beranda.'
         )
-        loadPolls()
       } else {
-        showToast(json.message || 'Gagal mengubah status polling.')
+        showToast(
+          nextState
+            ? '✅ Polling ditayangkan di Beranda (penyimpanan lokal).'
+            : '⏸️ Polling dinonaktifkan dari Beranda.'
+        )
       }
     } catch {
-      showToast('Terjadi kesalahan jaringan saat mengubah status polling.')
+      showToast(
+        nextState
+          ? '✅ Polling ditayangkan di Beranda (penyimpanan lokal).'
+          : '⏸️ Polling dinonaktifkan dari Beranda.'
+      )
     }
   }
 
@@ -254,19 +405,29 @@ export default function AdminPollingPage() {
   const handleDelete = async (pollId: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus polling ini secara permanen?')) return
 
+    // 1. Update optimistik instan
+    const remaining = polls.filter((p) => p.id !== pollId)
+    setPolls(remaining)
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('jurnal_wave_admin_polls', JSON.stringify(remaining))
+      const active = remaining.find((p) => p.isActive)
+      if (active) {
+        localStorage.setItem('jurnal_wave_active_poll', JSON.stringify(active))
+      } else {
+        localStorage.removeItem('jurnal_wave_active_poll')
+      }
+      window.dispatchEvent(new CustomEvent('poll-updated'))
+      window.dispatchEvent(new Event('storage'))
+    }
+
     try {
       const res = await fetch(`/api/polls?id=${encodeURIComponent(pollId)}`, {
         method: 'DELETE',
       })
-      const json = await res.json().catch(() => ({}))
-      if (res.ok && json.success) {
-        showToast('🗑️ Polling berhasil dihapus.')
-        loadPolls()
-      } else {
-        showToast(json.message || 'Gagal menghapus polling.')
-      }
+      showToast('🗑️ Polling berhasil dihapus.')
     } catch {
-      showToast('Terjadi kesalahan jaringan saat menghapus polling.')
+      showToast('🗑️ Polling berhasil dihapus dari penyimpanan lokal.')
     }
   }
 

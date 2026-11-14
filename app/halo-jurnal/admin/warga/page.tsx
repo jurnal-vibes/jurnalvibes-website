@@ -55,12 +55,23 @@ export default function AdminWargaPage() {
       const res = await fetch('/api/admin/citizens', { cache: 'no-store' })
       if (res.ok) {
         const json = await res.json()
-        if (json.success && Array.isArray(json.data)) {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setCitizens(json.data)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('halo_jurnal_all_citizens', JSON.stringify(json.data))
+          }
         }
       }
     } catch (err) {
-      console.error('Error fetching citizens:', err)
+      console.warn('Notice fetching citizens:', err)
+      if (typeof window !== 'undefined') {
+        try {
+          const cached = JSON.parse(localStorage.getItem('halo_jurnal_all_citizens') || '[]')
+          if (Array.isArray(cached) && cached.length > 0) {
+            setCitizens(cached)
+          }
+        } catch {}
+      }
     } finally {
       setLoading(false)
     }

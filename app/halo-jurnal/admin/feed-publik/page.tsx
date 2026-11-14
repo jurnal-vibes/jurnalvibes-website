@@ -27,7 +27,7 @@ export default function AdminModerasiFeedPublikPage() {
         const res = await fetch('/api/reports', { cache: 'no-store' })
         if (res.ok) {
           const json = await res.json()
-          if (json.success && Array.isArray(json.data)) {
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
             setReportsList(json.data)
             return
           }

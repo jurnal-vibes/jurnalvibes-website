@@ -77,87 +77,105 @@ export default function AdminReelsPage() {
   useEffect(() => {
     let isMounted = true
 
+    // 1. Muat seketika dari localStorage agar video reels yang diunggah pengguna langsung muncul
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('jurnal_wave_reels')
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed) && parsed.length > 0 && isMounted) {
+            setReels(parsed)
+          }
+        }
+      } catch {}
+    }
+
     const loadAndSyncReels = async () => {
       try {
         setIsLoadingReels(true)
         const res = await fetch('/api/reels', { cache: 'no-store' })
         if (res.ok) {
           const json = await res.json()
-          if (json.success && Array.isArray(json.data)) {
-            // 1. Jika di database sudah ada video reels, gunakan data database
-            if (json.data.length > 0) {
-              if (isMounted) {
-                setReels(json.data)
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            if (isMounted) {
+              setReels(json.data)
+              if (typeof window !== 'undefined') {
                 localStorage.setItem('jurnal_wave_reels', JSON.stringify(json.data))
               }
-              return
             }
-
-            // 2. Jika di database masih kosong (0), periksa apakah ada video asli milik user di localStorage
-            const saved = localStorage.getItem('jurnal_wave_reels')
-            if (saved) {
-              const parsed = JSON.parse(saved)
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                // Saring hanya video asli milik user (bukan dummy)
-                const userUploadedReels = parsed.filter(
-                  (r: any) =>
-                    !String(r.id || '').startsWith('reel-skb-') &&
-                    !String(r.id || '').startsWith('reel-00') &&
-                    !['reel-1', 'reel-2', 'reel-3'].includes(String(r.id || '')) &&
-                    !String(r.title || '').toLowerCase().includes('jajanan hits') &&
-                    !String(r.title || '').toLowerCase().includes('sunset di bukit baros') &&
-                    !String(r.title || '').toLowerCase().includes('skatepark vibes')
-                )
-
-                if (userUploadedReels.length > 0) {
-                  // Migrasikan video asli user ini ke database server
-                  const migrated: Reel[] = []
-                  for (const reelToSave of userUploadedReels) {
-                    try {
-                      const postRes = await fetch('/api/reels', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          title: reelToSave.title,
-                          category: reelToSave.category || 'Berita',
-                          creator: reelToSave.creator || '@jurnalwave',
-                          platform: reelToSave.platform || 'tiktok',
-                          socialUrl: reelToSave.socialUrl || reelToSave.videoUrl || '',
-                          location: reelToSave.location || 'Sukabumi',
-                          thumbnailUrl: reelToSave.thumbnailUrl,
-                        }),
-                      })
-                      if (postRes.ok) {
-                        const postJson = await postRes.json()
-                        if (postJson.success && postJson.data) {
-                          migrated.push(postJson.data)
-                        }
-                      }
-                    } catch (e) {
-                      console.error('Failed to migrate reel:', e)
-                    }
-                  }
-
-                  if (migrated.length > 0 && isMounted) {
-                    setReels(migrated)
-                    localStorage.setItem('jurnal_wave_reels', JSON.stringify(migrated))
-                    window.dispatchEvent(new CustomEvent('reels-updated'))
-                    return
-                  }
-                }
-              }
-            }
-
-            if (isMounted) {
-              setReels([])
-              localStorage.setItem('jurnal_wave_reels', JSON.stringify([]))
-            }
+            return
           }
         }
       } catch (err) {
-        console.error('Error loading reels:', err)
-      } finally {
-        if (isMounted) setIsLoadingReels(false)
+        console.warn('Notice saat memuat reels dari server:', err)
+      }
+
+      // Fallback ke localStorage jika server offline
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_reels')
+          if (saved) {
+            const parsed = JSON.parse(saved)
+            if (Array.isArray(parsed) && parsed.length > 0 && isMounted) {
+              setReels(parsed)
+              return
+            }
+          }
+        } catch {}
+      }
+
+      // Jika belum ada data sama sekali, gunakan fallback reels resmi
+      if (isMounted) {
+        const fallbackReels: Reel[] = [
+          {
+            id: 'reel-default-1',
+            title: 'Spot Kuliner & Senja Hits Sukabumi',
+            category: 'Kuliner',
+            creator: '@jurnalwave',
+            platform: 'tiktok',
+            socialUrl: 'https://tiktok.com',
+            location: 'Kota Sukabumi',
+            thumbnailUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=700&q=80',
+            viewsCount: '1.2K',
+          },
+          {
+            id: 'reel-default-2',
+            title: 'Suasana Akhir Pekan Alun-Alun Sukabumi',
+            category: 'Wisata',
+            creator: '@jurnalwave',
+            platform: 'instagram',
+            socialUrl: 'https://instagram.com',
+            location: 'Sukabumi',
+            thumbnailUrl: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=700&q=80',
+            viewsCount: '2.5K',
+          },
+          {
+            id: 'reel-default-3',
+            title: 'Update Jalur Wisata & Transportasi Sukabumi',
+            category: 'Berita',
+            creator: '@jurnalwave',
+            platform: 'youtube',
+            socialUrl: 'https://youtube.com',
+            location: 'Kab. Sukabumi',
+            thumbnailUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=700&q=80',
+            viewsCount: '980',
+          },
+          {
+            id: 'reel-default-4',
+            title: 'Tren Nongkrong & Fashion Pemuda Sukabumi',
+            category: 'Lifestyle',
+            creator: '@jurnalwave',
+            platform: 'tiktok',
+            socialUrl: 'https://tiktok.com',
+            location: 'Sukabumi',
+            thumbnailUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80',
+            viewsCount: '3.1K',
+          },
+        ]
+        setReels(fallbackReels)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('jurnal_wave_reels', JSON.stringify(fallbackReels))
+        }
       }
     }
 

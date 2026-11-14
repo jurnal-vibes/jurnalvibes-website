@@ -127,8 +127,13 @@ export function getSafeImageUrl(url?: string | null): string {
 let serverArticlesCache: { data: Article[]; timestamp: number } | null = null;
 const CACHE_TTL_MS = 60 * 1000; // 60 detik
 
+// Circuit breaker (Fast-Fail): Mencegah server menggantung 10 detik di setiap klik jika database cloud lambat
+let lastDbFailureTimestamp = 0;
+const DB_RETRY_INTERVAL_MS = 15 * 1000; // 15 detik cool-down
+
 export function clearServerArticlesCache() {
   serverArticlesCache = null;
+  lastDbFailureTimestamp = 0;
 }
 
 /**
@@ -141,6 +146,11 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
     const now = Date.now();
     if (serverArticlesCache && now - serverArticlesCache.timestamp < CACHE_TTL_MS) {
       return serverArticlesCache.data;
+    }
+
+    // Circuit Breaker: Jika baru saja gagal dalam 15 detik terakhir, respon seketika (0ms)
+    if (now - lastDbFailureTimestamp < DB_RETRY_INTERVAL_MS) {
+      return serverArticlesCache ? serverArticlesCache.data : [];
     }
 
     try {
@@ -179,8 +189,10 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
         return mapped;
       }
     } catch (err) {
-      console.warn('Database server-side article fetch notice:', err);
+      lastDbFailureTimestamp = Date.now();
+      console.warn('Database server-side article fetch notice:', (err as any)?.message || err);
       if (serverArticlesCache) return serverArticlesCache.data;
+      return [];
     }
   }
 
@@ -235,13 +247,32 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
 export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<Article> {
   // 1. Server-side fetch from MySQL/PostgreSQL via Prisma
   if (typeof window === 'undefined') {
+    const cleanInput = (idOrSlug || '').trim();
+    let decoded = cleanInput;
     try {
-      const cleanInput = (idOrSlug || '').trim();
-      let decoded = cleanInput;
-      try {
-        decoded = decodeURIComponent(cleanInput).trim();
-      } catch {}
+      decoded = decodeURIComponent(cleanInput).trim();
+    } catch {}
 
+    const now = Date.now();
+    // Jika ada cache server, periksa dulu tanpa menyentuh koneksi database
+    if (serverArticlesCache && serverArticlesCache.data.length > 0) {
+      const foundInCache = serverArticlesCache.data.find(
+        (a) =>
+          a.id === cleanInput ||
+          a.slug === cleanInput ||
+          a.slug === decoded ||
+          a.slug.toLowerCase() === cleanInput.toLowerCase() ||
+          a.slug.toLowerCase() === decoded.toLowerCase()
+      );
+      if (foundInCache) return foundInCache;
+    }
+
+    // Circuit Breaker: Jika database baru saja timeout < 15 detik lalu, jangan gantung SSR lagi
+    if (now - lastDbFailureTimestamp < DB_RETRY_INTERVAL_MS) {
+      return null as any;
+    }
+
+    try {
       const { prisma } = await import('@/lib/prisma');
       const item = await prisma.article.findFirst({
         where: {
@@ -280,7 +311,8 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
         };
       }
     } catch (err) {
-      console.warn('MySQL server-side single article lookup notice:', err);
+      lastDbFailureTimestamp = Date.now();
+      console.warn('MySQL server-side single article lookup notice:', (err as any)?.message || err);
     }
   }
 

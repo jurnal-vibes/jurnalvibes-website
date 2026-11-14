@@ -138,36 +138,6 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   }
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
-        if (!hasPurgedV2) {
-          localStorage.removeItem('halo_jurnal_read_chats')
-          for (let i = localStorage.length - 1; i >= 0; i--) {
-            const k = localStorage.key(i)
-            if (k && k.startsWith('halo_jurnal_chat_')) {
-              localStorage.removeItem(k)
-            }
-          }
-          localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
-        }
-
-        const hasPurged = localStorage.getItem('halo_jurnal_dummy_purged_v1')
-        if (!hasPurged) {
-          localStorage.removeItem('halo_jurnal_user_reports')
-          localStorage.removeItem('halo_jurnal_status_overrides')
-          localStorage.removeItem('halo_jurnal_read_chats')
-          for (let i = localStorage.length - 1; i >= 0; i--) {
-            const k = localStorage.key(i)
-            if (k && k.startsWith('halo_jurnal_chat_')) {
-              localStorage.removeItem(k)
-            }
-          }
-          localStorage.setItem('halo_jurnal_dummy_purged_v1', 'true')
-        }
-      } catch {}
-    }
-
     checkChatNotifications(true)
     const handleStorage = () => checkChatNotifications(false)
     window.addEventListener('storage', handleStorage)

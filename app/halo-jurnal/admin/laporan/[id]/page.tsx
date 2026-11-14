@@ -31,7 +31,7 @@ export default function AdminDetailLaporanPage() {
 
   const [loading, setLoading] = useState(true)
   const [report, setReport] = useState<DummyReport | null>(null)
-  const [currentStatus, setCurrentStatus] = useState<DummyReport['status']>('diterima')
+  const [currentStatus, setCurrentStatus] = useState<DummyReport['status'] | 'ditolak'>('diterima')
   const [isPublic, setIsPublic] = useState<boolean>(true)
   const [editorialNote, setEditorialNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
