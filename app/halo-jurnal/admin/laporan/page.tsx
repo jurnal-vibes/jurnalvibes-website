@@ -41,22 +41,6 @@ export default function AdminLaporanPage() {
 
   // Scan jumlah pesan chat warga aktif
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const hasPurgedV2 = localStorage.getItem('halo_jurnal_chat_cleanup_v2')
-        if (!hasPurgedV2) {
-          localStorage.removeItem('halo_jurnal_read_chats')
-          for (let i = localStorage.length - 1; i >= 0; i--) {
-            const k = localStorage.key(i)
-            if (k && k.startsWith('halo_jurnal_chat_')) {
-              localStorage.removeItem(k)
-            }
-          }
-          localStorage.setItem('halo_jurnal_chat_cleanup_v2', 'true')
-        }
-      } catch {}
-    }
-
     const scanChats = () => {
       if (typeof window === 'undefined') return
       const map: Record<string, number> = {}

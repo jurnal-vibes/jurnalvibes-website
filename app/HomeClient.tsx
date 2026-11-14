@@ -22,33 +22,8 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
   const [loading, setLoading] = useState(initialArticles.length === 0);
 
   useEffect(() => {
-    async function loadArticles() {
-      // 1. Selalu prioritaskan sinkronisasi data segar dari database via API
-      try {
-        const res = await fetch('/api/articles', { cache: 'no-store' });
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            setArticles(json.data);
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
-            }
-            setLoading(false);
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn('Gagal fetch berita terbaru dari server, menggunakan fallback:', err);
-      }
-
-      // 2. Gunakan initialArticles dari server jika ada
-      if (initialArticles.length > 0) {
-        setArticles(initialArticles);
-        setLoading(false);
-        return;
-      }
-
-      // 3. Fallback terakhir ke localStorage HANYA jika offline / server tidak merespons
+    // 1. Instant Hydration (0 ms): Baca cache lokal seketika agar tidak ada jeda kosong
+    const syncArticles = () => {
       if (typeof window !== 'undefined') {
         try {
           const saved = localStorage.getItem('jurnal_wave_articles');
@@ -56,34 +31,43 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
               setArticles(parsed);
-            }
-          }
-        } catch {}
-      }
-      setLoading(false);
-    }
-
-    loadArticles();
-
-    const handleSync = () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const saved = localStorage.getItem('jurnal_wave_articles');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setArticles(parsed);
+              setLoading(false);
             }
           }
         } catch {}
       }
     };
 
-    window.addEventListener('storage', handleSync);
-    window.addEventListener('focus', handleSync);
+    // Muat seketika di client
+    syncArticles();
+
+    // 2. Background Sync: Ambil update terbaru dari database server tanpa memblokir tampilan UI
+    fetch('/api/articles', { cache: 'no-store' })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.json();
+      })
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setArticles(json.data);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
+          }
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.warn('Background sync artikel dari server notice:', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    window.addEventListener('storage', syncArticles);
+    window.addEventListener('focus', syncArticles);
     return () => {
-      window.removeEventListener('storage', handleSync);
-      window.removeEventListener('focus', handleSync);
+      window.removeEventListener('storage', syncArticles);
+      window.removeEventListener('focus', syncArticles);
     };
   }, []);
 

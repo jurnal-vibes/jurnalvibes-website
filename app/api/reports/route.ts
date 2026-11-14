@@ -82,10 +82,15 @@ function mapReportFromDb(item: any, supportCount = 0) {
 
 // Server-side in-memory cache untuk percepatan respons API (menghilangkan delay antar komponen)
 let serverReportsCache: { data: any[]; timestamp: number } | null = null
-const SERVER_CACHE_TTL_MS = 3000 // 3 detik memory cache
+const SERVER_CACHE_TTL_MS = 10000 // 10 detik memory cache
+
+// Circuit breaker (Fast-Fail): Mencegah antrean timeout jika database cloud lambat
+let lastReportsDbFailureTimestamp = 0
+const REPORTS_DB_RETRY_MS = 15 * 1000
 
 export function invalidateReportsCache() {
   serverReportsCache = null
+  lastReportsDbFailureTimestamp = 0
 }
 
 // 1. GET: Ambil semua laporan warga dari database
@@ -105,6 +110,15 @@ export async function GET(request: NextRequest) {
         headers: {
           'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=6',
         },
+      })
+    }
+
+    // Circuit Breaker: Jika database baru saja timeout < 15 detik lalu, langsung kembalikan cache/fallback (0ms)
+    if (Date.now() - lastReportsDbFailureTimestamp < REPORTS_DB_RETRY_MS) {
+      return NextResponse.json({
+        success: true,
+        source: 'fallback-cache',
+        data: serverReportsCache?.data || [],
       })
     }
 
@@ -163,12 +177,13 @@ export async function GET(request: NextRequest) {
       data: mappedData,
     })
   } catch (error: any) {
-    console.error('API Reports GET error:', error)
+    lastReportsDbFailureTimestamp = Date.now()
+    console.warn('API Reports GET notice (using fallback):', error?.message || error)
     return NextResponse.json({
-      success: false,
-      data: [],
-      error: error.message,
-    }, { status: 500 })
+      success: true,
+      source: 'fallback-cache',
+      data: serverReportsCache?.data || [],
+    }, { status: 200 })
   }
 }
 

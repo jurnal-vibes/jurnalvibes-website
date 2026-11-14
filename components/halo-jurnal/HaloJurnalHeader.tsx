@@ -91,27 +91,6 @@ export default function HaloJurnalHeader() {
     }
   }, [])
 
-  // Pembersihan otomatis sisa-sisa cache laporan/chat dummy lama di browser warga
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const hasPurged = localStorage.getItem('halo_jurnal_dummy_purged_v1')
-        if (!hasPurged) {
-          localStorage.removeItem('halo_jurnal_user_reports')
-          localStorage.removeItem('halo_jurnal_status_overrides')
-          localStorage.removeItem('halo_jurnal_read_chats')
-          for (let i = localStorage.length - 1; i >= 0; i--) {
-            const k = localStorage.key(i)
-            if (k && k.startsWith('halo_jurnal_chat_')) {
-              localStorage.removeItem(k)
-            }
-          }
-          localStorage.setItem('halo_jurnal_dummy_purged_v1', 'true')
-        }
-      } catch {}
-    }
-  }, [])
-
   const navLinks = [
     {
       href: user ? '/halo-jurnal/beranda' : '/halo-jurnal',

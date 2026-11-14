@@ -32,6 +32,14 @@ export function getCachedAdminReports(): any[] {
           return parsed
         }
       }
+      const userReports = localStorage.getItem('halo_jurnal_user_reports')
+      if (userReports) {
+        const parsed = JSON.parse(userReports)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          memoryReportsCache = parsed
+          return parsed
+        }
+      }
     } catch {}
   }
   return []
@@ -42,7 +50,7 @@ export function getCachedAdminReports(): any[] {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function setCachedAdminReports(reports: any[]): void {
-  if (!Array.isArray(reports)) return
+  if (!Array.isArray(reports) || reports.length === 0) return
   memoryReportsCache = reports
   if (typeof window !== 'undefined') {
     try {
@@ -61,7 +69,7 @@ export function getCachedAdminArticles(): any[] {
   }
   if (typeof window !== 'undefined') {
     try {
-      const raw = localStorage.getItem(ADMIN_ARTICLES_CACHE_KEY)
+      const raw = localStorage.getItem('jurnal_wave_articles') || localStorage.getItem(ADMIN_ARTICLES_CACHE_KEY)
       if (raw) {
         const parsed = JSON.parse(raw)
         if (Array.isArray(parsed) && parsed.length > 0) {

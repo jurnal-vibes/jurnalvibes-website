@@ -50,27 +50,50 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
   useEffect(() => {
     let isMounted = true;
 
+    // 1. Muat seketika dari localStorage agar video reels yang diunggah pengguna langsung muncul
+    const syncLocalReels = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_reels');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0 && isMounted) {
+              setCurrentReels(parsed);
+              return true;
+            }
+          }
+        } catch {}
+      }
+      return false;
+    };
+
+    const hasLocal = syncLocalReels();
+
     const fetchLatestReels = async () => {
       try {
         const res = await fetch('/api/reels', { cache: 'no-store' });
         if (res.ok) {
           const json = await res.json();
-          if (json.success && Array.isArray(json.data) && isMounted) {
+          if (json.success && Array.isArray(json.data) && json.data.length > 0 && isMounted) {
             setCurrentReels(json.data);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('jurnal_wave_reels', JSON.stringify(json.data));
+            }
           }
         }
       } catch (err) {
-        console.error('Failed to fetch reels from server:', err);
+        console.warn('Failed to fetch reels from server:', err);
       }
     };
 
     if (reels && reels.length > 0) {
-      setCurrentReels(reels);
+      if (!hasLocal) setCurrentReels(reels);
     } else {
       fetchLatestReels();
     }
 
     const handleUpdate = () => {
+      syncLocalReels();
       fetchLatestReels();
     };
 

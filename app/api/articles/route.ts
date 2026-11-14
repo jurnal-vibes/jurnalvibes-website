@@ -93,10 +93,15 @@ function mapArticleFromDb(item: any) {
 
 // Server-side in-memory cache untuk memotong latensi API artikel
 let serverArticlesCache: { data: any[]; timestamp: number } | null = null
-const SERVER_ARTICLES_CACHE_TTL_MS = 3000 // 3 detik memory cache
+const SERVER_ARTICLES_CACHE_TTL_MS = 10000 // 10 detik memory cache
+
+// Circuit breaker (Fast-Fail): Mencegah antrean timeout jika database cloud lambat
+let lastArticlesDbFailureTimestamp = 0
+const ARTICLES_DB_RETRY_MS = 15 * 1000
 
 export function invalidateArticlesCache() {
   serverArticlesCache = null
+  lastArticlesDbFailureTimestamp = 0
 }
 
 // 1. GET: Ambil semua artikel dari database
@@ -117,6 +122,15 @@ export async function GET(request: NextRequest) {
         headers: {
           'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=6',
         },
+      })
+    }
+
+    // Circuit Breaker: Jika database baru saja timeout < 15 detik lalu, langsung kembalikan cache/fallback (0ms)
+    if (Date.now() - lastArticlesDbFailureTimestamp < ARTICLES_DB_RETRY_MS) {
+      return NextResponse.json({
+        success: true,
+        source: 'fallback-cache',
+        data: serverArticlesCache ? serverArticlesCache.data : [],
       })
     }
 
@@ -165,12 +179,13 @@ export async function GET(request: NextRequest) {
       data: mapped,
     })
   } catch (error: any) {
-    console.error('API Articles GET error:', error)
+    lastArticlesDbFailureTimestamp = Date.now()
+    console.warn('API Articles GET notice (using fallback):', error?.message || error)
     return NextResponse.json({
-      success: false,
-      data: [],
-      error: error.message,
-    }, { status: 500 })
+      success: true,
+      source: 'fallback-cache',
+      data: serverArticlesCache ? serverArticlesCache.data : [],
+    }, { status: 200 })
   }
 }
 

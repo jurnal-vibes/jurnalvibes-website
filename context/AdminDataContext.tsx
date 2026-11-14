@@ -152,35 +152,64 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     [calculateUnreadChats]
   )
 
-  // 4. Fetch Reports dari API
+  // 4. Fetch Reports dari API & Sinkronisasi Laporan Portal Warga
   const refreshReports = useCallback(async () => {
+    let apiReports: DummyReport[] = []
     try {
       const res = await fetch('/api/reports', { cache: 'no-store' })
       if (res.ok) {
         const json = await res.json()
         if (json.success && Array.isArray(json.data)) {
-          setReports(json.data)
-          setCachedAdminReports(json.data)
-          setIsLoadingReports(false)
-          syncCounts(json.data, articlesRef.current)
-          return
+          apiReports = json.data
         }
       }
     } catch (err) {
       console.warn('Gagal memuat aduan di AdminDataProvider:', err)
     }
 
-    // Fallback localStorage jika offline
+    // Sinkronisasi dengan laporan portal warga (halo_jurnal_user_reports)
+    let userReports: any[] = []
+    let overrides: Record<string, any> = {}
     if (typeof window !== 'undefined') {
       try {
-        const saved = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
-        if (Array.isArray(saved) && saved.length > 0) {
-          setReports(saved)
-          setCachedAdminReports(saved)
-          syncCounts(saved, articlesRef.current)
-        }
+        userReports = JSON.parse(
+          localStorage.getItem('halo_jurnal_user_reports') || '[]'
+        )
+        overrides = JSON.parse(
+          localStorage.getItem('halo_jurnal_status_overrides') || '{}'
+        )
       } catch {}
     }
+
+    // Gabungkan laporan dari API dan dari Portal Warga (deduplikasi berdasarkan nomor tiket / ID)
+    const combined = [...apiReports, ...userReports]
+    const uniqueMap = new Map<string, any>()
+    combined.forEach((item: any) => {
+      const key = item.ticketNumber || item.nomor_tiket || item.ticket_number || item.id
+      if (key && !uniqueMap.has(key)) {
+        uniqueMap.set(key, item)
+      }
+    })
+
+    const finalReports = Array.from(uniqueMap.values()).map((r: any) => {
+      const saved =
+        overrides[r.id] ||
+        (r.nomor_tiket ? overrides[r.nomor_tiket] : null) ||
+        (r.ticket_number ? overrides[r.ticket_number] : null) ||
+        (r.ticketNumber ? overrides[r.ticketNumber] : null)
+      if (saved) {
+        return {
+          ...r,
+          status: saved.status || r.status,
+          is_public: saved.is_public !== undefined ? saved.is_public : r.is_public,
+        }
+      }
+      return r
+    })
+
+    setReports(finalReports)
+    setCachedAdminReports(finalReports)
+    syncCounts(finalReports, articlesRef.current)
     setIsLoadingReports(false)
   }, [syncCounts])
 
@@ -190,7 +219,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/articles', { cache: 'no-store' })
       if (res.ok) {
         const json = await res.json()
-        if (json.success && Array.isArray(json.data)) {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setArticles(json.data)
           setCachedAdminArticles(json.data)
           setIsLoadingArticles(false)
@@ -201,6 +230,21 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.warn('Gagal memuat artikel di AdminDataProvider:', err)
     }
+
+    // Fallback ke penyimpanan lokal jika server kosong atau offline
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('jurnal_wave_articles')
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setArticles(parsed)
+            setCachedAdminArticles(parsed)
+            syncCounts(reportsRef.current, parsed)
+          }
+        }
+      } catch {}
+    }
     setIsLoadingArticles(false)
   }, [syncCounts])
 
@@ -209,7 +253,21 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     await Promise.all([refreshReports(), refreshArticles()])
   }, [refreshReports, refreshArticles])
 
-  // 7. Initial Fetch & Auto-Sync
+  // 7. Initial Fetch & Auto-Sync dengan Portal Warga
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleSync = () => {
+        refreshReports()
+      }
+      window.addEventListener('storage', handleSync)
+      window.addEventListener('reports-updated', handleSync)
+      return () => {
+        window.removeEventListener('storage', handleSync)
+        window.removeEventListener('reports-updated', handleSync)
+      }
+    }
+  }, [refreshReports])
+
   useEffect(() => {
     refreshAll()
 

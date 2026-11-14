@@ -41,6 +41,16 @@ export default function AdminDashboardMediaPage() {
   useEffect(() => {
     if (contextArticles.length > 0) {
       setArticlesList(contextArticles)
+    } else if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('jurnal_wave_articles')
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setArticlesList(parsed)
+          }
+        }
+      } catch {}
     }
   }, [contextArticles])
 

@@ -21,66 +21,49 @@ export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
 
   useEffect(() => {
-    async function loadArticles() {
-      // 1. Prioritaskan data segar dari database via API
-      try {
-        const res = await fetch('/api/articles?category=berita', { cache: 'no-store' });
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            setArticles(json.data);
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
+    // 1. Instant Hydration (0 ms): Muat artikel seketika dari cache lokal
+    const syncArticles = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_articles');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setArticles(parsed);
             }
-            return;
+          }
+        } catch {}
+      }
+    };
+
+    // Muat seketika
+    syncArticles();
+
+    // 2. Background Sync: Ambil update terbaru dari server tanpa memblokir tampilan
+    fetch('/api/articles?category=berita', { cache: 'no-store' })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.json();
+      })
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setArticles(json.data);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
           }
         }
-      } catch (err) {
-        console.warn('Gagal fetch berita dari server:', err);
-      }
+      })
+      .catch((err) => {
+        console.warn('Background sync berita notice:', err);
+      });
 
-      // 2. Gunakan initialArticles dari server jika ada
-      if (initialArticles.length > 0) {
-        setArticles(initialArticles);
-        return;
-      }
-
-      // 3. Fallback ke localStorage hanya jika offline
-      if (typeof window !== 'undefined') {
-        try {
-          const saved = localStorage.getItem('jurnal_wave_articles');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setArticles(parsed);
-            }
-          }
-        } catch {}
-      }
-    }
-    loadArticles();
-
-    const handleSync = () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const saved = localStorage.getItem('jurnal_wave_articles');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setArticles(parsed);
-            }
-          }
-        } catch {}
-      }
-    };
-
-    window.addEventListener('storage', handleSync);
-    window.addEventListener('focus', handleSync);
+    window.addEventListener('storage', syncArticles);
+    window.addEventListener('focus', syncArticles);
     return () => {
-      window.removeEventListener('storage', handleSync);
-      window.removeEventListener('focus', handleSync);
+      window.removeEventListener('storage', syncArticles);
+      window.removeEventListener('focus', syncArticles);
     };
-  }, [initialArticles.length]);
+  }, []);
 
   // Filter berdasarkan sub-kategori
   const filteredArticles = articles.filter(article => {

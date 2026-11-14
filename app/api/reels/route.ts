@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
-import { clearServerReelsCache } from '@/lib/reels';
+import { clearServerReelsCache, DEFAULT_FALLBACK_REELS } from '@/lib/reels';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,10 +36,10 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('Error fetching reels:', error);
+    console.warn('Notice fetching reels from DB (using fallback):', (error as any)?.message || error);
     return NextResponse.json(
-      { success: false, message: 'Gagal memuat video reels dari database.' },
-      { status: 500 }
+      { success: true, count: DEFAULT_FALLBACK_REELS.length, data: DEFAULT_FALLBACK_REELS },
+      { status: 200 }
     );
   }
 }
