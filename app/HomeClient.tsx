@@ -9,17 +9,21 @@ import { HomeCategorySection } from '@/components/cards/HomeCategorySection';
 import { ReelsSection } from '@/components/cards/ReelsSection';
 import { HalloJurnalBanner } from '@/components/cards/HalloJurnalBanner';
 import { PollingWidget } from '@/components/widgets/PollingWidget';
-import { Article, Reel } from '@/types';
+import { Article, Reel, Poll } from '@/types';
+import { DEFAULT_ARTICLES } from '@/lib/defaultArticles';
 import { fetchArticles } from '@/lib/wordpress';
 
 interface HomeClientProps {
   initialArticles?: Article[];
   initialReels?: Reel[];
+  initialPoll?: Poll | null;
 }
 
-export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClientProps) {
-  const [articles, setArticles] = useState<Article[]>(initialArticles);
-  const [loading, setLoading] = useState(initialArticles.length === 0);
+export function HomeClient({ initialArticles = [], initialReels = [], initialPoll }: HomeClientProps) {
+  const [articles, setArticles] = useState<Article[]>(() =>
+    initialArticles && initialArticles.length > 0 ? initialArticles : DEFAULT_ARTICLES
+  );
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // 1. Instant Hydration (0 ms): Baca cache lokal seketika agar tidak ada jeda kosong
@@ -182,7 +186,7 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
         />
 
         {/* 5. Polling Pembaca (Jeda Interaktif di Tengah Halaman) */}
-        <PollingWidget />
+        <PollingWidget poll={initialPoll} />
 
         {/* 6. Hallo Jurnal Action Banner (Pemisah ritme visual di tengah halaman) */}
         <HalloJurnalBanner />

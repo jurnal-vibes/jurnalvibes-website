@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { Article, Job } from '@/types'
 import { DUMMY_JOBS } from '@/data/dummyJobs'
+import { DEFAULT_ARTICLES } from '@/lib/defaultArticles'
 import { useAdminData } from '@/context/AdminDataContext'
 
 const CATEGORY_DISPLAY_MAP: Record<string, string> = {
@@ -35,7 +36,9 @@ const CATEGORY_DISPLAY_MAP: Record<string, string> = {
 export default function AdminDashboardMediaPage() {
   // Mengonsumsi data terpusat dari AdminDataContext (0ms instant render)
   const { articles: contextArticles, isLoadingArticles, counts } = useAdminData()
-  const [articlesList, setArticlesList] = useState<Article[]>(contextArticles)
+  const [articlesList, setArticlesList] = useState<Article[]>(() =>
+    contextArticles && contextArticles.length > 0 ? contextArticles : DEFAULT_ARTICLES
+  )
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -48,9 +51,11 @@ export default function AdminDashboardMediaPage() {
           const parsed = JSON.parse(saved)
           if (Array.isArray(parsed) && parsed.length > 0) {
             setArticlesList(parsed)
+            return
           }
         }
       } catch {}
+      setArticlesList(DEFAULT_ARTICLES)
     }
   }, [contextArticles])
 

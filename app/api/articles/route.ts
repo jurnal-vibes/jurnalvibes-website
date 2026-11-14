@@ -1,3 +1,5 @@
+import { DEFAULT_ARTICLES } from '@/lib/defaultArticles'
+import { Article } from '@/types'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAdminSession } from '@/lib/auth'
@@ -130,7 +132,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         source: 'fallback-cache',
-        data: serverArticlesCache ? serverArticlesCache.data : [],
+        data: serverArticlesCache?.data?.length ? serverArticlesCache.data : DEFAULT_ARTICLES,
       })
     }
 
@@ -140,6 +142,12 @@ export async function GET(request: NextRequest) {
         where: { slug },
       })
       if (!article) {
+        const foundInDefault = DEFAULT_ARTICLES.find(
+          (a) => a.slug === slug || a.id === slug || a.slug.toLowerCase() === slug.toLowerCase()
+        )
+        if (foundInDefault) {
+          return NextResponse.json({ success: true, data: foundInDefault })
+        }
         return NextResponse.json({ success: false, message: 'Artikel tidak ditemukan' }, { status: 404 })
       }
       return NextResponse.json({ success: true, data: mapArticleFromDb(article) })
@@ -166,25 +174,56 @@ export async function GET(request: NextRequest) {
 
     const mapped = dbArticles.map(mapArticleFromDb)
 
-    if (!category && !slug && !limit) {
+    let finalData: Article[] = mapped
+    if (finalData.length === 0) {
+      let fallbackList = DEFAULT_ARTICLES
+      if (category && category !== 'semua') {
+        const catKey = category.toLowerCase().trim()
+        fallbackList = DEFAULT_ARTICLES.filter((a) => {
+          const aCat = a.category.toLowerCase().trim()
+          if (catKey === 'science' || catKey === 'sains') return aCat === 'science' || aCat === 'sains'
+          if (catKey === 'health' || catKey === 'kesehatan') return aCat === 'health' || aCat === 'kesehatan'
+          return aCat === catKey
+        })
+      }
+      if (limit) fallbackList = fallbackList.slice(0, limit)
+      finalData = fallbackList
+    }
+
+    if (!category && !slug && !limit && finalData.length > 0) {
       serverArticlesCache = {
-        data: mapped,
+        data: finalData,
         timestamp: Date.now(),
       }
     }
 
     return NextResponse.json({
       success: true,
-      source: 'database',
-      data: mapped,
+      source: mapped.length > 0 ? 'database' : 'fallback-cache',
+      data: finalData,
     })
   } catch (error: any) {
     lastArticlesDbFailureTimestamp = Date.now()
     console.warn('API Articles GET notice (using fallback):', error?.message || error)
+    const { searchParams } = new URL(request.url)
+    const category = searchParams.get('category')
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+    let fallbackList = DEFAULT_ARTICLES
+    if (category && category !== 'semua') {
+      const catKey = category.toLowerCase().trim()
+      fallbackList = DEFAULT_ARTICLES.filter((a) => {
+        const aCat = a.category.toLowerCase().trim()
+        if (catKey === 'science' || catKey === 'sains') return aCat === 'science' || aCat === 'sains'
+        if (catKey === 'health' || catKey === 'kesehatan') return aCat === 'health' || aCat === 'kesehatan'
+        return aCat === catKey
+      })
+    }
+    if (limit) fallbackList = fallbackList.slice(0, limit)
+
     return NextResponse.json({
       success: true,
       source: 'fallback-cache',
-      data: serverArticlesCache ? serverArticlesCache.data : [],
+      data: serverArticlesCache?.data?.length ? serverArticlesCache.data : fallbackList,
     }, { status: 200 })
   }
 }

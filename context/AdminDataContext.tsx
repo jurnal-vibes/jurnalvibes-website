@@ -11,6 +11,7 @@ import React, {
 } from 'react'
 import { DummyReport } from '@/data/dummyReports'
 import { Article } from '@/types'
+import { DEFAULT_ARTICLES } from '@/lib/defaultArticles'
 import {
   getCachedAdminReports,
   setCachedAdminReports,
@@ -126,10 +127,10 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       const pending = currentReports.filter((r) => r.status === 'diterima').length
       const unreadChatCount = calculateUnreadChats()
 
-      let totalReels = 0
+      let totalReels = 4
       try {
         const reelsSaved = JSON.parse(localStorage.getItem('jurnal_wave_reels') || '[]')
-        totalReels = Array.isArray(reelsSaved) ? reelsSaved.length : 0
+        totalReels = Array.isArray(reelsSaved) && reelsSaved.length > 0 ? reelsSaved.length : 4
       } catch {}
 
       let totalJobs = 5
@@ -241,10 +242,16 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
             setArticles(parsed)
             setCachedAdminArticles(parsed)
             syncCounts(reportsRef.current, parsed)
+            setIsLoadingArticles(false)
+            return
           }
         }
       } catch {}
     }
+
+    // Fallback ke DEFAULT_ARTICLES jika server dan cache masih kosong
+    setArticles((prev) => (prev && prev.length > 0 ? prev : DEFAULT_ARTICLES))
+    syncCounts(reportsRef.current, DEFAULT_ARTICLES)
     setIsLoadingArticles(false)
   }, [syncCounts])
 

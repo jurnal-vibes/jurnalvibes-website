@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { HomeClient } from './HomeClient';
 import { fetchArticles } from '@/lib/wordpress';
 import { fetchReels } from '@/lib/reels';
+import { getActivePoll } from '@/lib/polls';
 
 export const revalidate = 60;
 
@@ -17,7 +18,10 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const articles = await fetchArticles();
-  const reels = await fetchReels(8);
-  return <HomeClient initialArticles={articles} initialReels={reels} />;
+  const [articles, reels, activePoll] = await Promise.all([
+    fetchArticles(),
+    fetchReels(8),
+    getActivePoll(),
+  ]);
+  return <HomeClient initialArticles={articles} initialReels={reels} initialPoll={activePoll} />;
 }

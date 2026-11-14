@@ -27,8 +27,10 @@ export async function GET(req: NextRequest) {
       take: limit,
     });
 
+    const finalReels = reels && reels.length > 0 ? reels : DEFAULT_FALLBACK_REELS;
+
     return NextResponse.json(
-      { success: true, count: reels.length, data: reels },
+      { success: true, count: finalReels.length, data: finalReels },
       {
         headers: {
           'Cache-Control': 'no-store, max-age=0',
