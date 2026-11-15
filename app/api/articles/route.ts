@@ -107,11 +107,15 @@ function invalidateArticlesCache() {
 
 // 1. GET: Ambil semua artikel dari database
 export async function GET(request: NextRequest) {
+  let category: string | null = null
+  let limit: number | undefined = undefined
+  let slug: string | null = null
+
   try {
     const { searchParams } = new URL(request.url)
-    const category = searchParams.get('category')
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
-    const slug = searchParams.get('slug')
+    category = searchParams.get('category')
+    limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+    slug = searchParams.get('slug')
 
     // Respons instan (<1ms) jika permintaan umum tanpa filter
     if (!category && !slug && !limit && serverArticlesCache && Date.now() - serverArticlesCache.timestamp < SERVER_ARTICLES_CACHE_TTL_MS) {
@@ -128,21 +132,33 @@ export async function GET(request: NextRequest) {
 
     // Circuit Breaker: Jika database baru saja timeout < 15 detik lalu, langsung kembalikan cache/fallback (0ms)
     if (Date.now() - lastArticlesDbFailureTimestamp < ARTICLES_DB_RETRY_MS) {
+      const baseData = serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES;
+      let circuitFiltered = baseData;
+      if (category && category !== 'semua') {
+        const catKey = category.toLowerCase().trim();
+        circuitFiltered = baseData.filter((a) => {
+          const aCat = a.category.toLowerCase().trim();
+          if (catKey === 'science' || catKey === 'sains' || catKey === 'sains & lingkungan') return aCat === 'science' || aCat === 'sains';
+          if (catKey === 'health' || catKey === 'kesehatan') return aCat === 'health' || aCat === 'kesehatan';
+          return aCat === catKey;
+        });
+      }
       return NextResponse.json({
         success: true,
         source: 'fallback-cache',
-        data: serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES,
+        data: circuitFiltered,
       })
     }
 
     // Jika mencari berdasarkan slug spesifik
     if (slug) {
+      const cleanSlug = slug.trim().toLowerCase()
       const article = await prisma.article.findUnique({
         where: { slug },
       })
       if (!article) {
         const fallback = INITIAL_ARTICLES.find(
-          (a) => a.slug === slug || a.slug.toLowerCase() === slug.toLowerCase() || String(a.id) === slug
+          (a) => a.slug === slug || a.slug.toLowerCase() === cleanSlug || String(a.id) === slug
         );
         if (fallback) {
           return NextResponse.json({ success: true, data: fallback });
@@ -171,7 +187,24 @@ export async function GET(request: NextRequest) {
       take: limit,
     })
 
-    const mapped = dbArticles.length > 0 ? dbArticles.map(mapArticleFromDb) : INITIAL_ARTICLES;
+    let mapped: any[] = dbArticles.map(mapArticleFromDb);
+    if (mapped.length === 0) {
+      if (category && category !== 'semua') {
+        const catKey = category.toLowerCase().trim();
+        mapped = INITIAL_ARTICLES.filter((a) => {
+          const aCat = a.category.toLowerCase().trim();
+          if (catKey === 'science' || catKey === 'sains' || catKey === 'sains & lingkungan') {
+            return aCat === 'science' || aCat === 'sains';
+          }
+          if (catKey === 'health' || catKey === 'kesehatan') {
+            return aCat === 'health' || aCat === 'kesehatan';
+          }
+          return aCat === catKey;
+        });
+      } else {
+        mapped = INITIAL_ARTICLES;
+      }
+    }
 
     if (!category && !slug && !limit) {
       serverArticlesCache = {
@@ -188,10 +221,21 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     lastArticlesDbFailureTimestamp = Date.now()
     console.warn('API Articles GET notice (using fallback):', error?.message || error)
+    const fallbackData = serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES;
+    let filteredFallback = fallbackData;
+    if (category && category !== 'semua') {
+      const catKey = category.toLowerCase().trim();
+      filteredFallback = fallbackData.filter((a) => {
+        const aCat = a.category.toLowerCase().trim();
+        if (catKey === 'science' || catKey === 'sains' || catKey === 'sains & lingkungan') return aCat === 'science' || aCat === 'sains';
+        if (catKey === 'health' || catKey === 'kesehatan') return aCat === 'health' || aCat === 'kesehatan';
+        return aCat === catKey;
+      });
+    }
     return NextResponse.json({
       success: true,
       source: 'fallback-cache',
-      data: serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES,
+      data: filteredFallback,
     }, { status: 200 })
   }
 }
