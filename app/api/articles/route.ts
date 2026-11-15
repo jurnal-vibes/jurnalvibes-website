@@ -1,7 +1,8 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAdminSession } from '@/lib/auth'
 import { clearServerArticlesCache } from '@/lib/wordpress'
+import { INITIAL_ARTICLES } from '@/lib/initialArticles'
 
 const DEFAULT_FALLBACK_IMAGE = '/hero-banner.webp'
 
@@ -130,7 +131,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         source: 'fallback-cache',
-        data: serverArticlesCache ? serverArticlesCache.data : [],
+        data: serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES,
       })
     }
 
@@ -140,6 +141,12 @@ export async function GET(request: NextRequest) {
         where: { slug },
       })
       if (!article) {
+        const fallback = INITIAL_ARTICLES.find(
+          (a) => a.slug === slug || a.slug.toLowerCase() === slug.toLowerCase() || String(a.id) === slug
+        );
+        if (fallback) {
+          return NextResponse.json({ success: true, data: fallback });
+        }
         return NextResponse.json({ success: false, message: 'Artikel tidak ditemukan' }, { status: 404 })
       }
       return NextResponse.json({ success: true, data: mapArticleFromDb(article) })
@@ -164,7 +171,7 @@ export async function GET(request: NextRequest) {
       take: limit,
     })
 
-    const mapped = dbArticles.map(mapArticleFromDb)
+    const mapped = dbArticles.length > 0 ? dbArticles.map(mapArticleFromDb) : INITIAL_ARTICLES;
 
     if (!category && !slug && !limit) {
       serverArticlesCache = {
@@ -184,7 +191,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       source: 'fallback-cache',
-      data: serverArticlesCache ? serverArticlesCache.data : [],
+      data: serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES,
     }, { status: 200 })
   }
 }

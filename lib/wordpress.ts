@@ -1,5 +1,6 @@
-﻿import { Article, ArticleCategory } from '@/types';
+import { Article, ArticleCategory } from '@/types';
 import { formatIndoDateTime } from '@/lib/utils';
+import { INITIAL_ARTICLES } from '@/lib/initialArticles';
 
 const WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || '';
 
@@ -150,7 +151,7 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
 
     // Circuit Breaker: Jika baru saja gagal dalam 15 detik terakhir, respon seketika (0ms)
     if (now - lastDbFailureTimestamp < DB_RETRY_INTERVAL_MS) {
-      return serverArticlesCache ? serverArticlesCache.data : [];
+      return serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES;
     }
 
     try {
@@ -188,11 +189,12 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
         serverArticlesCache = { data: mapped, timestamp: now };
         return mapped;
       }
+      return INITIAL_ARTICLES;
     } catch (err) {
       lastDbFailureTimestamp = Date.now();
       console.warn('Database server-side article fetch notice:', (err as any)?.message || err);
       if (serverArticlesCache) return serverArticlesCache.data;
-      return [];
+      return INITIAL_ARTICLES;
     }
   }
 
@@ -238,7 +240,7 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
     } catch {}
   }
 
-  return [];
+  return INITIAL_ARTICLES;
 }
 
 /**
@@ -356,7 +358,23 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
         }
       }
     } catch {}
+    // 3. Fallback to INITIAL_ARTICLES
+    const fallbackMatch = INITIAL_ARTICLES.find(
+      (a) =>
+        String(a.id) === String(idOrSlug) ||
+        a.slug === idOrSlug ||
+        a.slug.toLowerCase() === String(idOrSlug).toLowerCase()
+    );
+    if (fallbackMatch) return fallbackMatch;
   }
+
+  const serverFallbackMatch = INITIAL_ARTICLES.find(
+    (a) =>
+      String(a.id) === String(idOrSlug) ||
+      a.slug === idOrSlug ||
+      a.slug.toLowerCase() === String(idOrSlug).toLowerCase()
+  );
+  if (serverFallbackMatch) return serverFallbackMatch;
 
   return null as any;
 }
