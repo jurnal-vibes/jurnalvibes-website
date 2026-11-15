@@ -324,7 +324,7 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
       const res = await fetch(`/api/articles?slug=${encodeURIComponent(idOrSlug)}`);
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.data) {
+        if (json.success && json.data && !Array.isArray(json.data) && json.data.title) {
           const { category, categoryLabel } = normalizeArticleCategory(json.data.category, json.data.categoryLabel);
           return {
             ...json.data,
@@ -344,9 +344,12 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
         if (Array.isArray(parsed)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const foundInLocal = parsed.find(
-            (a: any) => String(a.id) === String(idOrSlug) || a.slug === idOrSlug
+            (a: any) =>
+              String(a.id) === String(idOrSlug) ||
+              a.slug === idOrSlug ||
+              (a.slug && a.slug.toLowerCase() === String(idOrSlug).toLowerCase())
           );
-          if (foundInLocal) {
+          if (foundInLocal && foundInLocal.title) {
             const { category, categoryLabel } = normalizeArticleCategory(foundInLocal.category, foundInLocal.categoryLabel);
             return {
               ...foundInLocal,

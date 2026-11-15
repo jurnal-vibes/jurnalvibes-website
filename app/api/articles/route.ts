@@ -130,6 +130,39 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // 1. Jika mencari berdasarkan slug spesifik (Lookup Tunggal untuk Halaman Detail)
+    if (slug) {
+      const cleanSlug = slug.trim().toLowerCase()
+      // Coba dari Database jika circuit breaker tidak aktif
+      if (Date.now() - lastArticlesDbFailureTimestamp >= ARTICLES_DB_RETRY_MS) {
+        try {
+          const article = await prisma.article.findUnique({
+            where: { slug },
+          })
+          if (article) {
+            return NextResponse.json({ success: true, data: mapArticleFromDb(article) })
+          }
+        } catch (dbErr: any) {
+          lastArticlesDbFailureTimestamp = Date.now()
+          console.warn('DB findUnique by slug error:', dbErr?.message || dbErr)
+        }
+      }
+
+      // Fallback seketika ke memory cache atau INITIAL_ARTICLES
+      const pool = serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES
+      const fallback = pool.find(
+        (a) =>
+          a.slug === slug ||
+          a.slug.toLowerCase() === cleanSlug ||
+          String(a.id) === slug ||
+          String(a.id).toLowerCase() === cleanSlug
+      )
+      if (fallback) {
+        return NextResponse.json({ success: true, data: fallback })
+      }
+      return NextResponse.json({ success: false, message: 'Artikel tidak ditemukan' }, { status: 404 })
+    }
+
     // Circuit Breaker: Jika database baru saja timeout < 15 detik lalu, langsung kembalikan cache/fallback (0ms)
     if (Date.now() - lastArticlesDbFailureTimestamp < ARTICLES_DB_RETRY_MS) {
       const baseData = serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES;
@@ -148,24 +181,6 @@ export async function GET(request: NextRequest) {
         source: 'fallback-cache',
         data: circuitFiltered,
       })
-    }
-
-    // Jika mencari berdasarkan slug spesifik
-    if (slug) {
-      const cleanSlug = slug.trim().toLowerCase()
-      const article = await prisma.article.findUnique({
-        where: { slug },
-      })
-      if (!article) {
-        const fallback = INITIAL_ARTICLES.find(
-          (a) => a.slug === slug || a.slug.toLowerCase() === cleanSlug || String(a.id) === slug
-        );
-        if (fallback) {
-          return NextResponse.json({ success: true, data: fallback });
-        }
-        return NextResponse.json({ success: false, message: 'Artikel tidak ditemukan' }, { status: 404 })
-      }
-      return NextResponse.json({ success: true, data: mapArticleFromDb(article) })
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -221,6 +236,22 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     lastArticlesDbFailureTimestamp = Date.now()
     console.warn('API Articles GET notice (using fallback):', error?.message || error)
+
+    if (slug) {
+      const cleanSlug = slug.trim().toLowerCase()
+      const fallback = INITIAL_ARTICLES.find(
+        (a) =>
+          a.slug === slug ||
+          a.slug.toLowerCase() === cleanSlug ||
+          String(a.id) === slug ||
+          String(a.id).toLowerCase() === cleanSlug
+      )
+      if (fallback) {
+        return NextResponse.json({ success: true, data: fallback })
+      }
+      return NextResponse.json({ success: false, message: 'Artikel tidak ditemukan' }, { status: 404 })
+    }
+
     const fallbackData = serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES;
     let filteredFallback = fallbackData;
     if (category && category !== 'semua') {

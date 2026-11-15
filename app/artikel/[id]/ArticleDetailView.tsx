@@ -443,7 +443,7 @@ export function ArticleDetailView({
   }, [isAudioActive, isPlaying, article.title, article.categoryLabel, article.imageUrl, totalDuration]);
 
   useEffect(() => {
-    if (initialData?.id && initialData.id === id) {
+    if (initialData?.id && (initialData.id === id || initialData.slug === id)) {
       setArticle(initialData);
     }
   }, [id, initialData]);
@@ -457,7 +457,12 @@ export function ArticleDetailView({
   useEffect(() => {
     async function loadData() {
       try {
-        const needArticle = !article?.id || article.id !== id;
+        const hasValidInitial = Boolean(initialData && initialData.title && (initialData.id === id || initialData.slug === id));
+        if (hasValidInitial) {
+          return;
+        }
+
+        const needArticle = !article?.id || !article?.title || (article.id !== id && article.slug !== id);
         const needList = !allArticles || allArticles.length === 0;
 
         if (!needArticle && !needList) return;
@@ -466,7 +471,7 @@ export function ArticleDetailView({
           needArticle ? fetchArticleById(id) : Promise.resolve(null),
           needList ? fetchArticles() : Promise.resolve(null),
         ]);
-        if (singleData) {
+        if (singleData && singleData.title) {
           setArticle(singleData);
         }
         if (listData && listData.length > 0) {
@@ -477,7 +482,7 @@ export function ArticleDetailView({
       }
     }
     loadData();
-  }, [id]);
+  }, [id, initialData]);
 
   const getArticleUrl = () => {
     if (typeof window !== 'undefined') return window.location.href;
