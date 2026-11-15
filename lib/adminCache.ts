@@ -1,6 +1,4 @@
-import { DEFAULT_ARTICLES } from '@/lib/defaultArticles'
-
-/**
+﻿/**
  * Utilitas Cache Sisi Klien untuk Halaman Admin JurnalCentral & Hallo Jurnal
  * Menerapkan pola Stale-While-Revalidate (SWR): render instan (0 milidetik) dari cache lokal,
  * lalu perbarui data di latar belakang tanpa ada kedipan angka 0 atau layar kosong.
@@ -81,7 +79,7 @@ export function getCachedAdminArticles(): any[] {
       }
     } catch {}
   }
-  return DEFAULT_ARTICLES
+  return []
 }
 
 /**

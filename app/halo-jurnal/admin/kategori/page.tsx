@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -16,8 +16,6 @@ import {
 } from 'lucide-react'
 import { Article } from '@/types'
 import { DUMMY_JOBS } from '@/data/dummyJobs'
-import { DEFAULT_ARTICLES } from '@/lib/defaultArticles'
-import { getCachedAdminArticles } from '@/lib/adminCache'
 
 interface CategoryMeta {
   id: string
@@ -96,13 +94,10 @@ const DEFAULT_CATEGORIES: CategoryMeta[] = [
 ]
 
 export default function AdminKategoriHeadlinePage() {
-  const [articles, setArticles] = useState<Article[]>(() => getCachedAdminArticles())
+  const [articles, setArticles] = useState<Article[]>([])
   const [categories, setCategories] = useState<CategoryMeta[]>(DEFAULT_CATEGORIES)
   const [jobsCount, setJobsCount] = useState<number>(DUMMY_JOBS.length)
-  const [selectedHeroId, setSelectedHeroId] = useState<string>(() => {
-    const hero = getCachedAdminArticles().find((a: Article) => a.isHero)
-    return hero ? hero.id : ''
-  })
+  const [selectedHeroId, setSelectedHeroId] = useState<string>('')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   // Muat data riil dari database API (dengan fallback localStorage)
@@ -132,15 +127,10 @@ export default function AdminKategoriHeadlinePage() {
               setArticles(parsed)
               const currentHero = parsed.find((a: Article) => a.isHero)
               if (currentHero) setSelectedHeroId(currentHero.id)
-              return
             }
           } catch {}
         }
       }
-
-      setArticles(DEFAULT_ARTICLES)
-      const defHero = DEFAULT_ARTICLES.find((a) => a.isHero)
-      if (defHero) setSelectedHeroId(defHero.id)
     }
 
     loadData()

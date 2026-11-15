@@ -443,7 +443,7 @@ export function ArticleDetailView({
   }, [isAudioActive, isPlaying, article.title, article.categoryLabel, article.imageUrl, totalDuration]);
 
   useEffect(() => {
-    if (initialData?.id && initialData.id === id) {
+    if (initialData?.id && (initialData.id === id || initialData.slug === id)) {
       setArticle(initialData);
     }
   }, [id, initialData]);
@@ -457,7 +457,12 @@ export function ArticleDetailView({
   useEffect(() => {
     async function loadData() {
       try {
-        const needArticle = !article?.id || article.id !== id;
+        const hasValidInitial = Boolean(initialData && initialData.title && (initialData.id === id || initialData.slug === id));
+        if (hasValidInitial) {
+          return;
+        }
+
+        const needArticle = !article?.id || !article?.title || (article.id !== id && article.slug !== id);
         const needList = !allArticles || allArticles.length === 0;
 
         if (!needArticle && !needList) return;
@@ -466,7 +471,7 @@ export function ArticleDetailView({
           needArticle ? fetchArticleById(id) : Promise.resolve(null),
           needList ? fetchArticles() : Promise.resolve(null),
         ]);
-        if (singleData) {
+        if (singleData && singleData.title) {
           setArticle(singleData);
         }
         if (listData && listData.length > 0) {
@@ -477,7 +482,7 @@ export function ArticleDetailView({
       }
     }
     loadData();
-  }, [id]);
+  }, [id, initialData]);
 
   const getArticleUrl = () => {
     if (typeof window !== 'undefined') return window.location.href;
@@ -900,13 +905,15 @@ export function ArticleDetailView({
         <div className="flex flex-col gap-3">
           <figure>
             <div className="rounded-2xl overflow-hidden shadow-sm aspect-video border border-outline-variant/40 bg-slate-100 dark:bg-slate-800">
-              {/* eslint-disable-next-img-element */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={article?.imageUrl || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'}
+                src={article?.imageUrl || '/hero-banner.webp'}
                 alt={article?.imageCaption || article?.imageAlt || article?.title || 'Jurnal Wave'}
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80';
+                  const target = e.currentTarget;
+                  if (target.src !== window.location.origin + '/hero-banner.webp') {
+                    target.src = '/hero-banner.webp';
+                  }
                 }}
                 className="w-full h-full object-cover"
               />

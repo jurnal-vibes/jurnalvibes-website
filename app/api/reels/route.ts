@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { clearServerReelsCache, DEFAULT_FALLBACK_REELS } from '@/lib/reels';
@@ -27,10 +27,8 @@ export async function GET(req: NextRequest) {
       take: limit,
     });
 
-    const finalReels = reels && reels.length > 0 ? reels : DEFAULT_FALLBACK_REELS;
-
     return NextResponse.json(
-      { success: true, count: finalReels.length, data: finalReels },
+      { success: true, count: reels.length, data: reels },
       {
         headers: {
           'Cache-Control': 'no-store, max-age=0',

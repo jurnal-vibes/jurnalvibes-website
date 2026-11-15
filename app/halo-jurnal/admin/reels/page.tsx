@@ -24,7 +24,7 @@ import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6'
 import { Reel } from '@/types'
 
 // Kategori Resmi Jurnal Wave (Portal Berita & Konten Kreatif)
-export const JURNAL_WAVE_CATEGORIES = [
+const JURNAL_WAVE_CATEGORIES = [
   'Berita',
   'Pendidikan & Sekolah',
   'Lifestyle',

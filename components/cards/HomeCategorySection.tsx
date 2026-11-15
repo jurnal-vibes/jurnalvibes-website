@@ -13,8 +13,7 @@ interface HomeCategorySectionProps {
   reverseLayout?: boolean;
 }
 
-const DEFAULT_IMAGE =
-  'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80';
+const DEFAULT_IMAGE = '/hero-banner.webp';
 
 export const HomeCategorySection: React.FC<HomeCategorySectionProps> = ({
   title,
@@ -90,7 +89,10 @@ export const HomeCategorySection: React.FC<HomeCategorySectionProps> = ({
                   src={getValidImg(featured)}
                   alt={featured.imageAlt || featured.title}
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = DEFAULT_IMAGE;
+                    const target = e.currentTarget;
+                    if (target.src !== window.location.origin + DEFAULT_IMAGE) {
+                      target.src = DEFAULT_IMAGE;
+                    }
                   }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -128,7 +130,10 @@ export const HomeCategorySection: React.FC<HomeCategorySectionProps> = ({
                         src={getValidImg(item)}
                         alt={item.imageAlt || item.title}
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = DEFAULT_IMAGE;
+                          const target = e.currentTarget;
+                          if (target.src !== window.location.origin + DEFAULT_IMAGE) {
+                            target.src = DEFAULT_IMAGE;
+                          }
                         }}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />

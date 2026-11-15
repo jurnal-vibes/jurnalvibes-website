@@ -88,7 +88,7 @@ const SERVER_CACHE_TTL_MS = 10000 // 10 detik memory cache
 let lastReportsDbFailureTimestamp = 0
 const REPORTS_DB_RETRY_MS = 15 * 1000
 
-export function invalidateReportsCache() {
+function invalidateReportsCache() {
   serverReportsCache = null
   lastReportsDbFailureTimestamp = 0
 }

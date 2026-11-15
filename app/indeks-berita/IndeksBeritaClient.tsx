@@ -570,10 +570,16 @@ export function IndeksBeritaClient() {
                         href={`/artikel/${article.slug || article.id}`}
                         className="relative w-28 sm:w-40 md:w-44 aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden shrink-0 block bg-slate-100 dark:bg-slate-800"
                       >
-                        {/* eslint-disable-next-img-element */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={article.imageUrl || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'}
+                          src={article.imageUrl || '/hero-banner.webp'}
                           alt={article.imageAlt || article.title}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (target.src !== window.location.origin + '/hero-banner.webp') {
+                              target.src = '/hero-banner.webp';
+                            }
+                          }}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       </Link>

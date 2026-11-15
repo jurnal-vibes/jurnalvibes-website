@@ -1,6 +1,6 @@
-import { DEFAULT_ARTICLES } from '@/lib/defaultArticles';
 import { Article, ArticleCategory } from '@/types';
 import { formatIndoDateTime } from '@/lib/utils';
+import { INITIAL_ARTICLES } from '@/lib/initialArticles';
 
 const WORDPRESS_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || '';
 
@@ -24,7 +24,7 @@ export function mapWordPressPost(post: any): Article {
   const imageUrl =
     featuredMedia?.source_url ||
     post.featured_image_url ||
-    'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=800&q=80';
+    '/hero-banner.webp';
 
   // Author resolution from _embedded
   const authorName = post._embedded?.author?.[0]?.name || 'Tim Redaksi';
@@ -109,7 +109,7 @@ export function normalizeArticleCategory(category?: string, categoryLabel?: stri
   };
 }
 
-const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80';
+const DEFAULT_FALLBACK_IMAGE = '/hero-banner.webp';
 
 export function getSafeImageUrl(url?: string | null): string {
   if (!url) return DEFAULT_FALLBACK_IMAGE;
@@ -151,7 +151,7 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
 
     // Circuit Breaker: Jika baru saja gagal dalam 15 detik terakhir, respon seketika (0ms)
     if (now - lastDbFailureTimestamp < DB_RETRY_INTERVAL_MS) {
-      return serverArticlesCache?.data?.length ? serverArticlesCache.data : DEFAULT_ARTICLES;
+      return serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES;
     }
 
     try {
@@ -189,14 +189,13 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
         serverArticlesCache = { data: mapped, timestamp: now };
         return mapped;
       }
+      return INITIAL_ARTICLES;
     } catch (err) {
       lastDbFailureTimestamp = Date.now();
       console.warn('Database server-side article fetch notice:', (err as any)?.message || err);
-      if (serverArticlesCache?.data?.length) return serverArticlesCache.data;
-      return DEFAULT_ARTICLES;
+      if (serverArticlesCache) return serverArticlesCache.data;
+      return INITIAL_ARTICLES;
     }
-
-    return DEFAULT_ARTICLES;
   }
 
   // 2. Client-side fetch from /api/articles (MySQL API)
@@ -241,7 +240,7 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
     } catch {}
   }
 
-  return DEFAULT_ARTICLES;
+  return INITIAL_ARTICLES;
 }
 
 /**
@@ -272,15 +271,6 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
 
     // Circuit Breaker: Jika database baru saja timeout < 15 detik lalu, jangan gantung SSR lagi
     if (now - lastDbFailureTimestamp < DB_RETRY_INTERVAL_MS) {
-      const foundInDefault = DEFAULT_ARTICLES.find(
-        (a) =>
-          a.id === cleanInput ||
-          a.slug === cleanInput ||
-          a.slug === decoded ||
-          a.slug.toLowerCase() === cleanInput.toLowerCase() ||
-          a.slug.toLowerCase() === decoded.toLowerCase()
-      );
-      if (foundInDefault) return foundInDefault;
       return null as any;
     }
 
@@ -326,17 +316,6 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
       lastDbFailureTimestamp = Date.now();
       console.warn('MySQL server-side single article lookup notice:', (err as any)?.message || err);
     }
-
-    // Server-side fallback ke artikel resmi
-    const foundInDefault = DEFAULT_ARTICLES.find(
-      (a) =>
-        a.id === cleanInput ||
-        a.slug === cleanInput ||
-        a.slug === decoded ||
-        a.slug.toLowerCase() === cleanInput.toLowerCase() ||
-        a.slug.toLowerCase() === decoded.toLowerCase()
-    );
-    if (foundInDefault) return foundInDefault;
   }
 
   // 2. Client-side fetch from /api/articles?slug=...
@@ -345,7 +324,7 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
       const res = await fetch(`/api/articles?slug=${encodeURIComponent(idOrSlug)}`);
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.data) {
+        if (json.success && json.data && !Array.isArray(json.data) && json.data.title) {
           const { category, categoryLabel } = normalizeArticleCategory(json.data.category, json.data.categoryLabel);
           return {
             ...json.data,
@@ -365,9 +344,12 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
         if (Array.isArray(parsed)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const foundInLocal = parsed.find(
-            (a: any) => String(a.id) === String(idOrSlug) || a.slug === idOrSlug
+            (a: any) =>
+              String(a.id) === String(idOrSlug) ||
+              a.slug === idOrSlug ||
+              (a.slug && a.slug.toLowerCase() === String(idOrSlug).toLowerCase())
           );
-          if (foundInLocal) {
+          if (foundInLocal && foundInLocal.title) {
             const { category, categoryLabel } = normalizeArticleCategory(foundInLocal.category, foundInLocal.categoryLabel);
             return {
               ...foundInLocal,
@@ -379,16 +361,23 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
         }
       }
     } catch {}
+    // 3. Fallback to INITIAL_ARTICLES
+    const fallbackMatch = INITIAL_ARTICLES.find(
+      (a) =>
+        String(a.id) === String(idOrSlug) ||
+        a.slug === idOrSlug ||
+        a.slug.toLowerCase() === String(idOrSlug).toLowerCase()
+    );
+    if (fallbackMatch) return fallbackMatch;
   }
 
-  // Client-side final fallback
-  const foundInDefault = DEFAULT_ARTICLES.find(
+  const serverFallbackMatch = INITIAL_ARTICLES.find(
     (a) =>
-      a.id === idOrSlug ||
+      String(a.id) === String(idOrSlug) ||
       a.slug === idOrSlug ||
-      a.slug.toLowerCase() === idOrSlug.toLowerCase()
+      a.slug.toLowerCase() === String(idOrSlug).toLowerCase()
   );
-  if (foundInDefault) return foundInDefault;
+  if (serverFallbackMatch) return serverFallbackMatch;
 
   return null as any;
 }

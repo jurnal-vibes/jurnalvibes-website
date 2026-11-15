@@ -10,8 +10,7 @@ interface NewsArticleSidebarProps {
   allArticles: Article[];
 }
 
-const FALLBACK_SIDEBAR_IMAGE =
-  'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80';
+const FALLBACK_SIDEBAR_IMAGE = '/hero-banner.webp';
 
 export function NewsArticleSidebar({
   currentArticleId,
@@ -84,7 +83,10 @@ export function NewsArticleSidebar({
                       src={validImg}
                       alt={item.title}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = FALLBACK_SIDEBAR_IMAGE;
+                        const target = e.currentTarget;
+                        if (target.src !== window.location.origin + FALLBACK_SIDEBAR_IMAGE) {
+                          target.src = FALLBACK_SIDEBAR_IMAGE;
+                        }
                       }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
