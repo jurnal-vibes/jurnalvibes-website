@@ -6,36 +6,7 @@ import { Article } from '@/types';
  * Menjamin 100% konsistensi lintas perangkat (HP, tablet, laptop) tanpa 404 dan tanpa foto bus.
  */
 export const INITIAL_ARTICLES: Article[] = [
-  // 1. HEADLINE SLIDER (Teknologi)
-  {
-    id: 'art-umkm-sukabumi-ai',
-    title: 'UMKM Sukabumi Makin Melek Teknologi, Adopsi Kasir Pintar hingga Pemasaran AI',
-    slug: 'umkm-sukabumi-makin-melek-teknologi-adopsi-kasir-pintar-hingga-pemasaran-ai',
-    excerpt: 'Pelaku UMKM di Sukabumi semakin gencar melakukan transformasi digital dengan mengadopsi aplikasi kasir pintar, sistem pembayaran nirsentuh (cashless), hingga memanfaatkan Kecerdasan Buatan (AI) untuk merancang strategi pemasaran yang lebih...',
-    content: `Pelaku Usaha Mikro, Kecil, dan Menengah (UMKM) di Sukabumi semakin gencar melakukan transformasi digital dengan mengadopsi aplikasi kasir pintar, sistem pembayaran nirsentuh (cashless), hingga memanfaatkan Kecerdasan Buatan (AI) untuk merancang strategi pemasaran yang lebih efektif dan efisien.
-
-Perubahan pola transaksi masyarakat pasca-pandemi mendorong para pedagang kuliner, busana, hingga kerajinan tangan lokal untuk beralih dari pencatatan pembukuan manual ke ekosistem digital. Penggunaan aplikasi kasir berbasis cloud (POS) memudahkan pemantauan stok bahan baku serta pencatatan laba rugi secara realtime langsung dari ponsel pintar.
-
-Selain itu, pemanfaatan alat bantu AI generatif untuk merancang copywriting iklan, foto katalog produk, hingga jadwal promosi media sosial terbukti mendongkrak penjualan rata-rata pelaku UMKM hingga lebih dari 30 persen. Pendampingan dari komunitas pegiat teknologi dan dinas terkait diharapkan terus memperluas jangkauan digitalisasi ke pelosok kecamatan di wilayah Kabupaten Sukabumi.`,
-    category: 'tech',
-    categoryLabel: 'TEKNOLOGI',
-    subCategory: 'TEKNOLOGI',
-    imageUrl: '/images/articles/umkm-sukabumi.webp',
-    imageAlt: 'UMKM Sukabumi Makin Melek Teknologi, Adopsi Kasir Pintar hingga Pemasaran AI',
-    imageCaption: 'Pelaku UMKM Sukabumi melayani pelanggan menggunakan aplikasi kasir pintar modern.',
-    author: 'Tim Redaksi',
-    reporter: 'Rian Hidayat',
-    redaktur: 'Ahmad Fauzi',
-    tags: ['#UMKM', '#Sukabumi', '#Teknologi', '#AI', '#KasirPintar'],
-    readTime: '4 min read',
-    isHero: true,
-    isEditorsPick: true,
-    badge: 'HEADLINE',
-    createdAt: '2026-10-25T10:28:00.000Z',
-    publishedDate: '25 Okt 2026 | 17:28 WIB',
-  },
-
-  // 2. HEALTH
+  // 1. HEALTH (Waspada Influenza - Terkini #1)
   {
     id: 'art-waspada-influenza-sukabumi',
     title: 'Waspada Influenza Meningkat, Warga Sukabumi Diimbau Jaga Kesehatan dan Gunakan Masker',
@@ -57,14 +28,14 @@ Dinas Kesehatan mengimbau warga, khususnya kelompok rentan seperti balita, ibu h
     redaktur: 'Ujang Herlan',
     tags: ['#Health', '#Sukabumi', '#Influenza', '#Kesehatan', '#Masker'],
     readTime: '4 min read',
-    isHero: false,
+    isHero: true,
     isEditorsPick: true,
     badge: 'HEALTH',
     createdAt: '2026-11-06T06:15:00.000Z',
     publishedDate: '6 Nov 2026 | 13:15 WIB',
   },
 
-  // 3. OTOMOTIF
+  // 2. OTOMOTIF (IMX 2026 - Terkini #2)
   {
     id: 'art-imx-2026-otomotif',
     title: 'IMX 2026 Jadi Panggung Industri Modifikasi Otomotif, Ekraf Bidik Pasar Global',
@@ -93,7 +64,7 @@ Kementerian Pariwisata dan Ekonomi Kreatif menyatakan dukungan penuh terhadap st
     publishedDate: '6 Nov 2026 | 13:10 WIB',
   },
 
-  // 4. STYLE / LIFESTYLE
+  // 3. STYLE / LIFESTYLE (Tato AI - Terkini #3)
   {
     id: 'art-tato-ai-viral',
     title: 'Viral! Begini Cara Membuat Efek Tato Wajah Pasangan di Punggung Pakai AI, Hasilnya Realistis',
@@ -120,6 +91,35 @@ Kendati tampak memukau dan menghibur, para pegiat seni tato mengingatkan masyara
     badge: 'STYLE',
     createdAt: '2026-11-06T06:08:00.000Z',
     publishedDate: '6 Nov 2026 | 13:08 WIB',
+  },
+
+  // 4. TEKNOLOGI (UMKM Sukabumi - Terkini #4 & Headline)
+  {
+    id: 'art-umkm-sukabumi-ai',
+    title: 'UMKM Sukabumi Makin Melek Teknologi, Adopsi Kasir Pintar hingga Pemasaran AI',
+    slug: 'umkm-sukabumi-makin-melek-teknologi-adopsi-kasir-pintar-hingga-pemasaran-ai',
+    excerpt: 'Pelaku UMKM di Sukabumi semakin gencar melakukan transformasi digital dengan mengadopsi aplikasi kasir pintar, sistem pembayaran nirsentuh (cashless), hingga memanfaatkan Kecerdasan Buatan (AI) untuk merancang strategi pemasaran yang lebih...',
+    content: `Pelaku Usaha Mikro, Kecil, dan Menengah (UMKM) di Sukabumi semakin gencar melakukan transformasi digital dengan mengadopsi aplikasi kasir pintar, sistem pembayaran nirsentuh (cashless), hingga memanfaatkan Kecerdasan Buatan (AI) untuk merancang strategi pemasaran yang lebih efektif dan efisien.
+
+Perubahan pola transaksi masyarakat pasca-pandemi mendorong para pedagang kuliner, busana, hingga kerajinan tangan lokal untuk beralih dari pencatatan pembukuan manual ke ekosistem digital. Penggunaan aplikasi kasir berbasis cloud (POS) memudahkan pemantauan stok bahan baku serta pencatatan laba rugi secara realtime langsung dari ponsel pintar.
+
+Selain itu, pemanfaatan alat bantu AI generatif untuk merancang copywriting iklan, foto katalog produk, hingga jadwal promosi media sosial terbukti mendongkrak penjualan rata-rata pelaku UMKM hingga lebih dari 30 persen. Pendampingan dari komunitas pegiat teknologi dan dinas terkait diharapkan terus memperluas jangkauan digitalisasi ke pelosok kecamatan di wilayah Kabupaten Sukabumi.`,
+    category: 'tech',
+    categoryLabel: 'TEKNOLOGI',
+    subCategory: 'TEKNOLOGI',
+    imageUrl: '/images/articles/umkm-sukabumi.webp',
+    imageAlt: 'UMKM Sukabumi Makin Melek Teknologi, Adopsi Kasir Pintar hingga Pemasaran AI',
+    imageCaption: 'Pelaku UMKM Sukabumi melayani pelanggan menggunakan aplikasi kasir pintar modern.',
+    author: 'Tim Redaksi',
+    reporter: 'Rian Hidayat',
+    redaktur: 'Ahmad Fauzi',
+    tags: ['#UMKM', '#Sukabumi', '#Teknologi', '#AI', '#KasirPintar'],
+    readTime: '4 min read',
+    isHero: true,
+    isEditorsPick: true,
+    badge: 'HEADLINE',
+    createdAt: '2026-10-25T10:28:00.000Z',
+    publishedDate: '25 Okt 2026 | 17:28 WIB',
   },
 
   // 5. SPORT & E-SPORT

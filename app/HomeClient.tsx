@@ -71,9 +71,8 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
     };
   }, []);
 
-  // Filter feed articles
-  const feedArticles = articles.filter(a => !a.isHero);
-  const displayArticles = feedArticles.length > 0 ? feedArticles : articles;
+  // Tampilkan seluruh artikel terkini sesuai urutan publikasi redaksi
+  const displayArticles = articles;
 
   // Filter 4 Kategori Unggulan Jurnal Wave (Murni dari Database)
   const lifestyleArticles = articles.filter(
