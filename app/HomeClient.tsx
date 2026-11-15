@@ -22,23 +22,33 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
   const [loading, setLoading] = useState(initialArticles.length === 0);
 
   useEffect(() => {
-    // 1. Instant Hydration (0 ms): Baca cache lokal seketika agar tidak ada jeda kosong
     const syncArticles = () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const saved = localStorage.getItem('jurnal_wave_articles');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setArticles(parsed);
-              setLoading(false);
+      // 1. Instant Sync: Utamakan data resmi dari server (initialArticles)
+      if (initialArticles && initialArticles.length > 0) {
+        setArticles(initialArticles);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('jurnal_wave_articles', JSON.stringify(initialArticles));
+          } catch {}
+        }
+        setLoading(false);
+      } else {
+        // Hanya jika server kosong, coba baca cache lokal
+        if (typeof window !== 'undefined') {
+          try {
+            const saved = localStorage.getItem('jurnal_wave_articles');
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                setArticles(parsed);
+                setLoading(false);
+              }
             }
-          }
-        } catch {}
+          } catch {}
+        }
       }
     };
 
-    // Muat seketika di client
     syncArticles();
 
     // 2. Background Sync: Ambil update terbaru dari database server tanpa memblokir tampilan UI

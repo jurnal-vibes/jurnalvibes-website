@@ -336,6 +336,15 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
       }
     } catch {}
 
+    // 2b. Cek INITIAL_ARTICLES resmi server terlebih dahulu
+    const fallbackMatch = INITIAL_ARTICLES.find(
+      (a) =>
+        String(a.id) === String(idOrSlug) ||
+        a.slug === idOrSlug ||
+        a.slug.toLowerCase() === String(idOrSlug).toLowerCase()
+    );
+    if (fallbackMatch) return fallbackMatch;
+
     // Fallback to local storage if running in browser
     try {
       const saved = localStorage.getItem('jurnal_wave_articles');
@@ -361,14 +370,6 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
         }
       }
     } catch {}
-    // 3. Fallback to INITIAL_ARTICLES
-    const fallbackMatch = INITIAL_ARTICLES.find(
-      (a) =>
-        String(a.id) === String(idOrSlug) ||
-        a.slug === idOrSlug ||
-        a.slug.toLowerCase() === String(idOrSlug).toLowerCase()
-    );
-    if (fallbackMatch) return fallbackMatch;
   }
 
   const serverFallbackMatch = INITIAL_ARTICLES.find(
