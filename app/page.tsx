@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { HomeClient } from './HomeClient';
 import { fetchArticles } from '@/lib/wordpress';
 import { fetchReels } from '@/lib/reels';
