@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import { Article, Job } from '@/types'
 import { DUMMY_JOBS } from '@/data/dummyJobs'
-import { DEFAULT_ARTICLES } from '@/lib/defaultArticles'
 import { useAdminData } from '@/context/AdminDataContext'
 
 const CATEGORY_DISPLAY_MAP: Record<string, string> = {
@@ -36,9 +35,7 @@ const CATEGORY_DISPLAY_MAP: Record<string, string> = {
 export default function AdminDashboardMediaPage() {
   // Mengonsumsi data terpusat dari AdminDataContext (0ms instant render)
   const { articles: contextArticles, isLoadingArticles, counts } = useAdminData()
-  const [articlesList, setArticlesList] = useState<Article[]>(() =>
-    contextArticles && contextArticles.length > 0 ? contextArticles : DEFAULT_ARTICLES
-  )
+  const [articlesList, setArticlesList] = useState<Article[]>(contextArticles)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -51,11 +48,9 @@ export default function AdminDashboardMediaPage() {
           const parsed = JSON.parse(saved)
           if (Array.isArray(parsed) && parsed.length > 0) {
             setArticlesList(parsed)
-            return
           }
         }
       } catch {}
-      setArticlesList(DEFAULT_ARTICLES)
     }
   }, [contextArticles])
 
@@ -293,8 +288,10 @@ export default function AdminDashboardMediaPage() {
                             src={art.imageUrl}
                             alt={art.title}
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'
+                              const target = e.target as HTMLImageElement
+                              if (!target.src.endsWith('/hero-banner.webp')) {
+                                target.src = '/hero-banner.webp'
+                              }
                             }}
                             className="w-12 h-9 rounded-md object-cover bg-slate-100 shrink-0 border border-slate-200"
                           />

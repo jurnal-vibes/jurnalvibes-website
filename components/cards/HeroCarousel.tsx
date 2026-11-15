@@ -189,8 +189,14 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
           <article key={article.id} className="relative w-full h-full shrink-0">
             {/* eslint-disable-next-img-element */}
             <img
-              src={article.imageUrl}
+              src={article.imageUrl || '/hero-banner.webp'}
               alt={article.imageAlt || article.title}
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (target.src !== window.location.origin + '/hero-banner.webp') {
+                  target.src = '/hero-banner.webp';
+                }
+              }}
               className="w-full h-full object-cover pointer-events-none select-none"
               draggable={false}
             />

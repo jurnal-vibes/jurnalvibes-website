@@ -10,7 +10,7 @@ interface NewsCardProps {
   variant?: 'row' | 'grid';
 }
 
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80';
+const FALLBACK_IMAGE = '/hero-banner.webp';
 
 export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) => {
   const rawLabel = (article.categoryLabel || article.category || 'BERITA').toUpperCase();
@@ -30,12 +30,15 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
     return (
       <article className="group bg-surface rounded-2xl border border-outline-variant/60 hover:border-primary/40 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col">
         <Link href={`/artikel/${articleSlug}`} className="relative h-48 overflow-hidden block bg-slate-100 dark:bg-slate-800">
-          {/* eslint-disable-next-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={validImage}
             alt={article.imageAlt || article.title}
             onError={(e) => {
-              (e.target as HTMLImageElement).src = FALLBACK_IMAGE;
+              const target = e.currentTarget;
+              if (target.src !== window.location.origin + FALLBACK_IMAGE) {
+                target.src = FALLBACK_IMAGE;
+              }
             }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -63,15 +66,18 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
         href={`/artikel/${articleSlug}`}
         className="relative w-28 sm:w-40 md:w-44 aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden shrink-0 block bg-slate-100 dark:bg-slate-800"
       >
-        {/* eslint-disable-next-img-element */}
-        <img
-          src={validImage}
-          alt={article.imageAlt || article.title}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = FALLBACK_IMAGE;
-          }}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={validImage}
+            alt={article.imageAlt || article.title}
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (target.src !== window.location.origin + FALLBACK_IMAGE) {
+                target.src = FALLBACK_IMAGE;
+              }
+            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
       </Link>
       <div className="flex flex-col gap-1 justify-center flex-1 min-w-0">
         <span className="text-[#c00015] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider">

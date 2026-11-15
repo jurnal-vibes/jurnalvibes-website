@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -7,7 +7,6 @@ import { ArrowLeft, Newspaper } from 'lucide-react';
 import { NewsCard } from '@/components/cards/NewsCard';
 import { Article } from '@/types';
 import { fetchArticles } from '@/lib/wordpress';
-import { DEFAULT_ARTICLES } from '@/lib/defaultArticles';
 
 interface BeritaClientProps {
   initialArticles?: Article[];
@@ -17,9 +16,7 @@ export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
   const searchParams = useSearchParams();
   const sub = searchParams.get('sub')?.toLowerCase() || '';
 
-  const [articles, setArticles] = useState<Article[]>(() =>
-    initialArticles && initialArticles.length > 0 ? initialArticles : DEFAULT_ARTICLES
-  );
+  const [articles, setArticles] = useState<Article[]>(initialArticles);
   const ITEMS_PER_PAGE = 6;
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
 

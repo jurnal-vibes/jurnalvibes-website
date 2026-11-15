@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
@@ -24,8 +24,6 @@ import {
   Loader2,
 } from 'lucide-react'
 import { Article, ArticleCategory } from '@/types'
-import { DEFAULT_ARTICLES } from '@/lib/defaultArticles'
-import { getCachedAdminArticles } from '@/lib/adminCache'
 
 // Daftar Kategori Resmi Jurnal Wave beserta nama tampilannya
 const CATEGORY_DISPLAY_MAP: Record<string, string> = {
@@ -76,7 +74,7 @@ const INDO_STOP_WORDS = new Set([
   'orang', 'hari', 'tahun', 'bulan', 'waktu', 'secara', 'saja', 'tersebut', 'banyak'
 ])
 
-export const generateSmartTags = (
+const generateSmartTags = (
   title: string,
   category: string,
   subCategory?: string,
@@ -174,7 +172,7 @@ const INVALID_START_WORDS = /^(tetapi|namun|sementara|adapun|sedangkan|dan|atau|
  * Menyaring kalimat pemikat (hook / lead) terbaik dari naskah berita
  * yang menarik perhatian pembaca, bersih tanpa kata sambung gantung dan tanpa kutipan putus.
  */
-export const generateSmartLead = (title: string, content: string): string => {
+const generateSmartLead = (title: string, content: string): string => {
   if (!content || !content.trim()) return ''
 
   // 1. Bersihkan naskah dari tag/komentar dan wire headers
@@ -266,7 +264,7 @@ export const generateSmartLead = (title: string, content: string): string => {
 }
 
 export default function AdminBeritaPage() {
-  const [articles, setArticles] = useState<Article[]>(() => getCachedAdminArticles())
+  const [articles, setArticles] = useState<Article[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('semua')
   const [selectedFilter, setSelectedFilter] = useState<string>('semua')
@@ -426,7 +424,7 @@ export default function AdminBeritaPage() {
           }
         } catch {}
       }
-      setArticles(DEFAULT_ARTICLES)
+      setArticles([])
     }
 
     loadArticles()
@@ -523,7 +521,7 @@ export default function AdminBeritaPage() {
         content: cleanContent || autoExcerpt,
         imageUrl:
           newImageUrl.trim() ||
-          'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80',
+          '/hero-banner.webp',
         imageCaption: newImageCaption.trim() || undefined,
         imageAlt: newImageCaption.trim() || undefined,
         author: 'Tim Redaksi',
@@ -894,8 +892,10 @@ export default function AdminBeritaPage() {
                             alt={article.title}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80'
+                              const target = e.target as HTMLImageElement
+                              if (!target.src.endsWith('/hero-banner.webp')) {
+                                target.src = '/hero-banner.webp'
+                              }
                             }}
                           />
                         </div>
