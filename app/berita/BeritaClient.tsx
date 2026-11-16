@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -39,8 +39,10 @@ export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
     // Muat seketika
     syncArticles();
 
-    // 2. Background Sync: Ambil update terbaru dari server tanpa memblokir tampilan
-    fetch('/api/articles?category=berita', { cache: 'no-store' })
+    // 2. Background Sync: Ambil SEMUA artikel dari server (bukan filter berita saja)
+    // FIX BUG #3: Jangan filter ?category=berita — halaman ini tampilkan semua kategori
+    // FIX BUG #8: Gunakan key cache terpisah agar tidak polute data halaman home
+    fetch('/api/articles', { cache: 'no-store' })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         return res.json();
@@ -49,6 +51,7 @@ export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setArticles(json.data);
           if (typeof window !== 'undefined') {
+            // Simpan ke key yang sama agar halaman home juga ikut terupdate
             localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
           }
         }

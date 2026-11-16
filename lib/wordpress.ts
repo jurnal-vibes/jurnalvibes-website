@@ -124,9 +124,9 @@ export function getSafeImageUrl(url?: string | null): string {
   return DEFAULT_FALLBACK_IMAGE;
 }
 
-// In-memory cache server-side agar tidak bolak-balik query Neon DB jika data masih segar (mengurangi delay)
+// In-memory cache server-side agar query instan tanpa delay (TTL singkat 5 detik agar berita baru segera tayang)
 let serverArticlesCache: { data: Article[]; timestamp: number } | null = null;
-const CACHE_TTL_MS = 60 * 1000; // 60 detik
+const CACHE_TTL_MS = 5 * 1000; // 5 detik
 
 // Circuit breaker (Fast-Fail): Mencegah server menggantung 10 detik di setiap klik jika database cloud lambat
 let lastDbFailureTimestamp = 0;

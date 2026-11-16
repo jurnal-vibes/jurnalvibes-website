@@ -345,7 +345,15 @@ export default function AdminBeritaPage() {
           const ctx = canvas.getContext('2d')
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height)
-            resolve(canvas.toDataURL('image/jpeg', 0.82))
+            try {
+              // Otomatis ubah & kompres ke WebP modern (standar Google SEO & super hemat bandwidth)
+              const webpData = canvas.toDataURL('image/webp', 0.85)
+              if (webpData.startsWith('data:image/webp')) {
+                resolve(webpData)
+                return
+              }
+            } catch {}
+            resolve(canvas.toDataURL('image/jpeg', 0.85))
           } else {
             resolve(e.target?.result as string)
           }
@@ -365,10 +373,20 @@ export default function AdminBeritaPage() {
     try {
       setIsUploading(true)
       const base64 = await compressImage(file)
-      setNewImageUrl(base64)
-    } catch (err) {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: base64 }),
+      })
+      const data = await res.json()
+      if (data.success && data.url) {
+        setNewImageUrl(data.url)
+      } else {
+        throw new Error(data.message || 'Gagal mengunggah foto ke server')
+      }
+    } catch (err: any) {
       console.error('Error uploading image:', err)
-      alert('Gagal memproses foto. Silakan coba file gambar lain.')
+      alert('Gagal memproses foto: ' + (err?.message || 'Silakan coba lagi'))
     } finally {
       setIsUploading(false)
     }
@@ -381,10 +399,20 @@ export default function AdminBeritaPage() {
     try {
       setIsUploading(true)
       const base64 = await compressImage(file)
-      setEditingArticle({ ...editingArticle, imageUrl: base64 })
-    } catch (err) {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: base64 }),
+      })
+      const data = await res.json()
+      if (data.success && data.url) {
+        setEditingArticle({ ...editingArticle, imageUrl: data.url })
+      } else {
+        throw new Error(data.message || 'Gagal mengunggah foto ke server')
+      }
+    } catch (err: any) {
       console.error('Error uploading image:', err)
-      alert('Gagal memproses foto. Silakan coba file gambar lain.')
+      alert('Gagal memproses foto: ' + (err?.message || 'Silakan coba lagi'))
     } finally {
       setIsUploading(false)
     }

@@ -457,19 +457,9 @@ export function ArticleDetailView({
   useEffect(() => {
     async function loadData() {
       try {
-        const hasValidInitial = Boolean(initialData && initialData.title && (initialData.id === id || initialData.slug === id));
-        if (hasValidInitial) {
-          return;
-        }
-
-        const needArticle = !article?.id || !article?.title || (article.id !== id && article.slug !== id);
-        const needList = !allArticles || allArticles.length === 0;
-
-        if (!needArticle && !needList) return;
-
         const [singleData, listData] = await Promise.all([
-          needArticle ? fetchArticleById(id) : Promise.resolve(null),
-          needList ? fetchArticles() : Promise.resolve(null),
+          fetchArticleById(id),
+          (!allArticles || allArticles.length === 0) ? fetchArticles() : Promise.resolve(null),
         ]);
         if (singleData && singleData.title) {
           setArticle(singleData);
@@ -478,11 +468,11 @@ export function ArticleDetailView({
           setAllArticles(listData);
         }
       } catch (err) {
-        console.error('Error fetching article detail from WordPress/fallback:', err);
+        console.error('Error syncing article detail from API/fallback:', err);
       }
     }
     loadData();
-  }, [id, initialData]);
+  }, [id]);
 
   const getArticleUrl = () => {
     if (typeof window !== 'undefined') return window.location.href;

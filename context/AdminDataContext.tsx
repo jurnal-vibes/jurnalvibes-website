@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, {
   createContext,
@@ -278,10 +278,12 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('storage', handleStorage)
     window.addEventListener('focus', handleStorage)
 
-    // Polling latar belakang berkala tiap 5 detik untuk sinkronisasi chat & aduan
+    // Polling latar belakang berkala tiap 15 detik hanya saat tab aktif
     const interval = setInterval(() => {
-      refreshReports()
-    }, 5000)
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        refreshReports()
+      }
+    }, 15000)
 
     return () => {
       clearInterval(interval)

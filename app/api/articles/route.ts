@@ -1,10 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
+import { writeFile } from 'fs/promises'
+import { join } from 'path'
 import { prisma } from '@/lib/prisma'
 import { getAdminSession } from '@/lib/auth'
 import { clearServerArticlesCache } from '@/lib/wordpress'
 import { INITIAL_ARTICLES } from '@/lib/initialArticles'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const DEFAULT_FALLBACK_IMAGE = '/hero-banner.webp'
+
+// Helper pencegah Base64 raksasa masuk ke database PostgreSQL
+async function sanitizeArticleImage(rawUrl?: string | null): Promise<string> {
+  if (!rawUrl || !rawUrl.trim()) return DEFAULT_FALLBACK_IMAGE
+  const trimmed = rawUrl.trim()
+  if (trimmed.startsWith('data:image/')) {
+    try {
+      const matches = trimmed.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
+      let ext = 'jpg'
+      let buffer: Buffer
+      if (matches && matches.length === 3) {
+        if (matches[1].includes('png')) ext = 'png'
+        else if (matches[1].includes('webp')) ext = 'webp'
+        buffer = Buffer.from(matches[2], 'base64')
+      } else {
+        buffer = Buffer.from(trimmed.replace(/^data:image\/\w+;base64,/, ''), 'base64')
+      }
+      const safeName = `article-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const publicPath = join(process.cwd(), 'public', 'uploads', 'articles', safeName)
+      await writeFile(publicPath, buffer)
+      return `/uploads/articles/${safeName}`
+    } catch (err) {
+      console.warn('Gagal mengubah base64 image di server:', err)
+      return DEFAULT_FALLBACK_IMAGE
+    }
+  }
+  return trimmed
+}
 
 // Helper format artikel dari Prisma ke format Frontend
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -341,17 +375,22 @@ export async function POST(request: NextRequest) {
       rawCategoryLabel = rawCategory.toUpperCase()
     }
 
+    const safeImageUrl = await sanitizeArticleImage(body.imageUrl)
+
+    let finalContent = body.content?.trim() || body.excerpt?.trim() || body.title.trim()
+    if (Array.isArray(body.tags) && body.tags.length > 0 && !finalContent.includes('<!--TAGS:')) {
+      finalContent = `${finalContent}\n\n<!--TAGS: ${body.tags.join(', ')}-->`
+    }
+
     const created = await prisma.article.create({
       data: {
         title: body.title.trim(),
         slug,
         excerpt: body.excerpt?.trim() || body.title.trim(),
-        content: body.content?.trim() || body.excerpt?.trim() || body.title.trim(),
+        content: finalContent,
         category: rawCategory,
         categoryLabel: rawCategoryLabel,
-        imageUrl:
-          body.imageUrl?.trim() ||
-          DEFAULT_FALLBACK_IMAGE,
+        imageUrl: safeImageUrl,
         imageAlt: body.imageCaption?.trim() || body.imageAlt?.trim() || body.title.trim(),
         author: body.author || 'Tim Redaksi',
         reporter: body.reporter?.trim() || 'Redaksi Jurnal Wave',
@@ -370,6 +409,15 @@ export async function POST(request: NextRequest) {
 
     clearServerArticlesCache()
     invalidateArticlesCache()
+
+    try {
+      revalidatePath('/')
+      revalidatePath('/berita')
+      revalidatePath(`/artikel/${slug}`)
+      if (rawCategory) revalidatePath(`/${rawCategory}`)
+    } catch (e) {
+      console.warn('revalidatePath notice:', e)
+    }
 
     return NextResponse.json(
       {
@@ -429,13 +477,21 @@ export async function PUT(request: NextRequest) {
       updateData.redaktur = body.redaktur.trim()
     }
     if (typeof body.imageUrl === 'string' && body.imageUrl.trim()) {
-      updateData.imageUrl = body.imageUrl.trim()
+      updateData.imageUrl = await sanitizeArticleImage(body.imageUrl)
     }
     if (typeof body.imageCaption === 'string' || typeof body.imageAlt === 'string') {
       updateData.imageAlt = (body.imageCaption || body.imageAlt || '').trim()
     }
     if (typeof body.badge !== 'undefined') {
       updateData.badge = body.badge
+    }
+    // FIX BUG #9: subCategory (tersimpan di kolom badge) sekarang bisa diupdate via edit
+    if (typeof body.subCategory !== 'undefined') {
+      // subCategory menggantikan badge hanya jika bukan HOT/VIRAL/HEADLINE
+      const sc = body.subCategory || ''
+      if (sc && sc !== 'HOT' && sc !== 'VIRAL' && sc !== 'HEADLINE') {
+        updateData.badge = sc
+      }
     }
     if (typeof body.category === 'string') {
       let editCategory = body.category.toLowerCase().trim()
@@ -470,6 +526,15 @@ export async function PUT(request: NextRequest) {
     clearServerArticlesCache()
     invalidateArticlesCache()
 
+    try {
+      revalidatePath('/')
+      revalidatePath('/berita')
+      if (updated.slug) revalidatePath(`/artikel/${updated.slug}`)
+      if (updated.category) revalidatePath(`/${updated.category}`)
+    } catch (e) {
+      console.warn('revalidatePath notice:', e)
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Berita berhasil diperbarui!',
@@ -502,12 +567,21 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'ID artikel tidak ditemukan' }, { status: 400 })
     }
 
-    await prisma.article.delete({
+    const deleted = await prisma.article.delete({
       where: { id },
     })
 
     clearServerArticlesCache()
     invalidateArticlesCache()
+
+    try {
+      revalidatePath('/')
+      revalidatePath('/berita')
+      if (deleted.slug) revalidatePath(`/artikel/${deleted.slug}`)
+      if (deleted.category) revalidatePath(`/${deleted.category}`)
+    } catch (e) {
+      console.warn('revalidatePath notice:', e)
+    }
 
     return NextResponse.json({
       success: true,

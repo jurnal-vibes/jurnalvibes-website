@@ -22,63 +22,71 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
   const [loading, setLoading] = useState(initialArticles.length === 0);
 
   useEffect(() => {
-    const syncArticles = () => {
-      // 1. Instant Sync: Utamakan data resmi dari server (initialArticles)
-      if (initialArticles && initialArticles.length > 0) {
-        setArticles(initialArticles);
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('jurnal_wave_articles', JSON.stringify(initialArticles));
-          } catch {}
-        }
-        setLoading(false);
-      } else {
-        // Hanya jika server kosong, coba baca cache lokal
-        if (typeof window !== 'undefined') {
-          try {
-            const saved = localStorage.getItem('jurnal_wave_articles');
-            if (saved) {
-              const parsed = JSON.parse(saved);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                setArticles(parsed);
-                setLoading(false);
-              }
+    const syncFromLocalStorage = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_articles');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setArticles(parsed);
+              setLoading(false);
             }
-          } catch {}
-        }
+          }
+        } catch {}
       }
     };
 
-    syncArticles();
-
-    // 2. Background Sync: Ambil update terbaru dari database server tanpa memblokir tampilan UI
-    fetch('/api/articles', { cache: 'no-store' })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        return res.json();
-      })
-      .then((json) => {
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          setArticles(json.data);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
+    // FIX BUG #2: Fungsi fetch terbaru dari server (bukan hanya baca localStorage)
+    const fetchLatestArticles = () => {
+      fetch('/api/articles', { cache: 'no-store' })
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+          return res.json();
+        })
+        .then((json) => {
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setArticles(json.data);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('jurnal_wave_articles', JSON.stringify(json.data));
+            }
+            setLoading(false);
           }
+        })
+        .catch((err) => {
+          console.warn('Background sync artikel dari server notice:', err);
+        })
+        .finally(() => {
           setLoading(false);
-        }
-      })
-      .catch((err) => {
-        console.warn('Background sync artikel dari server notice:', err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
-    window.addEventListener('storage', syncArticles);
-    window.addEventListener('focus', syncArticles);
-    return () => {
-      window.removeEventListener('storage', syncArticles);
-      window.removeEventListener('focus', syncArticles);
+        });
     };
+
+    // 1. Instant render dari initialArticles (SSR data)
+    if (initialArticles && initialArticles.length > 0) {
+      setArticles(initialArticles);
+      try {
+        localStorage.setItem('jurnal_wave_articles', JSON.stringify(initialArticles));
+      } catch {}
+      setLoading(false);
+    } else {
+      // Fallback: baca localStorage jika SSR kosong
+      syncFromLocalStorage();
+    }
+
+    // 2. Background sync: selalu ambil data terbaru dari server
+    fetchLatestArticles();
+
+    // FIX BUG #11: focus handler sekarang re-fetch dari API, bukan hanya baca localStorage
+    const handleFocus = () => fetchLatestArticles();
+    const handleStorage = () => syncFromLocalStorage();
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('focus', handleFocus);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Tampilkan seluruh artikel terkini sesuai urutan publikasi redaksi
