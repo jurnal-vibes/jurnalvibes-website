@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
     limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
     slug = searchParams.get('slug')
 
-    // Respons instan (<1ms) jika permintaan umum tanpa filter
+    // Respons instan (<1ms) jika permintaan umum tanpa filter (Murni memory cache, TANPA s-maxage agar kuota ISR Vercel 0 pemborosan)
     if (!category && !slug && !limit && serverArticlesCache && Date.now() - serverArticlesCache.timestamp < SERVER_ARTICLES_CACHE_TTL_MS) {
       return NextResponse.json({
         success: true,
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
         data: serverArticlesCache.data,
       }, {
         headers: {
-          'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=6',
+          'Cache-Control': 'no-store, must-revalidate',
         },
       })
     }

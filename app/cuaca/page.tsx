@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Revalidate data halaman cuaca tiap 5 menit (300 detik)
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function CuacaPage() {
   const initialData = await fetchLiveSukabumiWeather('kota');
