@@ -27,6 +27,8 @@ model Article {
   isEditorsPick Boolean  @default(false)
   badge         String?  @db.VarChar(50)
   publishedDate String?  @db.VarChar(50)
+  status        String   @default("published") @db.VarChar(50)
+  scheduledAt   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

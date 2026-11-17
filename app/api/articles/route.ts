@@ -115,6 +115,8 @@ function mapArticleFromDb(item: any) {
     })(),
     publishedDate: item.publishedDate || new Date(item.createdAt).toLocaleDateString('id-ID'),
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+    status: item.status || 'published',
+    scheduledAt: item.scheduledAt ? new Date(item.scheduledAt).toISOString() : null,
   }
 }
 
@@ -142,9 +144,10 @@ export async function GET(request: NextRequest) {
     category = searchParams.get('category')
     limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
     slug = searchParams.get('slug')
+    const isAdmin = searchParams.get('admin') === 'true'
 
-    // Respons instan (<1ms) jika permintaan umum tanpa filter (Murni memory cache, TANPA s-maxage agar kuota ISR Vercel 0 pemborosan)
-    if (!category && !slug && !limit && serverArticlesCache && Date.now() - serverArticlesCache.timestamp < SERVER_ARTICLES_CACHE_TTL_MS) {
+    // Respons instan (<1ms) jika permintaan umum publik tanpa filter (Murni memory cache)
+    if (!isAdmin && !category && !slug && !limit && serverArticlesCache && Date.now() - serverArticlesCache.timestamp < SERVER_ARTICLES_CACHE_TTL_MS) {
       return NextResponse.json({
         success: true,
         source: 'server-memory-cache',
@@ -166,6 +169,10 @@ export async function GET(request: NextRequest) {
             where: { slug },
           })
           if (article) {
+            const isFutureScheduled = article.status === 'scheduled' && article.scheduledAt && new Date(article.scheduledAt) > new Date()
+            if (isFutureScheduled && !isAdmin) {
+              return NextResponse.json({ success: false, message: 'Artikel ini masih dalam jadwal penayangan.' }, { status: 404 })
+            }
             return NextResponse.json({ success: true, data: mapArticleFromDb(article) })
           }
         } catch (dbErr: any) {
@@ -175,7 +182,11 @@ export async function GET(request: NextRequest) {
       }
 
       // Fallback seketika ke memory cache atau INITIAL_ARTICLES
-      const pool = serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES
+      const pool = (serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES).filter((a) => {
+        if (isAdmin) return true
+        if (a.status === 'scheduled' && a.scheduledAt && new Date(a.scheduledAt) > new Date()) return false
+        return true
+      })
       const fallback = pool.find(
         (a) =>
           a.slug === slug ||
@@ -192,10 +203,14 @@ export async function GET(request: NextRequest) {
     // Circuit Breaker: Jika database baru saja timeout < 15 detik lalu, langsung kembalikan cache/fallback (0ms)
     if (Date.now() - lastArticlesDbFailureTimestamp < ARTICLES_DB_RETRY_MS) {
       const baseData = serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES;
-      let circuitFiltered = baseData;
+      let circuitFiltered = baseData.filter((a) => {
+        if (isAdmin) return true
+        if (a.status === 'scheduled' && a.scheduledAt && new Date(a.scheduledAt) > new Date()) return false
+        return true
+      });
       if (category && category !== 'semua') {
         const catKey = category.toLowerCase().trim();
-        circuitFiltered = baseData.filter((a) => {
+        circuitFiltered = circuitFiltered.filter((a) => {
           const aCat = a.category.toLowerCase().trim();
           if (catKey === 'science' || catKey === 'sains' || catKey === 'sains & lingkungan') return aCat === 'science' || aCat === 'sains';
           if (catKey === 'health' || catKey === 'kesehatan') return aCat === 'health' || aCat === 'kesehatan';
@@ -220,6 +235,20 @@ export async function GET(request: NextRequest) {
       } else {
         where.category = category
       }
+    }
+
+    // Filter jadwal publik: Jika bukan request admin, hanya tampilkan yang sudah saatnya tayang
+    if (!isAdmin) {
+      where.OR = [
+        { status: 'published' },
+        { status: null },
+        {
+          AND: [
+            { status: 'scheduled' },
+            { scheduledAt: { lte: new Date() } },
+          ],
+        },
+      ]
     }
 
     const dbArticles = await prisma.article.findMany({
@@ -247,7 +276,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (!category && !slug && !limit) {
+    if (!isAdmin && !category && !slug && !limit) {
       serverArticlesCache = {
         data: mapped,
         timestamp: Date.now(),
@@ -374,6 +403,15 @@ export async function POST(request: NextRequest) {
       finalContent = `${finalContent}\n\n<!--TAGS: ${body.tags.join(', ')}-->`
     }
 
+    const publishStatus = body.status === 'scheduled' ? 'scheduled' : 'published'
+    let scheduledDate: Date | null = null
+    if (publishStatus === 'scheduled' && body.scheduledAt) {
+      const parsed = new Date(body.scheduledAt)
+      if (!isNaN(parsed.getTime())) {
+        scheduledDate = parsed
+      }
+    }
+
     const created = await prisma.article.create({
       data: {
         title: body.title.trim(),
@@ -391,11 +429,17 @@ export async function POST(request: NextRequest) {
         isHero: Boolean(body.isHero),
         isEditorsPick: Boolean(body.isEditorsPick),
         badge: body.subCategory || body.badge || (body.isHero ? 'HEADLINE' : undefined),
-        publishedDate: body.publishedDate || new Date().toLocaleDateString('id-ID', {
+        status: publishStatus,
+        scheduledAt: scheduledDate,
+        publishedDate: body.publishedDate || (scheduledDate ? scheduledDate.toLocaleDateString('id-ID', {
           day: 'numeric',
           month: 'short',
           year: 'numeric',
-        }),
+        }) : new Date().toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })),
       },
     })
 
@@ -482,6 +526,20 @@ export async function PUT(request: NextRequest) {
     }
     if (typeof body.badge !== 'undefined') {
       updateData.badge = body.badge
+    }
+    if (typeof body.status === 'string') {
+      updateData.status = body.status
+      if (body.status === 'published') {
+        updateData.scheduledAt = null
+      }
+    }
+    if (typeof body.scheduledAt !== 'undefined') {
+      if (body.scheduledAt) {
+        const parsed = new Date(body.scheduledAt)
+        updateData.scheduledAt = !isNaN(parsed.getTime()) ? parsed : null
+      } else {
+        updateData.scheduledAt = null
+      }
     }
     // FIX BUG #9: subCategory (tersimpan di kolom badge) sekarang bisa diupdate via edit
     if (typeof body.subCategory !== 'undefined') {

@@ -22,6 +22,9 @@ import {
   Upload,
   Image as ImageIcon,
   Loader2,
+  Clock,
+  Send,
+  CheckCircle2,
 } from 'lucide-react'
 import { Article, ArticleCategory } from '@/types'
 
@@ -287,6 +290,10 @@ export default function AdminBeritaPage() {
   const [newRedaktur, setNewRedaktur] = useState('')
   const [newTags, setNewTags] = useState('')
   const [newIsHero, setNewIsHero] = useState(false)
+  const [newPublishType, setNewPublishType] = useState<'now' | 'scheduled'>('now')
+  const [newScheduledAt, setNewScheduledAt] = useState('')
+  const [editPublishType, setEditPublishType] = useState<'now' | 'scheduled'>('now')
+  const [editScheduledAt, setEditScheduledAt] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isTagsManuallyEdited, setIsTagsManuallyEdited] = useState(false)
@@ -422,7 +429,7 @@ export default function AdminBeritaPage() {
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        const res = await fetch('/api/articles')
+        const res = await fetch('/api/articles?admin=true')
         if (res.ok) {
           const json = await res.json()
           if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -502,6 +509,8 @@ export default function AdminBeritaPage() {
 
       // 3. Filter Khusus
       if (selectedFilter === 'hero' && !a.isHero) return false
+      if (selectedFilter === 'scheduled' && a.status !== 'scheduled') return false
+      if (selectedFilter === 'published' && a.status === 'scheduled') return false
 
       return true
     })
@@ -510,6 +519,7 @@ export default function AdminBeritaPage() {
   // Hitung jumlah
   const totalCount = articles.length
   const heroCount = articles.filter((a) => a.isHero).length
+  const scheduledCount = articles.filter((a) => a.status === 'scheduled').length
 
   // Handle Simpan Berita Baru ke MySQL
   const handleCreateArticle = async (e: React.FormEvent) => {
@@ -558,6 +568,8 @@ export default function AdminBeritaPage() {
         tags: parsedTags,
         isHero: newIsHero,
         isEditorsPick: false,
+        status: newPublishType === 'scheduled' ? 'scheduled' : 'published',
+        scheduledAt: newPublishType === 'scheduled' && newScheduledAt ? new Date(newScheduledAt).toISOString() : null,
       }
 
       let createdArticle: Article | null = null
@@ -605,8 +617,10 @@ export default function AdminBeritaPage() {
       setIsTagsManuallyEdited(false)
       setIsExcerptManuallyEdited(false)
       setNewIsHero(false)
+      setNewPublishType('now')
+      setNewScheduledAt('')
 
-      setToastMessage('Berita berhasil diterbitkan ke database!')
+      setToastMessage(newPublishType === 'scheduled' ? 'Berita berhasil dijadwalkan!' : 'Berita berhasil diterbitkan ke database!')
       setTimeout(() => setToastMessage(null), 3500)
     } finally {
       setIsSubmitting(false)
@@ -626,8 +640,46 @@ export default function AdminBeritaPage() {
     if (!initialExcerpt || !initialExcerpt.trim()) {
       initialExcerpt = generateSmartLead(article.title, article.content)
     }
+
+    if (article.status === 'scheduled' && article.scheduledAt) {
+      setEditPublishType('scheduled')
+      try {
+        const d = new Date(article.scheduledAt)
+        const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+        setEditScheduledAt(localIso)
+      } catch {
+        setEditScheduledAt('')
+      }
+    } else {
+      setEditPublishType('now')
+      setEditScheduledAt('')
+    }
+
     setEditingArticle({ ...article, tags: initialTags, excerpt: initialExcerpt })
     setIsEditModalOpen(true)
+  }
+
+  // Handle Cepat: Langsung Terbitkan Artikel Terjadwal Sekarang
+  const handleQuickPublish = async (id: string, title: string) => {
+    if (!confirm(`Tayangkan sekarang artikel "${title}" tanpa menunggu jadwal rilis?`)) return
+    try {
+      const res = await fetch('/api/articles', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: 'published', scheduledAt: null }),
+      })
+      const json = await res.json().catch(() => null)
+      if (res.ok && json?.success) {
+        const updated = articles.map(a => a.id === id ? { ...a, status: 'published' as const, scheduledAt: null } : a)
+        persistArticles(updated)
+        setToastMessage(`Artikel "${title}" kini sudah tayang secara publik!`)
+        setTimeout(() => setToastMessage(null), 3500)
+      } else {
+        alert('Gagal menerbitkan artikel: ' + (json?.message || 'Error tidak diketahui'))
+      }
+    } catch (err: any) {
+      alert('Gagal menerbitkan artikel: ' + (err?.message || 'Koneksi error'))
+    }
   }
 
   // Handle Simpan Hasil Edit ke Database
@@ -656,6 +708,8 @@ export default function AdminBeritaPage() {
       const captionVal = editingArticle.imageCaption?.trim() || editingArticle.imageAlt?.trim() || undefined
       const updatedArticle = {
         ...editingArticle,
+        status: editPublishType === 'scheduled' ? ('scheduled' as const) : ('published' as const),
+        scheduledAt: editPublishType === 'scheduled' && editScheduledAt ? new Date(editScheduledAt).toISOString() : null,
         content: cleanContent,
         imageCaption: captionVal,
         imageAlt: captionVal,
@@ -801,20 +855,30 @@ export default function AdminBeritaPage() {
       )}
 
       {/* 2. Kartu Metrik Ringkas Konten */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Total Artikel Terbit</p>
-            <p className="text-2xl font-heading font-bold text-slate-900 mt-1">{totalCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Artikel Tayang</p>
+            <p className="text-2xl font-heading font-bold text-slate-900 mt-1">{totalCount - scheduledCount}</p>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
-            <Newspaper className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
         <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Headline Slider Beranda</p>
+            <p className="text-xs text-slate-500 font-medium">Artikel Terjadwal</p>
+            <p className="text-2xl font-heading font-bold text-amber-600 mt-1">{scheduledCount}</p>
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div>
+            <p className="text-xs text-slate-500 font-medium">Headline Slider</p>
             <p className="text-2xl font-heading font-bold text-slate-900 mt-1">{heroCount}</p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
@@ -836,7 +900,27 @@ export default function AdminBeritaPage() {
                   : 'bg-slate-100 text-slate-600 hover:text-slate-900'
               }`}
             >
-              Semua Berita ({totalCount})
+              Semua ({totalCount})
+            </button>
+            <button
+              onClick={() => setSelectedFilter('published')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                selectedFilter === 'published'
+                  ? 'bg-emerald-600 text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Tayang ({totalCount - scheduledCount})
+            </button>
+            <button
+              onClick={() => setSelectedFilter('scheduled')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                selectedFilter === 'scheduled'
+                  ? 'bg-amber-600 text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Terjadwal ({scheduledCount})
             </button>
             <button
               onClick={() => setSelectedFilter('hero')}
@@ -904,7 +988,7 @@ export default function AdminBeritaPage() {
                   <th className="py-3 px-4">Kategori</th>
                   <th className="py-3 px-4">Reporter &amp; Editor</th>
                   <th className="py-3 px-4">Posisi Tayang</th>
-                  <th className="py-3 px-4">Tanggal Rilis</th>
+                  <th className="py-3 px-4">Status &amp; Rilis</th>
                   <th className="py-3 px-4 text-center">Aksi Tindakan</th>
                 </tr>
               </thead>
@@ -1014,14 +1098,50 @@ export default function AdminBeritaPage() {
                       </div>
                     </td>
 
-                    {/* Tanggal */}
-                    <td className="py-3.5 px-4 whitespace-nowrap text-slate-500 text-[11px]">
-                      {article.publishedDate || '26 Okt 2024'}
+                    {/* Status & Tanggal Rilis */}
+                    <td className="py-3.5 px-4 whitespace-nowrap text-[11px]">
+                      {article.status === 'scheduled' && article.scheduledAt ? (
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                            <Clock className="w-3 h-3 text-amber-600 animate-pulse" />
+                            Terjadwal
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-medium">
+                            {new Date(article.scheduledAt).toLocaleString('id-ID', {
+                              day: 'numeric',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })} WIB
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                            Tayang
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {article.publishedDate || '26 Okt 2024'}
+                          </span>
+                        </div>
+                      )}
                     </td>
 
                     {/* Aksi Nyata: Edit, Baca di Web, Hapus */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-center">
                       <div className="inline-flex items-center justify-center gap-1.5">
+                        {/* Tombol Terbitkan Sekarang jika Terjadwal */}
+                        {article.status === 'scheduled' && (
+                          <button
+                            onClick={() => handleQuickPublish(article.id, article.title)}
+                            className="p-1.5 rounded-md text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 transition cursor-pointer"
+                            title="Langsung Terbitkan Sekarang Tanpa Menunggu Jadwal"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
                         {/* Tombol Edit Nyata Berfungsi */}
                         <button
                           onClick={() => handleOpenEdit(article)}
@@ -1384,6 +1504,69 @@ export default function AdminBeritaPage() {
                 </label>
               </div>
 
+              {/* Jadwal Publikasi Berita */}
+              <div className="pt-2 border-t border-slate-100">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <Clock className="w-3.5 h-3.5 text-[#c00015]" />
+                    <span>Waktu Penayangan Berita</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditPublishType('now')}
+                      className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                        editPublishType === 'now'
+                          ? 'bg-[#c00015] text-white border-[#c00015] shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Terbitkan Sekarang
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditPublishType('scheduled')
+                        if (!editScheduledAt) {
+                          const d = new Date(Date.now() + 3600000)
+                          const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+                          setEditScheduledAt(localIso)
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                        editPublishType === 'scheduled'
+                          ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      Jadwalkan Tayang
+                    </button>
+                  </div>
+
+                  {editPublishType === 'scheduled' && (
+                    <div className="pt-1.5 space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-700">
+                        Pilih Tanggal &amp; Waktu Tayang (WIB): <span className="text-[#c00015]">*</span>
+                      </label>
+                      <input
+                        type="datetime-local"
+                        required={editPublishType === 'scheduled'}
+                        value={editScheduledAt}
+                        min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+                        onChange={(e) => setEditScheduledAt(e.target.value)}
+                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#c00015] bg-white font-medium"
+                      />
+                      <p className="text-[10px] text-slate-500">
+                        * Artikel akan otomatis tayang untuk publik begitu waktu di atas tiba.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Tombol Simpan Edit */}
               <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
                 <button
@@ -1708,6 +1891,69 @@ export default function AdminBeritaPage() {
                 </label>
               </div>
 
+              {/* Jadwal Publikasi Berita */}
+              <div className="pt-2 border-t border-slate-100">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <Clock className="w-3.5 h-3.5 text-[#c00015]" />
+                    <span>Waktu Penayangan Berita</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setNewPublishType('now')}
+                      className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                        newPublishType === 'now'
+                          ? 'bg-[#c00015] text-white border-[#c00015] shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Terbitkan Sekarang
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewPublishType('scheduled')
+                        if (!newScheduledAt) {
+                          const d = new Date(Date.now() + 3600000)
+                          const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+                          setNewScheduledAt(localIso)
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                        newPublishType === 'scheduled'
+                          ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      Jadwalkan Tayang
+                    </button>
+                  </div>
+
+                  {newPublishType === 'scheduled' && (
+                    <div className="pt-1.5 space-y-1">
+                      <label className="block text-[11px] font-semibold text-slate-700">
+                        Pilih Tanggal &amp; Waktu Tayang (WIB): <span className="text-[#c00015]">*</span>
+                      </label>
+                      <input
+                        type="datetime-local"
+                        required={newPublishType === 'scheduled'}
+                        value={newScheduledAt}
+                        min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+                        onChange={(e) => setNewScheduledAt(e.target.value)}
+                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#c00015] bg-white font-medium"
+                      />
+                      <p className="text-[10px] text-slate-500">
+                        * Artikel akan otomatis tayang untuk publik begitu waktu di atas tiba.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Tombol Terbitkan */}
               <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
                 <button
@@ -1725,10 +1971,10 @@ export default function AdminBeritaPage() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Menerbitkan...</span>
+                      <span>{newPublishType === 'scheduled' ? 'Menjadwalkan...' : 'Menerbitkan...'}</span>
                     </>
                   ) : (
-                    <span>Terbitkan Berita</span>
+                    <span>{newPublishType === 'scheduled' ? 'Jadwalkan Berita' : 'Terbitkan Berita'}</span>
                   )}
                 </button>
               </div>
