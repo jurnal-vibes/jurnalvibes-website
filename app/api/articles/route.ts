@@ -170,8 +170,12 @@ export async function GET(request: NextRequest) {
           })
           if (article) {
             const isFutureScheduled = article.status === 'scheduled' && article.scheduledAt && new Date(article.scheduledAt) > new Date()
-            if (isFutureScheduled && !isAdmin) {
-              return NextResponse.json({ success: false, message: 'Artikel ini masih dalam jadwal penayangan.' }, { status: 404 })
+            const isHidden = article.status === 'draft' || article.status === 'archived' || isFutureScheduled
+            if (isHidden && !isAdmin) {
+              const msg = article.status === 'archived'
+                ? 'Artikel ini telah diarsipkan dan tidak lagi tersedia untuk publik.'
+                : 'Artikel ini belum ditayangkan untuk publik.'
+              return NextResponse.json({ success: false, message: msg }, { status: 404 })
             }
             return NextResponse.json({ success: true, data: mapArticleFromDb(article) })
           }
@@ -184,6 +188,7 @@ export async function GET(request: NextRequest) {
       // Fallback seketika ke memory cache atau INITIAL_ARTICLES
       const pool = (serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES).filter((a) => {
         if (isAdmin) return true
+        if (a.status === 'draft' || a.status === 'archived') return false
         if (a.status === 'scheduled' && a.scheduledAt && new Date(a.scheduledAt) > new Date()) return false
         return true
       })
@@ -205,6 +210,7 @@ export async function GET(request: NextRequest) {
       const baseData = serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES;
       let circuitFiltered = baseData.filter((a) => {
         if (isAdmin) return true
+        if (a.status === 'draft' || a.status === 'archived') return false
         if (a.status === 'scheduled' && a.scheduledAt && new Date(a.scheduledAt) > new Date()) return false
         return true
       });
@@ -403,9 +409,12 @@ export async function POST(request: NextRequest) {
       finalContent = `${finalContent}\n\n<!--TAGS: ${body.tags.join(', ')}-->`
     }
 
-    const publishStatus = body.status === 'scheduled' ? 'scheduled' : 'published'
+    let publishStatus = 'published'
     let scheduledDate: Date | null = null
-    if (publishStatus === 'scheduled' && body.scheduledAt) {
+    if (body.status === 'draft') {
+      publishStatus = 'draft'
+    } else if (body.status === 'scheduled' && body.scheduledAt) {
+      publishStatus = 'scheduled'
       const parsed = new Date(body.scheduledAt)
       if (!isNaN(parsed.getTime())) {
         scheduledDate = parsed
@@ -529,7 +538,7 @@ export async function PUT(request: NextRequest) {
     }
     if (typeof body.status === 'string') {
       updateData.status = body.status
-      if (body.status === 'published') {
+      if (body.status === 'published' || body.status === 'archived' || body.status === 'draft') {
         updateData.scheduledAt = null
       }
     }

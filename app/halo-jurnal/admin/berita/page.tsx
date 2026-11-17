@@ -25,6 +25,10 @@ import {
   Clock,
   Send,
   CheckCircle2,
+  Archive,
+  ArchiveRestore,
+  FileText,
+  RotateCcw,
 } from 'lucide-react'
 import { Article, ArticleCategory } from '@/types'
 
@@ -290,9 +294,9 @@ export default function AdminBeritaPage() {
   const [newRedaktur, setNewRedaktur] = useState('')
   const [newTags, setNewTags] = useState('')
   const [newIsHero, setNewIsHero] = useState(false)
-  const [newPublishType, setNewPublishType] = useState<'now' | 'scheduled'>('now')
+  const [newPublishType, setNewPublishType] = useState<'now' | 'scheduled' | 'draft'>('now')
   const [newScheduledAt, setNewScheduledAt] = useState('')
-  const [editPublishType, setEditPublishType] = useState<'now' | 'scheduled'>('now')
+  const [editPublishType, setEditPublishType] = useState<'now' | 'scheduled' | 'draft' | 'archived'>('now')
   const [editScheduledAt, setEditScheduledAt] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -509,8 +513,10 @@ export default function AdminBeritaPage() {
 
       // 3. Filter Khusus
       if (selectedFilter === 'hero' && !a.isHero) return false
+      if (selectedFilter === 'published' && a.status && a.status !== 'published') return false
       if (selectedFilter === 'scheduled' && a.status !== 'scheduled') return false
-      if (selectedFilter === 'published' && a.status === 'scheduled') return false
+      if (selectedFilter === 'draft' && a.status !== 'draft') return false
+      if (selectedFilter === 'archived' && a.status !== 'archived') return false
 
       return true
     })
@@ -518,8 +524,11 @@ export default function AdminBeritaPage() {
 
   // Hitung jumlah
   const totalCount = articles.length
-  const heroCount = articles.filter((a) => a.isHero).length
+  const publishedCount = articles.filter((a) => !a.status || a.status === 'published').length
+  const draftCount = articles.filter((a) => a.status === 'draft').length
   const scheduledCount = articles.filter((a) => a.status === 'scheduled').length
+  const archivedCount = articles.filter((a) => a.status === 'archived').length
+  const heroCount = articles.filter((a) => a.isHero).length
 
   // Handle Simpan Berita Baru ke MySQL
   const handleCreateArticle = async (e: React.FormEvent) => {
@@ -568,7 +577,7 @@ export default function AdminBeritaPage() {
         tags: parsedTags,
         isHero: newIsHero,
         isEditorsPick: false,
-        status: newPublishType === 'scheduled' ? 'scheduled' : 'published',
+        status: newPublishType === 'scheduled' ? 'scheduled' : newPublishType === 'draft' ? 'draft' : 'published',
         scheduledAt: newPublishType === 'scheduled' && newScheduledAt ? new Date(newScheduledAt).toISOString() : null,
       }
 
@@ -620,7 +629,13 @@ export default function AdminBeritaPage() {
       setNewPublishType('now')
       setNewScheduledAt('')
 
-      setToastMessage(newPublishType === 'scheduled' ? 'Berita berhasil dijadwalkan!' : 'Berita berhasil diterbitkan ke database!')
+      setToastMessage(
+        newPublishType === 'scheduled'
+          ? 'Berita berhasil dijadwalkan!'
+          : newPublishType === 'draft'
+          ? 'Naskah berhasil disimpan sebagai Draf Redaksi!'
+          : 'Berita berhasil diterbitkan ke database!'
+      )
       setTimeout(() => setToastMessage(null), 3500)
     } finally {
       setIsSubmitting(false)
@@ -650,6 +665,12 @@ export default function AdminBeritaPage() {
       } catch {
         setEditScheduledAt('')
       }
+    } else if (article.status === 'draft') {
+      setEditPublishType('draft')
+      setEditScheduledAt('')
+    } else if (article.status === 'archived') {
+      setEditPublishType('archived')
+      setEditScheduledAt('')
     } else {
       setEditPublishType('now')
       setEditScheduledAt('')
@@ -659,28 +680,49 @@ export default function AdminBeritaPage() {
     setIsEditModalOpen(true)
   }
 
-  // Handle Cepat: Langsung Terbitkan Artikel Terjadwal Sekarang
-  const handleQuickPublish = async (id: string, title: string) => {
-    if (!confirm(`Tayangkan sekarang artikel "${title}" tanpa menunggu jadwal rilis?`)) return
+  // Handle Cepat: Ubah status artikel (Tayang, Draf, Arsip)
+  const handleUpdateStatus = async (
+    id: string,
+    title: string,
+    targetStatus: 'published' | 'archived' | 'draft'
+  ) => {
+    const actionLabel =
+      targetStatus === 'published'
+        ? `Tayangkan sekarang artikel "${title}" ke publik?`
+        : targetStatus === 'archived'
+        ? `Tarik dan arsipkan artikel "${title}" dari publik? (Naskah tetap tersimpan aman di database)`
+        : `Jadikan artikel "${title}" sebagai draf internal redaksi?`
+
+    if (!confirm(actionLabel)) return
     try {
       const res = await fetch('/api/articles', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status: 'published', scheduledAt: null }),
+        body: JSON.stringify({ id, status: targetStatus, scheduledAt: null }),
       })
       const json = await res.json().catch(() => null)
       if (res.ok && json?.success) {
-        const updated = articles.map(a => a.id === id ? { ...a, status: 'published' as const, scheduledAt: null } : a)
+        const updated = articles.map((a) =>
+          a.id === id ? { ...a, status: targetStatus, scheduledAt: null } : a
+        )
         persistArticles(updated)
-        setToastMessage(`Artikel "${title}" kini sudah tayang secara publik!`)
+        const successMsg =
+          targetStatus === 'published'
+            ? `Artikel "${title}" kini sudah tayang secara publik!`
+            : targetStatus === 'archived'
+            ? `Artikel "${title}" berhasil ditarik dan diarsipkan.`
+            : `Artikel "${title}" kini disimpan sebagai draf.`
+        setToastMessage(successMsg)
         setTimeout(() => setToastMessage(null), 3500)
       } else {
-        alert('Gagal menerbitkan artikel: ' + (json?.message || 'Error tidak diketahui'))
+        alert('Gagal memperbarui status artikel: ' + (json?.message || 'Error tidak diketahui'))
       }
     } catch (err: any) {
-      alert('Gagal menerbitkan artikel: ' + (err?.message || 'Koneksi error'))
+      alert('Gagal memperbarui status artikel: ' + (err?.message || 'Koneksi error'))
     }
   }
+
+  const handleQuickPublish = (id: string, title: string) => handleUpdateStatus(id, title, 'published')
 
   // Handle Simpan Hasil Edit ke Database
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -708,7 +750,14 @@ export default function AdminBeritaPage() {
       const captionVal = editingArticle.imageCaption?.trim() || editingArticle.imageAlt?.trim() || undefined
       const updatedArticle = {
         ...editingArticle,
-        status: editPublishType === 'scheduled' ? ('scheduled' as const) : ('published' as const),
+        status:
+          editPublishType === 'scheduled'
+            ? ('scheduled' as const)
+            : editPublishType === 'draft'
+            ? ('draft' as const)
+            : editPublishType === 'archived'
+            ? ('archived' as const)
+            : ('published' as const),
         scheduledAt: editPublishType === 'scheduled' && editScheduledAt ? new Date(editScheduledAt).toISOString() : null,
         content: cleanContent,
         imageCaption: captionVal,
@@ -855,34 +904,44 @@ export default function AdminBeritaPage() {
       )}
 
       {/* 2. Kartu Metrik Ringkas Konten */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Artikel Tayang</p>
-            <p className="text-2xl font-heading font-bold text-slate-900 mt-1">{totalCount - scheduledCount}</p>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">Artikel Tayang</p>
+            <p className="text-xl sm:text-2xl font-heading font-bold text-slate-900 mt-1">{publishedCount}</p>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Artikel Terjadwal</p>
-            <p className="text-2xl font-heading font-bold text-amber-600 mt-1">{scheduledCount}</p>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">Draf Redaksi</p>
+            <p className="text-xl sm:text-2xl font-heading font-bold text-indigo-600 mt-1">{draftCount}</p>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-            <Clock className="w-5 h-5" />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Headline Slider</p>
-            <p className="text-2xl font-heading font-bold text-slate-900 mt-1">{heroCount}</p>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">Terjadwal</p>
+            <p className="text-xl sm:text-2xl font-heading font-bold text-amber-600 mt-1">{scheduledCount}</p>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
-            <Pin className="w-5 h-5 -rotate-45" />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+        </div>
+
+        <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">Diarsipkan</p>
+            <p className="text-xl sm:text-2xl font-heading font-bold text-slate-600 mt-1">{archivedCount}</p>
+          </div>
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+            <Archive className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
       </div>
@@ -910,7 +969,17 @@ export default function AdminBeritaPage() {
                   : 'bg-slate-100 text-slate-600 hover:text-slate-900'
               }`}
             >
-              Tayang ({totalCount - scheduledCount})
+              Tayang ({publishedCount})
+            </button>
+            <button
+              onClick={() => setSelectedFilter('draft')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                selectedFilter === 'draft'
+                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Draf ({draftCount})
             </button>
             <button
               onClick={() => setSelectedFilter('scheduled')}
@@ -921,6 +990,16 @@ export default function AdminBeritaPage() {
               }`}
             >
               Terjadwal ({scheduledCount})
+            </button>
+            <button
+              onClick={() => setSelectedFilter('archived')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                selectedFilter === 'archived'
+                  ? 'bg-slate-800 text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Arsip ({archivedCount})
             </button>
             <button
               onClick={() => setSelectedFilter('hero')}
@@ -1115,6 +1194,26 @@ export default function AdminBeritaPage() {
                             })} WIB
                           </span>
                         </div>
+                      ) : article.status === 'draft' ? (
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                            <FileText className="w-3 h-3 text-indigo-500" />
+                            Draf Redaksi
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            Belum Tayang
+                          </span>
+                        </div>
+                      ) : article.status === 'archived' ? (
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
+                            <Archive className="w-3 h-3 text-slate-500" />
+                            Diarsipkan
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            Ditarik dari publik
+                          </span>
+                        </div>
                       ) : (
                         <div className="flex flex-col gap-1 items-start">
                           <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
@@ -1131,14 +1230,36 @@ export default function AdminBeritaPage() {
                     {/* Aksi Nyata: Edit, Baca di Web, Hapus */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-center">
                       <div className="inline-flex items-center justify-center gap-1.5">
-                        {/* Tombol Terbitkan Sekarang jika Terjadwal */}
-                        {article.status === 'scheduled' && (
+                        {/* Tombol Terbitkan Sekarang jika Terjadwal atau Draf */}
+                        {(article.status === 'scheduled' || article.status === 'draft') && (
                           <button
                             onClick={() => handleQuickPublish(article.id, article.title)}
                             className="p-1.5 rounded-md text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 transition cursor-pointer"
-                            title="Langsung Terbitkan Sekarang Tanpa Menunggu Jadwal"
+                            title="Langsung Terbitkan Sekarang ke Publik"
                           >
                             <Send className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        {/* Tombol Arsipkan jika Sedang Tayang */}
+                        {(!article.status || article.status === 'published') && (
+                          <button
+                            onClick={() => handleUpdateStatus(article.id, article.title, 'archived')}
+                            className="p-1.5 rounded-md text-slate-500 hover:text-amber-700 hover:bg-amber-50 transition cursor-pointer"
+                            title="Arsipkan Berita (Tarik dari publik tanpa menghapus)"
+                          >
+                            <Archive className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        {/* Tombol Pulihkan jika Diarsipkan */}
+                        {article.status === 'archived' && (
+                          <button
+                            onClick={() => handleUpdateStatus(article.id, article.title, 'published')}
+                            className="p-1.5 rounded-md text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 transition cursor-pointer"
+                            title="Pulihkan Berita Kembali Tayang ke Publik"
+                          >
+                            <ArchiveRestore className="w-3.5 h-3.5" />
                           </button>
                         )}
 
@@ -1155,8 +1276,16 @@ export default function AdminBeritaPage() {
                         <Link
                           href={`/artikel/${article.slug}`}
                           target="_blank"
-                          className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
-                          title="Lihat Tampilan Warga di Portal"
+                          className={`p-1.5 rounded-md transition ${
+                            article.status === 'draft' || article.status === 'archived'
+                              ? 'text-slate-300 hover:text-slate-400 cursor-not-allowed'
+                              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                          }`}
+                          title={
+                            article.status === 'draft' || article.status === 'archived'
+                              ? 'Belum tayang publik'
+                              : 'Lihat Tampilan Warga di Portal'
+                          }
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                         </Link>
@@ -1512,18 +1641,30 @@ export default function AdminBeritaPage() {
                     <span>Waktu Penayangan Berita</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <button
                       type="button"
                       onClick={() => setEditPublishType('now')}
-                      className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold border transition cursor-pointer ${
                         editPublishType === 'now'
                           ? 'bg-[#c00015] text-white border-[#c00015] shadow-xs'
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
                       <Send className="w-3.5 h-3.5" />
-                      Terbitkan Sekarang
+                      Tayang Publik
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditPublishType('draft')}
+                      className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                        editPublishType === 'draft'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      Draf Redaksi
                     </button>
                     <button
                       type="button"
@@ -1535,14 +1676,26 @@ export default function AdminBeritaPage() {
                           setEditScheduledAt(localIso)
                         }
                       }}
-                      className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold border transition cursor-pointer ${
                         editPublishType === 'scheduled'
                           ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
                       <Calendar className="w-3.5 h-3.5" />
-                      Jadwalkan Tayang
+                      Jadwalkan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditPublishType('archived')}
+                      className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                        editPublishType === 'archived'
+                          ? 'bg-slate-800 text-white border-slate-800 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Archive className="w-3.5 h-3.5" />
+                      Arsipkan
                     </button>
                   </div>
 
@@ -1592,7 +1745,15 @@ export default function AdminBeritaPage() {
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      <span>Simpan Perubahan Artikel</span>
+                      <span>
+                        {editPublishType === 'archived'
+                          ? 'Simpan & Arsipkan'
+                          : editPublishType === 'draft'
+                          ? 'Simpan Sebagai Draf'
+                          : editPublishType === 'scheduled'
+                          ? 'Simpan Jadwal'
+                          : 'Simpan Perubahan Artikel'}
+                      </span>
                     </>
                   )}
                 </button>
@@ -1899,18 +2060,30 @@ export default function AdminBeritaPage() {
                     <span>Waktu Penayangan Berita</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       type="button"
                       onClick={() => setNewPublishType('now')}
-                      className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
                         newPublishType === 'now'
                           ? 'bg-[#c00015] text-white border-[#c00015] shadow-xs'
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
                       <Send className="w-3.5 h-3.5" />
-                      Terbitkan Sekarang
+                      Terbitkan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewPublishType('draft')}
+                      className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                        newPublishType === 'draft'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      Simpan Draf
                     </button>
                     <button
                       type="button"
@@ -1922,14 +2095,14 @@ export default function AdminBeritaPage() {
                           setNewScheduledAt(localIso)
                         }
                       }}
-                      className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
                         newPublishType === 'scheduled'
                           ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
                       <Calendar className="w-3.5 h-3.5" />
-                      Jadwalkan Tayang
+                      Jadwalkan
                     </button>
                   </div>
 
@@ -1971,10 +2144,22 @@ export default function AdminBeritaPage() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>{newPublishType === 'scheduled' ? 'Menjadwalkan...' : 'Menerbitkan...'}</span>
+                      <span>
+                        {newPublishType === 'scheduled'
+                          ? 'Menjadwalkan...'
+                          : newPublishType === 'draft'
+                          ? 'Menyimpan Draf...'
+                          : 'Menerbitkan...'}
+                      </span>
                     </>
                   ) : (
-                    <span>{newPublishType === 'scheduled' ? 'Jadwalkan Berita' : 'Terbitkan Berita'}</span>
+                    <span>
+                      {newPublishType === 'scheduled'
+                        ? 'Jadwalkan Berita'
+                        : newPublishType === 'draft'
+                        ? 'Simpan Sebagai Draf'
+                        : 'Terbitkan Berita'}
+                    </span>
                   )}
                 </button>
               </div>

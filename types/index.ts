@@ -36,7 +36,7 @@ export interface Article {
   subCategory?: string; // 'KAMPUS' | 'SEKOLAH' | 'KOMUNITAS' | 'EVENT LOKAL'
   createdAt: string; // ISO date or time string
   publishedDate: string;
-  status?: 'published' | 'scheduled' | 'draft';
+  status?: 'published' | 'scheduled' | 'draft' | 'archived';
   scheduledAt?: string | null;
 }
 
