@@ -899,6 +899,9 @@ export function ArticleDetailView({
               <img
                 src={article?.imageUrl || '/hero-banner.webp'}
                 alt={article?.imageCaption || article?.imageAlt || article?.title || 'Jurnal Wave'}
+                fetchPriority="high"
+                loading="eager"
+                decoding="async"
                 onError={(e) => {
                   const target = e.currentTarget;
                   if (target.src !== window.location.origin + '/hero-banner.webp') {

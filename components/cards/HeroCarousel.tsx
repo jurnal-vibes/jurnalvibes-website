@@ -185,12 +185,15 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
       >
-        {heroArticles.map(article => (
+        {heroArticles.map((article, index) => (
           <article key={article.id} className="relative w-full h-full shrink-0">
             {/* eslint-disable-next-img-element */}
             <img
               src={article.imageUrl || '/hero-banner.webp'}
               alt={article.imageAlt || article.title}
+              fetchPriority={index === 0 ? 'high' : 'auto'}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              decoding={index === 0 ? 'sync' : 'async'}
               onError={(e) => {
                 const target = e.currentTarget;
                 if (target.src !== window.location.origin + '/hero-banner.webp') {

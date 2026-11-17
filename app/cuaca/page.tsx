@@ -11,8 +11,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function CuacaPage() {
   const initialData = await fetchLiveSukabumiWeather('kota');

@@ -6,8 +6,14 @@ import { JobCard } from '@/components/cards/JobCard';
 import { Job, Article } from '@/types';
 import { DUMMY_JOBS } from '@/data/dummyJobs';
 
-export function LokerClient({ articles = [] }: { articles?: Article[] }) {
-  const [jobs, setJobs] = useState<Job[]>(DUMMY_JOBS);
+export function LokerClient({
+  articles = [],
+  initialJobs = DUMMY_JOBS,
+}: {
+  articles?: Article[];
+  initialJobs?: Job[];
+}) {
+  const [jobs, setJobs] = useState<Job[]>(initialJobs && initialJobs.length > 0 ? initialJobs : DUMMY_JOBS);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeType, setActiveType] = useState<string>('Semua');
 
@@ -15,33 +21,41 @@ export function LokerClient({ articles = [] }: { articles?: Article[] }) {
   const [visibleCount, setVisibleCount] = useState<number>(JOBS_PER_PAGE);
 
   React.useEffect(() => {
-    const syncJobs = () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const saved = localStorage.getItem('jurnal_wave_jobs');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              const hasOldDummy = parsed.some((j: any) => j.company === 'PT Sukabumi Indo Prima');
-              if (!hasOldDummy) {
+    // Sinkronisasi data lowongan kerja dari database server
+    const fetchLatestJobs = () => {
+      fetch('/api/jobs')
+        .then((res) => {
+          if (!res.ok) throw new Error('Failed to fetch jobs');
+          return res.json();
+        })
+        .then((json) => {
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setJobs(json.data);
+            try {
+              localStorage.setItem('jurnal_wave_jobs', JSON.stringify(json.data));
+            } catch {}
+          }
+        })
+        .catch(() => {
+          // Fallback lokal jika offline
+          try {
+            const saved = localStorage.getItem('jurnal_wave_jobs');
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed) && parsed.length > 0) {
                 setJobs(parsed);
-                return;
               }
             }
-          }
-          // Seed localStorage with fresh staggered DUMMY_JOBS
-          localStorage.setItem('jurnal_wave_jobs', JSON.stringify(DUMMY_JOBS));
-          setJobs(DUMMY_JOBS);
-        } catch {}
-      }
+          } catch {}
+        });
     };
 
-    syncJobs();
-    window.addEventListener('storage', syncJobs);
-    window.addEventListener('focus', syncJobs);
+    fetchLatestJobs();
+    window.addEventListener('storage', fetchLatestJobs);
+    window.addEventListener('focus', fetchLatestJobs);
     return () => {
-      window.removeEventListener('storage', syncJobs);
-      window.removeEventListener('focus', syncJobs);
+      window.removeEventListener('storage', fetchLatestJobs);
+      window.removeEventListener('focus', fetchLatestJobs);
     };
   }, []);
 

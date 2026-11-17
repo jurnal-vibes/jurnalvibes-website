@@ -45,20 +45,33 @@ export default function AdminLokerPage() {
   const [newBenefits, setNewBenefits] = useState('')
   const [newApplyEmail, setNewApplyEmail] = useState('')
 
-  // Load from localStorage or seed
+  // Load from API (Neon DB) with localStorage fallback
   useEffect(() => {
-    const loadJobs = () => {
+    const loadJobs = async () => {
+      try {
+        const res = await fetch('/api/jobs?all=true')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setJobs(json.data)
+            try {
+              localStorage.setItem('jurnal_wave_jobs', JSON.stringify(json.data))
+            } catch {}
+            return
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal memuat lowongan dari database server, pakai fallback:', err)
+      }
+
       if (typeof window !== 'undefined') {
         try {
           const saved = localStorage.getItem('jurnal_wave_jobs')
           if (saved) {
             const parsed = JSON.parse(saved)
             if (Array.isArray(parsed) && parsed.length > 0) {
-              const hasOldDummy = parsed.some((j: any) => j.company === 'PT Sukabumi Indo Prima')
-              if (!hasOldDummy) {
-                setJobs(parsed)
-                return
-              }
+              setJobs(parsed)
+              return
             }
           }
           localStorage.setItem('jurnal_wave_jobs', JSON.stringify(DUMMY_JOBS))
@@ -99,8 +112,8 @@ export default function AdminLokerPage() {
     })
   }, [jobs, selectedType, searchQuery])
 
-  // Create Job
-  const handleCreateJob = (e: React.FormEvent) => {
+  // Create Job (Database Server Sync)
+  const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTitle.trim() || !newCompany.trim()) {
       alert('Judul posisi dan nama perusahaan wajib diisi!')
@@ -125,8 +138,7 @@ export default function AdminLokerPage() {
       ? `https://wa.me/${cleanApplyLink.replace(/[^0-9]/g, '')}`
       : `https://${cleanApplyLink}`
 
-    const newJob: Job = {
-      id: `job-${Date.now()}`,
+    const jobPayload = {
       title: newTitle.trim(),
       company: newCompany.trim(),
       location: newLocation.trim() || 'Sukabumi',
@@ -139,12 +151,33 @@ export default function AdminLokerPage() {
       benefits: benList.length > 0 ? benList : ['Gaji pokok sesuai kesepakatan', 'BPJS'],
       applyEmail: formattedLink,
       applyUrl: formattedLink,
-      createdAt: new Date().toISOString(),
     }
 
-    const updated = [newJob, ...jobs]
-    saveToStorage(updated)
-    showToast(`Lowongan "${newJob.title}" berhasil dipublikasikan!`)
+    try {
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(jobPayload),
+      })
+      const json = await res.json()
+      if (json.success && json.data) {
+        const updated = [json.data, ...jobs]
+        saveToStorage(updated)
+        showToast(`Lowongan "${json.data.title}" berhasil dipublikasikan ke server!`)
+      } else {
+        throw new Error(json.message || 'Gagal menyimpan ke server')
+      }
+    } catch (err) {
+      console.warn('Menyimpan loker secara lokal:', err)
+      const newJob: Job = {
+        id: `job-${Date.now()}`,
+        ...jobPayload,
+        createdAt: new Date().toISOString(),
+      }
+      const updated = [newJob, ...jobs]
+      saveToStorage(updated)
+      showToast(`Lowongan "${newJob.title}" berhasil disimpan secara lokal!`)
+    }
 
     // Reset Form
     setNewTitle('')
@@ -165,21 +198,45 @@ export default function AdminLokerPage() {
     setIsEditModalOpen(true)
   }
 
-  // Save Edit
-  const handleSaveEdit = (e: React.FormEvent) => {
+  // Save Edit (Database Server Sync)
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingJob) return
 
-    const updated = jobs.map((j) => (j.id === editingJob.id ? editingJob : j))
-    saveToStorage(updated)
-    showToast(`Lowongan "${editingJob.title}" berhasil diperbarui!`)
+    try {
+      const res = await fetch('/api/jobs', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingJob),
+      })
+      const json = await res.json()
+      if (json.success && json.data) {
+        const updated = jobs.map((j) => (j.id === editingJob.id ? json.data : j))
+        saveToStorage(updated)
+        showToast(`Lowongan "${editingJob.title}" berhasil diperbarui di server!`)
+      } else {
+        throw new Error(json.message || 'Gagal memperbarui di server')
+      }
+    } catch {
+      const updated = jobs.map((j) => (j.id === editingJob.id ? editingJob : j))
+      saveToStorage(updated)
+      showToast(`Lowongan "${editingJob.title}" diperbarui secara lokal!`)
+    }
+
     setIsEditModalOpen(false)
     setEditingJob(null)
   }
 
-  // Delete Job
-  const handleDeleteJob = (id: string, title: string) => {
+  // Delete Job (Database Server Sync)
+  const handleDeleteJob = async (id: string, title: string) => {
     if (confirm(`Yakin ingin menghapus lowongan "${title}"?`)) {
+      try {
+        await fetch(`/api/jobs?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        })
+      } catch (err) {
+        console.warn('Gagal menghapus loker dari server:', err)
+      }
       const updated = jobs.filter((j) => j.id !== id)
       saveToStorage(updated)
       showToast(`Lowongan "${title}" telah dihapus.`)

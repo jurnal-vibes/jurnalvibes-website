@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { LokerClient } from './LokerClient';
 import { fetchArticles } from '@/lib/wordpress';
+import { fetchJobs } from '@/lib/jobs';
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'Lowongan Kerja Sukabumi',
@@ -12,6 +15,9 @@ export const metadata: Metadata = {
 };
 
 export default async function LokerPage() {
-  const articles = await fetchArticles();
-  return <LokerClient articles={articles} />;
+  const [articles, jobs] = await Promise.all([
+    fetchArticles(),
+    fetchJobs(),
+  ]);
+  return <LokerClient articles={articles} initialJobs={jobs} />;
 }

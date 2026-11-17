@@ -25,14 +25,14 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   location = 'Sukabumi',
   variant = 'header'
 }) => {
-  const [fullDate, setFullDate] = useState<string>('Minggu, 25 Oktober 2026');
-  const [shortDate, setShortDate] = useState<string>('25 Okt 2026');
+  const [fullDate, setFullDate] = useState<string>('');
+  const [shortDate, setShortDate] = useState<string>('');
   const [currentTemp, setCurrentTemp] = useState<string>(temp);
   const [currentCondition, setCurrentCondition] = useState<string>('Berawan');
   const [iconName, setIconName] = useState<string>('CloudSun');
 
   useEffect(() => {
-    // 1. Format tanggal hari ini
+    // 1. Format tanggal hari ini secara realtime
     try {
       const now = new Date();
       const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];

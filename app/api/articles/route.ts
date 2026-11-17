@@ -7,6 +7,8 @@ import { getAdminSession } from '@/lib/auth'
 import { clearServerArticlesCache } from '@/lib/wordpress'
 import { INITIAL_ARTICLES } from '@/lib/initialArticles'
 
+import { ensureCloudinaryUrl } from '@/lib/cloudinary'
+
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
@@ -18,22 +20,12 @@ async function sanitizeArticleImage(rawUrl?: string | null): Promise<string> {
   const trimmed = rawUrl.trim()
   if (trimmed.startsWith('data:image/')) {
     try {
-      const matches = trimmed.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
-      let ext = 'jpg'
-      let buffer: Buffer
-      if (matches && matches.length === 3) {
-        if (matches[1].includes('png')) ext = 'png'
-        else if (matches[1].includes('webp')) ext = 'webp'
-        buffer = Buffer.from(matches[2], 'base64')
-      } else {
-        buffer = Buffer.from(trimmed.replace(/^data:image\/\w+;base64,/, ''), 'base64')
+      const cUrl = await ensureCloudinaryUrl(trimmed, 'jurnalwave-articles')
+      if (cUrl && !cUrl.startsWith('data:')) {
+        return cUrl
       }
-      const safeName = `article-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-      const publicPath = join(process.cwd(), 'public', 'uploads', 'articles', safeName)
-      await writeFile(publicPath, buffer)
-      return `/uploads/articles/${safeName}`
     } catch (err) {
-      console.warn('Gagal mengubah base64 image di server:', err)
+      console.warn('Gagal mengubah base64 image ke Cloudinary di server:', err)
       return DEFAULT_FALLBACK_IMAGE
     }
   }
@@ -457,6 +449,12 @@ export async function PUT(request: NextRequest) {
 
     if (typeof body.isHero !== 'undefined') {
       updateData.isHero = Boolean(body.isHero)
+      if (body.isHero && body.isExclusiveHero) {
+        await prisma.article.updateMany({
+          where: { isHero: true, id: { not: body.id } },
+          data: { isHero: false },
+        })
+      }
     }
     if (typeof body.isEditorsPick !== 'undefined') {
       updateData.isEditorsPick = Boolean(body.isEditorsPick)

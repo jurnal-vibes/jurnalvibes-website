@@ -192,3 +192,26 @@ model PollOption {
   @@map("poll_options")
 }
 
+// 13. Model Lowongan Kerja Sukabumi (Jurnal Wave Loker)
+model Job {
+  id           String   @id @default(cuid())
+  title        String   @db.VarChar(255)
+  company      String   @db.VarChar(255)
+  location     String   @db.VarChar(255)
+  region       String?  @default("Kota Sukabumi") @db.VarChar(100)
+  salaryRange  String?  @db.VarChar(100)
+  type         String   @default("Full-Time") @db.VarChar(50)
+  education    String?  @db.VarChar(100)
+  description  String   @db.Text
+  requirements String?  @db.Text
+  benefits     String?  @db.Text
+  applyEmail   String?  @db.VarChar(255)
+  applyUrl     String?  @db.Text
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("jobs")
+}
+
+

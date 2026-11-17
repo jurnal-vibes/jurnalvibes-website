@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { clearServerReelsCache } from '@/lib/reels';
+import { ensureCloudinaryUrl } from '@/lib/cloudinary';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +34,11 @@ export async function PUT(
       );
     }
 
+    let safeThumb = thumbnailUrl !== undefined ? thumbnailUrl.trim() : undefined;
+    if (safeThumb && safeThumb.startsWith('data:')) {
+      safeThumb = await ensureCloudinaryUrl(safeThumb, 'jurnalwave-reels');
+    }
+
     const updated = await prisma.reel.update({
       where: { id },
       data: {
@@ -42,12 +49,14 @@ export async function PUT(
         ...(socialUrl !== undefined && { socialUrl: socialUrl.trim() }),
         ...(videoUrl !== undefined && { videoUrl: videoUrl.trim() }),
         ...(location !== undefined && { location: location.trim() }),
-        ...(thumbnailUrl !== undefined && { thumbnailUrl: thumbnailUrl.trim() }),
+        ...(safeThumb !== undefined && { thumbnailUrl: safeThumb }),
         ...(viewsCount !== undefined && { viewsCount: String(viewsCount) }),
       },
     });
 
     clearServerReelsCache();
+    revalidatePath('/reels');
+    revalidatePath('/');
 
     return NextResponse.json({
       success: true,
@@ -81,6 +90,8 @@ export async function DELETE(
     await prisma.reel.delete({ where: { id } });
 
     clearServerReelsCache();
+    revalidatePath('/reels');
+    revalidatePath('/');
 
     return NextResponse.json({
       success: true,

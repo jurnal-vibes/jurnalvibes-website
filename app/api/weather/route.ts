@@ -20,7 +20,11 @@ export async function GET(req: NextRequest) {
       weatherData = await fetchLiveSukabumiWeather(loc)
     }
 
-    return NextResponse.json(weatherData)
+    return NextResponse.json(weatherData, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    })
   } catch (error: any) {
     console.error('Weather API Route Error:', error)
     return NextResponse.json(

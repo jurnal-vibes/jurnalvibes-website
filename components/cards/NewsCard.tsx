@@ -34,6 +34,8 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
           <img
             src={validImage}
             alt={article.imageAlt || article.title}
+            loading="lazy"
+            decoding="async"
             onError={(e) => {
               const target = e.currentTarget;
               if (target.src !== window.location.origin + FALLBACK_IMAGE) {
@@ -70,6 +72,8 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
           <img
             src={validImage}
             alt={article.imageAlt || article.title}
+            loading="lazy"
+            decoding="async"
             onError={(e) => {
               const target = e.currentTarget;
               if (target.src !== window.location.origin + FALLBACK_IMAGE) {

@@ -88,6 +88,8 @@ export const HomeCategorySection: React.FC<HomeCategorySectionProps> = ({
                 <img
                   src={getValidImg(featured)}
                   alt={featured.imageAlt || featured.title}
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => {
                     const target = e.currentTarget;
                     if (target.src !== window.location.origin + DEFAULT_IMAGE) {

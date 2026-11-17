@@ -1,7 +1,9 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { clearServerReelsCache, DEFAULT_FALLBACK_REELS } from '@/lib/reels';
+import { ensureCloudinaryUrl } from '@/lib/cloudinary';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,6 +69,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const safeThumbnail = await ensureCloudinaryUrl(
+      thumbnailUrl?.trim(),
+      'jurnalwave-reels'
+    ) || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=700&q=80';
+
     const newReel = await prisma.reel.create({
       data: {
         title: title.trim(),
@@ -76,13 +83,15 @@ export async function POST(req: NextRequest) {
         socialUrl: socialUrl.trim(),
         videoUrl: videoUrl.trim() || undefined,
         location: location.trim() || 'Sukabumi',
-        thumbnailUrl: thumbnailUrl?.trim() || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=700&q=80',
+        thumbnailUrl: safeThumbnail,
         imageAlt: imageAlt?.trim() || title.trim(),
         viewsCount: '0',
       },
     });
 
     clearServerReelsCache();
+    revalidatePath('/reels');
+    revalidatePath('/');
 
     return NextResponse.json({
       success: true,

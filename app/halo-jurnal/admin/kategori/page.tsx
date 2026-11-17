@@ -236,7 +236,7 @@ export default function AdminKategoriHeadlinePage() {
         await fetch('/api/articles', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(chosen),
+          body: JSON.stringify({ ...chosen, isExclusiveHero: true }),
         })
       }
     } catch (err) {

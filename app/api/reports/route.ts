@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getAdminSession } from '@/lib/auth'
 import { z } from 'zod'
 import { getJenisForCategory, normalizeCategoryName } from '@/data/haloJurnalCategories'
+import { ensureCloudinaryUrl } from '@/lib/cloudinary'
 
 // Skema validasi masukan laporan aduan warga
 const ReportInputSchema = z.object({
@@ -225,30 +226,33 @@ export async function POST(request: NextRequest) {
     const attachmentItems: { fileUrl: string; fileType: string }[] = []
     if (data.previewUrl) {
       const isVid = data.previewUrl.startsWith('data:video/') || data.previewUrl.endsWith('.mp4')
+      const safeUrl = await ensureCloudinaryUrl(data.previewUrl, 'jurnalwave-laporan')
       attachmentItems.push({
-        fileUrl: data.previewUrl,
+        fileUrl: safeUrl,
         fileType: isVid ? 'video/mp4' : 'image/jpeg',
       })
     }
     if (data.imageUrl && !attachmentItems.some((a) => a.fileUrl === data.imageUrl)) {
+      const safeUrl = await ensureCloudinaryUrl(data.imageUrl, 'jurnalwave-laporan')
       attachmentItems.push({
-        fileUrl: data.imageUrl,
+        fileUrl: safeUrl,
         fileType: 'image/jpeg',
       })
     }
     if (Array.isArray(body.attachments)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      body.attachments.forEach((a: any) => {
+      for (const a of body.attachments) {
         const url = typeof a === 'string' ? a : a.file_url || a.fileUrl || a.url
         const type = typeof a === 'object' ? a.file_type || a.fileType : null
         if (url && !attachmentItems.some((att) => att.fileUrl === url)) {
           const isVid = (type && type.startsWith('video/')) || url.startsWith('data:video/') || url.endsWith('.mp4')
+          const safeUrl = await ensureCloudinaryUrl(url, 'jurnalwave-laporan')
           attachmentItems.push({
-            fileUrl: url,
+            fileUrl: safeUrl,
             fileType: type || (isVid ? 'video/mp4' : 'image/jpeg'),
           })
         }
-      })
+      }
     }
 
     const created = await prisma.report.create({

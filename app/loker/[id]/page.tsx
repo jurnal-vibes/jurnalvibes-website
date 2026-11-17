@@ -43,18 +43,33 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
   }, [id]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const fetchJobDetail = async () => {
       try {
-        const saved = localStorage.getItem('jurnal_wave_jobs');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setAllJobs(parsed);
+        const res = await fetch('/api/jobs');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setAllJobs(json.data);
+            return;
           }
         }
       } catch {}
-    }
-  }, []);
+
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('jurnal_wave_jobs');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setAllJobs(parsed);
+            }
+          }
+        } catch {}
+      }
+    };
+
+    fetchJobDetail();
+  }, [id]);
 
   const handleToggleBookmark = () => {
     if (!id) return;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAdminSession } from '@/lib/auth'
 import { z } from 'zod'
+import { ensureCloudinaryUrl } from '@/lib/cloudinary'
 
 // Skema validasi pesan chat obrolan warga & redaksi
 const ChatMessageSchema = z.object({
@@ -99,7 +100,8 @@ export async function POST(request: NextRequest) {
     // Jika ada lampiran berkas fisik (foto/video) dan belum tertanam di teks pesan, sematkan token
     if (fileUrl && !rawMessage.includes('[ATTACHMENT:')) {
       const type = fileType || (fileUrl.startsWith('data:video/') ? 'video/mp4' : 'image/jpeg')
-      rawMessage = `${rawMessage}\n[ATTACHMENT:${fileUrl}|${type}]`
+      const safeFileUrl = await ensureCloudinaryUrl(fileUrl, 'jurnalwave-chat')
+      rawMessage = `${rawMessage}\n[ATTACHMENT:${safeFileUrl}|${type}]`
     }
 
     let role = 'warga'
