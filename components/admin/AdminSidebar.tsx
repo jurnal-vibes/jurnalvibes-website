@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAdminData } from '@/context/AdminDataContext'
@@ -10,11 +10,10 @@ import {
   ShieldCheck,
   Globe,
   Newspaper,
-  Layers,
   Users,
-  Settings,
   ExternalLink,
   ChevronRight,
+  ChevronsUpDown,
   LogOut,
   X,
   MessageSquare,
@@ -32,10 +31,27 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const [adminUser, setAdminUser] = useState({
     name: 'Redaksi Jurnal Wave',
     email: 'redaksi@jurnalwave.com',
   })
+
+  // Tutup popup profil saat klik di luar area
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [userMenuOpen])
 
   // Dynamic badge counts dari AdminDataContext terpusat (selalu sinkron 0ms)
   const { counts } = useAdminData()
@@ -76,24 +92,23 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   const navSections = [
     {
-      title: 'Jurnal Wave CMS (Portal Berita)',
+      title: 'Utama',
       items: [
         {
-          name: 'Dashboard Media',
+          name: 'Dashboard',
           href: '/halo-jurnal/admin',
           icon: LayoutDashboard,
           badge: null,
         },
+      ],
+    },
+    {
+      title: 'Redaksi Media',
+      items: [
         {
-          name: 'Artikel Berita',
+          name: 'Manajemen Konten',
           href: '/halo-jurnal/admin/berita',
           icon: Newspaper,
-          badge: null,
-        },
-        {
-          name: 'Kategori & Headline',
-          href: '/halo-jurnal/admin/kategori',
-          icon: Layers,
           badge: null,
         },
         {
@@ -117,36 +132,16 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       ],
     },
     {
-      title: 'Hallo Jurnal (Layanan Warga)',
+      title: 'Layanan Warga',
       items: [
         {
-          name: 'Dashboard Pemantauan',
-          href: '/halo-jurnal/admin/halo',
-          icon: LayoutDashboard,
-          badge: null,
-        },
-        {
-          name: 'Buku Induk Pengaduan',
+          name: 'Pengaduan Warga',
           href: '/halo-jurnal/admin/laporan',
           icon: FileText,
-          badge: counts.pendingReports > 0 ? String(counts.pendingReports) : null,
-          badgeColor: 'bg-red-500/10 text-[#c00015]',
-        },
-        {
-          name: 'Chat Warga',
-          href: '/halo-jurnal/admin/chat',
-          icon: MessageSquare,
-          badge: counts.unreadChat > 0 ? String(counts.unreadChat) : null,
-          badgeColor: 'bg-emerald-500/10 text-emerald-800',
-        },
-        {
-          name: 'Feed Publik',
-          href: '/halo-jurnal/admin/feed-publik',
-          icon: Globe,
           badge: null,
         },
         {
-          name: 'Warga Terdaftar',
+          name: 'Direktori Warga',
           href: '/halo-jurnal/admin/warga',
           icon: Users,
           badge: null,
@@ -154,18 +149,12 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       ],
     },
     {
-      title: 'Pengaturan',
+      title: 'Sistem',
       items: [
         {
-          name: 'Tim Redaksi',
+          name: 'Kelola Pengguna',
           href: '/halo-jurnal/admin/pengguna',
           icon: Users,
-          badge: null,
-        },
-        {
-          name: 'Pengaturan Web',
-          href: '/halo-jurnal/admin/pengaturan',
-          icon: Settings,
           badge: null,
         },
       ],
@@ -173,7 +162,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   ]
 
   const isActive = (href: string) => {
-    if (href === '/halo-jurnal/admin' || href === '/halo-jurnal/admin/halo') {
+    if (href === '/halo-jurnal/admin') {
       return pathname === href
     }
     return pathname?.startsWith(href)
@@ -263,7 +252,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
                       {item.badge ? (
                         <span
-                          className={`px-1.5 py-0.2 text-[10px] font-semibold rounded-md ${item.badgeColor}`}
+                          className={`px-1.5 py-0.2 text-[10px] font-semibold rounded-md ${(item as any).badgeColor || 'bg-slate-100 text-slate-600'}`}
                         >
                           {item.badge}
                         </span>
@@ -278,53 +267,93 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           ))}
         </div>
 
-        {/* Footer Sidebar (Profil & Quick Links ke Portal) */}
-        <div className="p-3 border-t border-slate-200 bg-slate-50/50 space-y-1">
-          <Link
-            href="/"
-            target="_blank"
-            className="flex items-center justify-between px-2.5 py-1 text-xs text-slate-500 hover:text-slate-900 hover:bg-white rounded-md transition"
-          >
-            <span className="flex items-center gap-2">
-              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-              <span>Lihat Portal Jurnal Wave</span>
-            </span>
-            <span className="text-[10px] text-slate-400 font-mono">↗</span>
-          </Link>
+        {/* Footer Sidebar (Profil Ringkas & Popup Menu Pindah Situs / Keluar) */}
+        <div ref={userMenuRef} className="p-3 border-t border-slate-200 bg-slate-50/50 relative">
+          {/* Popup Menu Melayang di Atas Profil */}
+          {userMenuOpen && (
+            <div className="absolute bottom-full left-3 right-3 mb-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150 space-y-1.5">
+              {/* Info Pengguna */}
+              <div className="px-2.5 py-2 border-b border-slate-100">
+                <p className="text-xs font-bold text-slate-800 truncate">{adminUser.name}</p>
+                <p className="text-[10px] text-slate-400 truncate">{adminUser.email}</p>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-semibold text-emerald-600">Admin Aktif</span>
+                </div>
+              </div>
 
-          <Link
-            href="/halo-jurnal"
-            target="_blank"
-            className="flex items-center justify-between px-2.5 py-1 text-xs text-slate-500 hover:text-slate-900 hover:bg-white rounded-md transition"
-          >
-            <span className="flex items-center gap-2">
-              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-              <span>Lihat Portal Hallo Jurnal</span>
-            </span>
-            <span className="text-[10px] text-slate-400 font-mono">↗</span>
-          </Link>
+              {/* Seksi Pindah Situs */}
+              <div className="space-y-0.5">
+                <span className="px-2.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider block py-1">
+                  Pindah Situs
+                </span>
+                <Link
+                  href="/"
+                  target="_blank"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center justify-between px-2.5 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition group"
+                >
+                  <span className="flex items-center gap-2">
+                    <Globe className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#c00015]" />
+                    <span>Portal Jurnal Wave</span>
+                  </span>
+                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                </Link>
 
-          <div className="flex items-center justify-between p-2 mt-1 rounded-lg bg-white border border-slate-200">
+                <Link
+                  href="/halo-jurnal"
+                  target="_blank"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center justify-between px-2.5 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition group"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShieldCheck className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#c00015]" />
+                    <span>Portal Hallo Jurnal</span>
+                  </span>
+                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                </Link>
+              </div>
+
+              {/* Seksi Keluar / Logout */}
+              <div className="pt-1 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    handleLogout()
+                  }}
+                  disabled={isLoggingOut}
+                  className="w-full flex items-center gap-2 px-2.5 py-2 text-xs text-red-600 hover:bg-red-50 rounded-xl transition font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-red-500" />
+                  <span>{isLoggingOut ? 'Mengeluarkan sesi...' : 'Keluar dari Akun'}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Tombol Profil di Dasar Sidebar */}
+          <button
+            type="button"
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            className={`w-full flex items-center justify-between p-2 rounded-xl transition border text-left cursor-pointer ${
+              userMenuOpen
+                ? 'bg-white border-[#c00015]/40 shadow-xs ring-2 ring-[#c00015]/10'
+                : 'bg-white hover:bg-slate-50 border-slate-200'
+            }`}
+          >
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-red-50 text-[#c00015] flex items-center justify-center font-bold text-xs shrink-0 border border-red-100">
+              <div className="w-7 h-7 rounded-full bg-red-50 text-[#c00015] flex items-center justify-center font-bold text-xs shrink-0 border border-red-100 shadow-2xs">
                 JW
               </div>
               <div className="min-w-0 leading-tight">
-                <p className="text-xs font-semibold text-slate-800 truncate">{adminUser.name}</p>
-                <p className="text-[10px] text-slate-500 truncate">{adminUser.email}</p>
+                <p className="text-xs font-bold text-slate-800 truncate">{adminUser.name}</p>
+                <p className="text-[10px] text-slate-400 truncate">{adminUser.email}</p>
               </div>
             </div>
 
-            <button
-              type="button"
-              title="Keluar dari Akun Admin"
-              disabled={isLoggingOut}
-              className="p-1.5 rounded-md text-slate-400 hover:text-[#c00015] hover:bg-red-50 transition cursor-pointer disabled:opacity-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </div>
+            <ChevronsUpDown className="w-4 h-4 text-slate-400 shrink-0 ml-1" />
+          </button>
         </div>
       </aside>
     </>

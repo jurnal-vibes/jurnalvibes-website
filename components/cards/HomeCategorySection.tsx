@@ -36,21 +36,23 @@ export const HomeCategorySection: React.FC<HomeCategorySectionProps> = ({
   const getCategoryLabel = (art: Article) => {
     const raw = (art.categoryLabel || art.category || 'BERITA').toUpperCase();
     if (raw === 'INFRASTRUKTUR') return 'BERITA';
-    if (raw === 'WISATA') return 'TRAVELING';
+    if (raw === 'TRAVELING') return 'WISATA';
     return raw;
   };
 
   // Gunakan murni artikel yang ada di database/sistem
   const hasArticles = articles && articles.length > 0;
-  const featured = hasArticles ? articles[0] : null;
-  const listItems = hasArticles ? articles.slice(1, 4) : [];
+  if (!hasArticles) return null;
+
+  const featured = articles[0];
+  const listItems = articles.slice(1, 4);
 
   return (
     <section className="w-full flex flex-col pt-1 sm:pt-2">
       {/* Editorial Section Header: | NAMA KATEGORI            Lihat Semua > */}
       <div className="flex items-center justify-between pb-2 mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-4 sm:h-5 bg-[#c00015] rounded-full" />
+          <span className="w-1 h-4 sm:h-5 bg-[#c00015] rounded-none shrink-0 inline-block" />
           <h3 className="font-heading font-extrabold text-sm sm:text-base text-slate-900 dark:text-zinc-100 tracking-wider uppercase">
             {title}
           </h3>

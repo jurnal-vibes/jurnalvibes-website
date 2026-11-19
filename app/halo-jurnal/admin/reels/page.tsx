@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6'
 import { Reel } from '@/types'
+import AdminToast from '@/components/admin/AdminToast'
+import { useConfirm } from '@/components/admin/AdminConfirmDialog'
 
 // Kategori Resmi Jurnal Wave (Portal Berita & Konten Kreatif)
 const JURNAL_WAVE_CATEGORIES = [
@@ -46,6 +48,7 @@ const DEFAULT_REEL_COVER =
   'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=700&q=80'
 
 export default function AdminReelsPage() {
+  const confirmDialog = useConfirm()
   const [reels, setReels] = useState<Reel[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('semua')
@@ -499,7 +502,14 @@ export default function AdminReelsPage() {
 
   // Hapus Video Reels dari Database Server
   const handleDeleteReel = async (id: string, title: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus video Reels "${title}" dari database?`)) {
+    const isConfirmed = await confirmDialog({
+      title: 'Hapus Video Reels?',
+      message: 'Yakin ingin menghapus video ini secara permanen?',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      variant: 'danger',
+    })
+    if (isConfirmed) {
       try {
         const res = await fetch(`/api/reels/${id}`, { method: 'DELETE' })
         if (!res.ok) throw new Error('Gagal menghapus video dari server')
@@ -607,20 +617,10 @@ export default function AdminReelsPage() {
       </div>
 
       {/* Toast Feedback */}
-      {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center justify-between shadow-2xs">
-          <div className="flex items-center gap-2">
-            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            <span>{toastMessage}</span>
-          </div>
-          <button
-            onClick={() => setToastMessage(null)}
-            className="text-emerald-700 hover:text-emerald-950 font-bold cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      )}
+      <AdminToast
+        message={toastMessage}
+        onClose={() => setToastMessage(null)}
+      />
 
       {/* 2. Kartu Metrik Ringkasan */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

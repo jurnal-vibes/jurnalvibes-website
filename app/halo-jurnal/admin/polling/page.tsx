@@ -17,8 +17,11 @@ import {
 } from 'lucide-react'
 import { Poll } from '@/types'
 import { DEFAULT_FALLBACK_POLL } from '@/lib/polls'
+import AdminToast from '@/components/admin/AdminToast'
+import { useConfirm } from '@/components/admin/AdminConfirmDialog'
 
 export default function AdminPollingPage() {
+  const confirmDialog = useConfirm()
   const [polls, setPolls] = useState<Poll[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -403,7 +406,14 @@ export default function AdminPollingPage() {
 
   // Hapus polling
   const handleDelete = async (pollId: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus polling ini secara permanen?')) return
+    const isConfirmed = await confirmDialog({
+      title: 'Hapus Polling?',
+      message: 'Yakin ingin menghapus polling ini secara permanen?',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      variant: 'danger',
+    })
+    if (!isConfirmed) return
 
     // 1. Update optimistik instan
     const remaining = polls.filter((p) => p.id !== pollId)
@@ -437,12 +447,10 @@ export default function AdminPollingPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 font-sans">
       {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-20 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs sm:text-sm border border-slate-700 animate-in fade-in slide-in-from-top-4 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <AdminToast
+        message={toastMessage}
+        onClose={() => setToastMessage(null)}
+      />
 
       {/* 1. Header Halaman Standar Admin */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">

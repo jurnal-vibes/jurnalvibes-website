@@ -8,13 +8,8 @@ import {
   Search,
   Send,
   Loader2,
-  ShieldCheck,
   ExternalLink,
-  User,
   RefreshCw,
-  MapPin,
-  Clock,
-  FileText,
   ArrowLeft,
   X,
 } from 'lucide-react'
@@ -373,9 +368,6 @@ function ChatDeskContent() {
           <h1 className="text-lg font-heading font-bold text-slate-900 tracking-tight">
             Pusat Chat Warga
           </h1>
-          <p className="text-xs text-slate-500">
-            Kanal koordinasi resmi redaksi dengan para pelapor aduan Sukabumi
-          </p>
         </div>
 
         <button
@@ -476,11 +468,6 @@ function ChatDeskContent() {
                         <span className="font-mono text-xs font-bold text-slate-900 shrink-0">
                           {rep.nomor_tiket}
                         </span>
-                        {isWaiting && (
-                          <span className="text-[10px] font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
-                            Butuh Balasan
-                          </span>
-                        )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {hasUnread && (
@@ -531,9 +518,6 @@ function ChatDeskContent() {
                     <ArrowLeft className="w-4 h-4 text-slate-700" />
                   </button>
 
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0 border border-slate-200">
-                    <User className="w-4 h-4 text-slate-500" />
-                  </div>
                   <div className="min-w-0">
                     <h3 className="text-xs sm:text-sm font-heading font-bold text-slate-900 truncate">
                       {currentReport.judul}
@@ -546,13 +530,6 @@ function ChatDeskContent() {
                       <span>
                         {(currentReport as any).pelaporName || (currentReport as any).nama_pelapor || 'Warga Sukabumi'}
                       </span>
-                      <span>•</span>
-                      <span className="inline-flex items-center gap-1 text-slate-600 font-medium">
-                        <ShieldCheck className="w-3 h-3 text-slate-500" />
-                        Identitas Dirahasiakan di Publik
-                      </span>
-                      <span>•</span>
-                      <span className="font-medium text-slate-600">{currentReport.is_public ? 'Tayang Publik' : 'Privat'}</span>
                     </div>
                   </div>
                 </div>
@@ -576,12 +553,9 @@ function ChatDeskContent() {
               >
                 {messages.length === 0 ? (
                   <div className="py-16 text-center text-xs text-slate-400 space-y-1.5">
-                    <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                      <MessageSquare className="w-4 h-4" />
-                    </div>
                     <p className="font-semibold text-slate-700">Belum ada percakapan langsung</p>
                     <p className="text-[11px] max-w-sm mx-auto text-slate-400">
-                      Gunakan template balasan cepat atau ketik pesan di bawah untuk memulai koordinasi resmi dengan pelapor.
+                      Ketik pesan di bawah untuk memulai koordinasi resmi dengan pelapor.
                     </p>
                   </div>
                 ) : (
@@ -597,27 +571,21 @@ function ChatDeskContent() {
                       msg.sender_name === 'Admin Redaksi' ||
                       (msg.sender_name && msg.sender_name.toLowerCase().includes('redaksi'))
 
+                    const timeStr = new Date(msg.created_at).toLocaleTimeString('id-ID', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+
                     return (
                       <div
                         key={msg.id}
                         className={`flex flex-col ${isAdmin ? 'items-end' : 'items-start'}`}
                       >
-                        <div className="flex items-center gap-1.5 mb-1 text-[10px] text-slate-400">
-                          <span
-                            className={`font-bold ${
-                              isAdmin ? 'text-[#c00015]' : 'text-slate-800'
-                            }`}
-                          >
-                            {isAdmin ? 'Redaksi Hallo Jurnal' : (msg.sender_name || msg.profiles?.full_name || 'Pelapor')}
-                          </span>
-                          <span>•</span>
-                          <span>
-                            {new Date(msg.created_at).toLocaleTimeString('id-ID', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </div>
+                        {!isAdmin && (
+                          <div className="mb-1 text-[10px] text-slate-600 font-bold">
+                            {msg.sender_name || msg.profiles?.full_name || 'Pelapor'}
+                          </div>
+                        )}
 
                         <div
                           className={`rounded-2xl px-4 py-2.5 max-w-[80%] text-xs leading-relaxed ${
@@ -661,6 +629,13 @@ function ChatDeskContent() {
                               </button>
                             )
                           })()}
+                          <div
+                            className={`text-[10px] text-right mt-1 font-medium select-none ${
+                              isAdmin ? 'text-white/80' : 'text-slate-400'
+                            }`}
+                          >
+                            {timeStr}
+                          </div>
                         </div>
                       </div>
                     )
@@ -668,47 +643,14 @@ function ChatDeskContent() {
                 )}
               </div>
 
-              {/* Pinned Bottom: Template Chips & Form Input */}
-              <div className="p-3 sm:px-4 border-t border-slate-200 bg-white space-y-2 shrink-0">
-                {/* Template Balasan Cepat Ringkas */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[10px] font-medium text-slate-400 mr-0.5">Template:</span>
-                  {[
-                    {
-                      label: 'Minta Foto Bukti',
-                      text: 'Halo Bapak/Ibu pelapor, mohon bantuannya untuk mengirimkan foto bukti tambahan terkait aduan ini.',
-                    },
-                    {
-                      label: 'Konfirmasi Patokan Titik',
-                      text: 'Mohon konfirmasi patokan atau landmark terdekat di sekitar titik lokasi untuk mempermudah tim verifikasi lapangan kami.',
-                    },
-                    {
-                      label: 'Jadwal Cek Lapangan',
-                      text: 'Tim redaksi investigasi kami saat ini sedang bergerak menuju lokasi untuk melakukan pengecekan faktual.',
-                    },
-                    {
-                      label: 'Disposisi ke Dinas',
-                      text: 'Laporan Anda telah kami teruskan secara resmi ke dinas teknis terkait untuk ditindaklanjuti secara administratif.',
-                    },
-                  ].map((tmpl, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setInputText(tmpl.text)}
-                      className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100/80 hover:bg-slate-200/70 text-slate-600 hover:text-slate-900 border border-slate-200/60 transition cursor-pointer"
-                    >
-                      {tmpl.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Form Input Kirim Pesan */}
+              {/* Pinned Bottom: Form Input */}
+              <div className="p-3 sm:px-4 border-t border-slate-200 bg-white shrink-0">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                   <input
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Tulis pesan klarifikasi resmi untuk pelapor tiket ini..."
+                    placeholder="Ketik balasan untuk pelapor..."
                     className="flex-1 px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#c00015] transition"
                   />
                   <button

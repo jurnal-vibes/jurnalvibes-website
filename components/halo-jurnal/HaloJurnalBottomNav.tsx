@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Megaphone, Compass, PlusCircle, ListChecks, Newspaper, User } from 'lucide-react'
+import { Home, Compass, PlusCircle, ListChecks, Newspaper, User } from 'lucide-react'
 
 export default function HaloJurnalBottomNav() {
   const pathname = usePathname()
@@ -66,7 +66,7 @@ export default function HaloJurnalBottomNav() {
               : 'text-on-surface-variant/75 hover:text-on-surface font-medium'
           }`}
         >
-          <Megaphone className={`w-5 h-5 ${isBeranda ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+          <Home className={`w-5 h-5 ${isBeranda ? 'stroke-[2.5px]' : 'stroke-2'}`} />
           <span className="text-[10px] mt-0.5 tracking-tight">Beranda</span>
         </Link>
 

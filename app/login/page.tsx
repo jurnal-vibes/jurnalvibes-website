@@ -103,9 +103,29 @@ function LoginPageContent() {
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* SISI KIRI: MASKOT (Proporsional di semua layar) */}
-          <div className="md:col-span-5 flex flex-col items-center justify-center pointer-events-none self-stretch">
-            <div className="relative w-full flex flex-col items-center justify-center">
+          {/* SISI KIRI: MASKOT (& Logo pada Mobile) */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center self-stretch">
+            {/* Logo Badge Resmi Hallo Jurnal - Hanya di Mobile (di Atas Maskot, Rata Kiri) */}
+            <div className="self-start flex md:hidden items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-2xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/halo-jurnal-icon.webp?v=original"
+                  alt="Hallo Jurnal Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-heading font-black text-base text-on-surface tracking-tight leading-none">
+                  Hallo Jurnal
+                </span>
+                <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">
+                  Aspirasi &amp; Aduan Sukabumi
+                </span>
+              </div>
+            </div>
+
+            <div className="relative w-full flex flex-col items-center justify-center pointer-events-none">
               <div className="absolute w-48 h-48 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -120,8 +140,8 @@ function LoginPageContent() {
           {/* SISI KANAN: FORMULIR LOGIN */}
           <div className="md:col-span-7 flex flex-col justify-center py-2">
             
-            {/* Logo Badge Resmi Hallo Jurnal */}
-            <div className="flex items-center gap-2.5 mb-3">
+            {/* Logo Badge Resmi Hallo Jurnal - Hanya di Desktop/Tablet (Seperti Semula) */}
+            <div className="hidden md:flex items-center gap-2.5 mb-3">
               <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-2xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -140,11 +160,11 @@ function LoginPageContent() {
               </div>
             </div>
 
-            <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary tracking-tight mb-2">
-              Masuk ke Akun Anda
+            <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-primary tracking-tight mb-1">
+              Masuk ke Akun
             </h1>
-            <p className="text-secondary text-xs sm:text-sm leading-relaxed max-w-lg mb-5">
-              Selamat datang kembali! Masuk untuk memantau perkembangan laporan aduan, tanggapan redaksi, dan aspirasi publik Sukabumi.
+            <p className="text-xs sm:text-sm text-secondary font-medium tracking-tight mb-5">
+              Silakan masuk ke akun Anda untuk melanjutkan.
             </p>
 
             {/* Error Alert */}
@@ -163,12 +183,32 @@ function LoginPageContent() {
               </div>
             )}
 
+            {/* Hint & Akun Uji Coba Cepat */}
+            <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-xl text-xs flex items-center justify-between gap-3">
+              <div className="flex flex-col">
+                <span className="font-semibold text-primary">Akun Uji Coba Warga:</span>
+                <span className="text-secondary text-[11px] font-mono mt-0.5">
+                  warga@jurnalwave.com / warga123
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIdentifier('warga@jurnalwave.com')
+                  setPassword('warga123')
+                }}
+                className="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[11px] transition-colors cursor-pointer shrink-0"
+              >
+                Gunakan Akun
+              </button>
+            </div>
+
             {/* Form Login Manual */}
             <form onSubmit={handleLogin} className="space-y-4">
               {/* Identitas (Email atau No HP) */}
               <div>
                 <label className="block text-xs font-semibold text-on-surface mb-1.5">
-                  Alamat Email atau Nomor WhatsApp
+                  Email atau Nomor HP
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -176,7 +216,7 @@ function LoginPageContent() {
                     type="text"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="nama@email.com atau 081234567890"
+                    placeholder="Masukkan email atau nomor HP"
                     required
                     className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                   />
@@ -202,7 +242,7 @@ function LoginPageContent() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Minimal 8 karakter"
+                    placeholder="Masukkan kata sandi"
                     required
                     className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                   />

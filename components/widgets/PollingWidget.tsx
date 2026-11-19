@@ -248,7 +248,7 @@ export const PollingWidget: React.FC<PollingWidgetProps> = ({ poll: initialPoll 
       {/* Editorial Section Header: | POLLING PEMBACA */}
       <div className="flex items-center justify-between pb-2 mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-4 sm:h-5 bg-[#c00015] rounded-full" />
+          <span className="w-1 h-4 sm:h-5 bg-[#c00015] rounded-none shrink-0 inline-block" />
           <h3 className="font-heading font-extrabold text-sm sm:text-base text-slate-900 dark:text-zinc-100 tracking-wider uppercase">
             POLLING PEMBACA
           </h3>
@@ -259,24 +259,19 @@ export const PollingWidget: React.FC<PollingWidgetProps> = ({ poll: initialPoll 
       </div>
 
       {/* Outer Card Container Sesuai Standar Portal Berita */}
-      <div className="w-full bg-white dark:bg-zinc-900/60 border border-slate-200/90 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-3 sm:p-5 md:p-6 shadow-xs">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6 md:gap-8 items-start w-full">
-          {/* Kolom Kiri: Konteks & Pertanyaan Editorial */}
-          <div className="flex flex-col">
-            {poll.category && (
-              <span className="text-[#c00015] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider mb-1">
-                {poll.category}
-              </span>
-            )}
-            <h4 className="font-heading font-bold text-xs sm:text-sm md:text-base text-slate-900 dark:text-zinc-100 leading-snug mb-2">
+      <div className="w-full bg-white dark:bg-zinc-900/60 border border-slate-200/90 dark:border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-stretch w-full">
+          {/* Kolom Kiri: Pertanyaan Editorial & Info Status Berbobot */}
+          <div className="flex flex-col justify-between">
+            <h4 className="font-heading font-bold text-sm sm:text-base md:text-lg text-slate-900 dark:text-zinc-100 leading-snug">
               {poll.question}
             </h4>
 
-            <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-500 dark:text-zinc-400">
-              <span>
+            <div className="mt-4 pt-3 sm:pt-4 border-t border-slate-200/80 dark:border-zinc-800 flex items-center justify-between text-xs sm:text-sm gap-2">
+              <span className={`font-medium ${hasVoted ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-500 dark:text-zinc-400'}`}>
                 {hasVoted ? '✓ Pilihan Anda telah tercatat' : 'Pilih salah satu untuk melihat hasil'}
               </span>
-              <span className="font-semibold text-slate-700 dark:text-zinc-300">
+              <span className="font-bold text-slate-800 dark:text-zinc-200 shrink-0">
                 {totalVotes.toLocaleString('id-ID')} suara masuk
               </span>
             </div>

@@ -97,35 +97,40 @@ export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
   const hasMore = filteredArticles.length > visibleCount;
 
   // Judul dinamis sesuai sub-kategori
-  let pageTitle = 'Semua Berita';
-  let pageSubtitle = 'Kumpulan liputan berita terlengkap dan terhangat seputar Sukabumi dan sekitarnya';
+  let pageTitle = 'Semua Artikel';
+  let pageSubtitle = 'Kumpulan artikel terlengkap dan terhangat seputar Sukabumi dan sekitarnya';
 
   if (sub === 'kampus') {
-    pageTitle = 'Berita Kampus';
+    pageTitle = 'Artikel Kampus';
     pageSubtitle = 'Kabar seputar civitas akademika, prestasi mahasiswa, dan info kampus Sukabumi';
   } else if (sub === 'sekolah') {
-    pageTitle = 'Berita Sekolah';
+    pageTitle = 'Artikel Sekolah';
     pageSubtitle = 'Informasi seputar prestasi siswa, kegiatan ekstrakurikuler, dan kabar sekolah Sukabumi';
   }
 
   return (
-    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 flex flex-col min-w-0">
+    <div className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 flex flex-col min-w-0">
       {/* Header dengan Sub-Kategori Aktif */}
-      <header className="flex flex-col gap-2.5 mb-8 pb-4 border-b border-outline-variant/50">
+      <header className="flex flex-col gap-2 mb-6 pb-3 border-b border-outline-variant/40">
         {sub && (
           <Link
-            href="/berita"
+            href="/artikel"
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline mb-1 self-start cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Kembali ke Semua Berita</span>
+            <span>Kembali ke Semua Artikel</span>
           </Link>
         )}
 
         <div>
-          <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold font-headline-xl text-on-surface tracking-tight">
             {pageTitle}
           </h1>
+          {pageSubtitle && (
+            <p className="mt-1 text-xs sm:text-sm text-on-surface-variant font-normal">
+              {pageSubtitle}
+            </p>
+          )}
         </div>
       </header>
 
@@ -162,10 +167,10 @@ export function BeritaClient({ initialArticles = [] }: BeritaClientProps) {
           {sub && (
             <div className="pt-2">
               <Link
-                href="/berita"
+                href="/artikel"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary hover:bg-primary-dark text-white text-xs font-bold transition shadow-2xs"
               >
-                Lihat Semua Berita
+                Lihat Semua Artikel
               </Link>
             </div>
           )}

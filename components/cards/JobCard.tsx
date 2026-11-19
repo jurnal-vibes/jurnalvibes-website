@@ -93,7 +93,7 @@ export const formatJobDate = (dateStr?: string) => {
 };
 
 export const JobCard: React.FC<JobCardProps> = ({ job }) => {
-  const [isSaved, setIsSaved] = useState<boolean>(() => (job?.id ? isJobSaved(job.id) : false));
+  const [isSaved, setIsSaved] = useState<boolean>(false);
   const RoleIcon = getJobRoleIcon(job.title, job.company);
 
   useEffect(() => {

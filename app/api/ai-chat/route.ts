@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { findRelevantSukabumiKnowledge } from '@/data/sukabumiKnowledge'
 
-const SYSTEM_PROMPT = `Anda adalah "Jurnal Wave AI", asisten virtual resmi untuk portal berita Jurnal Wave dan layanan pengaduan warga Hallo Jurnal Sukabumi.
+const SYSTEM_PROMPT = `Anda adalah asisten virtual resmi untuk portal berita Jurnal Wave dan layanan pengaduan warga Hallo Jurnal Sukabumi.
 
 Aturan Penting Format & Gaya Menjawab:
 1. DILARANG KERAS menggunakan simbol bintang (*) sama sekali. Jangan gunakan tanda bintang tunggal (*) maupun ganda (**) untuk mencetak tebal, miring, atau penanda daftar. Tulis teks secara bersih dan mengalir natural.
@@ -47,15 +47,15 @@ function generateSmartFallback(query: string): string {
   }
 
   if (lower.includes('cuaca') || lower.includes('hujan') || lower.includes('panas')) {
-    return '⛅ **Prakiraan Cuaca Sukabumi:**\n\nKamu bisa memantau prakiraan cuaca realtime, suhu udara, kelembaban, dan potensi hujan di Kota maupun Kabupaten Sukabumi melalui halaman **/cuaca**.'
+    return '⛅ **Prakiraan Cuaca Sukabumi Hari Ini:**\n\nKamu bisa memantau prakiraan cuaca satelit real-time, grafik suhu per jam, kelembaban, dan proyeksi cuaca 7 hari ke depan untuk Kota dan Kabupaten Sukabumi langsung di halaman **/cuaca**.'
   }
 
-  if (lower.includes('berita') || lower.includes('terkini') || lower.includes('hari ini') || lower.includes('update')) {
-    return '📰 **Berita Terkini Sukabumi & Nasional:**\n\nJurnal Wave menyajikan liputan hangat dari berbagai kategori: **Tech, Science, Sport, Lifestyle, Otomotif, dan Health**. Telusuri beranda kami untuk membaca laporan investigasi dan berita terbaru hari ini!'
+  if (lower.includes('berita') || lower.includes('artikel') || lower.includes('terkini') || lower.includes('hari ini') || lower.includes('update')) {
+    return '📰 **Artikel & Berita Terkini Sukabumi:**\n\nJurnal Wave menyajikan liputan hangat dari berbagai kategori: **Berita, Lifestyle, Kuliner, Wisata, Tech & Game, Sport, dan Inspirasi**. Telusuri beranda kami untuk membaca artikel terbaru hari ini!'
   }
 
   if (lower.includes('halo') || lower.includes('hai') || lower.includes('pagi') || lower.includes('siang') || lower.includes('malam') || lower.includes('sampurasun')) {
-    return 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada yang bisa saya bantu terkait berita Sukabumi, kuliner hits, info loker, atau cara lapor aduan di Hallo Jurnal?'
+    return 'Halo! Selamat datang di Jurnal Wave 👋\nMau cari info apa hari ini? Tanyakan apa saja, saya siap membantu!'
   }
 
   return `✨ Terima kasih atas pertanyaannya! Saya adalah asisten cerdas Jurnal Wave. 

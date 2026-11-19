@@ -92,70 +92,74 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
   // Tampilkan seluruh artikel terkini sesuai urutan publikasi redaksi
   const displayArticles = articles;
 
-  // Filter 4 Kategori Unggulan Jurnal Wave (Murni dari Database)
-  const lifestyleArticles = articles.filter(
+  // Filter 7 Kategori Resmi Jurnal Wave (Murni dari Database & Sistem)
+  const beritaArticles = articles.filter(
     a =>
-      a.category === 'lifestyle' ||
+      a.category === 'berita' ||
+      (a.categoryLabel && a.categoryLabel.toUpperCase() === 'BERITA') ||
+      ((a.subCategory || '').toUpperCase() === 'BERITA')
+  );
+
+  const kulinerArticles = articles.filter(
+    a =>
       a.category === 'kuliner' ||
-      ['LIFESTYLE', 'KULINER', 'FASHION'].includes((a.categoryLabel || '').toUpperCase()) ||
+      (a.categoryLabel && a.categoryLabel.toUpperCase() === 'KULINER') ||
       ((a.subCategory || '').toUpperCase() === 'KULINER')
+  );
+
+  const wisataArticles = articles.filter(
+    a =>
+      a.category === 'wisata' ||
+      ['WISATA', 'TRAVELING'].includes((a.categoryLabel || '').toUpperCase()) ||
+      ((a.subCategory || '').toUpperCase() === 'WISATA')
+  );
+
+  const hiburanArticles = articles.filter(
+    a =>
+      a.category === 'hiburan' ||
+      ['HIBURAN', 'ENTERTAINMENT'].includes((a.categoryLabel || '').toUpperCase()) ||
+      ((a.subCategory || '').toUpperCase() === 'HIBURAN')
   );
 
   const techArticles = articles.filter(
     a =>
       a.category === 'tech' ||
-      (a.categoryLabel && a.categoryLabel.toUpperCase() === 'TECH') ||
-      (a.categoryLabel && a.categoryLabel.toUpperCase() === 'TEKNOLOGI') ||
+      ['TECH', 'TECH & GAME', 'TEKNOLOGI', 'GAME'].includes((a.categoryLabel || '').toUpperCase()) ||
       ((a.subCategory || '').toUpperCase() === 'TECH')
   );
 
   const sportArticles = articles.filter(
     a =>
       a.category === 'sport' ||
-      (a.categoryLabel && a.categoryLabel.toUpperCase() === 'SPORT') ||
+      ['SPORT', 'OLAHRAGA'].includes((a.categoryLabel || '').toUpperCase()) ||
       ((a.subCategory || '').toUpperCase() === 'SPORT')
   );
 
-  const otomotifArticles = articles.filter(
+  const inspirasiArticles = articles.filter(
     a =>
-      a.category === 'otomotif' ||
-      (a.categoryLabel && a.categoryLabel.toUpperCase() === 'OTOMOTIF') ||
-      ((a.subCategory || '').toUpperCase() === 'OTOMOTIF')
-  );
-
-  const scienceArticles = articles.filter(
-    a =>
-      a.category === 'science' ||
-      (a.category as string) === 'sains' ||
-      ['SCIENCE', 'SAINS'].includes((a.categoryLabel || '').toUpperCase()) ||
-      ['SCIENCE', 'SAINS'].includes((a.subCategory || '').toUpperCase())
-  );
-
-  const healthArticles = articles.filter(
-    a =>
-      a.category === 'health' ||
-      (a.category as string) === 'kesehatan' ||
-      ['HEALTH', 'KESEHATAN'].includes((a.categoryLabel || '').toUpperCase()) ||
-      ['HEALTH', 'KESEHATAN'].includes((a.subCategory || '').toUpperCase())
+      a.category === 'inspirasi' ||
+      a.category === 'lifestyle' ||
+      ['INSPIRASI', 'LIFESTYLE', 'KOMUNITAS', 'TOKOH', 'KREATIF'].includes((a.categoryLabel || '').toUpperCase()) ||
+      ((a.subCategory || '').toUpperCase() === 'INSPIRASI')
   );
 
   return (
-    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
+    <div className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
       <main className="w-full flex flex-col gap-7 sm:gap-9">
         {/* 1. Hero / Headline Carousel */}
         <HeroCarousel articles={articles} />
 
-        {/* 2. Section: Berita Terkini */}
+        {/* 2. Section: Artikel Terkini */}
         <div className="w-full flex flex-col">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 pb-2 mb-3">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-4 sm:h-5 bg-[#c00015] rounded-full" />
+              <span className="w-1 h-4 sm:h-5 bg-[#c00015] rounded-none shrink-0 inline-block" />
               <h2 className="text-sm sm:text-base font-heading font-extrabold text-slate-900 dark:text-zinc-100 tracking-wider uppercase">
-                BERITA TERKINI
+                ARTIKEL TERKINI
               </h2>
             </div>
             <Link
-              href="/berita"
+              href="/artikel"
               className="text-xs font-semibold text-[#c00015] hover:text-[#a00012] flex items-center gap-0.5 group transition-colors"
             >
               <span>Lihat Semua</span>
@@ -165,7 +169,7 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
 
           {displayArticles.length > 0 ? (
             <div className="flex flex-col divide-y divide-slate-100 dark:divide-zinc-800/80">
-              {displayArticles.slice(0, 5).map(article => (
+              {displayArticles.slice(0, 8).map(article => (
                 <NewsCard key={article.id} article={article} variant="row" />
               ))}
             </div>
@@ -182,61 +186,69 @@ export function HomeClient({ initialArticles = [], initialReels = [] }: HomeClie
           ) : null}
         </div>
 
-        {/* 3. Kategori 1: LIFESTYLE (Layout Seling: 1 Besar di Kiri, Kartu Kecil di Kanan) */}
+        {/* 3. Kategori 1: BERITA */}
         <HomeCategorySection
-          title="LIFESTYLE"
-          href="/lifestyle"
-          articles={lifestyleArticles}
+          title="BERITA"
+          href="/berita"
+          articles={beritaArticles}
           reverseLayout={false}
         />
 
-        {/* 4. Kategori 2: TEKNOLOGI (Layout Seling: Kartu Kecil di Kiri, 1 Besar di Kanan) */}
+        {/* 4. Kategori 2: KULINER (Layout Seling: Kartu Kecil di Kiri, 1 Besar di Kanan) */}
         <HomeCategorySection
-          title="TEKNOLOGI"
-          href="/tech"
-          articles={techArticles}
+          title="KULINER"
+          href="/kuliner"
+          articles={kulinerArticles}
           reverseLayout={true}
         />
 
-        {/* 5. Polling Pembaca (Jeda Interaktif di Tengah Halaman) */}
+        {/* 5. Kategori 3: WISATA */}
+        <HomeCategorySection
+          title="WISATA"
+          href="/wisata"
+          articles={wisataArticles}
+          reverseLayout={false}
+        />
+
+        {/* 6. Kategori 4: HIBURAN (Layout Seling) */}
+        <HomeCategorySection
+          title="HIBURAN"
+          href="/hiburan"
+          articles={hiburanArticles}
+          reverseLayout={true}
+        />
+
+        {/* 7. Polling Pembaca (Jeda Interaktif di Tengah Halaman) */}
         <PollingWidget />
 
-        {/* 6. Hallo Jurnal Action Banner (Pemisah ritme visual di tengah halaman) */}
+        {/* 8. Hallo Jurnal Action Banner (Pemisah ritme visual di tengah halaman) */}
         <HalloJurnalBanner />
 
-        {/* 6. Kategori 3: SPORT & E-SPORT (Layout Seling: 1 Besar di Kiri, Kartu Kecil di Kanan) */}
+        {/* 9. Kategori 5: TECH & GAME */}
         <HomeCategorySection
-          title="SPORT & E-SPORT"
+          title="TECH & GAME"
+          href="/tech"
+          articles={techArticles}
+          reverseLayout={false}
+        />
+
+        {/* 10. Kategori 6: SPORT (Layout Seling) */}
+        <HomeCategorySection
+          title="SPORT"
           href="/sport"
           articles={sportArticles}
-          reverseLayout={false}
-        />
-
-        {/* 7. Kategori 4: OTOMOTIF (Layout Seling: Kartu Kecil di Kiri, 1 Besar di Kanan) */}
-        <HomeCategorySection
-          title="OTOMOTIF"
-          href="/otomotif"
-          articles={otomotifArticles}
           reverseLayout={true}
         />
 
-        {/* 8. Kategori 5: SCIENCE (Layout Seling: 1 Besar di Kiri, Kartu Kecil di Kanan) */}
+        {/* 11. Kategori 7: INSPIRASI */}
         <HomeCategorySection
-          title="SCIENCE"
-          href="/science"
-          articles={scienceArticles}
+          title="INSPIRASI"
+          href="/inspirasi"
+          articles={inspirasiArticles}
           reverseLayout={false}
         />
 
-        {/* 9. Kategori 6: HEALTH (Layout Seling: Kartu Kecil di Kiri, 1 Besar di Kanan) */}
-        <HomeCategorySection
-          title="HEALTH"
-          href="/health"
-          articles={healthArticles}
-          reverseLayout={true}
-        />
-
-        {/* 10. Wave Reels Compact Carousel */}
+        {/* 12. Wave Reels Compact Carousel */}
         <ReelsSection reels={initialReels} limit={8} />
       </main>
     </div>

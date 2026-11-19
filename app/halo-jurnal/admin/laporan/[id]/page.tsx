@@ -23,8 +23,10 @@ import {
   Loader2,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
+import { useConfirm } from '@/components/admin/AdminConfirmDialog'
 
 export default function AdminDetailLaporanPage() {
+  const confirmDialog = useConfirm()
   const router = useRouter()
   const params = useParams()
   const id = params?.id as string
@@ -407,11 +409,14 @@ export default function AdminDetailLaporanPage() {
   }
 
   const handleDeleteReport = async () => {
-    if (
-      !confirm(
-        `Apakah Anda yakin ingin menghapus aduan "${report.nomor_tiket}" secara permanen? Data yang dihapus tidak dapat dipulihkan.`
-      )
-    ) {
+    const isConfirmed = await confirmDialog({
+      title: 'Hapus Aduan?',
+      message: 'Yakin ingin menghapus aduan ini secara permanen?',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      variant: 'danger',
+    })
+    if (!isConfirmed) {
       return
     }
 
@@ -643,9 +648,7 @@ export default function AdminDetailLaporanPage() {
             {/* Identitas Pelapor Terintegrasi */}
             {(() => {
               const rawPhone = (report as any)?.phone || (report as any)?.pelaporPhone || (report as any)?.telepon || '081234567890'
-              const cleanWaNumber = rawPhone.replace(/[^0-9]/g, '').replace(/^0/, '62')
               const pelaporNama = (report as any)?.pelaporName || (report as any)?.nama_pelapor || 'Warga Sukabumi'
-              const waUrl = `https://wa.me/${cleanWaNumber}?text=Halo%20${encodeURIComponent(pelaporNama)},%20kami%20dari%20Tim%20Redaksi%20Jurnal%20Sukabumi%20ingin%20mengonfirmasi%20laporan%20nomor%20${encodeURIComponent(report.nomor_tiket)}.`
 
               return (
                 <div className="pt-3 border-t border-slate-100 space-y-3 text-xs">
@@ -665,32 +668,21 @@ export default function AdminDetailLaporanPage() {
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
-                        
-                        <span>Kontak WA: <strong>{rawPhone}</strong></span>
+                        <span>Kontak Telepon: <strong>{rawPhone}</strong></span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Tombol Aksi Komunikasi Redaksi: Bersih, Rapi, Sejajar & Tidak Terpotong */}
+                  {/* Tombol Aksi Komunikasi Redaksi: Chat Web Resmi */}
                   <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <a
-                      href={waUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs whitespace-nowrap transition shadow-2xs cursor-pointer"
-                      title="Buka WhatsApp Pelapor"
-                    >
-                      <Phone className="w-3.5 h-3.5" />
-                      <span>Hubungi via WhatsApp</span>
-                    </a>
-                    <a
+                    <Link
                       href={`/halo-jurnal/admin/chat?ticket=${report.nomor_tiket || report.id}`}
-                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs border border-slate-200 whitespace-nowrap transition shadow-2xs cursor-pointer"
-                      title="Buka Ruang Obrolan Web"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#c00015] hover:bg-[#a80012] text-white font-bold text-xs whitespace-nowrap transition shadow-2xs active:scale-95 cursor-pointer"
+                      title="Buka Ruang Obrolan Web Resmi Hallo Jurnal"
                     >
-                      <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Buka Chat di Web</span>
-                    </a>
+                      <MessageSquare className="w-4 h-4" />
+                      <span>Buka Chat dengan Pelapor</span>
+                    </Link>
                   </div>
 
                   {/* Status Pernyataan Hukum */}

@@ -70,12 +70,46 @@ export const CategoryTemplate: React.FC<CategoryTemplateProps> = ({
           catLabel.includes('olahraga')
         );
       }
-      if (target === 'tech') {
+      if (target === 'tech' || target === 'tech & game') {
         return (
           cat === 'tech' ||
+          cat === 'game' ||
           catLabel.includes('tech') ||
           catLabel.includes('teknologi') ||
+          catLabel.includes('game') ||
           subCat.includes('tech')
+        );
+      }
+      if (target === 'kuliner') {
+        return (
+          cat === 'kuliner' ||
+          catLabel.includes('kuliner') ||
+          subCat.includes('culinary') ||
+          subCat.includes('kuliner')
+        );
+      }
+      if (target === 'wisata') {
+        return (
+          cat === 'wisata' ||
+          catLabel.includes('wisata') ||
+          subCat.includes('traveling') ||
+          subCat.includes('wisata')
+        );
+      }
+      if (target === 'hiburan') {
+        return (
+          cat === 'hiburan' ||
+          catLabel.includes('hiburan') ||
+          subCat.includes('hiburan') ||
+          catLabel.includes('musik') ||
+          catLabel.includes('film')
+        );
+      }
+      if (target === 'inspirasi') {
+        return (
+          cat === 'inspirasi' ||
+          catLabel.includes('inspirasi') ||
+          subCat.includes('inspirasi')
         );
       }
       if (target === 'berita') {
@@ -151,11 +185,16 @@ export const CategoryTemplate: React.FC<CategoryTemplateProps> = ({
   }, [categoryName, initialArticles, matchCategory]);
 
   return (
-    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 flex flex-col min-w-0">
-      <header className="flex flex-col gap-2.5 mb-8 pb-4 border-b border-outline-variant/50">
-        <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
+    <div className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 flex flex-col min-w-0">
+      <header className="flex flex-col gap-1.5 mb-6 pb-3 border-b border-outline-variant/40">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold font-headline-xl text-on-surface tracking-tight">
           {title}
         </h1>
+        {description && (
+          <p className="text-xs sm:text-sm text-on-surface-variant font-normal">
+            {description}
+          </p>
+        )}
       </header>
 
       {articles.length > 0 ? (

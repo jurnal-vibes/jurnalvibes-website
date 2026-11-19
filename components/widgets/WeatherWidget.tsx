@@ -112,26 +112,26 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   }
 
   return (
-    <div className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full bg-surface-container-low/90 hover:bg-surface-container border border-outline-variant/40 hover:border-outline-variant/80 shadow-2xs hover:shadow-xs transition-all duration-200 shrink-0">
+    <div className="flex items-center gap-1.5 sm:gap-2 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-surface-container-low/90 hover:bg-surface-container border border-outline-variant/40 hover:border-outline-variant/80 shadow-2xs hover:shadow-xs transition-all duration-200 shrink-0">
       {/* Date / Calendar Part (Format SukabumiUpdate) */}
       <Link
-        href="/indeks-berita?preset=hari-ini"
+        href="/indeks-berita"
         className="flex items-center gap-1 sm:gap-1.5 text-slate-700 dark:text-slate-200 hover:text-primary transition-colors cursor-pointer group"
-        title="Lihat Berita Hari Ini di Indeks Berita"
+        title="Lihat Indeks Berita Terkini"
       >
-        <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 dark:text-slate-400 shrink-0 group-hover:text-primary transition-colors" />
+        <Calendar className="w-3 h-3 text-slate-500 dark:text-slate-400 shrink-0 group-hover:text-primary transition-colors" />
         {/* Desktop Luas: Minggu, 25 Oktober 2026 */}
-        <span className="hidden xl:inline text-xs font-semibold whitespace-nowrap">
+        <span className="hidden xl:inline text-[11px] font-semibold whitespace-nowrap">
           {fullDate}
         </span>
         {/* Tablet / Small Laptop / Desktop-mode di HP: 25 Okt 2026 */}
-        <span className="xl:hidden text-[10px] sm:text-xs font-semibold whitespace-nowrap">
+        <span className="xl:hidden text-[10px] sm:text-[11px] font-semibold whitespace-nowrap">
           {shortDate}
         </span>
       </Link>
 
       {/* Divider */}
-      <span className="w-px h-2.5 sm:h-3.5 bg-outline-variant/60 shrink-0" />
+      <span className="w-px h-2.5 sm:h-3 bg-outline-variant/60 shrink-0" />
 
       {/* Weather Part (Ikon Awan + Suhu disempilkan) */}
       <Link
@@ -140,9 +140,9 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         title={`Cuaca Sukabumi: ${currentCondition} ${currentTemp}. Klik untuk detail prakiraan cuaca.`}
       >
         <div className="flex items-center justify-center shrink-0">
-          {renderIcon('w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 group-hover:scale-110 transition-transform shrink-0')}
+          {renderIcon('w-3 h-3 text-amber-500 group-hover:scale-110 transition-transform shrink-0')}
         </div>
-        <span className="font-bold text-[10px] sm:text-xs text-on-surface whitespace-nowrap group-hover:text-primary transition-colors">
+        <span className="font-bold text-[10px] sm:text-[11px] text-on-surface whitespace-nowrap group-hover:text-primary transition-colors">
           {currentTemp}
         </span>
       </Link>

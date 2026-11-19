@@ -29,7 +29,15 @@ const MONTH_NAMES_FULL = [
 
 const DAY_NAMES = ['SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB', 'MIN'];
 
-type QuickPreset = 'hari-ini' | '7-hari' | '30-hari' | 'bulan-ini' | 'bulan-lalu' | 'custom';
+type QuickPreset = 'hari-ini' | '7-hari' | '30-hari' | 'custom';
+
+const START_YEAR = 2026;
+const CURRENT_YEAR = new Date().getFullYear();
+// Opsi A: Mulai dari 2026 (tahun berdiri portal) hingga tahun berjalan
+const AVAILABLE_YEARS = Array.from(
+  { length: Math.max(1, CURRENT_YEAR - START_YEAR + 1) },
+  (_, i) => START_YEAR + i
+);
 
 function formatDisplayDate(d: Date): string {
   const day = d.getDate();
@@ -38,7 +46,18 @@ function formatDisplayDate(d: Date): string {
   return `${day} ${month} ${year}`;
 }
 
+function isSameDay(d1: Date, d2: Date): boolean {
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+}
+
 function formatDateRange(start: Date, end: Date): string {
+  if (isSameDay(start, end)) {
+    return formatDisplayDate(start);
+  }
   return `${formatDisplayDate(start)}  -  ${formatDisplayDate(end)}`;
 }
 
@@ -52,14 +71,6 @@ function endOfDay(date: Date): Date {
   const d = new Date(date);
   d.setHours(23, 59, 59, 999);
   return d;
-}
-
-function isSameDay(d1: Date, d2: Date): boolean {
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  );
 }
 
 function parseArticleDate(article: Article): Date | null {
@@ -118,6 +129,8 @@ export function IndeksBeritaClient() {
 
   // Month navigation for dual calendar: viewMonth is the second month (right)
   const [viewMonth, setViewMonth] = useState<Date>(new Date(now.getFullYear(), now.getMonth(), 1));
+  const monthA = useMemo(() => new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1), [viewMonth]);
+  const monthB = viewMonth;
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -156,7 +169,7 @@ export function IndeksBeritaClient() {
     setIsFilterOpen(false);
   };
 
-  // Preset Handler
+  // Preset Handler (Hanya: Hari Ini, 7 Hari, 30 Hari)
   const handleSelectPreset = (preset: QuickPreset) => {
     const today = new Date();
     let s = new Date(today);
@@ -171,12 +184,6 @@ export function IndeksBeritaClient() {
     } else if (preset === '30-hari') {
       s = normalizeDay(new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000));
       e = endOfDay(today);
-    } else if (preset === 'bulan-ini') {
-      s = new Date(today.getFullYear(), today.getMonth(), 1);
-      e = endOfDay(new Date(today.getFullYear(), today.getMonth() + 1, 0));
-    } else if (preset === 'bulan-lalu') {
-      s = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-      e = endOfDay(new Date(today.getFullYear(), today.getMonth(), 0));
     }
 
     setTempStartDate(s);
@@ -184,6 +191,35 @@ export function IndeksBeritaClient() {
     setTempPreset(preset);
     setSelectingStart(false);
     setViewMonth(new Date(e.getFullYear(), e.getMonth(), 1));
+  };
+
+  // Reset pada modal filter
+  const handleModalReset = () => {
+    const today = new Date();
+    const s = normalizeDay(new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000));
+    const e = endOfDay(today);
+    setTempStartDate(s);
+    setTempEndDate(e);
+    setTempPreset('30-hari');
+    setSelectingStart(false);
+    setViewMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+  };
+
+  // Ganti Bulan & Tahun Langsung dari Kalender
+  const handleSelectMonth = (newMonth: number, isLeft: boolean) => {
+    if (isLeft) {
+      setViewMonth(new Date(monthA.getFullYear(), newMonth + 1, 1));
+    } else {
+      setViewMonth(new Date(viewMonth.getFullYear(), newMonth, 1));
+    }
+  };
+
+  const handleSelectYear = (newYear: number, isLeft: boolean) => {
+    if (isLeft) {
+      setViewMonth(new Date(newYear, monthA.getMonth() + 1, 1));
+    } else {
+      setViewMonth(new Date(newYear, viewMonth.getMonth(), 1));
+    }
   };
 
   // Calendar Click Handler
@@ -214,13 +250,38 @@ export function IndeksBeritaClient() {
     setCurrentPage(1);
   };
 
-  // Navigasi Bulan di Dual Calendar
+  const handleReset30Days = () => {
+    const today = new Date();
+    const s = normalizeDay(new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000));
+    const e = endOfDay(today);
+    setStartDate(s);
+    setEndDate(e);
+    setActivePreset('30-hari');
+    setTempStartDate(s);
+    setTempEndDate(e);
+    setTempPreset('30-hari');
+    setCurrentPage(1);
+  };
+
+  // Navigasi Bulan di Dual Calendar (Kunci dari START_YEAR 2026 hingga bulan saat ini)
+  const canGoPrev = viewMonth.getFullYear() > START_YEAR || viewMonth.getMonth() > 0;
+  const canGoNext = viewMonth.getTime() < new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
   const handlePrevMonth = () => {
-    setViewMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setViewMonth(prev => {
+      const prevDate = new Date(prev.getFullYear(), prev.getMonth() - 1, 1);
+      if (prevDate.getFullYear() < START_YEAR) return prev;
+      return prevDate;
+    });
   };
 
   const handleNextMonth = () => {
-    setViewMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setViewMonth(prev => {
+      const nextDate = new Date(prev.getFullYear(), prev.getMonth() + 1, 1);
+      const maxDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      if (nextDate.getTime() > maxDate.getTime()) return prev;
+      return nextDate;
+    });
   };
 
   // Hitung durasi hari
@@ -244,7 +305,7 @@ export function IndeksBeritaClient() {
     return result;
   }, [articles, startDate, endDate]);
 
-  // Pagination Calculation
+  // Pagination Calculation (Filter Ketat & Akurat)
   const totalArticles = filteredArticles.length;
   const totalPages = Math.max(1, Math.ceil(totalArticles / ITEMS_PER_PAGE));
   const displayedArticles = useMemo(() => {
@@ -260,7 +321,7 @@ export function IndeksBeritaClient() {
   };
 
   // Render Calendar Grid Helper (Indonesian: Senin pertama = col 0)
-  const renderCalendarMonth = (monthDate: Date) => {
+  const renderCalendarMonth = (monthDate: Date, isLeft: boolean = false) => {
     const year = monthDate.getFullYear();
     const month = monthDate.getMonth();
     const firstDayOfMonth = new Date(year, month, 1);
@@ -292,8 +353,39 @@ export function IndeksBeritaClient() {
 
     return (
       <div className="flex flex-col">
-        <div className="text-center font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 py-1.5">
-          {MONTH_NAMES_FULL[month]} {year}
+        {/* Header Bulan & Tahun Interaktif (Bisa Diklik & Dipilih Bebas) */}
+        <div className="flex items-center justify-center gap-1.5 py-1">
+          <div className="relative inline-flex items-center">
+            <select
+              value={month}
+              onChange={(e) => handleSelectMonth(Number(e.target.value), isLeft)}
+              aria-label="Pilih Bulan"
+              className="appearance-none bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 rounded-lg pl-2 sm:pl-2.5 pr-5 sm:pr-6 py-1 cursor-pointer transition border border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-1 focus:ring-[#c00015]"
+            >
+              {MONTH_NAMES_FULL.map((name, idx) => (
+                <option key={name} value={idx} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3 h-3 text-slate-500 absolute right-1.5 pointer-events-none" />
+          </div>
+
+          <div className="relative inline-flex items-center">
+            <select
+              value={year}
+              onChange={(e) => handleSelectYear(Number(e.target.value), isLeft)}
+              aria-label="Pilih Tahun"
+              className="appearance-none bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 rounded-lg pl-2 sm:pl-2.5 pr-5 sm:pr-6 py-1 cursor-pointer transition border border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-1 focus:ring-[#c00015]"
+            >
+              {AVAILABLE_YEARS.map((y) => (
+                <option key={y} value={y} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {y}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3 h-3 text-slate-500 absolute right-1.5 pointer-events-none" />
+          </div>
         </div>
         <div className="grid grid-cols-7 gap-1 mt-2 text-center text-[10px] sm:text-[11px] font-semibold text-slate-400">
           {DAY_NAMES.map(name => (
@@ -339,10 +431,6 @@ export function IndeksBeritaClient() {
     );
   };
 
-  // Month A: Bulan sebelumnya, Month B: Bulan viewMonth
-  const monthA = new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1);
-  const monthB = viewMonth;
-
   return (
     <div className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-16 min-w-0" ref={listTopRef}>
       {/* ============================================================== */}
@@ -382,8 +470,6 @@ export function IndeksBeritaClient() {
                   { key: 'hari-ini', label: 'Hari Ini' },
                   { key: '7-hari', label: '7 Hari' },
                   { key: '30-hari', label: '30 Hari' },
-                  { key: 'bulan-ini', label: 'Bulan Ini' },
-                  { key: 'bulan-lalu', label: 'Bulan Lalu' },
                 ].map(item => {
                   const isActive = tempPreset === item.key;
                   return (
@@ -415,8 +501,6 @@ export function IndeksBeritaClient() {
                       { key: 'hari-ini', label: 'Hari Ini' },
                       { key: '7-hari', label: '7 Hari Terakhir' },
                       { key: '30-hari', label: '30 Hari Terakhir' },
-                      { key: 'bulan-ini', label: 'Bulan Ini' },
-                      { key: 'bulan-lalu', label: 'Bulan Lalu' },
                     ].map(item => {
                       const isActive = tempPreset === item.key;
                       return (
@@ -445,8 +529,13 @@ export function IndeksBeritaClient() {
                     <button
                       type="button"
                       onClick={handlePrevMonth}
+                      disabled={!canGoPrev}
                       aria-label="Bulan Sebelumnya"
-                      className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition cursor-pointer"
+                      className={`p-1.5 rounded-lg transition ${
+                        canGoPrev
+                          ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 cursor-pointer'
+                          : 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-40'
+                      }`}
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
@@ -456,8 +545,13 @@ export function IndeksBeritaClient() {
                     <button
                       type="button"
                       onClick={handleNextMonth}
+                      disabled={!canGoNext}
                       aria-label="Bulan Berikutnya"
-                      className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition cursor-pointer"
+                      className={`p-1.5 rounded-lg transition ${
+                        canGoNext
+                          ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 cursor-pointer'
+                          : 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-40'
+                      }`}
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -466,10 +560,10 @@ export function IndeksBeritaClient() {
                   {/* Kalender Grid: 1 bulan di HP, 2 bulan berdampingan di sm/md */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="hidden sm:block">
-                      {renderCalendarMonth(monthA)}
+                      {renderCalendarMonth(monthA, true)}
                     </div>
                     <div>
-                      {renderCalendarMonth(monthB)}
+                      {renderCalendarMonth(monthB, false)}
                     </div>
                   </div>
                 </div>
@@ -478,9 +572,13 @@ export function IndeksBeritaClient() {
 
             {/* Modal Footer (Sticky Shrink-0) */}
             <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-50/80 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 shrink-0">
-              <span className="px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300">
-                {tempDurationDays} hari
-              </span>
+              <button
+                type="button"
+                onClick={handleModalReset}
+                className="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition active:scale-95 cursor-pointer shadow-2xs"
+              >
+                Reset
+              </button>
 
               <div className="flex items-center gap-2">
                 <button
@@ -510,34 +608,29 @@ export function IndeksBeritaClient() {
         {/* Kolom Kiri: Header INDEKS BERITA + Daftar Berita Berkotak + Pagination */}
         <main className="lg:col-span-8 flex flex-col gap-4 sm:gap-5 min-w-0">
           {/* Header Box INDEKS BERITA (Sejajar dengan TERPOPULER di Kanan) */}
-          <header className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <header className="bg-white dark:bg-slate-900 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               {/* Sisi Kiri: Judul & Subtitle */}
-              <div className="flex items-start gap-3">
-                <span className="w-1.5 h-6 bg-[#c00015] rounded-xs inline-block shrink-0 mt-0.5" />
-                <div>
-                  <h1 className="font-heading font-black text-lg sm:text-xl md:text-2xl tracking-wider uppercase text-slate-900 dark:text-white leading-tight">
-                    INDEKS BERITA
-                  </h1>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                    Telusuri arsip publikasi berita Jurnal Wave berdasarkan rentang tanggal
-                  </p>
-                </div>
+              <div className="flex flex-col">
+                <h1 className="font-heading font-black text-base sm:text-lg tracking-wide uppercase text-slate-900 dark:text-white leading-tight">
+                  INDEKS BERITA
+                </h1>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Telusuri arsip publikasi berita berdasarkan rentang tanggal
+                </p>
               </div>
 
-              {/* Sisi Kanan: Tombol RENTANG WAKTU */}
-              <div className="flex flex-col sm:items-end shrink-0">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-                  RENTANG WAKTU
-                </span>
+              {/* Sisi Kanan: Tombol Rentang Tanggal Simpel & Minimalis */}
+              <div className="flex items-center shrink-0">
                 <button
                   type="button"
                   onClick={handleOpenFilter}
-                  className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/70 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all cursor-pointer shadow-2xs hover:border-[#c00015]/40"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/70 text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all cursor-pointer shadow-2xs hover:border-[#c00015]/40 active:scale-95"
+                  title="Pilih Rentang Waktu"
                 >
-                  <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
+                  <Calendar className="w-3.5 h-3.5 text-[#c00015] shrink-0" />
                   <span>{formatDateRange(startDate, endDate)}</span>
-                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isFilterOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-3 h-3 text-slate-400 shrink-0 transition-transform duration-200 ${isFilterOpen ? 'rotate-180' : ''}`} />
                 </button>
               </div>
             </div>
@@ -670,29 +763,18 @@ export function IndeksBeritaClient() {
               )}
             </>
           ) : (
-            <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
-              <Calendar className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
+            <div className="p-6 sm:p-7 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+              <Calendar className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2.5" />
+              <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
                 Tidak Ada Berita Ditemukan
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-4">
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-3.5">
                 Tidak ada publikasi artikel pada rentang tanggal {formatDateRange(startDate, endDate)}.
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  const today = new Date();
-                  const s = normalizeDay(new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000));
-                  const e = endOfDay(today);
-                  setStartDate(s);
-                  setEndDate(e);
-                  setActivePreset('30-hari');
-                  setTempStartDate(s);
-                  setTempEndDate(e);
-                  setTempPreset('30-hari');
-                  setCurrentPage(1);
-                }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#c00015] text-white hover:bg-[#a00012] transition cursor-pointer shadow-xs active:scale-95"
+                onClick={handleReset30Days}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-[#c00015] text-white hover:bg-[#a00012] transition cursor-pointer shadow-2xs active:scale-95"
               >
                 Reset ke 30 Hari Terakhir
               </button>

@@ -126,10 +126,10 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       const pending = currentReports.filter((r) => r.status === 'diterima').length
       const unreadChatCount = calculateUnreadChats()
 
-      let totalReels = 0
+      let totalReels = 4
       try {
         const reelsSaved = JSON.parse(localStorage.getItem('jurnal_wave_reels') || '[]')
-        totalReels = Array.isArray(reelsSaved) ? reelsSaved.length : 0
+        totalReels = Array.isArray(reelsSaved) && reelsSaved.length > 0 ? reelsSaved.length : 4
       } catch {}
 
       let totalJobs = 5
@@ -216,7 +216,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   // 5. Fetch Articles dari API
   const refreshArticles = useCallback(async () => {
     try {
-      const res = await fetch('/api/articles', { cache: 'no-store' })
+      const res = await fetch('/api/articles?admin=true', { cache: 'no-store' })
       if (res.ok) {
         const json = await res.json()
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {

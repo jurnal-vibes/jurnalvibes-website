@@ -12,6 +12,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  User,
 } from 'lucide-react'
 
 function getRelativeTime(dateString: string) {
@@ -311,13 +312,13 @@ function FeedPublikContent() {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      {/* Top Header: Judul & Deskripsi */}
+      {/* Top Header: Judul & Deskripsi Ramah Komunitas */}
       <div className="mb-5 sm:mb-6">
         <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight">
-          Transparansi Aduan Sukabumi
+          Feed Aduan Publik
         </h1>
         <p className="text-secondary text-xs sm:text-sm mt-1">
-          Daftar pengaduan warga yang dibuka secara transparan untuk pengawasan bersama.
+          Informasi kejadian, fasilitas umum, dan kabar lingkungan dari warga se-Sukabumi.
         </p>
       </div>
 
@@ -368,17 +369,16 @@ function FeedPublikContent() {
                     key={report.id}
                     className="bg-surface border border-outline-variant/80 hover:border-primary/50 rounded-2xl p-4 sm:p-5 shadow-2xs transition-all duration-200"
                   >
-                    {/* Header Card: Pelapor Dilindungi (Anonim) & Waktu */}
-                    <div className="mb-3">
-                      <div className="flex items-center gap-1.5 text-secondary">
-                        <ShieldCheck className="w-4 h-4 shrink-0 text-secondary/80" />
-                        <span className="font-semibold text-xs sm:text-sm text-on-surface leading-tight">
-                          Identitas Pelapor Dilindungi (Anonim)
-                        </span>
+                    {/* Header Card: Anonim Ringkas & Waktu */}
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 shrink-0">
+                        <User className="w-3.5 h-3.5" />
                       </div>
-                      <span className="block text-[11px] text-secondary mt-0.5">
-                        {getRelativeTime(report.created_at)}
-                      </span>
+                      <div className="flex items-center gap-1.5 text-xs text-secondary">
+                        <span className="font-semibold text-on-surface">Anonim</span>
+                        <span className="text-secondary/40">•</span>
+                        <span className="text-[11px]">{getRelativeTime(report.created_at)}</span>
+                      </div>
                     </div>
 
                     {/* Content Section: Title & Description di kiri, Thumbnail Foto di kanan */}
@@ -443,10 +443,10 @@ function FeedPublikContent() {
 
                       <Link
                         href={`/halo-jurnal/laporan/${report.id}`}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-on-surface transition-colors group shrink-0"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary-dark transition-colors group shrink-0"
                       >
-                        <span>Lihat Detail Laporan</span>
-                        <ArrowRight className="w-3.5 h-3.5 text-secondary/70 group-hover:text-on-surface group-hover:translate-x-0.5 transition-all" />
+                        <span>Detail Aduan</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-all" />
                       </Link>
                     </div>
                   </div>
@@ -454,18 +454,19 @@ function FeedPublikContent() {
               })}
             </div>
 
-            {/* Kontrol Paginasi */}
+            {/* Kontrol Paginasi Minimalis & Kompak */}
             {totalPages > 1 && (
               <div className="pt-6 pb-2 flex items-center justify-center border-t border-outline-variant/60 mt-6">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-outline-variant/80 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:border-primary/50 text-on-surface hover:text-primary cursor-pointer active:scale-95 bg-surface shadow-2xs"
+                    className="p-1.5 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-high disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                    title="Sebelumnya"
+                    aria-label="Halaman Sebelumnya"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Sebelumnya</span>
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
 
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
@@ -480,10 +481,10 @@ function FeedPublikContent() {
                           key={page}
                           type="button"
                           onClick={() => handlePageChange(page)}
-                          className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center shadow-2xs ${
+                          className={`w-7 h-7 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center justify-center ${
                             isActive
-                              ? 'bg-primary text-white border border-primary shadow-xs'
-                              : 'bg-surface border border-outline-variant/80 text-on-surface hover:border-primary hover:text-primary'
+                              ? 'bg-primary text-white font-bold shadow-2xs'
+                              : 'text-secondary hover:text-on-surface hover:bg-surface-container-high'
                           }`}
                         >
                           {page}
@@ -493,7 +494,7 @@ function FeedPublikContent() {
 
                     if (page === currentPage - 2 || page === currentPage + 2) {
                       return (
-                        <span key={page} className="px-1 text-xs text-secondary">
+                        <span key={page} className="px-1 text-xs text-secondary/50">
                           ...
                         </span>
                       )
@@ -506,10 +507,11 @@ function FeedPublikContent() {
                     type="button"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-outline-variant/80 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:border-primary/50 text-on-surface hover:text-primary cursor-pointer active:scale-95 bg-surface shadow-2xs"
+                    className="p-1.5 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-high disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                    title="Selanjutnya"
+                    aria-label="Halaman Selanjutnya"
                   >
-                    <span className="hidden sm:inline">Selanjutnya</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>

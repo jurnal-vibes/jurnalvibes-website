@@ -18,7 +18,7 @@ export const ChatbotButton: React.FC = () => {
     {
       id: '1',
       sender: 'ai',
-      text: 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada berita terkini, rekomendasi kuliner Cikole, tempat wisata Sukabumi, info loker, atau panduan Hallo Jurnal yang ingin kamu tanyakan?'
+      text: 'Halo! Selamat datang di Jurnal Wave 👋\nMau cari info apa hari ini? Tanyakan apa saja, saya siap membantu!'
     }
   ]);
 
@@ -129,7 +129,7 @@ export const ChatbotButton: React.FC = () => {
       {
         id: '1',
         sender: 'ai',
-        text: 'Halo! Sampurasun! 👋 Selamat datang di Jurnal Wave AI. Ada berita terkini, rekomendasi kuliner Cikole, tempat wisata Sukabumi, info loker, atau panduan Hallo Jurnal yang ingin kamu tanyakan?'
+        text: 'Halo! Selamat datang di Jurnal Wave 👋\nMau cari info apa hari ini? Tanyakan apa saja, saya siap membantu!'
       }
     ]);
     setInputText('');
@@ -241,13 +241,13 @@ export const ChatbotButton: React.FC = () => {
                 <div className="flex items-center justify-center shrink-0">
                   <img
                     src="/chatbot-full-logo.webp"
-                    alt="Jurnal Wave AI"
+                    alt="Jurnal Wave"
                     className="h-9 sm:h-10 w-auto object-contain drop-shadow-sm"
                   />
                 </div>
                 <div className="flex flex-col">
                   <h3 className="font-button text-sm font-bold leading-tight flex items-center gap-1.5 text-slate-900 dark:text-white">
-                    Jurnal Wave AI
+                    Jurnal Wave
                   </h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 animate-pulse shrink-0" />
@@ -281,16 +281,14 @@ export const ChatbotButton: React.FC = () => {
               {messages.map(msg => (
                 <div
                   key={msg.id}
-                  className={`flex flex-col max-w-[88%] ${
-                    msg.sender === 'user' ? 'self-end items-end' : 'self-start items-start'
-                  }`}
+                  className={`flex flex-col max-w-[88%] ${msg.sender === 'user' ? 'self-end items-end' : 'self-start items-start'
+                    }`}
                 >
                   <div
-                    className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-xs text-xs sm:text-sm leading-relaxed ${
-                      msg.sender === 'user'
-                        ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-br-none font-medium'
-                        : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200/80 dark:border-slate-700 shadow-2xs'
-                    }`}
+                    className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-xs text-xs sm:text-sm leading-relaxed ${msg.sender === 'user'
+                      ? 'bg-[#c00015] text-white rounded-br-none font-medium shadow-xs'
+                      : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200/80 dark:border-slate-700 shadow-2xs'
+                      }`}
                   >
                     {renderFormattedText(msg.text)}
                   </div>
@@ -311,41 +309,33 @@ export const ChatbotButton: React.FC = () => {
 
             {/* Quick Action Chips (Berjejer ke Samping di Bawah) */}
             <div className="px-3 pt-2.5 pb-1.5 flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800">
-              <Link
-                href="/halo-jurnal"
-                onClick={() => setIsChatOpen(false)}
-                className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors shrink-0 whitespace-nowrap cursor-pointer"
-              >
-                <span>Hallo Jurnal</span>
-              </Link>
-
               <button
-                onClick={() => handleSendMessage('Rekomendasi kuliner Cikole Sukabumi')}
+                onClick={() => handleSendMessage('Artikel terbaru')}
                 disabled={isAiTyping}
-                className="bg-slate-100 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50"
+                className="bg-slate-100 dark:bg-slate-800 hover:border-[#c00015] hover:text-[#c00015] dark:hover:border-[#c00015] dark:hover:text-[#c00015] text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50 active:scale-95"
               >
-                Kuliner Cikole
+                Artikel Terbaru
               </button>
               <button
-                onClick={() => handleSendMessage('Berita terbaru Sukabumi hari ini')}
+                onClick={() => handleSendMessage('Bagaimana cara membuat laporan aduan di Hallo Jurnal?')}
                 disabled={isAiTyping}
-                className="bg-slate-100 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50"
+                className="bg-slate-100 dark:bg-slate-800 hover:border-[#c00015] hover:text-[#c00015] dark:hover:border-[#c00015] dark:hover:text-[#c00015] text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50 active:scale-95"
               >
-                Berita Terbaru
+                Cara Aduan
               </button>
               <button
                 onClick={() => handleSendMessage('Info lowongan kerja Sukabumi terbaru')}
                 disabled={isAiTyping}
-                className="bg-slate-100 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50"
+                className="bg-slate-100 dark:bg-slate-800 hover:border-[#c00015] hover:text-[#c00015] dark:hover:border-[#c00015] dark:hover:text-[#c00015] text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50 active:scale-95"
               >
                 Info Loker
               </button>
               <button
-                onClick={() => handleSendMessage('Bagaimana cara membuat laporan di Hallo Jurnal?')}
+                onClick={() => handleSendMessage('Prakiraan cuaca Sukabumi hari ini')}
                 disabled={isAiTyping}
-                className="bg-slate-100 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50"
+                className="bg-slate-100 dark:bg-slate-800 hover:border-[#c00015] hover:text-[#c00015] dark:hover:border-[#c00015] dark:hover:text-[#c00015] text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 whitespace-nowrap border border-slate-200/80 dark:border-slate-700 cursor-pointer disabled:opacity-50 active:scale-95"
               >
-                Cara Lapor Aduan
+                Cek Cuaca
               </button>
             </div>
 
@@ -371,7 +361,7 @@ export const ChatbotButton: React.FC = () => {
                   disabled={!inputText.trim() || isAiTyping}
                   className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
                     inputText.trim() && !isAiTyping
-                      ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100 hover:scale-105 shadow-xs'
+                      ? 'bg-[#c00015] text-white border-[#c00015] hover:bg-[#a80012] hover:scale-105 shadow-xs'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 border-slate-200 dark:border-slate-700 cursor-not-allowed'
                   }`}
                   title="Kirim pesan"
@@ -391,19 +381,18 @@ export const ChatbotButton: React.FC = () => {
       {/* Main Floating Action Button (Sama Persis Web & HP) */}
       {!isChatOpen && (
         <div
-          className={`fixed right-4 sm:right-8 z-40 flex flex-col items-end transition-all duration-300 ${
-            hasActiveAudio ? 'bottom-36 sm:bottom-24' : 'bottom-5 sm:bottom-8'
-          }`}
+          className={`fixed right-4 sm:right-8 z-40 flex flex-col items-end transition-all duration-300 ${hasActiveAudio ? 'bottom-36 sm:bottom-24' : 'bottom-5 sm:bottom-8'
+            }`}
         >
           <button
-            aria-label="Tanya Jurnal Wave AI"
+            aria-label="Tanya Jurnal Wave"
             onClick={() => setIsChatOpen(true)}
             className="relative transition-all duration-300 hover:scale-110 active:scale-95 group cursor-pointer focus:outline-none"
-            title="Tanya Jurnal Wave AI"
+            title="Tanya Jurnal Wave"
           >
             <img
               src="/chatbot-full-logo.webp"
-              alt="Jurnal Wave AI"
+              alt="Jurnal Wave"
               className="h-12 sm:h-14 w-auto object-contain drop-shadow-xl"
             />
           </button>

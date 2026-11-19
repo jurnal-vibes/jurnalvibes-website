@@ -15,7 +15,7 @@ export default function KebijakanPrivasiPage() {
   return (
     <div className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-24 flex flex-col min-w-0">
       <main className="w-full flex flex-col gap-6">
-        {/* Breadcrumb */}
+        {/* Breadcrumb Ringkas */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-on-surface-variant dark:text-gray-400">
           <Link href="/" className="hover:text-primary transition-colors">
             Home
@@ -25,86 +25,78 @@ export default function KebijakanPrivasiPage() {
         </nav>
 
         {/* Header Dokumen */}
-        <header className="border-b border-outline-variant dark:border-slate-800 pb-5">
-          <h1 className="font-headline-xl text-3xl md:text-4xl font-bold text-on-surface dark:text-white leading-tight">
-            Kebijakan Privasi (Privacy Policy)
+        <header className="border-b border-outline-variant dark:border-slate-800 pb-3 sm:pb-4">
+          <h1 className="font-headline-xl text-lg sm:text-xl md:text-2xl font-bold text-on-surface dark:text-white leading-tight">
+            Kebijakan Privasi
           </h1>
+          <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 mt-1.5">
+            Komitmen PT Media Jurnal Sukabumi dalam menjaga privasi dan keamanan data seluruh pengunjung portal Jurnal Wave.
+          </p>
         </header>
 
         {/* Konten Kebijakan Privasi */}
-        <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-5">
-          <p>
-            Di portal berita <strong>Jurnal Wave</strong> (berada di bawah naungan <strong>PT Media Jurnal Sukabumi</strong>), salah satu prioritas utama kami adalah privasi pengunjung kami. Dokumen Kebijakan Privasi ini berisi jenis-jenis informasi yang dikumpulkan dan dicatat oleh Jurnal Wave dan bagaimana kami menggunakannya.
-          </p>
-          <p>
-            Jika Anda memiliki pertanyaan tambahan atau memerlukan informasi lebih lanjut tentang Kebijakan Privasi kami, jangan ragu untuk menghubungi kami melalui saluran kontak yang tersedia.
-          </p>
-
-          <section className="pt-2">
-            <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-              File Log (Log Files)
-            </h2>
+        <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-6">
+          <div className="bg-surface-container-low dark:bg-slate-900 p-4 rounded-xl border-l-4 border-primary text-xs sm:text-sm leading-relaxed space-y-2">
             <p>
-              Jurnal Wave mengikuti prosedur standar menggunakan file log. File-file ini mencatat pengunjung ketika mereka mengunjungi situs web. Semua perusahaan hosting melakukan ini dan bagian dari analisis layanan hosting. Informasi yang dikumpulkan oleh file log termasuk alamat protokol internet (IP), tipe peramban (browser), Penyedia Layanan Internet (ISP), cap tanggal dan waktu, halaman rujukan/keluar, dan mungkin jumlah klik. Informasi ini tidak terkait dengan informasi apa pun yang dapat diidentifikasi secara pribadi. Tujuan dari informasi ini adalah untuk menganalisis tren, mengelola situs, melacak pergerakan pengguna di situs web, dan mengumpulkan informasi demografis.
+              Di portal berita <strong>Jurnal Wave</strong> (dikelola oleh <strong>PT Media Jurnal Sukabumi</strong>), privasi pengunjung adalah prioritas mendasar kami. Dokumen Kebijakan Privasi ini menguraikan jenis informasi yang dicatat serta bagaimana informasi tersebut dikelola secara bertanggung jawab.
             </p>
-          </section>
+          </div>
 
-          <section>
-            <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-              Cookie dan Beacon Web
-            </h2>
-            <p>
-              Seperti situs web lainnya, Jurnal Wave menggunakan &apos;cookies&apos;. Cookie ini digunakan untuk menyimpan informasi termasuk preferensi pengunjung, dan halaman-halaman di situs web yang diakses atau dikunjungi pengunjung. Informasi ini digunakan untuk mengoptimalkan pengalaman pengguna dengan menyesuaikan konten halaman web kami berdasarkan jenis browser pengunjung dan/atau informasi lainnya.
-            </p>
-          </section>
+          <div className="space-y-5 divide-y divide-outline-variant/40 dark:divide-slate-800">
+            <section className="pt-3">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
+                1. Berkas Log (Log Files)
+              </h2>
+              <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 leading-relaxed">
+                Jurnal Wave menerapkan prosedur standar pencatatan berkas log ketika pengunjung mengakses situs. Informasi yang terekam meliputi alamat protokol internet (IP), tipe peramban (browser), Penyedia Layanan Internet (ISP), tanggal dan waktu kunjungan, serta halaman rujukan. Data ini bersifat anonim untuk keperluan analisis tren teknis dan pemeliharaan performa situs.
+              </p>
+            </section>
 
-          <section>
-            <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-              Mitra Iklan Kami
-            </h2>
-            <p>
-              Beberapa pengiklan di situs kami mungkin menggunakan cookie dan suar web. Setiap mitra periklanan kami memiliki Kebijakan Privasi sendiri untuk kebijakan mereka tentang data pengguna.
-            </p>
-          </section>
+            <section className="pt-4">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
+                2. Cookie dan Pengalaman Pengguna
+              </h2>
+              <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 leading-relaxed">
+                Kami menggunakan cookie standar untuk menyimpan preferensi pengunjung dan mengoptimalkan kecepatan akses halaman. Pengunjung dapat memilih untuk menonaktifkan cookie melalui pengaturan peramban masing-masing sewaktu-waktu.
+              </p>
+            </section>
 
-          <section>
-            <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-              Kebijakan Privasi Pihak Ketiga
-            </h2>
-            <p>
-              Server iklan pihak ketiga atau jaringan iklan menggunakan teknologi seperti cookie, JavaScript, atau Web Beacon yang digunakan dalam iklan masing-masing dan tautan yang muncul di Jurnal Wave, yang dikirim langsung ke peramban pengguna. Mereka secara otomatis menerima alamat IP Anda ketika hal ini terjadi. Teknologi ini digunakan untuk mengukur efektivitas kampanye iklan mereka dan/atau untuk mempersonalisasi konten iklan yang Anda lihat di situs web yang Anda kunjungi. Perhatikan bahwa Jurnal Wave tidak memiliki akses atau kontrol terhadap cookie ini yang digunakan oleh pengiklan pihak ketiga.
-            </p>
-            <p>
-              Kebijakan Privasi Jurnal Wave tidak berlaku untuk pengiklan atau situs web lain. Anda dapat memilih untuk menonaktifkan cookie melalui opsi peramban individual Anda.
-            </p>
-          </section>
+            <section className="pt-4">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
+                3. Mitra Iklan &amp; Layanan Pihak Ketiga
+              </h2>
+              <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 leading-relaxed">
+                Beberapa mitra periklanan pihak ketiga pada portal ini dapat menggunakan cookie atau suar web guna mengukur efektivitas kampanye promosi mereka. Kebijakan privasi masing-masing mitra periklanan berlaku secara independen di luar kendali langsung Jurnal Wave.
+              </p>
+            </section>
 
-          <section>
-            <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-              Informasi Perlindungan Anak
-            </h2>
-            <p>
-              Bagian lain dari prioritas kami adalah menambahkan perlindungan untuk anak-anak saat menggunakan internet. Kami mendorong orang tua dan wali untuk mengamati, berpartisipasi, dan/atau memantau dan membimbing aktivitas online mereka. Jurnal Wave tidak secara sadar mengumpulkan Informasi Identifikasi Pribadi apa pun dari anak di bawah usia 13 tahun. Jika Anda meyakini anak Anda memberikan informasi semacam ini di situs web kami, segera hubungi kami agar kami dapat menghapus informasi tersebut dari catatan kami.
-            </p>
-          </section>
+            <section className="pt-4">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
+                4. Perlindungan Data Anak
+              </h2>
+              <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 leading-relaxed">
+                Jurnal Wave tidak secara sadar mengumpulkan identitas pribadi dari anak di bawah usia 13 tahun. Jika Anda mendapati anak Anda memberikan informasi pribadi di situs kami, silakan hubungi tim kami agar data tersebut dapat segera dihapus dari sistem.
+              </p>
+            </section>
 
-          <section>
-            <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-              Hanya Kebijakan Privasi Online
-            </h2>
-            <p>
-              Kebijakan Privasi ini hanya berlaku untuk aktivitas online kami dan berlaku untuk pengunjung situs web kami sehubungan dengan informasi yang mereka bagikan dan/atau kumpulkan di Jurnal Wave. Kebijakan ini tidak berlaku untuk informasi apa pun yang dikumpulkan secara offline atau melalui saluran selain dari situs web ini.
-            </p>
-          </section>
+            <section className="pt-4">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
+                5. Ruang Lingkup Kebijakan
+              </h2>
+              <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 leading-relaxed">
+                Kebijakan Privasi ini hanya berlaku untuk aktivitas online di portal web Jurnal Wave dan tidak berlaku untuk pengumpulan data secara offline maupun melalui saluran eksternal lainnya.
+              </p>
+            </section>
 
-          <section className="bg-surface-container-low dark:bg-slate-900 p-4 rounded-lg border-l-4 border-primary mt-6">
-            <h2 className="text-base font-bold text-on-surface dark:text-white mb-1">
-              Persetujuan
-            </h2>
-            <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400">
-              Dengan menggunakan situs web kami, Anda dengan ini menyetujui Kebijakan Privasi kami dan menyetujui Syarat dan Ketentuannya.
-            </p>
-          </section>
+            <section className="pt-4 bg-surface-container-low dark:bg-slate-900 p-4 rounded-xl border border-outline-variant/60 dark:border-slate-800">
+              <h2 className="text-sm font-bold text-on-surface dark:text-white mb-1">
+                Persetujuan Pengunjung
+              </h2>
+              <p className="text-xs text-on-surface-variant dark:text-gray-400 leading-relaxed">
+                Dengan menggunakan situs web kami, Anda menyatakan menyetujui Kebijakan Privasi ini beserta syarat dan ketentuan resmi PT Media Jurnal Sukabumi.
+              </p>
+            </section>
+          </div>
         </article>
       </main>
     </div>

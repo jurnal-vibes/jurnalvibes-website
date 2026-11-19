@@ -94,6 +94,7 @@ export function normalizeArticleCategory(category?: string, categoryLabel?: stri
     tech: 'TEKNOLOGI',
     science: 'SCIENCE',
     health: 'HEALTH',
+    inspirasi: 'INSPIRASI',
   };
 
   if (validCategories[cat]) {
@@ -151,12 +152,23 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
 
     // Circuit Breaker: Jika baru saja gagal dalam 15 detik terakhir, respon seketika (0ms)
     if (now - lastDbFailureTimestamp < DB_RETRY_INTERVAL_MS) {
-      return serverArticlesCache ? serverArticlesCache.data : INITIAL_ARTICLES;
+      return serverArticlesCache ? serverArticlesCache.data : [];
     }
 
     try {
       const { prisma } = await import('@/lib/prisma');
       const dbPosts = await prisma.article.findMany({
+        where: {
+          OR: [
+            { status: 'published' },
+            {
+              AND: [
+                { status: 'scheduled' },
+                { scheduledAt: { lte: new Date() } },
+              ],
+            },
+          ],
+        },
         orderBy: { createdAt: 'desc' },
       });
       if (dbPosts.length > 0) {
@@ -182,6 +194,8 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
             isSaved: false,
             publishedDate: item.publishedDate || new Date(item.createdAt).toLocaleDateString('id-ID'),
             createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+            status: (item.status as any) || 'published',
+            scheduledAt: item.scheduledAt ? new Date(item.scheduledAt).toISOString() : null,
           };
         });
 
@@ -189,12 +203,12 @@ export async function fetchArticlesFromWordPress(): Promise<Article[]> {
         serverArticlesCache = { data: mapped, timestamp: now };
         return mapped;
       }
-      return INITIAL_ARTICLES;
+      return [];
     } catch (err) {
       lastDbFailureTimestamp = Date.now();
       console.warn('Database server-side article fetch notice:', (err as any)?.message || err);
       if (serverArticlesCache) return serverArticlesCache.data;
-      return INITIAL_ARTICLES;
+      return [];
     }
   }
 
@@ -310,6 +324,8 @@ export async function fetchArticleByIdFromWordPress(idOrSlug: string): Promise<A
           isSaved: false,
           publishedDate: item.publishedDate || new Date(item.createdAt).toLocaleDateString('id-ID'),
           createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+          status: (item.status as any) || 'published',
+          scheduledAt: item.scheduledAt ? new Date(item.scheduledAt).toISOString() : null,
         };
       }
     } catch (err) {

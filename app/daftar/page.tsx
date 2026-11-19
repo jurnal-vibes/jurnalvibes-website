@@ -10,183 +10,188 @@ import {
   Lock,
   User,
   Phone,
-  Mail,
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
   KeyRound,
   RotateCcw,
+  Sparkles,
 } from 'lucide-react'
 
 export default function DaftarPage() {
   const router = useRouter()
 
-  // Step state: 'form' -> 'otp'
-  const [step, setStep] = useState<'form' | 'otp'>('form')
-
-  // Form State (Nama, No WhatsApp, Email, Kata Sandi, Konfirmasi)
+  // Form State
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [agreed, setAgreed] = useState(false)
 
-  // OTP State
+  // Pola 2: Inline WhatsApp OTP State
+  const [isOtpSent, setIsOtpSent] = useState(false)
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false)
   const [otpCode, setOtpCode] = useState('')
-  const [countdown, setCountdown] = useState(60)
-  const [canResend, setCanResend] = useState(false)
-  const [resending, setResending] = useState(false)
-  const [infoMessage, setInfoMessage] = useState('')
+  const [countdown, setCountdown] = useState(0)
+  const [sendingOtp, setSendingOtp] = useState(false)
+  const [verifyingOtp, setVerifyingOtp] = useState(false)
+  const [otpMessage, setOtpMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  // UI state
+  // Global UI State
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  // Countdown timer untuk kirim ulang OTP
+  // Countdown timer untuk kirim ulang kode OTP
   useEffect(() => {
     let timer: NodeJS.Timeout
-    if (step === 'otp' && countdown > 0) {
+    if (countdown > 0) {
       timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            setCanResend(true)
-            return 0
-          }
-          return prev - 1
-        })
+        setCountdown((prev) => (prev > 0 ? prev - 1 : 0))
       }, 1000)
     }
     return () => clearInterval(timer)
-  }, [step, countdown])
+  }, [countdown])
 
-  // Validasi form awal sebelum kirim OTP
-  const validateForm = () => {
-    if (!fullName.trim() || fullName.trim().length < 2) {
-      setError('Mohon masukkan Nama Lengkap Anda (minimal 2 karakter).')
-      return false
-    }
-    const cleanPhone = phone.replace(/[^0-9]/g, '')
-    if (cleanPhone.length < 10 || cleanPhone.length > 14) {
-      setError('Format nomor WhatsApp tidak valid. Masukkan 10-14 digit angka (contoh: 081234567890).')
-      return false
-    }
-    if (!email.trim() || !email.includes('@')) {
-      setError('Mohon masukkan Alamat Email aktif yang valid.')
-      return false
-    }
-    if (!password || password.length < 8) {
-      setError('Kata sandi minimal 8 karakter demi keamanan akun Anda.')
-      return false
-    }
-    if (password !== confirmPassword) {
-      setError('Konfirmasi kata sandi tidak cocok. Mohon periksa kembali.')
-      return false
-    }
-    if (!agreed) {
-      setError('Anda wajib menyetujui Ketentuan Layanan & Kebijakan Privasi.')
-      return false
-    }
-    return true
-  }
+  // Helper validasi nomor WhatsApp
+  const cleanPhone = phone.replace(/[^0-9]/g, '')
 
-  // Langkah 1: Kirim Permintaan OTP ke Email Warga
-  const handleRequestOtp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setInfoMessage('')
-
-    if (!validateForm()) return
-
-    const cleanPhone = phone.replace(/[^0-9]/g, '')
-
-    setLoading(true)
-    try {
-      const res = await fetch('/api/auth/citizen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'request-register-otp',
-          fullName: fullName.trim(),
-          phone: cleanPhone,
-          email: email.trim().toLowerCase(),
-          password,
-        }),
+  // 1. Aksi Kirim Kode OTP Inline ke WhatsApp
+  const handleSendOtp = async () => {
+    if (!cleanPhone || cleanPhone.length < 10 || cleanPhone.length > 14) {
+      setOtpMessage({
+        type: 'error',
+        text: 'Masukkan nomor WhatsApp yang valid (10-14 digit angka).',
       })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.success) {
-        setError(data.message || 'Gagal mengirim kode verifikasi OTP. Silakan periksa kembali.')
-        return
-      }
-
-      setStep('otp')
-      setCountdown(60)
-      setCanResend(false)
-      setOtpCode('')
-      setInfoMessage(`Kode OTP 6 digit telah dikirimkan ke kotak masuk ${email.trim().toLowerCase()}`)
-    } catch {
-      setError('Gagal menghubungi server. Periksa koneksi internet Anda.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Kirim Ulang OTP
-  const handleResendOtp = async () => {
-    if (!canResend || resending) return
-    setError('')
-    setInfoMessage('')
-    setResending(true)
-
-    const cleanPhone = phone.replace(/[^0-9]/g, '')
-
-    try {
-      const res = await fetch('/api/auth/citizen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'request-register-otp',
-          fullName: fullName.trim(),
-          phone: cleanPhone,
-          email: email.trim().toLowerCase(),
-          password,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.success) {
-        setError(data.message || 'Gagal mengirim ulang kode OTP.')
-        return
-      }
-
-      setCountdown(60)
-      setCanResend(false)
-      setInfoMessage('Kode OTP baru berhasil dikirim ulang ke email Anda.')
-    } catch {
-      setError('Gagal mengirim ulang kode OTP. Periksa koneksi Anda.')
-    } finally {
-      setResending(false)
-    }
-  }
-
-  // Langkah 2: Verifikasi Kode OTP & Selesaikan Registrasi
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setInfoMessage('')
-
-    const cleanOtp = otpCode.replace(/[^0-9]/g, '').trim()
-    if (cleanOtp.length !== 6) {
-      setError('Masukkan 6 digit angka kode verifikasi yang ada di email Anda.')
       return
     }
 
-    const cleanPhone = phone.replace(/[^0-9]/g, '')
+    try {
+      setSendingOtp(true)
+      setOtpMessage(null)
+
+      const res = await fetch('/api/auth/citizen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send-wa-otp', phone: cleanPhone }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        setOtpMessage({
+          type: 'error',
+          text: data.message || 'Gagal mengirim kode OTP ke nomor ini.',
+        })
+        return
+      }
+
+      setIsOtpSent(true)
+      setCountdown(60)
+      setOtpMessage({
+        type: 'success',
+        text: data.message || 'Kode verifikasi telah dikirimkan ke WhatsApp Anda.',
+      })
+    } catch {
+      setOtpMessage({
+        type: 'error',
+        text: 'Kendala jaringan saat mengirim OTP. Silakan coba lagi.',
+      })
+    } finally {
+      setSendingOtp(false)
+    }
+  }
+
+  // 2. Aksi Verifikasi Kode OTP Inline
+  const handleVerifyOtp = async () => {
+    const cleanOtp = otpCode.trim()
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      setOtpMessage({
+        type: 'error',
+        text: 'Masukkan 6 digit kode OTP verifikasi.',
+      })
+      return
+    }
+
+    try {
+      setVerifyingOtp(true)
+      setOtpMessage(null)
+
+      const res = await fetch('/api/auth/citizen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'verify-wa-otp',
+          phone: cleanPhone,
+          otpCode: cleanOtp,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        setOtpMessage({
+          type: 'error',
+          text: data.message || 'Kode OTP salah atau telah kedaluwarsa.',
+        })
+        return
+      }
+
+      setIsPhoneVerified(true)
+      setOtpMessage({
+        type: 'success',
+        text: 'Nomor WhatsApp berhasil diverifikasi!',
+      })
+    } catch {
+      setOtpMessage({
+        type: 'error',
+        text: 'Gagal memverifikasi kode OTP. Silakan coba lagi.',
+      })
+    } finally {
+      setVerifyingOtp(false)
+    }
+  }
+
+  // 3. Aksi Batal / Ubah Nomor WhatsApp
+  const handleResetPhone = () => {
+    setIsPhoneVerified(false)
+    setIsOtpSent(false)
+    setOtpCode('')
+    setOtpMessage(null)
+    setCountdown(0)
+  }
+
+  // 4. Submit Pendaftaran Akun Warga
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    if (!fullName.trim() || fullName.trim().length < 2) {
+      setError('Mohon masukkan nama lengkap Anda (minimal 2 karakter).')
+      return
+    }
+
+    if (!isPhoneVerified) {
+      setError('Mohon verifikasi nomor WhatsApp Anda terlebih dahulu.')
+      return
+    }
+
+    if (!password || password.length < 8) {
+      setError('Kata sandi minimal 8 karakter.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Konfirmasi kata sandi tidak cocok. Mohon periksa kembali.')
+      return
+    }
+
+    if (!agreed) {
+      setError('Anda wajib menyetujui Ketentuan Layanan & Kebijakan Privasi.')
+      return
+    }
 
     setLoading(true)
     try {
@@ -194,12 +199,10 @@ export default function DaftarPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'verify-register-otp',
+          action: 'register-wa',
           fullName: fullName.trim(),
           phone: cleanPhone,
-          email: email.trim().toLowerCase(),
           password,
-          otpCode: cleanOtp,
           domisili: 'Sukabumi',
         }),
       })
@@ -207,11 +210,11 @@ export default function DaftarPage() {
       const data = await res.json()
 
       if (!res.ok || !data.success) {
-        setError(data.message || 'Kode OTP verifikasi tidak valid atau telah kedaluwarsa.')
+        setError(data.message || 'Gagal mendaftarkan akun. Silakan coba kembali.')
         return
       }
 
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && data.user) {
         localStorage.setItem('halo_jurnal_current_user', JSON.stringify(data.user))
         window.dispatchEvent(new Event('storage'))
       }
@@ -220,9 +223,9 @@ export default function DaftarPage() {
       setTimeout(() => {
         router.push('/halo-jurnal/beranda')
         router.refresh()
-      }, 1200)
+      }, 1000)
     } catch {
-      setError('Gagal memverifikasi pendaftaran. Periksa koneksi internet Anda.')
+      setError('Terjadi kendala koneksi ke server saat pendaftaran. Coba lagi.')
     } finally {
       setLoading(false)
     }
@@ -249,9 +252,29 @@ export default function DaftarPage() {
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* SISI KIRI: MASKOT (Proporsional di semua layar) */}
-          <div className="md:col-span-5 flex flex-col items-center justify-center pointer-events-none self-stretch">
-            <div className="relative w-full flex flex-col items-center justify-center">
+          {/* SISI KIRI: MASKOT (& Logo pada Mobile) */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center self-stretch">
+            {/* Logo Badge Resmi Hallo Jurnal - Hanya di Mobile (di Atas Maskot, Rata Kiri) */}
+            <div className="self-start flex md:hidden items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-2xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/halo-jurnal-icon.webp?v=original"
+                  alt="Hallo Jurnal Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-heading font-black text-base text-on-surface tracking-tight leading-none">
+                  Hallo Jurnal
+                </span>
+                <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">
+                  Aspirasi &amp; Aduan Sukabumi
+                </span>
+              </div>
+            </div>
+
+            <div className="relative w-full flex flex-col items-center justify-center pointer-events-none">
               <div className="absolute w-48 h-48 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -266,8 +289,8 @@ export default function DaftarPage() {
           {/* SISI KANAN: KONTEN PENDAFTARAN */}
           <div className="md:col-span-7 flex flex-col justify-center py-2">
             
-            {/* Logo Badge Resmi Hallo Jurnal */}
-            <div className="flex items-center gap-2.5 mb-3">
+            {/* Logo Badge Resmi Hallo Jurnal - Hanya di Desktop/Tablet (Seperti Semula) */}
+            <div className="hidden md:flex items-center gap-2.5 mb-3">
               <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-2xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -299,121 +322,13 @@ export default function DaftarPage() {
                   <Loader2 className="w-5 h-5 animate-spin text-primary" />
                 </div>
               </div>
-            ) : step === 'otp' ? (
-              /* ========================================================= */
-              /* TAMPILAN LANGKAH 2: INPUT KODE VERIFIKASI OTP EMAIL       */
-              /* ========================================================= */
-              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
-                  <KeyRound className="w-3.5 h-3.5" />
-                  <span>Verifikasi Akun Warga</span>
-                </div>
-
-                <h1 className="font-heading font-extrabold text-2xl text-on-surface tracking-tight mb-2">
-                  Masukkan Kode OTP
-                </h1>
-                <p className="text-secondary text-xs sm:text-sm leading-relaxed mb-4">
-                  Kami telah mengirimkan 6 digit kode verifikasi ke alamat email:
-                  <br />
-                  <strong className="text-on-surface font-semibold">{email}</strong>
-                </p>
-
-                {infoMessage && (
-                  <div className="p-3 mb-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-medium flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{infoMessage}</span>
-                  </div>
-                )}
-
-                {error && (
-                  <div className="p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-900 text-xs font-medium flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <div className="flex-1 leading-relaxed">{error}</div>
-                  </div>
-                )}
-
-                <form onSubmit={handleVerifyOtp} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-on-surface mb-2">
-                      Kode Verifikasi (6 Digit)
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={6}
-                      autoFocus
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                      placeholder="• • • • • •"
-                      className="w-full text-center tracking-[0.5em] text-2xl sm:text-3xl font-mono font-bold py-3 px-4 bg-surface-container-low border border-outline-variant/80 rounded-xl text-on-surface placeholder:text-outline-variant focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                    <p className="text-[11px] text-secondary mt-1.5 text-center">
-                      Masa berlaku kode: 10 menit. Cek juga folder Spam/Junk jika belum muncul.
-                    </p>
-                  </div>
-
-                  {/* Countdown & Kirim Ulang OTP */}
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    <span className="text-secondary">Tidak menerima email?</span>
-                    {canResend ? (
-                      <button
-                        type="button"
-                        onClick={handleResendOtp}
-                        disabled={resending}
-                        className="inline-flex items-center gap-1 font-semibold text-primary hover:underline cursor-pointer disabled:opacity-50"
-                      >
-                        <RotateCcw className={`w-3.5 h-3.5 ${resending ? 'animate-spin' : ''}`} />
-                        <span>{resending ? 'Mengirim...' : 'Kirim Ulang Kode'}</span>
-                      </button>
-                    ) : (
-                      <span className="text-secondary font-medium">
-                        Kirim ulang dalam <strong className="text-on-surface">{countdown}s</strong>
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Tombol Aksi */}
-                  <div className="space-y-2 pt-2">
-                    <button
-                      type="submit"
-                      disabled={loading || otpCode.length !== 6}
-                      className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs flex items-center justify-center gap-2"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Memverifikasi Akun...</span>
-                        </>
-                      ) : (
-                        <span>Verifikasi &amp; Selesaikan Pendaftaran</span>
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStep('form')
-                        setError('')
-                        setInfoMessage('')
-                      }}
-                      className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
-                    >
-                      ← Kembali &amp; Ubah Data / Email
-                    </button>
-                  </div>
-                </form>
-              </div>
             ) : (
-              /* ========================================================= */
-              /* TAMPILAN LANGKAH 1: FORMULIR INPUT DATA WARGA             */
-              /* ========================================================= */
               <div className="animate-in fade-in duration-200">
-                <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary tracking-tight mb-2">
-                  Daftar Akun Baru
+                <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-primary tracking-tight mb-1">
+                  Daftar Akun
                 </h1>
-                <p className="text-secondary text-xs sm:text-sm leading-relaxed max-w-lg mb-5">
-                  Sampurasun! Daftarkan identitas Anda untuk menyampaikan aspirasi dan laporan pelayanan publik Sukabumi secara sah dan terpercaya.
+                <p className="text-xs sm:text-sm text-secondary font-medium tracking-tight mb-5">
+                  Silakan lengkapi data diri Anda untuk membuat akun baru.
                 </p>
 
                 {error && (
@@ -423,12 +338,12 @@ export default function DaftarPage() {
                   </div>
                 )}
 
-                {/* FORMULIR PENDAFTARAN MANUAL: NAMA, NO HP, EMAIL, PASSWORD, ULANGI PASSWORD */}
-                <form onSubmit={handleRequestOtp} className="space-y-3.5">
-                  {/* Nama Lengkap */}
+                {/* FORMULIR PENDAFTARAN DENGAN VERIFIKASI WHATSAPP INLINE (POLA 2) */}
+                <form onSubmit={handleRegister} className="space-y-4">
+                  {/* Kolom 1: Nama Lengkap */}
                   <div>
                     <label className="block text-xs font-semibold text-on-surface mb-1.5">
-                      Nama Lengkap <span className="text-primary">*</span>
+                      Nama Lengkap
                     </label>
                     <div className="relative">
                       <User className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -436,55 +351,144 @@ export default function DaftarPage() {
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Contoh: Rian Pratama"
+                        placeholder="Masukkan nama lengkap Anda"
                         required
                         className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                       />
                     </div>
                   </div>
 
-                  {/* No WhatsApp & Email (2 Kolom) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div>
-                      <label className="block text-xs font-semibold text-on-surface mb-1.5">
-                        Nomor WhatsApp Aktif <span className="text-primary">*</span>
+                  {/* Kolom 2: Nomor WhatsApp dengan Verifikasi Inline */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-semibold text-on-surface">
+                        Nomor WhatsApp
                       </label>
-                      <div className="relative">
-                        <Phone className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          type="tel"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="081234567890"
-                          required
-                          className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                        />
+                      {isPhoneVerified && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Terverifikasi
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="relative flex items-center">
+                      <Phone className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(e.target.value)
+                          if (isPhoneVerified) handleResetPhone()
+                        }}
+                        placeholder="08xxxxxxxxxx"
+                        disabled={isPhoneVerified}
+                        required
+                        className={`w-full pl-10 pr-28 py-2.5 text-xs sm:text-sm border rounded-lg text-on-surface placeholder:text-secondary focus:outline-none focus:ring-1 transition-colors ${
+                          isPhoneVerified
+                            ? 'bg-emerald-50/50 border-emerald-300 text-emerald-950 font-medium'
+                            : 'bg-surface-container-low border-outline-variant/80 focus:bg-surface-container-lowest focus:border-primary focus:ring-primary'
+                        }`}
+                      />
+                      
+                      {/* Tombol Aksi di Kanan Input */}
+                      <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                        {isPhoneVerified ? (
+                          <button
+                            type="button"
+                            onClick={handleResetPhone}
+                            className="px-2.5 py-1 text-[11px] font-semibold text-secondary hover:text-on-surface transition-colors cursor-pointer"
+                          >
+                            Ubah Nomor
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            disabled={sendingOtp || countdown > 0 || cleanPhone.length < 10}
+                            className="px-3 py-1.5 rounded-md bg-primary hover:bg-primary-dark disabled:bg-surface-container-highest disabled:text-secondary/70 text-white text-xs font-semibold tracking-tight transition-all active:scale-95 disabled:active:scale-100 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                          >
+                            {sendingOtp ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin mx-2" />
+                            ) : countdown > 0 ? (
+                              `Kirim Ulang (${countdown}s)`
+                            ) : isOtpSent ? (
+                              'Kirim Ulang'
+                            ) : (
+                              'Kirim Kode'
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-on-surface mb-1.5">
-                        Alamat Email Aktif <span className="text-primary">*</span>
-                      </label>
-                      <div className="relative">
-                        <Mail className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="nama@email.com"
-                          required
-                          className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                        />
+                    {/* SUB-KOTAK INLINE OTP (Muncul saat OTP dikirim & belum terverifikasi) */}
+                    {isOtpSent && !isPhoneVerified && (
+                      <div className="mt-2.5 p-3.5 bg-surface-container-low border border-primary/25 rounded-xl space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-on-surface flex items-center gap-1.5">
+                            <KeyRound className="w-3.5 h-3.5 text-primary" />
+                            Masukkan 6 digit kode OTP:
+                          </span>
+                          <span className="text-[11px] text-secondary">
+                            OTP Uji Coba: <strong className="text-primary font-mono">123456</strong>
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            maxLength={6}
+                            value={otpCode}
+                            onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                            placeholder="Contoh: 123456"
+                            className="flex-1 px-3 py-2 text-xs sm:text-sm font-mono tracking-widest bg-surface-container-lowest border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-center"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleVerifyOtp}
+                            disabled={verifyingOtp || otpCode.length !== 6}
+                            className="px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed shadow-2xs shrink-0 flex items-center gap-1.5"
+                          >
+                            {verifyingOtp ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <span>Verifikasi</span>
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOtpCode('123456')}
+                            className="hidden sm:inline-flex px-2.5 py-2 rounded-lg bg-surface-container-highest hover:bg-surface-variant text-secondary text-xs font-semibold transition-colors cursor-pointer shrink-0"
+                            title="Otomatis isi kode demo"
+                          >
+                            Isi 123456
+                          </button>
+                        </div>
+
+                        {/* Pesan status OTP */}
+                        {otpMessage && (
+                          <div
+                            className={`text-[11px] font-medium flex items-center gap-1.5 ${
+                              otpMessage.type === 'success' ? 'text-emerald-700' : 'text-red-600'
+                            }`}
+                          >
+                            {otpMessage.type === 'success' ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                            ) : (
+                              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            )}
+                            <span>{otpMessage.text}</span>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    )}
                   </div>
 
-                  {/* Kata Sandi & Konfirmasi Kata Sandi (2 Kolom) */}
+                  {/* Kolom 3 & 4: Kata Sandi & Konfirmasi Kata Sandi (2 Kolom Seimbang) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                       <label className="block text-xs font-semibold text-on-surface mb-1.5">
-                        Kata Sandi <span className="text-primary">*</span>
+                        Kata Sandi
                       </label>
                       <div className="relative">
                         <Lock className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -492,7 +496,7 @@ export default function DaftarPage() {
                           type={showPassword ? 'text' : 'password'}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Min. 8 karakter"
+                          placeholder="Minimal 8 karakter"
                           required
                           className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                         />
@@ -500,6 +504,7 @@ export default function DaftarPage() {
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-on-surface cursor-pointer p-1"
+                          title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -508,18 +513,26 @@ export default function DaftarPage() {
 
                     <div>
                       <label className="block text-xs font-semibold text-on-surface mb-1.5">
-                        Ulangi Kata Sandi <span className="text-primary">*</span>
+                        Konfirmasi Kata Sandi
                       </label>
                       <div className="relative">
                         <Lock className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
-                          type={showPassword ? 'text' : 'password'}
+                          type={showConfirmPassword ? 'text' : 'password'}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Ulangi kata sandi"
                           required
-                          className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                          className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-on-surface cursor-pointer p-1"
+                          title={showConfirmPassword ? 'Sembunyikan password' : 'Lihat password'}
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -542,21 +555,27 @@ export default function DaftarPage() {
                     </span>
                   </label>
 
-                  {/* Tombol Submit Pendaftaran */}
+                  {/* Tombol Utama: Murni DAFTAR AKUN */}
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-4"
+                    disabled={loading || !isPhoneVerified}
+                    className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed shadow-xs flex items-center justify-center gap-2 mt-2"
                   >
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Mengirim Kode OTP ke Email...</span>
+                        <span>Mendaftarkan Akun...</span>
                       </>
                     ) : (
-                      <span>Daftar &amp; Kirim Kode OTP</span>
+                      <span>Daftar Akun</span>
                     )}
                   </button>
+                  
+                  {!isPhoneVerified && cleanPhone.length >= 10 && (
+                    <p className="text-[11px] text-center text-secondary">
+                      *Klik tombol <strong>Kirim Kode</strong> di samping nomor WhatsApp untuk memverifikasi nomor sebelum mendaftar.
+                    </p>
+                  )}
                 </form>
 
                 {/* Footer Link ke Halaman Masuk */}

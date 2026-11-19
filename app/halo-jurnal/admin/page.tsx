@@ -1,20 +1,24 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import {
   Newspaper,
-  Film,
+  FileText,
   Briefcase,
-  Pin,
+  Film,
+  TrendingUp,
+  ArrowRight,
   ExternalLink,
   Edit,
-  ArrowRight,
+  Globe,
+  Lock,
+  MessageSquare,
   Plus,
-  CheckCircle2,
+  Users,
 } from 'lucide-react'
-import { Article, Job } from '@/types'
-import { DUMMY_JOBS } from '@/data/dummyJobs'
+import { Article } from '@/types'
+import { DummyReport, DUMMY_REPORTS } from '@/data/dummyReports'
 import { useAdminData } from '@/context/AdminDataContext'
 
 const CATEGORY_DISPLAY_MAP: Record<string, string> = {
@@ -29,14 +33,75 @@ const CATEGORY_DISPLAY_MAP: Record<string, string> = {
   health: 'Health',
   kuliner: 'Kuliner',
   wisata: 'Wisata',
-  hiburan: 'Hiburan & Seni',
+  hiburan: 'Hiburan',
+  inspirasi: 'Inspirasi',
 }
 
-export default function AdminDashboardMediaPage() {
-  // Mengonsumsi data terpusat dari AdminDataContext (0ms instant render)
-  const { articles: contextArticles, isLoadingArticles, counts } = useAdminData()
+const SAMPLE_DUMMY_REPORTS: DummyReport[] = DUMMY_REPORTS
+
+const SAMPLE_SUPPLEMENTAL_ARTICLES: Article[] = [
+  {
+    id: 'art-demo-1',
+    title: 'Festival Kuliner Sukabumi 2026 Siap Digelar di Kawasan Selabintana',
+    slug: 'festival-kuliner-sukabumi-2026',
+    excerpt: 'Puluhan pelaku UMKM kuliner khas Sukabumi siap meramaikan festival tahunan dengan sajian legendaris.',
+    content: 'Festival kuliner...',
+    category: 'kuliner',
+    categoryLabel: 'Kuliner',
+    imageUrl: '/hero-banner.webp',
+    author: 'Revan Fatkhurezi',
+    reporter: 'Revan Fatkhurezi',
+    redaktur: 'Tim Redaksi',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 10).toISOString(),
+    publishedDate: new Date(Date.now() - 1000 * 60 * 60 * 10).toISOString(),
+    status: 'published',
+  },
+  {
+    id: 'art-demo-2',
+    title: 'Peluang Karir Digital & Tech Hub Berkembang Pesat bagi Gen Z Sukabumi',
+    slug: 'peluang-karir-digital-sukabumi',
+    excerpt: 'Ekosistem kerja remote dan industri kreatif digital membuka banyak kesempatan baru bagi talenta muda.',
+    content: 'Peluang karir...',
+    category: 'tech',
+    categoryLabel: 'Teknologi',
+    imageUrl: '/hero-banner.webp',
+    author: 'Ilham Nugraha',
+    reporter: 'Ilham Nugraha',
+    redaktur: 'Denis Febrian',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
+    publishedDate: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
+    status: 'published',
+  },
+  {
+    id: 'art-demo-3',
+    title: 'Revitalisasi Pasar Pelita Tingkatkan Perputaran Ekonomi Komoditas Lokal',
+    slug: 'revitalisasi-pasar-pelita-sukabumi',
+    excerpt: 'Penataan kios dan fasilitas sanitasi modern memberikan kenyamanan lebih bagi pedagang dan pembeli.',
+    content: 'Pasar pelita...',
+    category: 'berita',
+    categoryLabel: 'Berita',
+    imageUrl: '/hero-banner.webp',
+    author: 'Donie Makapeli',
+    reporter: 'Donie Makapeli',
+    redaktur: 'Tim Redaksi',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 40).toISOString(),
+    publishedDate: new Date(Date.now() - 1000 * 60 * 60 * 40).toISOString(),
+    status: 'published',
+  },
+]
+
+export default function UnifiedAdminDashboardPage() {
+  const {
+    articles: contextArticles,
+    isLoadingArticles,
+    reports: contextReports,
+    isLoadingReports,
+    counts,
+  } = useAdminData()
+
   const [articlesList, setArticlesList] = useState<Article[]>(contextArticles)
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [reportsList, setReportsList] = useState<DummyReport[]>(contextReports)
+  const [activeTableTab, setActiveTableTab] = useState<'berita' | 'aduan'>('berita')
 
   useEffect(() => {
     if (contextArticles.length > 0) {
@@ -46,358 +111,472 @@ export default function AdminDashboardMediaPage() {
         const saved = localStorage.getItem('jurnal_wave_articles')
         if (saved) {
           const parsed = JSON.parse(saved)
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setArticlesList(parsed)
-          }
+          if (Array.isArray(parsed) && parsed.length > 0) setArticlesList(parsed)
         }
       } catch {}
     }
   }, [contextArticles])
 
-  const reelsCount = counts.reels
-  const totalJobs = counts.jobs
-  const isLoading = isLoadingArticles && articlesList.length === 0
-
-  // Metrics
-  const totalBerita = articlesList.length
-  const headlineBerita = articlesList.filter((a) => a.isHero).length
-  const recentArticles = articlesList.slice(0, 8)
-
-  // Handle Toggle On/Off Headline Slider langsung dari Dashboard
-  const handleToggleHero = async (id: string) => {
-    const target = articlesList.find((a) => a.id === id)
-    if (!target) return
-    const newHeroState = !target.isHero
-
-    const updated = articlesList.map((a) =>
-      a.id === id ? { ...a, isHero: newHeroState } : a
-    )
-    setArticlesList(updated)
-
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('jurnal_wave_articles', JSON.stringify(updated))
-        window.dispatchEvent(new Event('storage'))
-      } catch {}
+  useEffect(() => {
+    if (contextReports.length > 0) {
+      setReportsList(contextReports)
     }
+  }, [contextReports])
 
-    try {
-      await fetch('/api/articles', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, isHero: newHeroState }),
-      })
-    } catch (err) {
-      console.warn('Gagal sinkron status Hero ke database:', err)
-    }
+  // Data Berita Gabungan
+  const displayArticles = useMemo(() => {
+    const combined = [...articlesList, ...SAMPLE_SUPPLEMENTAL_ARTICLES]
+    const seen = new Set<string>()
+    return combined.filter((a) => {
+      const key = (a.slug || a.id || a.title || '').toLowerCase()
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }, [articlesList])
 
-    setToastMessage(
-      newHeroState
-        ? `Artikel "${target.title.slice(0, 32)}..." diaktifkan ke Headline Slider Beranda!`
-        : `Artikel "${target.title.slice(0, 32)}..." dikembalikan ke Berita Feed.`
-    )
-    setTimeout(() => setToastMessage(null), 3000)
-  }
+  // Data Aduan Warga
+  const displayReports = useMemo(() => {
+    if (reportsList.length > 0) return reportsList
+    return SAMPLE_DUMMY_REPORTS
+  }, [reportsList])
+
+  // Hitungan Metrik 4 Pilar Utama
+  const totalBerita = displayArticles.length
+  const totalAduan = displayReports.length
+  const totalLoker = counts.jobs > 0 ? counts.jobs : 5
+  const totalReels = counts.reels > 0 ? counts.reels : 4
+
+  // Rasio Visibilitas Hak Tayang Aduan (Publik vs Privat)
+  const aduanPublik = displayReports.filter(
+    (r) => r.is_public || (r as any).visibilitas === 'publik'
+  ).length
+  const aduanPrivat = Math.max(0, totalAduan - aduanPublik)
+  const rasioPublik = totalAduan > 0 ? Math.round((aduanPublik / totalAduan) * 100) : 75
+
+  // Donut SVG geometry
+  const radius = 34
+  const circumference = 2 * Math.PI * radius
+  const offsetPublik = circumference - (rasioPublik / 100) * circumference
+
+  const recentArticles = displayArticles.slice(0, 5)
+  const recentReports = displayReports.slice(0, 5)
 
   return (
     <div className="space-y-6">
-      {/* Toast Notifikasi Sukses Toggle */}
-      {toastMessage && (
-        <div className="p-3 bg-[#c00015] text-white rounded-xl text-xs flex items-center justify-between shadow-md transition-all">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
-            <span className="font-medium">{toastMessage}</span>
-          </div>
-          <button
-            onClick={() => setToastMessage(null)}
-            className="text-white/80 hover:text-white cursor-pointer px-1 font-bold"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-      {/* 1. Header Khusus Jurnal Wave CMS (Bersih Tanpa Tombol Berjejer Norak) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-slate-900 tracking-tight">
-            Dashboard Media Jurnal Wave
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Pusat kendali operasional penerbitan berita, kurasi Wave Reels, dan bursa lowongan kerja Sukabumi.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/halo-jurnal/admin/berita"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Tulis Berita Baru</span>
-          </Link>
-          <Link
-            href="/"
-            target="_blank"
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition border border-slate-200"
-          >
-            <span>Buka Web Portal</span>
-            <ExternalLink className="w-3 h-3 text-slate-400" />
-          </Link>
-        </div>
-      </div>
-
-      {/* 2. Empat Kartu Metrik Jurnal Wave CMS */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      {/* 1. Baris Atas: 4 Kartu Metrik Utama */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Berita Tayang (Jurnal Wave) */}
         <Link
           href="/halo-jurnal/admin/berita"
-          className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 hover:border-[#c00015]/40 transition group"
+          className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-[#c00015]/40 transition group flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between text-slate-400 group-hover:text-[#c00015]">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Artikel Berita
-            </span>
-            <Newspaper className="w-4 h-4" />
+          <div>
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Berita Tayang
+              </span>
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-200/60 group-hover:bg-red-50 group-hover:text-[#c00015] transition">
+                <Newspaper className="w-4 h-4 text-slate-600 group-hover:text-[#c00015]" />
+              </div>
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900 group-hover:text-[#c00015] transition">
+              {totalBerita}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">Artikel portal Jurnal Wave</p>
           </div>
-          <p className="text-2xl font-extrabold font-heading text-slate-900 group-hover:text-[#c00015]">
-            {isLoading && articlesList.length === 0 ? (
-              <span className="inline-block w-8 h-7 bg-slate-200 animate-pulse rounded" />
-            ) : (
-              totalBerita
-            )}
-          </p>
-          <p className="text-[11px] text-slate-500">Artikel tayang aktif</p>
+          <div className="mt-4 pt-2 border-t border-slate-100 flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Kanal Berita &amp; Rubrik</span>
+          </div>
         </Link>
 
+        {/* Card 2: Aduan Warga (Hallo Jurnal) */}
         <Link
-          href="/halo-jurnal/admin/kategori"
-          className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 hover:border-[#c00015]/40 transition group"
+          href="/halo-jurnal/admin/laporan"
+          className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-[#c00015]/40 transition group flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between text-slate-400 group-hover:text-[#c00015]">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#c00015]">
-              Headline Slider
-            </span>
-            <Pin className="w-4 h-4 text-[#c00015] -rotate-45" />
+          <div>
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Aduan Warga
+              </span>
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-200/60 group-hover:bg-red-50 group-hover:text-[#c00015] transition">
+                <FileText className="w-4 h-4 text-slate-600 group-hover:text-[#c00015]" />
+              </div>
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900 group-hover:text-[#c00015] transition">
+              {totalAduan}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">Laporan masuk Hallo Jurnal</p>
           </div>
-          <p className="text-2xl font-extrabold font-heading text-[#c00015]">
-            {isLoading && articlesList.length === 0 ? (
-              <span className="inline-block w-8 h-7 bg-slate-200 animate-pulse rounded" />
-            ) : (
-              headlineBerita
-            )}
-          </p>
-          <p className="text-[11px] text-slate-500">Berita aktif di slider beranda</p>
+          <div className="mt-4 pt-2 border-t border-slate-100 flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+            <span>Buku Induk &amp; Arsip Warga</span>
+          </div>
         </Link>
 
-        <Link
-          href="/halo-jurnal/admin/reels"
-          className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 hover:border-slate-400 transition group"
-        >
-          <div className="flex items-center justify-between text-slate-400 group-hover:text-slate-900">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Wave Reels
-            </span>
-            <Film className="w-4 h-4" />
-          </div>
-          <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {reelsCount}
-          </p>
-          <p className="text-[11px] text-slate-500">Video 9:16 terkurasi</p>
-        </Link>
-
+        {/* Card 3: Lowongan Kerja */}
         <Link
           href="/halo-jurnal/admin/loker"
-          className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1 hover:border-slate-400 transition group"
+          className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-[#c00015]/40 transition group flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between text-slate-400 group-hover:text-slate-900">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Lowongan Kerja
-            </span>
-            <Briefcase className="w-4 h-4" />
+          <div>
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Lowongan Kerja
+              </span>
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-200/60 group-hover:bg-slate-100 transition">
+                <Briefcase className="w-4 h-4 text-slate-600" />
+              </div>
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900">
+              {totalLoker}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">Peluang karir terverifikasi</p>
           </div>
-          <p className="text-2xl font-extrabold font-heading text-slate-900">
-            {totalJobs}
-          </p>
-          <p className="text-[11px] text-slate-500">Peluang karir aktif</p>
+          <div className="mt-4 pt-2 border-t border-slate-100 flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Info Karir Sukabumi</span>
+          </div>
+        </Link>
+
+        {/* Card 4: Wave Reels */}
+        <Link
+          href="/halo-jurnal/admin/reels"
+          className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-[#c00015]/40 transition group flex flex-col justify-between"
+        >
+          <div>
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Wave Reels
+              </span>
+              <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-200/60 group-hover:bg-purple-50 group-hover:text-purple-600 transition">
+                <Film className="w-4 h-4 text-slate-600 group-hover:text-purple-600" />
+              </div>
+            </div>
+            <p className="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900 group-hover:text-purple-600 transition">
+              {totalReels}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">Video pendek terkurasi</p>
+          </div>
+          <div className="mt-4 pt-2 border-t border-slate-100 flex items-center gap-1.5 text-xs font-semibold text-purple-600">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Konten Visual 9:16</span>
+          </div>
         </Link>
       </div>
 
-      {/* 3. Tabel Artikel Berita Terbaru */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
-          <div>
-            <h3 className="font-heading font-bold text-sm text-slate-900">
-              Daftar Artikel Berita Terbaru
-            </h3>
-            <p className="text-[11px] text-slate-500">
-              Status publikasi dan posisi penayangan berita di portal Jurnal Wave.
-            </p>
+      {/* 2. Baris Utama: Panel Moderasi Hak Tayang & Akses Cepat (Kiri) + Tabel Aktivitas Terbaru (Kanan) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Kolom Kiri: Moderasi Hak Tayang & Akses Cepat (4 Kolom pada LG) */}
+        <div className="lg:col-span-4 space-y-4">
+          {/* Card Donut: Moderasi Hak Tayang Aduan */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-xs font-bold text-slate-800 font-heading">
+                  Moderasi Hak Tayang
+                </h3>
+                <p className="text-2xl font-extrabold font-heading text-slate-900 mt-1">
+                  {aduanPublik} Publik
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {aduanPrivat} aduan tersimpan privat
+                </p>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-50 text-[#c00015] border border-red-200">
+                {totalAduan} Total
+              </span>
+            </div>
+
+            {/* Circular Donut Graphic */}
+            <div className="my-5 flex items-center justify-center">
+              <div className="relative w-28 h-28 flex items-center justify-center">
+                <svg className="w-28 h-28 -rotate-90 transform" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r={radius}
+                    className="text-slate-100"
+                    strokeWidth="10"
+                    stroke="currentColor"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r={radius}
+                    className="text-[#c00015] transition-all duration-500 ease-out"
+                    strokeWidth="10"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offsetPublik}
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="transparent"
+                  />
+                </svg>
+                <div className="absolute text-center">
+                  <span className="font-heading font-extrabold text-base text-slate-900 block leading-none">
+                    {rasioPublik}%
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-medium block mt-0.5">
+                    Feed Publik
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#c00015]" />
+                <span className="font-medium text-slate-700">{aduanPublik} Tayang</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                <span className="font-medium text-slate-500">{aduanPrivat} Privat</span>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span className="text-slate-400 text-[11px]">Buku Induk Hallo Jurnal</span>
+              <Link
+                href="/halo-jurnal/admin/laporan"
+                className="text-[#c00015] hover:underline font-semibold text-xs flex items-center gap-1"
+              >
+                <span>Kelola Aduan</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
           </div>
-          <Link
-            href="/halo-jurnal/admin/berita"
-            className="text-xs font-semibold text-[#c00015] hover:underline flex items-center gap-1"
-          >
-            <span>Buka Semua Berita</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+
+          {/* Card: Pintasan Akses Cepat */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+            <h3 className="text-xs font-bold text-slate-800 font-heading uppercase tracking-wider">
+              Akses Cepat Pengelolaan
+            </h3>
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              <Link
+                href="/halo-jurnal/admin/berita"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-red-50 text-[#c00015] flex items-center justify-center">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <span className="font-semibold text-slate-800 group-hover:text-[#c00015] transition">
+                    Manajemen Konten
+                  </span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition" />
+              </Link>
+
+              <Link
+                href="/halo-jurnal/admin/chat"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-red-50 text-[#c00015] flex items-center justify-center">
+                    <MessageSquare className="w-4 h-4" />
+                  </div>
+                  <span className="font-semibold text-slate-800 group-hover:text-[#c00015] transition">
+                    Pusat Chat Web Warga
+                  </span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition" />
+              </Link>
+
+              <Link
+                href="/halo-jurnal/admin/warga"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <span className="font-semibold text-slate-800 group-hover:text-slate-900 transition">
+                    Direktori Akun Warga
+                  </span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition" />
+              </Link>
+            </div>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
-              <tr>
-                <th className="py-3 px-4">Artikel &amp; Thumbnail</th>
-                <th className="py-3 px-4">Kategori Rubrik</th>
-                <th className="py-3 px-4">Reporter &amp; Editor</th>
-                <th className="py-3 px-4">Posisi Tayang</th>
-                <th className="py-3 px-4 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading && articlesList.length === 0 ? (
-                [1, 2, 3, 4].map((i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-9 bg-slate-200 rounded shrink-0" />
-                        <div className="space-y-1">
-                          <div className="h-4 w-44 bg-slate-200 rounded" />
-                          <div className="h-3 w-28 bg-slate-100 rounded" />
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4"><div className="h-5 w-16 bg-slate-200 rounded" /></td>
-                    <td className="py-3.5 px-4"><div className="h-4 w-20 bg-slate-200 rounded" /></td>
-                    <td className="py-3.5 px-4"><div className="h-6 w-12 bg-slate-200 rounded" /></td>
-                    <td className="py-3.5 px-4 text-right"><div className="h-7 w-16 bg-slate-200 rounded ml-auto" /></td>
+        {/* Kolom Kanan: Tabel Aktivitas Terbaru (8 Kolom pada LG) */}
+        <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col">
+          {/* Header Tabel dengan Tab Pengalih & Link "Lihat semua →" */}
+          <div className="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setActiveTableTab('berita')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeTableTab === 'berita'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Berita Terbaru
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTableTab('aduan')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeTableTab === 'aduan'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Aduan Warga
+              </button>
+            </div>
+
+            <Link
+              href={activeTableTab === 'berita' ? '/halo-jurnal/admin/berita' : '/halo-jurnal/admin/laporan'}
+              className="text-xs font-semibold text-slate-600 hover:text-[#c00015] flex items-center gap-1 transition"
+            >
+              <span>Lihat semua</span>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+            </Link>
+          </div>
+
+          {/* Isi Tabel */}
+          <div className="flex-1 overflow-x-auto">
+            {activeTableTab === 'berita' ? (
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/70 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-100">
+                  <tr>
+                    <th className="py-2.5 px-4">Judul Berita</th>
+                    <th className="py-2.5 px-4 w-32">Kategori</th>
+                    <th className="py-2.5 px-4 w-36">Penulis / Reporter</th>
+                    <th className="py-2.5 px-4 w-28">Tanggal</th>
+                    <th className="py-2.5 px-4 w-20 text-center">Aksi</th>
                   </tr>
-                ))
-              ) : recentArticles.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-10 text-center text-slate-400 space-y-1">
-                    <p className="font-semibold text-slate-700">Belum ada artikel berita yang dimuat</p>
-                    <p className="text-[11px]">Gunakan tombol &quot;Tulis Berita Baru&quot; untuk menerbitkan berita pertama.</p>
-                  </td>
-                </tr>
-              ) : (
-                recentArticles.map((art) => {
-                  return (
-                    <tr key={art.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3.5 px-4 max-w-sm">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={art.imageUrl}
-                            alt={art.title}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              if (!target.src.endsWith('/hero-banner.webp')) {
-                                target.src = '/hero-banner.webp'
-                              }
-                            }}
-                            className="w-12 h-9 rounded-md object-cover bg-slate-100 shrink-0 border border-slate-200"
-                          />
-                          <div className="min-w-0">
-                            <h4 className="font-semibold text-slate-900 line-clamp-1">
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {recentArticles.map((art) => {
+                    const catKey = (art.category || '').toLowerCase().trim()
+                    const catLabel = CATEGORY_DISPLAY_MAP[catKey] || art.category
+                    return (
+                      <tr key={art.id} className="hover:bg-slate-50/70 transition">
+                        <td className="py-3 px-4 max-w-sm">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={art.imageUrl}
+                              alt={art.title}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                if (!target.src.endsWith('/hero-banner.webp')) {
+                                  target.src = '/hero-banner.webp'
+                                }
+                              }}
+                              className="w-10 h-7 rounded-md object-cover bg-slate-100 shrink-0 border border-slate-200"
+                            />
+                            <span className="font-semibold text-slate-900 truncate block">
                               {art.title}
-                            </h4>
-                            <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
-                              {art.excerpt}
-                            </p>
+                            </span>
                           </div>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        {(() => {
-                          const catKey = (art.category || '').toLowerCase().trim()
-                          const label = CATEGORY_DISPLAY_MAP[catKey] || art.category
-                          const rawSub = (art.subCategory || '').trim()
-                          const subLower = rawSub.toLowerCase()
-                          const hasSub =
-                            rawSub &&
-                            subLower !== catKey &&
-                            subLower !== label.toLowerCase() &&
-                            subLower !== 'tech' &&
-                            subLower !== 'teknologi' &&
-                            subLower !== 'berita'
-
-                          return (
-                            <div className="flex flex-col items-center w-fit gap-0.5">
-                              <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80">
-                                {label}
-                              </span>
-                              {hasSub && (
-                                <span className="text-[10px] text-slate-400 font-medium capitalize text-center">
-                                  {rawSub.toLowerCase()}
-                                </span>
-                              )}
-                            </div>
-                          )
-                        })()}
-                      </td>
-
-                      {/* Reporter & Editor (Gaya SukabumiUpdate) */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className="flex flex-col gap-0.5">
-                          <p className="font-semibold text-slate-900 flex items-center gap-1">
-                            <span className="text-[10px] font-normal text-slate-400">Oleh:</span>{' '}
-                            {art.reporter || art.author || 'Tim Redaksi'}
-                          </p>
-                          <p className="text-[11px] text-slate-500 flex items-center gap-1">
-                            <span className="text-[10px] font-bold text-[#c00015]">EDITOR:</span>{' '}
-                            {art.redaktur || art.editor || 'Ujang Herlan'}
-                          </p>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleHero(art.id)}
-                          title={
-                            art.isHero
-                              ? 'Headline aktif (Klik untuk matikan / jadikan Berita Feed reguler)'
-                              : 'Klik untuk mengaktifkan ke Headline Slider Beranda'
-                          }
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer select-none active:scale-95 ${
-                            art.isHero
-                              ? 'bg-[#c00015] hover:bg-[#a00012] text-white shadow-2xs'
-                              : 'text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200'
-                          }`}
-                        >
-                          <Pin
-                            className={`w-3 h-3 -rotate-45 ${
-                              art.isHero ? 'text-white' : 'text-slate-400'
-                            }`}
-                          />
-                          <span>{art.isHero ? 'Headline Slider' : 'Berita Feed'}</span>
-                        </button>
-                      </td>
-
-                      <td className="py-3.5 px-4 whitespace-nowrap text-center">
-                        <div className="inline-flex items-center justify-center gap-1.5">
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                            {catLabel}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap text-slate-600 text-xs">
+                          {art.reporter || art.author || 'Tim Redaksi'}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap text-slate-400 text-[11px]">
+                          {new Date(art.publishedDate || art.createdAt).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap text-center">
                           <Link
                             href="/halo-jurnal/admin/berita"
-                            className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
-                            title="Edit Artikel"
+                            className="p-1 rounded-md text-slate-400 hover:text-[#c00015] hover:bg-slate-100 transition inline-block"
+                            title="Edit Berita"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </Link>
-                          <Link
-                            href={`/artikel/${art.slug || art.id}`}
-                            target="_blank"
-                            className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
-                            title="Buka di Portal Warga"
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/70 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-100">
+                  <tr>
+                    <th className="py-2.5 px-4 w-36">No. Tiket</th>
+                    <th className="py-2.5 px-4">Judul Pengaduan</th>
+                    <th className="py-2.5 px-4 w-28">Visibilitas</th>
+                    <th className="py-2.5 px-4 w-28">Tanggal</th>
+                    <th className="py-2.5 px-4 w-24 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {recentReports.map((rep) => {
+                    const isPublic = rep.is_public || (rep as any).visibilitas === 'publik'
+                    return (
+                      <tr key={rep.id} className="hover:bg-slate-50/70 transition">
+                        <td className="py-3 px-4 whitespace-nowrap font-mono font-bold text-slate-800">
+                          {rep.nomor_tiket}
+                        </td>
+                        <td className="py-3 px-4 max-w-sm">
+                          <span className="font-semibold text-slate-900 truncate block">
+                            {rep.judul}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              isPublic
+                                ? 'bg-red-50 text-[#c00015] border border-red-200'
+                                : 'bg-slate-100 text-slate-600 border border-slate-200'
+                            }`}
                           >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
+                            {isPublic ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                            <span>{isPublic ? 'Publik' : 'Privat'}</span>
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap text-slate-400 text-[11px]">
+                          {new Date(rep.created_at).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap text-center">
+                          <div className="inline-flex items-center gap-1">
+                            <Link
+                              href={`/halo-jurnal/admin/chat?ticket=${rep.nomor_tiket || rep.id}`}
+                              className="p-1 rounded-md text-slate-400 hover:text-[#c00015] hover:bg-red-50 transition inline-block"
+                              title="Buka Chat dengan Pelapor"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                            </Link>
+                            <Link
+                              href={`/halo-jurnal/admin/laporan/${rep.id}`}
+                              className="p-1 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition inline-block"
+                              title="Buka Detail Aduan"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
     </div>

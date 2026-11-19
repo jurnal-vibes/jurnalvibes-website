@@ -30,11 +30,11 @@ export default function NotFound() {
           <span>Kembali ke Beranda</span>
         </Link>
         <Link
-          href="/berita"
+          href="/artikel"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-surface-variant/60 hover:bg-surface-variant text-on-surface dark:text-white font-semibold text-sm transition-all border border-black/5 dark:border-white/10 cursor-pointer active:scale-95"
         >
           <Compass className="w-4 h-4 text-primary" />
-          <span>Jelajahi Berita</span>
+          <span>Jelajahi Artikel</span>
         </Link>
       </div>
 

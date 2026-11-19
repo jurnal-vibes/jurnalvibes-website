@@ -13,6 +13,7 @@ import {
   Check,
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
+import AdminToast from '@/components/admin/AdminToast'
 
 export default function AdminModerasiFeedPublikPage() {
   const [reportsList, setReportsList] = useState<DummyReport[]>([])
@@ -237,20 +238,10 @@ export default function AdminModerasiFeedPublikPage() {
       </div>
 
       {/* Toast Alert */}
-      {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center justify-between shadow-2xs">
-          <div className="flex items-center gap-2">
-            <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span>{toastMessage}</span>
-          </div>
-          <button
-            onClick={() => setToastMessage(null)}
-            className="text-slate-400 hover:text-white font-bold cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      )}
+      <AdminToast
+        message={toastMessage}
+        onClose={() => setToastMessage(null)}
+      />
 
       {/* 2. Kartu Metrik Ringkasan */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

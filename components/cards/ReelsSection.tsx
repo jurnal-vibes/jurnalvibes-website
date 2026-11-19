@@ -2,8 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Play, ChevronRight } from 'lucide-react';
-import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6';
+import { ChevronRight } from 'lucide-react';
 import { Reel } from '@/types';
 
 interface ReelsSectionProps {
@@ -139,50 +138,13 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
     return null;
   }
 
-  const renderPlatformBadge = (reel: Reel) => {
-    const url = (reel.socialUrl || reel.videoUrl || '').toLowerCase();
-    const platform = reel.platform?.toLowerCase();
-
-    if (platform === 'tiktok' || url.includes('tiktok.com')) {
-      return (
-        <span
-          title="Buka di TikTok"
-          className="w-6 h-6 rounded-md bg-black border border-white/20 flex items-center justify-center text-white shadow-xs"
-        >
-          <FaTiktok className="w-3 h-3 text-white" />
-        </span>
-      );
-    }
-
-    if (platform === 'youtube' || url.includes('youtube.com') || url.includes('youtu.be')) {
-      return (
-        <span
-          title="Buka di YouTube Shorts"
-          className="w-6 h-6 rounded-md bg-[#FF0000] border border-white/20 flex items-center justify-center text-white shadow-xs"
-        >
-          <FaYoutube className="w-3.5 h-3.5 text-white" />
-        </span>
-      );
-    }
-
-    // Default: Instagram gradient
-    return (
-      <span
-        title="Buka di Instagram Reels"
-        className="w-6 h-6 rounded-md bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] border border-white/20 flex items-center justify-center text-white shadow-xs"
-      >
-        <FaInstagram className="w-3.5 h-3.5 text-white" />
-      </span>
-    );
-  };
-
   return (
     <section className={hideHeader ? 'my-2' : 'border-t border-slate-100 dark:border-zinc-800 pt-4 mt-2 mb-4'}>
       {/* Header ala SukabumiUpdate (dengan garis merah dan tombol Geser) */}
       {!hideHeader && (
         <div className="flex items-center justify-between mb-3 pb-1 border-b border-slate-100 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <span className="w-1 h-4 sm:h-5 bg-[#c00015] rounded-full inline-block" />
+            <span className="w-1 h-4 sm:h-5 bg-[#c00015] rounded-none shrink-0 inline-block" />
             <h2 className="font-heading font-extrabold text-sm sm:text-base tracking-wider uppercase text-slate-900 dark:text-zinc-100 flex items-center gap-2">
               <span>{title}</span>
             </h2>
@@ -260,12 +222,12 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
                 href={targetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                title={`Buka "${reel.title}" di ${reel.platform || 'Medsos'}`}
+                title={reel.title}
                 className={`relative ${
                   isGalleryPage
                     ? 'w-full'
                     : 'w-[150px] sm:w-[165px] md:w-[175px] shrink-0 snap-start'
-                } aspect-[9/16] rounded-xl overflow-hidden group cursor-pointer bg-zinc-950 shadow-2xs hover:shadow-md transition-all duration-300 block select-none border border-slate-200/20`}
+                } aspect-[9/16] rounded-2xl overflow-hidden group cursor-pointer bg-zinc-950 shadow-xs hover:shadow-md transition-all duration-300 block select-none border border-slate-200/20`}
               >
                 {/* Image Poster */}
                 {/* eslint-disable-next-img-element */}
@@ -279,42 +241,11 @@ export const ReelsSection: React.FC<ReelsSectionProps> = ({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                 />
 
-                {/* Dark Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-black/40 flex flex-col justify-between p-2 sm:p-2.5">
-                  {/* Top Row: Kategori (Selaras dengan Admin) & Badge Medsos */}
-                  <div className="flex items-center justify-between w-full z-10">
-                    <span className="text-[8px] sm:text-[9px] font-semibold tracking-wide text-white bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded border border-white/20 truncate max-w-[110px]">
-                      {!reel.category || reel.category === '-' ? 'Berita' : reel.category}
-                    </span>
-                    {renderPlatformBadge(reel)}
-                  </div>
-
-                  {/* Center Play Button (Selaras 100% dengan Admin) */}
-                  <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white shadow-lg group-hover:scale-110 group-hover:bg-[#c00015] group-hover:border-[#c00015] transition-all duration-300">
-                      <Play className="w-4 h-4 fill-white text-white ml-0.5" />
-                    </div>
-                  </div>
-
-                  {/* Bottom Content: Creator, Title & Lokasi (Selaras dengan Admin) */}
-                  <div className="flex flex-col gap-0.5 z-10">
-                    <div className="flex items-center justify-between text-[9px] text-white/80">
-                      {reel.creator && (
-                        <span className="font-semibold line-clamp-1">
-                          {reel.creator}
-                        </span>
-                      )}
-                      {reel.location && (
-                        <span className="text-[8px] text-white/70 truncate max-w-[70px]">
-                          {reel.location}
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="text-white font-bold text-[11px] sm:text-xs leading-snug line-clamp-2 drop-shadow-sm group-hover:text-red-200 transition-colors">
-                      {reel.title}
-                    </p>
-                  </div>
+                {/* Dark Gradient Overlay & Judul Simpel Sesuai Referensi Pengguna */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-transparent flex flex-col justify-end p-2.5 sm:p-3">
+                  <p className="text-white font-heading font-semibold text-[11px] sm:text-xs leading-snug line-clamp-2 drop-shadow-xs group-hover:underline underline-offset-2 decoration-white/80">
+                    {reel.title}
+                  </p>
                 </div>
               </a>
             );

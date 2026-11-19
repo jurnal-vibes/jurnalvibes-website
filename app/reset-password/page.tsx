@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Mail,
+  Phone,
   ArrowLeft,
   Loader2,
   CheckCircle2,
@@ -12,22 +12,22 @@ import {
   Lock,
   Eye,
   EyeOff,
-  KeyRound,
   RotateCcw,
 } from 'lucide-react'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
 
-  // Step: 1 = Input Email, 2 = Input OTP, 3 = Input Sandi Baru, 4 = Sukses
+  // Step: 1 = Input WhatsApp, 2 = Input OTP, 3 = Input Sandi Baru, 4 = Sukses
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
 
   // Form Fields
-  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', ''])
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // OTP Countdown Timer
   const [timer, setTimer] = useState(60)
@@ -38,6 +38,9 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+  const [infoMessage, setInfoMessage] = useState('')
+
+  const cleanPhone = phone.replace(/[^0-9]/g, '')
 
   // Timer Countdown Effect
   useEffect(() => {
@@ -57,30 +60,30 @@ export default function ResetPasswordPage() {
   }, [step, timer])
 
   // ==========================================
-  // STEP 1: KIRIM KODE OTP KE GMAIL
+  // STEP 1: KIRIM KODE OTP KE WHATSAPP
   // ==========================================
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const cleanEmail = email.trim().toLowerCase()
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-      setError('Masukkan alamat email yang valid.')
+    if (!cleanPhone || cleanPhone.length < 10 || cleanPhone.length > 14) {
+      setError('Masukkan nomor WhatsApp yang valid (10-14 digit angka).')
       return
     }
 
     setLoading(true)
     setError('')
+    setInfoMessage('')
 
     try {
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'request-otp', email: cleanEmail }),
+        body: JSON.stringify({ action: 'request-otp', phone: cleanPhone }),
       })
 
       const data = await res.json()
 
       if (!res.ok || !data.success) {
-        setError(data.message || 'Gagal mengirim kode OTP. Periksa kembali email Anda.')
+        setError(data.message || 'Gagal mengirim kode OTP. Periksa kembali nomor WhatsApp Anda.')
         return
       }
 
@@ -88,6 +91,9 @@ export default function ResetPasswordPage() {
       setTimer(60)
       setCanResend(false)
       setOtpCode(['', '', '', '', '', ''])
+      if (data.otpDemo) {
+        setInfoMessage(`(Mode Demo: Gunakan kode verifikasi ${data.otpDemo})`)
+      }
       setTimeout(() => {
         otpInputRefs.current[0]?.focus()
       }, 200)
@@ -119,7 +125,7 @@ export default function ResetPasswordPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'verify-otp',
-          email: email.trim().toLowerCase(),
+          phone: cleanPhone,
           otpCode: entered,
         }),
       })
@@ -127,7 +133,7 @@ export default function ResetPasswordPage() {
       const data = await res.json()
 
       if (!res.ok || !data.success) {
-        setError(data.message || 'Kode OTP tidak cocok atau sudah kadaluarsa.')
+        setError(data.message || 'Kode OTP tidak cocok atau sudah kedaluwarsa.')
         return
       }
 
@@ -144,12 +150,13 @@ export default function ResetPasswordPage() {
     if (!canResend || loading) return
     setLoading(true)
     setError('')
+    setInfoMessage('')
 
     try {
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'request-otp', email: email.trim().toLowerCase() }),
+        body: JSON.stringify({ action: 'request-otp', phone: cleanPhone }),
       })
 
       const data = await res.json()
@@ -162,6 +169,9 @@ export default function ResetPasswordPage() {
       setTimer(60)
       setCanResend(false)
       setOtpCode(['', '', '', '', '', ''])
+      if (data.otpDemo) {
+        setInfoMessage(`(Mode Demo: Gunakan kode verifikasi ${data.otpDemo})`)
+      }
       otpInputRefs.current[0]?.focus()
     } catch {
       setError('Gagal mengirim ulang kode OTP. Periksa koneksi internet Anda.')
@@ -190,16 +200,16 @@ export default function ResetPasswordPage() {
   }
 
   // ==========================================
-  // STEP 3: SIMPAN KATA SANDI BARU (REAL DB)
+  // STEP 3: SIMPAN KATA SANDI BARU
   // ==========================================
   const handleSaveNewPassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newPassword || newPassword.length < 6) {
-      setError('Kata sandi baru minimal 6 karakter.')
+    if (!newPassword || newPassword.length < 8) {
+      setError('Kata sandi baru minimal 8 karakter demi keamanan akun Anda.')
       return
     }
     if (newPassword !== confirmPassword) {
-      setError('Konfirmasi kata sandi tidak cocok.')
+      setError('Konfirmasi kata sandi tidak cocok. Mohon periksa kembali.')
       return
     }
 
@@ -212,7 +222,7 @@ export default function ResetPasswordPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'reset-password',
-          email: email.trim().toLowerCase(),
+          phone: cleanPhone,
           otpCode: otpCode.join(''),
           newPassword,
         }),
@@ -254,25 +264,12 @@ export default function ResetPasswordPage() {
         <div className="absolute right-0 bottom-0 w-96 h-96 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* SISI KIRI: GAMBAR MASKOT PRESENTER */}
-          <div className="md:col-span-5 flex flex-col items-center justify-center pointer-events-none self-stretch pt-2 pb-4">
-            <div className="relative w-full h-full min-h-[300px] sm:min-h-[380px] md:min-h-[440px] max-h-[460px] flex flex-col items-center justify-start">
-              <div className="absolute w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-primary/15 via-amber-500/10 to-transparent blur-3xl pointer-events-none" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/hallo-jurnal-presenter.webp"
-                alt="Hallo Jurnal Presenter"
-                className="w-full h-full max-h-[440px] object-contain object-top drop-shadow-xl select-none transition-transform duration-300"
-              />
-              <div className="w-24 sm:w-32 h-2.5 bg-black/10 blur-xs rounded-full -mt-1.5 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* SISI KANAN: FORMULIR RESET MULTI-STEP */}
-          <div className="md:col-span-7 flex flex-col justify-center py-2">
-            {/* Header Badge */}
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-2xs">
+          
+          {/* SISI KIRI: MASKOT (& Logo pada Mobile) */}
+          <div className="md:col-span-5 flex flex-col items-center justify-center self-stretch">
+            {/* Logo Badge Resmi Hallo Jurnal - Hanya di Mobile (di Atas Maskot, Rata Kiri) */}
+            <div className="self-start flex md:hidden items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-2xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/halo-jurnal-icon.webp?v=original"
@@ -280,8 +277,8 @@ export default function ResetPasswordPage() {
                   className="w-full h-full object-contain"
                 />
               </div>
-              <div className="flex flex-col">
-                <span className="font-heading font-bold text-sm text-on-surface tracking-tight leading-none">
+              <div className="flex flex-col text-left">
+                <span className="font-heading font-black text-base text-on-surface tracking-tight leading-none">
                   Hallo Jurnal
                 </span>
                 <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">
@@ -290,24 +287,58 @@ export default function ResetPasswordPage() {
               </div>
             </div>
 
-            <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary tracking-tight mb-2">
+            <div className="relative w-full flex flex-col items-center justify-center pointer-events-none">
+              <div className="absolute w-48 h-48 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/hallo-jurnal-presenter.webp"
+                alt="Hallo Jurnal Presenter"
+                className="relative w-1/2 max-w-[160px] md:w-3/4 md:max-w-[240px] object-contain drop-shadow-xl select-none"
+              />
+              <div className="w-16 md:w-20 h-2 bg-black/8 blur-sm rounded-full -mt-1 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* SISI KANAN: FORMULIR RESET MULTI-STEP */}
+          <div className="md:col-span-7 flex flex-col justify-center py-2">
+            
+            {/* Logo Badge Resmi Hallo Jurnal - Hanya di Desktop/Tablet (Seperti Semula) */}
+            <div className="hidden md:flex items-center gap-2.5 mb-3">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-2xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/halo-jurnal-icon.webp?v=original"
+                  alt="Hallo Jurnal Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-heading font-black text-base text-on-surface tracking-tight leading-none">
+                  Hallo Jurnal
+                </span>
+                <span className="text-[10px] text-secondary font-medium tracking-tight mt-0.5">
+                  Aspirasi &amp; Aduan Sukabumi
+                </span>
+              </div>
+            </div>
+
+            <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-primary tracking-tight mb-1">
               {step === 1 && 'Reset Kata Sandi'}
               {step === 2 && 'Verifikasi Kode OTP'}
               {step === 3 && 'Buat Kata Sandi Baru'}
               {step === 4 && 'Kata Sandi Berhasil Diubah'}
             </h1>
 
-            <p className="text-secondary text-xs sm:text-sm leading-relaxed max-w-lg mb-6">
+            <p className="text-secondary text-xs sm:text-sm leading-relaxed max-w-lg mb-5">
               {step === 1 &&
-                'Masukkan alamat email akun warga Anda untuk menerima 6 digit kode OTP pemulihan kata sandi.'}
+                'Masukkan nomor WhatsApp akun warga Anda untuk menerima 6 digit kode OTP verifikasi pemulihan kata sandi.'}
               {step === 2 && (
                 <>
-                  Kode verifikasi 6 digit telah dikirimkan ke alamat{' '}
-                  <strong className="text-on-surface font-semibold">{email}</strong>. Periksa kotak masuk
-                  atau folder spam Anda.
+                  Kode verifikasi 6 digit telah dikirimkan ke nomor WhatsApp{' '}
+                  <strong className="text-on-surface font-semibold">{cleanPhone}</strong>. Masukkan kode untuk melanjutkan.
                 </>
               )}
-              {step === 3 && 'Silakan buat kata sandi baru yang kuat dan mudah Anda ingat.'}
+              {step === 3 && 'Silakan buat kata sandi baru minimal 8 karakter yang aman dan mudah Anda ingat.'}
               {step === 4 && 'Kata sandi akun Anda telah diperbarui. Silakan masuk kembali.'}
             </p>
 
@@ -319,32 +350,42 @@ export default function ResetPasswordPage() {
               </div>
             )}
 
+            {/* Info Message Demo / Testing */}
+            {infoMessage && (
+              <div className="p-3 mb-4 rounded-xl bg-primary/5 border border-primary/20 text-primary text-xs font-medium flex items-start gap-2">
+                <div className="flex-1 leading-relaxed">{infoMessage}</div>
+              </div>
+            )}
+
             {/* ==================================================== */}
-            {/* STEP 1: FORM INPUT EMAIL                             */}
+            {/* STEP 1: FORM INPUT NOMOR WHATSAPP                    */}
             {/* ==================================================== */}
             {step === 1 && (
               <form onSubmit={handleRequestOtp} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-on-surface mb-1.5">
-                    Alamat Email Akun Warga
+                    Nomor WhatsApp Terdaftar
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Phone className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="nama@email.com"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Contoh: 081234567890"
                       required
                       className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                     />
                   </div>
+                  <p className="text-[11px] text-secondary mt-1">
+                    Pastikan nomor WhatsApp Anda aktif untuk menerima 6 digit kode OTP.
+                  </p>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-4"
+                  className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-4"
                 >
                   {loading ? (
                     <>
@@ -352,7 +393,7 @@ export default function ResetPasswordPage() {
                       <span>Mengirim Kode OTP...</span>
                     </>
                   ) : (
-                    <span>Kirim Kode OTP via Email</span>
+                    <span>Kirim Kode OTP via WhatsApp</span>
                   )}
                 </button>
               </form>
@@ -400,7 +441,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading || otpCode.join('').length < 6}
-                  className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -412,17 +453,18 @@ export default function ResetPasswordPage() {
                   )}
                 </button>
 
-                {/* Kirim Ulang & Ganti Email */}
+                {/* Kirim Ulang & Ganti Nomor */}
                 <div className="flex items-center justify-between pt-2 text-xs">
                   <button
                     type="button"
                     onClick={() => {
                       setStep(1)
                       setError('')
+                      setInfoMessage('')
                     }}
                     className="text-secondary hover:text-on-surface transition-colors cursor-pointer"
                   >
-                    ← Ganti Email
+                    ← Ganti Nomor WhatsApp
                   </button>
 
                   <button
@@ -453,14 +495,15 @@ export default function ResetPasswordPage() {
                       type={showPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Minimal 6 karakter"
+                      placeholder="Minimal 8 karakter"
                       required
                       className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-on-surface cursor-pointer"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-on-surface cursor-pointer p-1"
+                      title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -474,20 +517,28 @@ export default function ResetPasswordPage() {
                   <div className="relative">
                     <Lock className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
-                      type={showPassword ? 'text' : 'password'}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Ulangi kata sandi baru"
                       required
                       className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-surface-container-low border border-outline-variant/80 rounded-lg text-on-surface placeholder:text-secondary focus:bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-on-surface cursor-pointer p-1"
+                      title={showConfirmPassword ? 'Sembunyikan password' : 'Lihat password'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-4"
+                  className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-dark text-white font-heading font-bold text-xs sm:text-sm tracking-tight transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-4"
                 >
                   {loading ? (
                     <>
@@ -521,8 +572,8 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Silakan masuk menggunakan email{' '}
-                  <strong className="text-slate-900 font-semibold">{email}</strong> dan kata sandi baru yang Anda buat.
+                  Silakan masuk menggunakan nomor WhatsApp{' '}
+                  <strong className="text-slate-900 font-semibold">{cleanPhone}</strong> dan kata sandi baru yang telah Anda buat.
                 </p>
 
                 <Link

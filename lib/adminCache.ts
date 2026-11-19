@@ -1,8 +1,11 @@
-﻿/**
+/**
  * Utilitas Cache Sisi Klien untuk Halaman Admin JurnalCentral & Hallo Jurnal
  * Menerapkan pola Stale-While-Revalidate (SWR): render instan (0 milidetik) dari cache lokal,
  * lalu perbarui data di latar belakang tanpa ada kedipan angka 0 atau layar kosong.
  */
+
+import { DUMMY_REPORTS } from '@/data/dummyReports'
+import { INITIAL_ARTICLES } from '@/lib/initialArticles'
 
 // Memory Cache RAM
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,7 +45,7 @@ export function getCachedAdminReports(): any[] {
       }
     } catch {}
   }
-  return []
+  return DUMMY_REPORTS
 }
 
 /**
@@ -79,7 +82,7 @@ export function getCachedAdminArticles(): any[] {
       }
     } catch {}
   }
-  return []
+  return INITIAL_ARTICLES
 }
 
 /**

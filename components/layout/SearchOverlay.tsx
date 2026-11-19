@@ -151,9 +151,8 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-primary">
                             {(() => {
-                              const raw = (article.categoryLabel || article.category || 'BERITA').toUpperCase();
-                              if (raw === 'INFRASTRUKTUR') return 'BERITA';
-                              if (raw === 'WISATA') return 'TRAVELING';
+                              const raw = (article.categoryLabel || article.category || 'ARTIKEL').toUpperCase();
+                              if (raw === 'INFRASTRUKTUR') return 'ARTIKEL';
                               return raw;
                             })()}
                           </span>
@@ -206,10 +205,10 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
         </div>
       </div>
 
-      {/* Dimmed Backdrop Overlay (Starts below header height) */}
+      {/* Dimmed Backdrop Overlay (Starts below search input bar) */}
       <div
         onClick={onClose}
-        className="fixed inset-0 top-16 md:top-20 bg-black/50 backdrop-blur-xs z-30 transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 top-12 sm:top-14 bg-black/50 backdrop-blur-xs z-30 transition-opacity animate-in fade-in duration-200"
         aria-hidden="true"
       />
     </>

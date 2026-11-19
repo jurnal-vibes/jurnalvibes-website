@@ -124,12 +124,16 @@ function mapArticleFromDb(item: any) {
 let serverArticlesCache: { data: any[]; timestamp: number } | null = null
 const SERVER_ARTICLES_CACHE_TTL_MS = 10000 // 10 detik memory cache
 
+let serverAdminArticlesCache: { data: any[]; timestamp: number } | null = null
+const SERVER_ADMIN_CACHE_TTL_MS = 5000 // 5 detik memory cache untuk admin
+
 // Circuit breaker (Fast-Fail): Mencegah antrean timeout jika database cloud lambat
 let lastArticlesDbFailureTimestamp = 0
 const ARTICLES_DB_RETRY_MS = 15 * 1000
 
 function invalidateArticlesCache() {
   serverArticlesCache = null
+  serverAdminArticlesCache = null
   lastArticlesDbFailureTimestamp = 0
 }
 
@@ -152,6 +156,19 @@ export async function GET(request: NextRequest) {
         success: true,
         source: 'server-memory-cache',
         data: serverArticlesCache.data,
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, must-revalidate',
+        },
+      })
+    }
+
+    // Respons instan (<1ms) untuk admin jika data baru saja diambil dalam 5 detik terakhir
+    if (isAdmin && !category && !slug && !limit && serverAdminArticlesCache && Date.now() - serverAdminArticlesCache.timestamp < SERVER_ADMIN_CACHE_TTL_MS) {
+      return NextResponse.json({
+        success: true,
+        source: 'server-admin-cache',
+        data: serverAdminArticlesCache.data,
       }, {
         headers: {
           'Cache-Control': 'no-store, must-revalidate',
@@ -247,7 +264,6 @@ export async function GET(request: NextRequest) {
     if (!isAdmin) {
       where.OR = [
         { status: 'published' },
-        { status: null },
         {
           AND: [
             { status: 'scheduled' },
@@ -280,12 +296,24 @@ export async function GET(request: NextRequest) {
       } else {
         mapped = INITIAL_ARTICLES;
       }
+    } else if (isAdmin && mapped.length < 6) {
+      // Lengkapi pratinjau artikel di admin agar melihat variasi rubrik dan data lengkap
+      const existingSlugs = new Set(mapped.map((a) => (a.slug || a.id || '').toLowerCase()));
+      const complement = INITIAL_ARTICLES.filter((a) => !existingSlugs.has((a.slug || a.id || '').toLowerCase()));
+      mapped = [...mapped, ...complement];
     }
 
-    if (!isAdmin && !category && !slug && !limit) {
-      serverArticlesCache = {
-        data: mapped,
-        timestamp: Date.now(),
+    if (!category && !slug && !limit) {
+      if (!isAdmin) {
+        serverArticlesCache = {
+          data: mapped,
+          timestamp: Date.now(),
+        }
+      } else {
+        serverAdminArticlesCache = {
+          data: mapped,
+          timestamp: Date.now(),
+        }
       }
     }
 

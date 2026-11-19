@@ -47,24 +47,16 @@ export default function HaloJurnalHeader() {
           if (stored) {
             try {
               const parsed = JSON.parse(stored)
-              if (
-                parsed &&
-                (parsed.id === 'warga-demo' ||
-                  parsed.id === 'demo-user-id' ||
-                  parsed.id === 'warga-demo-sukabumi' ||
-                  parsed.email === 'warga@sukabumi.com' ||
-                  (typeof parsed.id === 'string' && parsed.id.startsWith('warga-17')))
-              ) {
-                localStorage.removeItem('halo_jurnal_current_user')
-                setUser(null)
-                setFullName(null)
-              } else {
+              if (parsed && (parsed.id || parsed.email)) {
                 setUser((prev: any) => {
                   if (prev && parsed && prev.id === parsed.id && prev.email === parsed.email) return prev
                   return parsed
                 })
                 const newName = parsed.full_name || parsed.user_metadata?.full_name || 'Warga Sukabumi'
                 setFullName((prev: any) => (prev === newName ? prev : newName))
+              } else {
+                setUser(null)
+                setFullName(null)
               }
             } catch {
               setUser(null)
@@ -138,7 +130,7 @@ export default function HaloJurnalHeader() {
     },
     {
       href: '/halo-jurnal/hubungi-kami',
-      label: 'Hubungi Kami',
+      label: 'Kontak Kami',
       icon: HelpCircle,
     },
   ]
@@ -363,6 +355,9 @@ export default function HaloJurnalHeader() {
               </Link>
             )
           )}
+          <p className="text-[10px] text-center text-secondary/60 mt-3 select-none">
+            &copy; {new Date().getFullYear()} Jurnal Wave. All rights reserved.
+          </p>
         </div>
       </div>
     )}

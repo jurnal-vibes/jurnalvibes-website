@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Kebijakan Privasi',
@@ -13,87 +13,94 @@ export const metadata: Metadata = {
 
 export default function HaloJurnalKebijakanPrivasiPage() {
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-24 md:pb-16 flex flex-col gap-6">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-on-surface-variant dark:text-gray-400">
-        <Link href="/halo-jurnal" className="hover:text-primary transition-colors">
-          Hallo Jurnal
+    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 sm:pt-8 pb-24 md:pb-16 space-y-6">
+      {/* Navigasi Kembali */}
+      <div className="flex items-center justify-start">
+        <Link
+          href="/halo-jurnal"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-primary transition-colors group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-primary group-hover:-translate-x-0.5 transition-transform" />
+          <span>Kembali ke Beranda Hallo Jurnal</span>
         </Link>
-        <ChevronRight className="w-3 h-3" />
-        <span className="text-on-surface dark:text-white font-semibold">Kebijakan Privasi</span>
-      </nav>
+      </div>
 
-      {/* Header Dokumen */}
-      <header className="border-b border-outline-variant dark:border-slate-800 pb-5">
-        <h1 className="font-headline-xl text-3xl md:text-4xl font-bold text-on-surface dark:text-white leading-tight">
-          Kebijakan Privasi (Privacy Policy)
+      {/* Header Dokumen (Simpel, Tanpa Ikon Berlebih) */}
+      <div>
+        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight leading-tight">
+          Kebijakan Privasi
         </h1>
-        <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 mt-2">
-          Komitmen resmi PT Media Jurnal Sukabumi dalam menjaga kerahasiaan data pribadi seluruh pelapor di Hallo Jurnal.
+        <p className="text-xs sm:text-sm text-secondary mt-1">
+          Komitmen PT Media Jurnal Sukabumi dalam menjaga kerahasiaan data pribadi seluruh warga dan pelapor.
         </p>
-      </header>
+      </div>
 
-      {/* Konten Kebijakan Privasi */}
-      <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-6">
-        <p>
-          Di <strong>Hallo Jurnal</strong> yang dikelola secara independen oleh <strong>PT Media Jurnal Sukabumi</strong>, privasi dan keselamatan para pelapor adalah prioritas mutlak kami. Dokumen Kebijakan Privasi ini menguraikan jenis informasi yang kami kumpulkan, bagaimana informasi tersebut digunakan, dan komitmen kami dalam melindungi identitas Anda.
+      {/* Kartu Konten Utama */}
+      <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-6 sm:p-10 shadow-xs space-y-7 leading-relaxed text-xs sm:text-sm text-on-surface/90">
+        <p className="text-secondary leading-relaxed">
+          Di <strong className="text-on-surface font-semibold">Hallo Jurnal</strong> yang dikelola secara independen oleh <strong className="text-on-surface font-semibold">PT Media Jurnal Sukabumi</strong>, privasi dan keselamatan para pelapor adalah prioritas utama kami. Dokumen Kebijakan Privasi ini menguraikan jenis informasi yang kami kumpulkan, bagaimana informasi tersebut digunakan, dan komitmen kami dalam melindungi identitas Anda.
         </p>
 
-        <section className="pt-1">
-          <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
+        {/* 1. Informasi yang Kami Kumpulkan */}
+        <section className="space-y-2.5 pt-1 border-t border-outline-variant/50 pt-5">
+          <h2 className="font-heading font-bold text-sm sm:text-base text-primary tracking-tight">
             1. Informasi yang Kami Kumpulkan
           </h2>
-          <p>
-            Untuk memastikan setiap pengaduan sah dan dapat ditindaklanjuti secara bertanggung jawab, sistem kami mengumpulkan sejumlah informasi pengguna:
+          <p className="text-secondary leading-relaxed">
+            Untuk memastikan setiap pengaduan sah dan dapat ditindaklanjuti secara bertanggung jawab, sistem kami mengumpulkan informasi pengguna:
           </p>
-          <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm text-secondary dark:text-gray-400 mt-3">
-            <li><strong>Data Akun Warga:</strong> Nama lengkap, alamat email aktif, dan nomor kontak untuk keperluan verifikasi serta tindak lanjut aduan.</li>
-            <li><strong>Integritas Akun:</strong> Autentikasi digital yang digunakan agar platform terhindar dari spam, akun bot palsu, atau laporan manipulatif.</li>
-            <li><strong>Data Laporan Publik:</strong> Judul aduan, uraian kejadian, dokumentasi foto/video di lokasi, dan titik koordinat peta yang Anda tandai.</li>
+          <ul className="list-disc pl-5 space-y-2 text-secondary">
+            <li><strong className="text-on-surface">Data Akun Warga:</strong> Nama lengkap dan nomor WhatsApp aktif untuk keperluan verifikasi kode OTP serta komunikasi klarifikasi aduan.</li>
+            <li><strong className="text-on-surface">Integritas Keamanan:</strong> Autentikasi nomor WhatsApp digunakan untuk menjaga platform dari akun spam fiktif atau laporan manipulatif.</li>
+            <li><strong className="text-on-surface">Data Laporan Publik:</strong> Judul aduan, uraian kejadian, bukti dokumentasi foto/video di lokasi, dan wilayah kecamatan kejadian.</li>
           </ul>
         </section>
 
-        <section>
-          <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
+        {/* 2. Kerahasiaan Data Akun */}
+        <section className="space-y-2.5 border-t border-outline-variant/50 pt-5">
+          <h2 className="font-heading font-bold text-sm sm:text-base text-primary tracking-tight">
             2. Kerahasiaan Data Akun &amp; Identitas Pribadi
           </h2>
-          <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-4 rounded-r-lg text-sm text-on-surface dark:text-gray-300">
-            <strong>Jaminan Keamanan:</strong> Data kontak dan identitas akun pribadi Anda <strong>TIDAK PERNAH</strong> dipublikasikan ke Feed Publik, tidak dibagikan kepada khalayak umum, dan tidak diperjualbelikan kepada pihak ketiga manapun. Anda juga memiliki opsi pelaporan anonim untuk melindungi privasi Anda secara penuh.
+          <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl text-xs sm:text-sm text-secondary leading-relaxed">
+            <strong className="text-primary font-semibold block mb-1">Jaminan Perlindungan:</strong>
+            Nomor WhatsApp dan identitas pribadi Anda <strong className="text-on-surface">TIDAK PERNAH</strong> dipublikasikan ke Feed Publik, tidak dibagikan kepada khalayak umum, dan tidak diperjualbelikan kepada pihak manapun. Anda juga memiliki opsi pelaporan anonim untuk melindungi kerahasiaan identitas Anda secara penuh.
           </div>
         </section>
 
-        <section>
-          <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
+        {/* 3. Penayangan di Feed Publik */}
+        <section className="space-y-2.5 border-t border-outline-variant/50 pt-5">
+          <h2 className="font-heading font-bold text-sm sm:text-base text-primary tracking-tight">
             3. Penayangan di Feed Publik &amp; Opsi Anonim
           </h2>
-          <p>
-            Ketika Anda memilih agar laporan Anda dapat dibaca publik di laman <em>Feed Laporan Warga</em>:
+          <p className="text-secondary leading-relaxed">
+            Ketika laporan Anda disetujui untuk dapat dibaca publik di laman Feed Aduan Warga:
           </p>
-          <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm text-secondary dark:text-gray-400 mt-3">
-            <li>Hanya data substansi laporan (judul masalah, kategori, foto bukti fasilitas, dan wilayah kecamatan) yang dapat dilihat oleh pengunjung lain.</li>
-            <li>Anda dapat memilih opsi pelaporan secara anonim agar nama lengkap Anda disamarkan saat laporan tayang ke publik.</li>
+          <ul className="list-disc pl-5 space-y-2 text-secondary">
+            <li>Hanya data substansi laporan (judul masalah, rincian cerita, foto bukti fasilitas, dan wilayah kecamatan) yang dapat dilihat oleh pengunjung publik.</li>
+            <li>Identitas nama lengkap dapat disamarkan sebagai anonim (Warga Sukabumi) sesuai pilihan Anda saat mengirimkan aduan.</li>
           </ul>
         </section>
 
-        <section>
-          <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
+        {/* 4. Keamanan Sistem & Enkripsi Data */}
+        <section className="space-y-2.5 border-t border-outline-variant/50 pt-5">
+          <h2 className="font-heading font-bold text-sm sm:text-base text-primary tracking-tight">
             4. Keamanan Sistem &amp; Enkripsi Data
           </h2>
-          <p>
-            Kami menerapkan protokol keamanan standar industri (HTTPS / SSL dan enkripsi database) untuk mencegah akses tidak sah, pengubahan data, atau pengungkapan informasi tanpa izin. Seluruh interaksi obrolan klarifikasi antara pelapor dan admin redaksi dienkripsi demi kenyamanan bersama.
+          <p className="text-secondary leading-relaxed">
+            Kami menerapkan protokol keamanan standar industri (koneksi terenkripsi SSL/HTTPS dan database aman) untuk mencegah akses tidak sah, pengubahan data, atau kebocoran informasi. Seluruh riwayat obrolan dan koordinasi laporan bersama admin redaksi dilindungi demi kenyamanan pelapor.
           </p>
         </section>
 
-        <section className="border-t border-outline-variant dark:border-slate-800 pt-5 text-xs text-secondary dark:text-gray-400">
+        <section className="border-t border-outline-variant/50 pt-5 text-xs text-secondary">
           <p>
             Jika Anda memiliki pertanyaan mengenai perlindungan privasi data Anda, silakan hubungi tim kami melalui laman{' '}
             <Link href="/halo-jurnal/hubungi-kami" className="text-primary font-semibold hover:underline">
-              Hubungi Kami
+              Kontak Kami
             </Link>
             .
           </p>
         </section>
-      </article>
+      </div>
     </div>
   )
 }

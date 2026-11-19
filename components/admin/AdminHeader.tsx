@@ -5,11 +5,9 @@ import {
   Menu,
   Search,
   Bell,
-  Plus,
   MessageSquare,
   X,
   ExternalLink,
-  LogOut,
   AlertCircle,
   CheckCircle2,
 } from 'lucide-react'
@@ -168,22 +166,7 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     }
   }
 
-  const handleQuickLogout = async () => {
-    if (typeof window !== 'undefined' && !confirm('Apakah Anda yakin ingin keluar dari akun administrator?')) {
-      return
-    }
 
-    try {
-      await fetch('/api/admin/auth', { method: 'DELETE' })
-    } catch {}
-
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('jurnal_wave_admin_authenticated')
-      localStorage.removeItem('jurnal_wave_admin_user')
-    }
-
-    router.replace('/halo-jurnal/admin/login')
-  }
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
@@ -197,11 +180,8 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
 
   // Menentukan teks breadcrumb secara dinamis sesuai halaman aktif
   const getBreadcrumb = () => {
-    if (pathname === '/halo-jurnal/admin') {
-      return { section: 'Jurnal Wave', page: 'Dashboard Media', sectionHref: '/halo-jurnal/admin' }
-    }
-    if (pathname === '/halo-jurnal/admin/halo') {
-      return { section: 'Hallo Jurnal', page: 'Dashboard Pemantauan', sectionHref: '/halo-jurnal/admin/halo' }
+    if (pathname === '/halo-jurnal/admin' || pathname === '/halo-jurnal/admin/halo') {
+      return { section: 'Admin', page: 'Dashboard', sectionHref: '/halo-jurnal/admin' }
     }
     if (pathname?.startsWith('/halo-jurnal/admin/laporan/')) {
       return { section: 'Hallo Jurnal', page: 'Detail Pengaduan Warga', sectionHref: '/halo-jurnal/admin/laporan' }
@@ -216,7 +196,7 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
       return { section: 'Hallo Jurnal', page: 'Moderasi Feed Publik', sectionHref: '/halo-jurnal/admin/feed-publik' }
     }
     if (pathname === '/halo-jurnal/admin/berita') {
-      return { section: 'Jurnal Wave', page: 'Manajemen Berita', sectionHref: '/halo-jurnal/admin/berita' }
+      return { section: 'Jurnal Wave', page: 'Manajemen Konten', sectionHref: '/halo-jurnal/admin/berita' }
     }
     if (pathname === '/halo-jurnal/admin/reels') {
       return { section: 'Jurnal Wave', page: 'Wave Reels', sectionHref: '/halo-jurnal/admin/reels' }
@@ -228,23 +208,18 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
       return { section: 'Jurnal Wave', page: 'Kategori & Headline', sectionHref: '/halo-jurnal/admin/kategori' }
     }
     if (pathname === '/halo-jurnal/admin/pengguna') {
-      return { section: 'Sistem', page: 'Tim Redaksi', sectionHref: '/halo-jurnal/admin/pengguna' }
-    }
-    if (pathname === '/halo-jurnal/admin/pengaturan') {
-      return { section: 'Sistem', page: 'Pengaturan Web', sectionHref: '/halo-jurnal/admin/pengaturan' }
+      return { section: 'Sistem', page: 'Kelola Pengguna', sectionHref: '/halo-jurnal/admin/pengguna' }
     }
     return { section: 'Admin', page: 'Ruang Kerja Redaksi', sectionHref: '/halo-jurnal/admin' }
   }
 
   const breadcrumb = getBreadcrumb()
-  const isJurnalWaveSection = breadcrumb.section === 'Jurnal Wave'
-  const showTulisBerita = isJurnalWaveSection && pathname !== '/halo-jurnal/admin/berita'
 
   return (
     <>
       {/* Toast Alert Melayang Real-Time Saat Ada Pesan Baru Masuk */}
       {toastNotification && (
-        <div className="fixed top-18 sm:top-20 left-3 right-3 sm:left-auto sm:right-6 z-50 max-w-sm sm:w-full bg-white rounded-xl shadow-2xl border-l-4 border-l-[#c00015] border border-slate-200/90 p-4 space-y-2 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="fixed top-20 right-4 sm:right-6 left-4 sm:left-auto z-[100] max-w-sm sm:w-full bg-white rounded-xl shadow-2xl border-l-4 border-l-[#c00015] border border-slate-200/90 p-4 space-y-2 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-[#c00015] shrink-0" />
@@ -323,7 +298,7 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              placeholder="Cari nomor tiket (JS-...), nama pelapor, atau artikel... (Enter)"
+              placeholder="Cari nomor tiket (HJ-...), nama pelapor, atau artikel... (Enter)"
               className="w-full pl-9 pr-12 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#c00015] focus:ring-1 focus:ring-[#c00015] transition"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white border border-slate-200 rounded">
@@ -332,19 +307,8 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
           </div>
         </div>
 
-        {/* Kanan: Aksi Cepat & Notifikasi */}
+        {/* Kanan: Notifikasi */}
         <div className="flex items-center gap-2.5">
-          {/* Tombol Tulis Berita (Khusus Portal Media Jurnal Wave) */}
-          {showTulisBerita && (
-            <Link
-              href="/halo-jurnal/admin/berita"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Tulis Berita</span>
-            </Link>
-          )}
-
           {/* Lonceng Notifikasi Terpadu (Live Chat & Status) */}
           <div className="relative">
             <button
@@ -441,16 +405,6 @@ export default function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
               </>
             )}
           </div>
-
-          {/* Tombol Logout Cepat Header */}
-          <button
-            onClick={handleQuickLogout}
-            title="Keluar dari Akun Admin"
-            className="p-2 rounded-lg text-slate-500 hover:text-[#c00015] hover:bg-red-50 border border-slate-200/80 transition cursor-pointer flex items-center gap-1.5 text-xs font-medium"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden md:inline text-[11px] font-semibold">Keluar</span>
-          </button>
         </div>
       </header>
     </>

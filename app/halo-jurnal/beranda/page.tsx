@@ -86,16 +86,7 @@ export default function HaloJurnalBerandaPage() {
         if (storedUser) {
           try {
             const parsed = JSON.parse(storedUser)
-            if (
-              parsed &&
-              (parsed.id === 'demo-user-id' ||
-                parsed.id === 'warga-demo' ||
-                parsed.email === 'warga@sukabumi.com' ||
-                (typeof parsed.id === 'string' && parsed.id.startsWith('warga-17')))
-            ) {
-              localStorage.removeItem('halo_jurnal_current_user')
-              currentUser = null
-            } else {
+            if (parsed && (parsed.id || parsed.email)) {
               currentUser = parsed
             }
           } catch {}
@@ -242,7 +233,7 @@ export default function HaloJurnalBerandaPage() {
   const latestTicketId =
     latestReport?.nomor_tiket ||
     latestReport?.ticket_number ||
-    (latestReport?.id ? `JS-${latestReport.id.substring(0, 8).toUpperCase()}` : '')
+    (latestReport?.id ? `HJ-${latestReport.id.substring(0, 8).toUpperCase()}` : '')
 
   const latestStatus = (latestReport?.status || 'diterima').toLowerCase()
 
@@ -285,27 +276,21 @@ export default function HaloJurnalBerandaPage() {
       {/* 1. WARGA GREETING HEADER (Kompak 1 Baris) */}
       <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 pt-3 sm:pt-4 pb-2 sm:pb-3">
         <div className="flex items-center justify-between gap-3">
-          {/* Left: Avatar Inisial & Teks Sapaan Ringkas */}
+          {/* Left: Avatar Inisial & Teks Identitas Ringkas (Nama & Nomor HP) */}
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <UserAvatar
               name={displayName}
+              avatarUrl={user?.avatar_url || user?.avatar || profile?.avatar_url || null}
               size="sm"
               bgColor="primary"
               className="w-8 h-8 sm:w-9 sm:h-9 text-xs font-bold shadow-2xs ring-1.5 ring-primary/20 shrink-0"
             />
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h1 className="font-heading font-bold text-xs sm:text-sm text-on-surface tracking-tight truncate leading-tight">
-                  Halo, <span className="capitalize">{displayName}</span>
-                </h1>
-                {isVerified && (
-                  <span title="Warga Terverifikasi Sukabumi" className="inline-flex items-center text-sky-500 shrink-0">
-                    <ShieldCheck className="w-3.5 h-3.5 fill-sky-500/15 stroke-[2.2px]" />
-                  </span>
-                )}
-              </div>
-              <p className="text-[10px] sm:text-[11px] text-secondary font-medium truncate mt-0.5">
-                Warga Sukabumi {userPhone ? `• ${userPhone}` : ''}
+              <h1 className="font-heading font-bold text-xs sm:text-sm text-on-surface tracking-tight truncate leading-tight capitalize">
+                {displayName}
+              </h1>
+              <p className="text-[10px] sm:text-[11px] text-secondary font-medium truncate mt-0.5 font-mono">
+                {userPhone}
               </p>
             </div>
           </div>
@@ -386,22 +371,16 @@ export default function HaloJurnalBerandaPage() {
 
       {/* 5. PANTAUAN LAPORAN PUBLIK TERKINI (SEJAJAR PERSIS DENGAN KONTEN ATAS) */}
       <section className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 pb-12 pt-2">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-5">
+        <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
           <div>
-            <span className="text-[11px] font-bold text-primary uppercase tracking-wider">
-              Suara Warga Sukabumi
-            </span>
-            <h2 className="font-heading font-bold text-lg sm:text-xl text-on-surface tracking-tight mt-0.5">
-              Pantauan Aduan Publik Terkini
+            <h2 className="font-heading font-bold text-lg sm:text-xl text-on-surface tracking-tight">
+              Aduan Publik Terkini
             </h2>
-            <p className="text-secondary text-xs mt-0.5">
-              Keterbukaan informasi aduan warga se-Sukabumi yang diverifikasi tim redaksi Jurnal Wave.
-            </p>
           </div>
 
           <Link
             href="/halo-jurnal/feed-publik"
-            className="inline-flex items-center gap-1.5 text-primary hover:text-primary-dark font-semibold text-xs sm:text-sm transition-colors self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 text-primary hover:text-primary-dark font-semibold text-xs sm:text-sm transition-colors self-auto shrink-0"
           >
             <span>Lihat Semua Aduan</span>
             <ArrowRight className="w-4 h-4" />

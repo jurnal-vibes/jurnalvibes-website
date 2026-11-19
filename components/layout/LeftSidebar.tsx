@@ -15,21 +15,21 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ articles }) => {
   const pathname = usePathname();
 
   const isHome = pathname === '/';
-  const isBerita = pathname === '/berita';
+  const isBerita = pathname === '/berita' || pathname === '/artikel';
   const isLoker = pathname.startsWith('/loker');
   const isBookmark = pathname === '/bookmark';
   const isReels = pathname === '/reels';
 
   const navItems = [
     { href: '/', label: 'Beranda', icon: Home, isActive: isHome },
-    { href: '/berita', label: 'Semua Berita', icon: Newspaper, isActive: isBerita },
+    { href: '/artikel', label: 'Semua Artikel', icon: Newspaper, isActive: isBerita },
     { href: '/loker', label: 'Loker', icon: Briefcase, isActive: isLoker },
     { href: '/reels', label: 'Wave Reels', icon: Film, isActive: isReels },
     { href: '/bookmark', label: 'Tersimpan', icon: Bookmark, isActive: isBookmark },
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-1/4 sticky top-28 self-start overflow-y-auto pr-4 gap-6 h-[calc(100vh-7.25rem)] no-scrollbar shrink-0 justify-between pb-0">
+    <aside className="hidden md:flex flex-col w-1/4 sticky top-24 self-start overflow-y-auto pr-4 gap-6 h-[calc(100vh-6.5rem)] no-scrollbar shrink-0 justify-between pb-0">
       <div className="flex flex-col gap-6">
         <nav className="flex flex-col gap-1.5">
           {navItems.map((item) => {

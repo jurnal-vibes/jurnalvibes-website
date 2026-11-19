@@ -20,8 +20,11 @@ import {
 } from 'lucide-react'
 import { Job } from '@/types'
 import { DUMMY_JOBS } from '@/data/dummyJobs'
+import AdminToast from '@/components/admin/AdminToast'
+import { useConfirm } from '@/components/admin/AdminConfirmDialog'
 
 export default function AdminLokerPage() {
+  const confirmDialog = useConfirm()
   const [jobs, setJobs] = useState<Job[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState('semua')
@@ -229,7 +232,14 @@ export default function AdminLokerPage() {
 
   // Delete Job (Database Server Sync)
   const handleDeleteJob = async (id: string, title: string) => {
-    if (confirm(`Yakin ingin menghapus lowongan "${title}"?`)) {
+    const isConfirmed = await confirmDialog({
+      title: 'Hapus Lowongan?',
+      message: 'Yakin ingin menghapus lowongan pekerjaan ini?',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      variant: 'danger',
+    })
+    if (isConfirmed) {
       try {
         await fetch(`/api/jobs?id=${encodeURIComponent(id)}`, {
           method: 'DELETE',
@@ -246,12 +256,10 @@ export default function AdminLokerPage() {
   return (
     <div className="space-y-6">
       {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium border border-slate-700 animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <AdminToast
+        message={toastMessage}
+        onClose={() => setToastMessage(null)}
+      />
 
       {/* 1. Header Halaman */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">

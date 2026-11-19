@@ -5,9 +5,6 @@ import { prisma } from '@/lib/prisma'
 import RecentPublicReports from '@/components/halo-jurnal/RecentPublicReports'
 
 export default async function HaloJurnalLandingPage() {
-  let totalLaporan = 0
-  let tuntasLaporan = 0
-  let prosesLaporan = 0
   let recentReports: any[] = []
 
   try {
@@ -18,9 +15,6 @@ export default async function HaloJurnalLandingPage() {
       orderBy: { createdAt: 'desc' },
     })
     if (dbReports.length > 0) {
-      totalLaporan = dbReports.length
-      tuntasLaporan = dbReports.filter((r) => r.status === 'selesai').length
-      prosesLaporan = dbReports.filter((r) => r.status === 'diproses').length
       recentReports = dbReports
         .filter((r) => r.isPublic !== false)
         .slice(0, 4)
@@ -125,70 +119,6 @@ export default async function HaloJurnalLandingPage() {
           </div>
 
           <RecentPublicReports initialReports={recentReports} />
-        </div>
-      </section>
-
-      {/* Stats Section: Clean Editorial Metric Strip */}
-      <section className="relative py-3.5 sm:py-6 bg-surface-container-low/50 border-t border-outline-variant/60">
-        <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-8 relative z-10">
-          <div className="rounded-xl sm:rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs py-3 sm:py-4 px-1 sm:px-4">
-            <div className="grid grid-cols-4 divide-x divide-slate-100 dark:divide-slate-800">
-              {/* 1. Laporan Masuk */}
-              <div className="flex flex-col items-center justify-center text-center px-1 sm:px-3">
-                <span className="font-heading font-extrabold text-base sm:text-2xl md:text-3xl text-slate-900 dark:text-white tracking-tight leading-none mb-1">
-                  {totalLaporan || 0}
-                </span>
-                <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  <span className="sm:hidden">Aduan</span>
-                  <span className="hidden sm:inline">Aduan Masuk</span>
-                </span>
-                <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                  Aspirasi warga
-                </span>
-              </div>
-
-              {/* 2. Tuntas Ditangani */}
-              <div className="flex flex-col items-center justify-center text-center px-1 sm:px-3">
-                <span className="font-heading font-extrabold text-base sm:text-2xl md:text-3xl text-slate-900 dark:text-white tracking-tight leading-none mb-1">
-                  {tuntasLaporan || 0}
-                </span>
-                <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  <span className="sm:hidden">Selesai</span>
-                  <span className="hidden sm:inline">Tuntas Ditangani</span>
-                </span>
-                <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                  Solusi tervalidasi
-                </span>
-              </div>
-
-              {/* 3. Sedang Diproses */}
-              <div className="flex flex-col items-center justify-center text-center px-1 sm:px-3">
-                <span className="font-heading font-extrabold text-base sm:text-2xl md:text-3xl text-slate-900 dark:text-white tracking-tight leading-none mb-1">
-                  {prosesLaporan || 0}
-                </span>
-                <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  <span className="sm:hidden">Diproses</span>
-                  <span className="hidden sm:inline">Sedang Diproses</span>
-                </span>
-                <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                  Tindak lanjut instansi
-                </span>
-              </div>
-
-              {/* 4. Transparansi */}
-              <div className="flex flex-col items-center justify-center text-center px-1 sm:px-3">
-                <span className="font-heading font-extrabold text-base sm:text-2xl md:text-3xl text-slate-900 dark:text-white tracking-tight leading-none mb-1">
-                  100%
-                </span>
-                <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  Transparansi
-                </span>
-                <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                  Terbuka &amp; akuntabel
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
     </main>

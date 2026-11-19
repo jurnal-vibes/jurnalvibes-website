@@ -175,18 +175,10 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
                     <FileText className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[10px] font-bold text-secondary uppercase tracking-wider font-heading">
-                    {report.kategori || 'Pengaduan Publik'}
+                    Aduan Warga
                   </span>
                 </div>
               )}
-
-              
-
-              {/* Floating Date Badge (Top-Right) */}
-              <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[9px] sm:text-[10px] font-medium text-white flex items-center gap-1">
-                <Calendar className="w-2.5 h-2.5" />
-                <span>{formattedDate}</span>
-              </div>
             </div>
 
             {/* Card Content */}
@@ -200,9 +192,12 @@ export default function RecentPublicReports({ initialReports = DEFAULT_INITIAL_R
                 </p>
               </div>
 
-              <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-outline-variant/40 text-[10px] sm:text-[11px] text-secondary mt-auto">
-                <span className="text-secondary/70">Aduan Publik Warga</span>
-                <span className="text-primary font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform text-[10px] sm:text-[11px]">
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant/40 mt-auto text-[10px] sm:text-[11px]">
+                <span className="text-secondary/80 flex items-center gap-1 font-medium truncate">
+                  <Calendar className="w-3 h-3 text-secondary/70 shrink-0" />
+                  <span>{formattedDate}</span>
+                </span>
+                <span className="text-primary font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform">
                   Detail Aduan &rarr;
                 </span>
               </div>

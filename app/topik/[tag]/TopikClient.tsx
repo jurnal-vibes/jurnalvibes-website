@@ -107,7 +107,7 @@ export function TopikClient({ tag }: TopikClientProps) {
   }, [articles, decodedTag]);
 
   return (
-    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
+    <div className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative">
       {/* Breadcrumb Sederhana */}
       <nav className="flex items-center gap-1.5 text-xs text-on-surface-variant/70 mb-4">
         <Link href="/" className="hover:text-primary transition-colors">
@@ -128,8 +128,8 @@ export function TopikClient({ tag }: TopikClientProps) {
         {/* Kolom Kiri: Header Topik & Daftar Berita (8 Kolom) */}
         <main className="lg:col-span-8 flex flex-col min-w-0">
           {/* Header Topik Terkait (Gaya Resmi SukabumiUpdate) */}
-          <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-slate-200 dark:border-slate-800">
-            <div className="w-1.5 h-6 bg-[#c00015] rounded-full shrink-0" />
+          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-slate-200 dark:border-slate-800">
+            <span className="w-1 h-5 sm:h-6 bg-[#c00015] rounded-none shrink-0 inline-block" />
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-wide text-slate-900 dark:text-white font-heading">
               {topicTitle}
             </h1>
@@ -139,7 +139,7 @@ export function TopikClient({ tag }: TopikClientProps) {
           {isLoading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
               <div className="w-7 h-7 border-2 border-[#c00015] border-t-transparent rounded-full animate-spin" />
-              <p className="text-xs">Memuat berita terkait topik...</p>
+              <p className="text-xs">Memuat artikel terkait topik...</p>
             </div>
           ) : matchedArticles.length > 0 ? (
             <div className="flex flex-col">
@@ -158,10 +158,10 @@ export function TopikClient({ tag }: TopikClientProps) {
               </p>
               <div className="pt-2">
                 <Link
-                  href="/berita"
+                  href="/artikel"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-bold transition shadow-2xs"
                 >
-                  Lihat Semua Berita
+                  Lihat Semua Artikel
                 </Link>
               </div>
             </div>

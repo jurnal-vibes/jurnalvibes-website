@@ -1,4 +1,6 @@
-import React from 'react'
+'use client'
+
+import React, { useState } from 'react'
 
 export function getInitials(name?: string | null): string {
   if (!name || !name.trim()) return 'U'
@@ -12,6 +14,7 @@ export function getInitials(name?: string | null): string {
 
 interface UserAvatarProps {
   name?: string | null
+  avatarUrl?: string | null
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   bgColor?: 'maroon' | 'gold' | 'primary' | 'slate'
   className?: string
@@ -19,31 +22,48 @@ interface UserAvatarProps {
 
 export default function UserAvatar({
   name,
+  avatarUrl,
   size = 'md',
   bgColor = 'primary',
   className = '',
 }: UserAvatarProps) {
+  const [imgError, setImgError] = useState(false)
   const initials = getInitials(name)
 
   const sizeClasses = {
     xs: 'w-6 h-6 text-[10px] font-bold',
     sm: 'w-8 h-8 text-xs font-bold',
     md: 'w-10 h-10 text-sm font-bold',
-    lg: 'w-14 h-14 md:w-16 md:h-16 text-lg md:text-xl font-bold',
-    xl: 'w-20 h-20 md:w-24 md:h-24 text-2xl md:text-3xl font-extrabold',
+    lg: 'w-16 h-16 md:w-20 md:h-20 text-xl font-bold',
+    xl: 'w-24 h-24 md:w-28 md:h-28 text-3xl font-extrabold',
   }[size]
 
-  const bgClasses = bgColor === 'gold' 
-    ? 'bg-gradient-to-tr from-amber-600 to-amber-500 text-white shadow-xs ring-2 ring-amber-500/20'
-    : bgColor === 'slate'
-    ? 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-700 text-white shadow-xs ring-2 ring-slate-200 dark:ring-slate-700'
-    : 'bg-gradient-to-tr from-[#8e000f] via-[#c00015] to-[#de0a26] text-white shadow-sm ring-2 ring-rose-500/25'
+  const bgClasses =
+    bgColor === 'gold'
+      ? 'bg-gradient-to-tr from-amber-600 to-amber-500 text-white shadow-xs ring-2 ring-amber-500/20'
+      : bgColor === 'slate'
+      ? 'bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-700 text-white shadow-xs ring-2 ring-slate-200 dark:ring-slate-700'
+      : 'bg-gradient-to-tr from-[#8e000f] via-[#c00015] to-[#de0a26] text-white shadow-sm ring-2 ring-rose-500/25'
 
-  const roundedClass = (size === 'lg' || size === 'xl') ? 'rounded-2xl' : 'rounded-full'
+  if (avatarUrl && !imgError) {
+    return (
+      <div
+        className={`rounded-full overflow-hidden shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 ${sizeClasses} ${className}`}
+        title={name || 'User'}
+      >
+        <img
+          src={avatarUrl}
+          alt={name || 'Avatar'}
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      </div>
+    )
+  }
 
   return (
     <div
-      className={`${roundedClass} flex items-center justify-center font-bold font-heading shrink-0 select-none tracking-wider shadow-xs ${sizeClasses} ${bgClasses} ${className}`}
+      className={`rounded-full flex items-center justify-center font-bold font-heading shrink-0 select-none tracking-wider shadow-xs ${sizeClasses} ${bgClasses} ${className}`}
       title={name || 'User'}
     >
       <span className="leading-none">{initials}</span>

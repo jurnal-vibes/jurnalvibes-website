@@ -21,6 +21,8 @@ import {
   Loader2,
   Check,
 } from 'lucide-react'
+import AdminToast from '@/components/admin/AdminToast'
+import { useConfirm } from '@/components/admin/AdminConfirmDialog'
 
 interface CitizenItem {
   id: string
@@ -34,6 +36,7 @@ interface CitizenItem {
 }
 
 export default function AdminWargaPage() {
+  const confirmDialog = useConfirm()
   const [citizens, setCitizens] = useState<CitizenItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -134,7 +137,7 @@ export default function AdminWargaPage() {
   }
 
   // Handle Eksekusi Reset Password
-  const handleExecuteResetPassword = async (sendViaWhatsApp: boolean) => {
+  const handleExecuteResetPassword = async () => {
     if (!selectedCitizen || !newPassword.trim()) return
     setResetting(true)
     setResetSuccess(null)
@@ -155,14 +158,6 @@ export default function AdminWargaPage() {
         setResetSuccess(newPassword.trim())
         setToastMessage(`Kata sandi untuk ${selectedCitizen.fullName} berhasil diperbarui!`)
         setTimeout(() => setToastMessage(null), 4000)
-
-        // Jika opsi kirim WA dipilih
-        if (sendViaWhatsApp) {
-          const cleanWa = selectedCitizen.phone.replace(/[^0-9]/g, '').replace(/^0/, '62')
-          const waMessage = `Sampurasun ${encodeURIComponent(selectedCitizen.fullName)}, kami dari Tim Redaksi Hallo Jurnal Sukabumi. Berdasarkan permohonan bantuan Anda, kata sandi akun Anda telah kami atur ulang menjadi:%0A%0A🔑 Kata Sandi Baru: *${encodeURIComponent(newPassword.trim())}*%0A%0ASilakan masuk di menu login dan Anda dapat memperbarui kata sandi tersebut kapan saja di menu profil. Hatur nuhun!`
-          const waUrl = `https://wa.me/${cleanWa}?text=${waMessage}`
-          window.open(waUrl, '_blank')
-        }
       } else {
         alert(json.message || 'Gagal mereset kata sandi.')
       }
@@ -176,8 +171,15 @@ export default function AdminWargaPage() {
 
   // Handle Toggle Status Akun (Aktif / Blokir)
   const handleToggleStatus = async (citizen: CitizenItem) => {
-    const newStatusText = citizen.isVerified ? 'Tangguhkan / Nonaktifkan' : 'Aktifkan Kembali'
-    if (!confirm(`Apakah Anda yakin ingin ${newStatusText} akun ${citizen.fullName}?`)) return
+    const isDeactivating = citizen.isVerified
+    const isConfirmed = await confirmDialog({
+      title: isDeactivating ? 'Tangguhkan Akun?' : 'Aktifkan Akun?',
+      message: `Yakin ingin ${isDeactivating ? 'menangguhkan' : 'mengaktifkan kembali'} akun ${citizen.fullName}?`,
+      confirmText: isDeactivating ? 'Tangguhkan' : 'Aktifkan',
+      cancelText: 'Batal',
+      variant: isDeactivating ? 'warning' : 'success',
+    })
+    if (!isConfirmed) return
 
     try {
       const res = await fetch('/api/admin/citizens', {
@@ -280,7 +282,7 @@ export default function AdminWargaPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama warga, nomor WhatsApp, email, atau wilayah domisili..."
+              placeholder="Cari nama warga, nomor telepon, email, atau wilayah domisili..."
               className="w-full pl-9 pr-8 py-2 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#c00015] focus:ring-1 focus:ring-[#c00015] transition"
             />
             {searchQuery && (
@@ -354,7 +356,7 @@ export default function AdminWargaPage() {
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200">
                 <tr>
                   <th className="py-3.5 px-4 w-[240px]">Identitas Akun Warga</th>
-                  <th className="py-3.5 px-4 w-[150px]">Kontak WhatsApp</th>
+                  <th className="py-3.5 px-4 w-[150px]">Nomor Telepon</th>
                   <th className="py-3.5 px-4 min-w-[240px]">Alamat Domisili Resmi</th>
                   <th className="py-3.5 px-4 w-[110px] text-center">Aduan Masuk</th>
                   <th className="py-3.5 px-4 w-[130px]">Status Akun</th>
@@ -363,9 +365,6 @@ export default function AdminWargaPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredCitizens.map((citizen) => {
-                  const cleanWaNumber = citizen.phone.replace(/[^0-9]/g, '').replace(/^0/, '62')
-                  const waUrl = `https://wa.me/${cleanWaNumber}?text=Sampurasun%20${encodeURIComponent(citizen.fullName)},%20kami%20dari%20Tim%20Redaksi%20Halo%20Jurnal%20Sukabumi.`
-
                   return (
                     <tr key={citizen.id} className="hover:bg-slate-50/70 transition-colors">
                       {/* Identitas Warga */}
@@ -388,18 +387,12 @@ export default function AdminWargaPage() {
                         </div>
                       </td>
 
-                      {/* Kontak WhatsApp */}
+                      {/* Kontak Telepon */}
                       <td className="py-3.5 px-4 align-middle">
-                        <a
-                          href={waUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-mono text-xs font-semibold text-slate-800 hover:text-emerald-700 inline-flex items-center gap-1.5 transition"
-                          title="Chat via WhatsApp"
-                        >
-                          <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <div className="font-mono text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5">
+                          <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           <span>{citizen.phone}</span>
-                        </a>
+                        </div>
                       </td>
 
                       {/* Alamat Domisili */}
@@ -457,17 +450,6 @@ export default function AdminWargaPage() {
                             <KeyRound className="w-3.5 h-3.5 text-[#c00015]" />
                             <span>Reset Sandi</span>
                           </button>
-
-                          {/* Tombol Hubungi WA */}
-                          <a
-                            href={waUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 border border-emerald-200 transition"
-                            title="Hubungi via WhatsApp"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                          </a>
 
                           {/* Tombol Blokir / Aktifkan */}
                           <button
@@ -537,7 +519,7 @@ export default function AdminWargaPage() {
                 <span className="font-mono text-[11px] text-slate-700">{selectedCitizen.email}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500">WhatsApp:</span>
+                <span className="text-slate-500">Nomor Telepon:</span>
                 <span className="font-mono text-[11px] font-semibold text-slate-800">{selectedCitizen.phone}</span>
               </div>
             </div>
@@ -594,21 +576,11 @@ export default function AdminWargaPage() {
               <button
                 type="button"
                 disabled={resetting || !newPassword.trim()}
-                onClick={() => handleExecuteResetPassword(false)}
-                className="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40"
+                onClick={handleExecuteResetPassword}
+                className="px-4 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white font-semibold text-xs transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40"
               >
                 {resetting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                <span>Simpan Sandi</span>
-              </button>
-              <button
-                type="button"
-                disabled={resetting || !newPassword.trim()}
-                onClick={() => handleExecuteResetPassword(true)}
-                className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40"
-                title="Simpan sandi dan kirim langsung ke WhatsApp warga"
-              >
-                <Phone className="w-3.5 h-3.5" />
-                <span>Simpan &amp; Kirim WA</span>
+                <span>Simpan Sandi Baru</span>
               </button>
             </div>
           </div>
@@ -616,20 +588,10 @@ export default function AdminWargaPage() {
       )}
 
       {/* 6. Floating Notification Toast */}
-      {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-900 text-white shadow-xl border border-slate-800 text-xs font-medium">
-            <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span>{toastMessage}</span>
-            <button
-              onClick={() => setToastMessage(null)}
-              className="ml-2 text-slate-400 hover:text-white transition cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
+      <AdminToast
+        message={toastMessage}
+        onClose={() => setToastMessage(null)}
+      />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { clearServerJobsCache, formatJobFromDb, fetchJobs } from '@/lib/jobs';
+import { DUMMY_JOBS } from '@/data/dummyJobs';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,10 +16,11 @@ export async function GET(req: NextRequest) {
       const dbJobs = await prisma.job.findMany({
         orderBy: { createdAt: 'desc' },
       });
+      const finalJobs = dbJobs.length > 0 ? dbJobs.map(formatJobFromDb) : DUMMY_JOBS;
       return NextResponse.json({
         success: true,
-        count: dbJobs.length,
-        data: dbJobs.map(formatJobFromDb),
+        count: finalJobs.length,
+        data: finalJobs,
       });
     }
 

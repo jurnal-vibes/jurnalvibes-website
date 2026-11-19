@@ -10,7 +10,9 @@ export type ArticleCategory =
   | 'tech'
   | 'kuliner'
   | 'wisata'
-  | 'hiburan';
+  | 'hiburan'
+  | 'inspirasi'
+  | (string & {});
 
 export interface Article {
   id: string;

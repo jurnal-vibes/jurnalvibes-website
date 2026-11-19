@@ -13,9 +13,9 @@ import {
   Copy,
   Check,
   ArrowRight,
-  ShieldCheck,
   Play,
   Video as VideoIcon,
+  LogIn,
 } from 'lucide-react'
 
 export default function HaloJurnalLaporanSayaPage() {
@@ -204,67 +204,75 @@ export default function HaloJurnalLaporanSayaPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       {/* 1. Header Page */}
-      <div>
-        <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight mb-1">
-          Aduan Saya
-        </h1>
-        <p className="text-secondary text-xs sm:text-sm">
-          Pantau seluruh aduan dan koordinasi langsung dengan redaksi Hallo Jurnal.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight">
+              Aduan Saya
+            </h1>
+            {user && totalCount > 0 && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                {totalCount}
+              </span>
+            )}
+          </div>
+          <p className="text-secondary text-xs sm:text-sm">
+            Daftar aduan yang telah Anda kirimkan ke redaksi Hallo Jurnal.
+          </p>
+        </div>
+
+        {user && (
+          <Link
+            href="/halo-jurnal/lapor"
+            className="self-start sm:self-auto shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-bold shadow-xs transition cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Buat Aduan Baru</span>
+          </Link>
+        )}
       </div>
 
       {!user ? (
         /* Unauthenticated State */
-        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-10 shadow-xs max-w-md mx-auto w-full">
-          <div className="w-14 h-14 rounded-2xl bg-[#c00015]/10 text-[#c00015] flex items-center justify-center mx-auto mb-4">
-            <ClipboardList className="w-7 h-7" />
-          </div>
-          <h2 className="font-heading font-bold text-lg text-slate-900 dark:text-slate-100 mb-2">
-            Anda Belum Masuk
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-            Masuk ke akun warga Anda untuk melihat riwayat aduan yang telah Anda kirimkan ke tim redaksi.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/login?redirect=/halo-jurnal/laporan-saya"
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs text-center"
-            >
-              Masuk ke Akun
-            </Link>
-            <Link
-              href="/halo-jurnal"
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-all text-center"
-            >
-              Kembali ke Beranda
-            </Link>
+        <div className="py-6 sm:py-12 flex items-center justify-center">
+          <div className="text-center py-10 sm:py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-10 shadow-xs max-w-md mx-auto w-full">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 shadow-2xs">
+              <ClipboardList className="w-7 h-7" />
+            </div>
+            <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
+              Masuk untuk Melihat Aduan Anda
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed max-w-sm mx-auto">
+              Silakan masuk ke akun warga Anda untuk memantau riwayat pengaduan, status penanganan, dan tanggapan langsung tim redaksi.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href="/login?redirect=/halo-jurnal/laporan-saya"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-semibold transition-all shadow-xs text-center flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Masuk ke Akun</span>
+              </Link>
+              <Link
+                href="/daftar"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-all text-center cursor-pointer"
+              >
+                Daftar Akun Baru
+              </Link>
+            </div>
+            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <Link
+                href="/halo-jurnal"
+                className="text-xs text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
+              >
+                ← Kembali ke Beranda Hallo Jurnal
+              </Link>
+            </div>
           </div>
         </div>
       ) : (
         <>
-          {/* 2. Statistik Ringkas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            <div className="col-span-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between">
-              <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-[#c00015] text-white flex items-center justify-center shadow-xs">
-                  <ClipboardList className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-heading font-bold text-sm text-slate-900 dark:text-slate-100">
-                    Total Pengaduan Anda
-                  </h3>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">
-                    Seluruh aduan yang telah Anda kirimkan
-                  </p>
-                </div>
-              </div>
-              <span className="font-heading font-black text-2xl text-slate-900 dark:text-slate-100">
-                {totalCount}
-              </span>
-            </div>
-          </div>
-
-          {/* 3. Toolbar Pencarian & Filter */}
+          {/* 2. Toolbar Pencarian & Filter */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             {/* Input Search */}
             <div className="relative flex-1">
@@ -324,7 +332,7 @@ export default function HaloJurnalLaporanSayaPage() {
                 const ticketId =
                   report.nomor_tiket ||
                   report.ticket_number ||
-                  `JS-${report.id.substring(0, 8)}`
+                  `HJ-${report.id.substring(0, 8)}`
 
                 const imgUrl =
                   report.laporan_lampiran &&
@@ -431,34 +439,24 @@ export default function HaloJurnalLaporanSayaPage() {
                       })()}
                     </div>
 
-                    {/* Footer: Chat Admin & Detail Link */}
-                    <div className="pt-3.5 mt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-3 text-xs">
-                      <Link
-                        href={`/halo-jurnal/laporan/${report.id}#chat`}
-                        className="inline-flex items-center gap-1.5 text-slate-500 hover:text-[#c00015] dark:text-slate-400 dark:hover:text-[#ff6b6b] font-medium transition-colors group/chat shrink-0"
-                      >
-                        <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover/chat:bg-[#c00015]/10 group-hover/chat:text-[#c00015] transition-colors shrink-0">
-                          <MessageSquare className="w-3.5 h-3.5" />
+                    {/* Footer: Chat Info & Akses Detail */}
+                    <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-3 text-xs">
+                      {report.chat_messages && report.chat_messages[0]?.count > 0 ? (
+                        <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
+                          <MessageSquare className="w-3.5 h-3.5 text-[#c00015]" />
+                          <span>{report.chat_messages[0].count} pesan koordinasi</span>
                         </div>
-                        <span>
-                          <span className="hidden sm:inline">Ruang Koordinasi Redaksi</span>
-                          <span className="sm:hidden">Chat Redaksi</span>
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-500 text-[11px]">
+                          Ruang privat pelapor & redaksi
                         </span>
-                        {report.chat_messages && report.chat_messages[0]?.count > 0 && (
-                          <span className="px-1.5 py-0.5 bg-[#c00015]/10 text-[#c00015] rounded-full text-[10px] font-bold">
-                            {report.chat_messages[0].count}
-                          </span>
-                        )}
-                      </Link>
+                      )}
 
                       <Link
                         href={`/halo-jurnal/laporan/${report.id}`}
-                        className="inline-flex items-center gap-1 font-semibold text-slate-700 hover:text-[#c00015] dark:text-slate-300 dark:hover:text-white transition-colors group/cta shrink-0"
+                        className="inline-flex items-center gap-1 font-bold text-xs text-[#c00015] hover:text-[#a00012] dark:text-[#ff6b6b] transition-colors group/cta shrink-0"
                       >
-                        <span>
-                          <span className="hidden sm:inline">Lihat Detail Aduan</span>
-                          <span className="sm:hidden">Detail Aduan</span>
-                        </span>
+                        <span>Lihat Aduan & Chat</span>
                         <ArrowRight className="w-3.5 h-3.5 group-hover/cta:translate-x-0.5 transition-transform" />
                       </Link>
                     </div>

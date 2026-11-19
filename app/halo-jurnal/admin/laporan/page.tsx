@@ -17,8 +17,10 @@ import {
 } from 'lucide-react'
 import { DummyReport } from '@/data/dummyReports'
 import { useAdminData } from '@/context/AdminDataContext'
+import { useConfirm } from '@/components/admin/AdminConfirmDialog'
 
 export default function AdminLaporanPage() {
+  const confirmDialog = useConfirm()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedVisibility, setSelectedVisibility] = useState<'semua' | 'publik' | 'privat'>('semua')
   // Mengambil data terpusat dari AdminDataContext (0ms instant render, tersinkronisasi)
@@ -124,7 +126,14 @@ export default function AdminLaporanPage() {
   }, [filteredReports, visibleCount])
 
   const handleDeleteReport = async (id: string, ticketNumber?: string) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus aduan "${ticketNumber || id}" secara permanen? Data yang dihapus tidak dapat dipulihkan.`)) {
+    const isConfirmed = await confirmDialog({
+      title: 'Hapus Aduan?',
+      message: 'Yakin ingin menghapus aduan ini secara permanen?',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      variant: 'danger',
+    })
+    if (!isConfirmed) {
       return
     }
 

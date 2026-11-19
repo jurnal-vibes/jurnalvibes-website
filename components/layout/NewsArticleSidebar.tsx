@@ -48,15 +48,15 @@ export function NewsArticleSidebar({
       {popularArticles.length > 0 && (
         <section className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
           {/* Header Widget */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-4 bg-[#c00015] rounded-xs inline-block" />
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="w-1 h-4.5 bg-[#c00015] rounded-none shrink-0 inline-block" />
             <h3 className="font-heading font-black text-sm tracking-wider uppercase text-slate-900 dark:text-white">
               TERPOPULER
             </h3>
           </div>
           {/* Garis Aksen Merah */}
-          <div className="w-full border-b border-slate-100 dark:border-slate-800 relative mb-3.5">
-            <div className="absolute -top-[1.5px] left-0 w-12 h-[2.5px] bg-[#c00015]" />
+          <div className="w-full border-b border-slate-200 dark:border-slate-800 relative mb-4 sm:mb-4.5">
+            <div className="absolute -top-[1px] left-0 w-8 h-[2px] bg-[#c00015]" />
           </div>
 
           <div className="flex flex-col gap-2.5">
@@ -97,7 +97,7 @@ export function NewsArticleSidebar({
                     <span className="text-[10px] font-bold tracking-wider uppercase text-[#c00015] block mb-0.5">
                       {displayCategory}
                     </span>
-                    <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-3 leading-snug">
+                    <h4 className="font-heading font-bold text-[11px] text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-3 leading-snug">
                       {item.title}
                     </h4>
                   </div>
@@ -113,14 +113,14 @@ export function NewsArticleSidebar({
       {/* ============================================================== */}
       {popularVideos.length > 0 && (
         <section className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-4 bg-[#c00015] rounded-xs inline-block" />
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="w-1 h-4.5 bg-[#c00015] rounded-none shrink-0 inline-block" />
             <h3 className="font-heading font-black text-sm tracking-wider uppercase text-slate-900 dark:text-white">
               VIDEO POPULER
             </h3>
           </div>
-          <div className="w-full border-b border-slate-100 dark:border-slate-800 relative mb-3.5">
-            <div className="absolute -top-[1.5px] left-0 w-12 h-[2.5px] bg-[#c00015]" />
+          <div className="w-full border-b border-slate-200 dark:border-slate-800 relative mb-4 sm:mb-4.5">
+            <div className="absolute -top-[1px] left-0 w-8 h-[2px] bg-[#c00015]" />
           </div>
 
           <div className="flex flex-col gap-2.5">
@@ -149,7 +149,7 @@ export function NewsArticleSidebar({
 
                 {/* Keterangan Video */}
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-3 leading-snug">
+                  <h4 className="font-heading font-bold text-[11px] text-slate-900 dark:text-slate-100 group-hover:text-[#c00015] transition-colors line-clamp-3 leading-snug">
                     {vid.title}
                   </h4>
                   <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">
@@ -163,51 +163,67 @@ export function NewsArticleSidebar({
       )}
 
       {/* ============================================================== */}
-      {/* 3. HALLO JURNAL (Desain Seragam dengan Terpopuler) */}
+      {/* 3. HALLO JURNAL BANNER (Kompak dengan Karakter 3D Beranda) */}
       {/* ============================================================== */}
       <section className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-1.5 h-4 bg-[#c00015] rounded-xs inline-block" />
+        <div className="flex items-center gap-2.5 mb-3">
+          <span className="w-1 h-4.5 bg-[#c00015] rounded-none shrink-0 inline-block" />
           <h3 className="font-heading font-black text-sm tracking-wider uppercase text-slate-900 dark:text-white">
             HALLO JURNAL
           </h3>
         </div>
-        <div className="w-full border-b border-slate-100 dark:border-slate-800 relative mb-3.5">
-          <div className="absolute -top-[1.5px] left-0 w-12 h-[2.5px] bg-[#c00015]" />
+        <div className="w-full border-b border-slate-200 dark:border-slate-800 relative mb-4 sm:mb-4.5">
+          <div className="absolute -top-[1px] left-0 w-8 h-[2px] bg-[#c00015]" />
         </div>
 
-        <div className="p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#c00015] block mb-1">
-            Aspirasi &amp; Pengaduan Warga
-          </span>
-          <h4 className="font-heading font-bold text-xs text-slate-900 dark:text-slate-100 leading-snug mb-1.5">
-            Punya Keluhan Fasilitas Publik di Sukabumi?
-          </h4>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
-            Laporkan jalan rusak, lampu PJU mati, atau fasilitas publik langsung ke Meja Redaksi Hallo Jurnal untuk dikawal bersama.
-          </p>
+        <div className="relative overflow-hidden rounded-xl border border-red-100/90 dark:border-red-900/30 bg-gradient-to-b from-red-50/40 via-white to-slate-50/50 dark:from-red-950/20 dark:via-slate-900/40 dark:to-slate-900/60 p-3 sm:p-3.5 transition-all hover:shadow-xs group">
+          {/* Subtle Background Glows */}
+          <div className="absolute -right-6 -bottom-6 w-28 h-28 rounded-full bg-[#c00015]/5 blur-2xl pointer-events-none" />
+
+          {/* Top Row: Karakter 3D Presenter + Headline & Deskripsi Resmi */}
+          <div className="flex items-center gap-2.5 sm:gap-3 mb-3">
+            <div className="relative w-18 h-24 sm:w-20 sm:h-26 shrink-0 flex items-end justify-center">
+              {/* eslint-disable-next-img-element */}
+              <img
+                src="/hallo-jurnal-presenter.webp"
+                alt="Hallo Jurnal Presenter"
+                className="w-full h-full object-contain object-bottom drop-shadow-md group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-heading font-extrabold text-xs sm:text-[13px] text-slate-900 dark:text-slate-100 leading-snug">
+                Salurkan Aduan Anda
+                <span className="block text-[#c00015]">di Hallo Jurnal</span>
+              </h4>
+              <p className="text-[10.5px] text-slate-500 dark:text-slate-400 leading-relaxed mt-1.5">
+                Wadah aduan online dan komunikasi warga, anda secara langsung disini.
+              </p>
+            </div>
+          </div>
+
+          {/* Tombol CTA Menuju Layanan Hallo Jurnal */}
           <Link
             href="/halo-jurnal"
-            className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[#c00015] hover:bg-[#a80012] text-white text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#c00015] hover:bg-[#a80012] text-white text-xs font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer group/btn"
           >
-            <span>Kirim Laporan Warga</span>
-            <ArrowRight className="w-3 h-3" />
+            <span>Buka Layanan Hallo Jurnal</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
           </Link>
         </div>
       </section>
 
       {/* ============================================================== */}
-      {/* 4. TAG POPULER (Desain Seragam dengan Terpopuler) */}
+      {/* 4. TAGAR TERPOPULER (Desain Seragam dengan Terpopuler) */}
       {/* ============================================================== */}
       <section className="w-full bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-1.5 h-4 bg-[#c00015] rounded-xs inline-block" />
+        <div className="flex items-center gap-2.5 mb-3">
+          <span className="w-1 h-4.5 bg-[#c00015] rounded-none shrink-0 inline-block" />
           <h3 className="font-heading font-black text-sm tracking-wider uppercase text-slate-900 dark:text-white">
-            TAG POPULER
+            TAGAR TERPOPULER
           </h3>
         </div>
-        <div className="w-full border-b border-slate-100 dark:border-slate-800 relative mb-3.5">
-          <div className="absolute -top-[1.5px] left-0 w-12 h-[2.5px] bg-[#c00015]" />
+        <div className="w-full border-b border-slate-200 dark:border-slate-800 relative mb-4 sm:mb-4.5">
+          <div className="absolute -top-[1px] left-0 w-8 h-[2px] bg-[#c00015]" />
         </div>
 
         <div className="flex flex-wrap gap-2">

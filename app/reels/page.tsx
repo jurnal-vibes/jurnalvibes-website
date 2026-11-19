@@ -19,11 +19,11 @@ export default async function ReelsPage() {
   return (
     <div className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-24 flex flex-col min-w-0">
       {/* Header */}
-      <header className="flex flex-col gap-2.5 mb-8 pb-4 border-b border-outline-variant/50">
-        <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
+      <header className="flex flex-col gap-1.5 mb-6 pb-3 border-b border-outline-variant/40">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold font-headline-xl text-on-surface tracking-tight">
           Wave Reels Sukabumi
         </h1>
-        <p className="text-sm md:text-base text-on-surface-variant font-body-lg">
+        <p className="text-xs sm:text-sm text-on-surface-variant font-normal">
           Kumpulan video pendek seputar kuliner, wisata, dan sudut menarik Kota &amp; Kabupaten Sukabumi.
         </p>
       </header>
@@ -32,7 +32,7 @@ export default async function ReelsPage() {
       <ReelsSection
         reels={initialReels}
         hideHeader={true}
-        showCategoryFilter={true}
+        showCategoryFilter={false}
         isGalleryPage={true}
       />
     </div>

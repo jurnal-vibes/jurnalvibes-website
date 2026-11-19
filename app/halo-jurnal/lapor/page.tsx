@@ -43,17 +43,10 @@ function LaporForm() {
       if (stored) {
         try {
           const parsed = JSON.parse(stored)
-          if (
-            parsed &&
-            (parsed.id === 'demo-user-id' ||
-              parsed.id === 'warga-demo' ||
-              parsed.email === 'warga@sukabumi.com' ||
-              (typeof parsed.id === 'string' && parsed.id.startsWith('warga-17')))
-          ) {
-            localStorage.removeItem('halo_jurnal_current_user')
-            setUser(null)
-          } else {
+          if (parsed && (parsed.id || parsed.email)) {
             setUser(parsed)
+          } else {
+            setUser(null)
           }
         } catch {
           setUser(null)
@@ -179,16 +172,28 @@ function LaporForm() {
 
     setLoading(true)
     try {
-      const date = new Date()
-      const yyyy = date.getFullYear()
-      const mm = String(date.getMonth() + 1).padStart(2, '0')
-      const dd = String(date.getDate()).padStart(2, '0')
-      const random4 = Math.floor(1000 + Math.random() * 9000)
-      const ticketNumber = `JS-${yyyy}${mm}${dd}-${random4}`
+      // Hitung urutan nomor tiket HJ secara berurutan
+      let maxSeq = 8
+      if (typeof window !== 'undefined') {
+        try {
+          const userReports = JSON.parse(localStorage.getItem('halo_jurnal_user_reports') || '[]')
+          if (Array.isArray(userReports)) {
+            userReports.forEach((r: any) => {
+              const numStr = (r.nomor_tiket || r.ticket_number || '').replace('HJ-', '')
+              const num = parseInt(numStr, 10)
+              if (!isNaN(num) && num > maxSeq) {
+                maxSeq = num
+              }
+            })
+          }
+        } catch {}
+      }
+      const nextSeq = maxSeq + 1
+      const ticketNumber = `HJ-${String(nextSeq).padStart(3, '0')}`
 
       const finalKategori = 'Pengaduan Warga'
       const newReportId = `lap-sukabumi-${Date.now()}`
-      const pelaporDisplayName = user?.user_metadata?.full_name || user?.full_name || user?.email?.split('@')[0] || 'Warga Sukabumi'
+      const pelaporDisplayName = user?.user_metadata?.full_name || user?.full_name || user?.name || 'Warga Sukabumi'
       const pelaporDomisili = user?.alamat_domisili || user?.detail_alamat || 'Sukabumi'
 
       const newReportData = {
@@ -286,7 +291,7 @@ function LaporForm() {
           sender_name: 'Redaksi Hallo Jurnal',
           role: 'admin',
           avatar: '/logo-white.png',
-          message: `Halo ${pelaporDisplayName}, laporan Anda dengan Nomor Tiket #${ticketNumber} telah diterima oleh Redaksi Hallo Jurnal. Tim kami sedang memverifikasi laporan Anda. Anda dapat berkoordinasi langsung dengan kami di ruang chat ini.`,
+          message: `Halo ${pelaporDisplayName}, terima kasih telah berbagi informasi ini. Ruang obrolan ini dapat Anda gunakan untuk koordinasi langsung atau menambahkan keterangan tambahan jika diperlukan.`,
           created_at: new Date().toISOString(),
           timestamp: 'Baru saja',
           isSystem: true,
@@ -314,28 +319,28 @@ function LaporForm() {
   // Auth Gate: Jika belum login, jangan buka form buat aduan
   if (!user) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-16 sm:py-24 text-center">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-8 sm:p-10 shadow-xs">
-          <div className="w-16 h-16 rounded-2xl bg-[#c00015]/10 text-[#c00015] flex items-center justify-center mx-auto mb-5 shadow-2xs">
-            <ShieldCheck className="w-8 h-8" />
+      <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
+        <div className="text-center py-10 sm:py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-10 shadow-xs max-w-md mx-auto w-full">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 shadow-2xs">
+            <ShieldCheck className="w-7 h-7" />
           </div>
           <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
             Masuk untuk Membuat Pengaduan
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed max-w-md mx-auto">
-            Sesuai standar verifikasi fakta dan perlindungan hukum saksi/pelapor di Hallo Jurnal Sukabumi, Anda wajib masuk ke akun warga terlebih dahulu sebelum membuat laporan pengaduan.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed max-w-sm mx-auto">
+            Sesuai standar verifikasi fakta dan perlindungan saksi/pelapor di Hallo Jurnal, Anda wajib masuk ke akun warga sebelum mengirimkan aduan.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/login?redirect=/halo-jurnal/lapor"
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#c00015] hover:bg-[#a00012] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs text-center flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-semibold transition-all shadow-xs text-center flex items-center justify-center gap-2 cursor-pointer"
             >
               <LogIn className="w-4 h-4" />
               <span>Masuk ke Akun</span>
             </Link>
             <Link
               href="/daftar"
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-all text-center"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-all text-center cursor-pointer"
             >
               Daftar Akun Baru
             </Link>
@@ -343,7 +348,7 @@ function LaporForm() {
           <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
             <Link
               href="/halo-jurnal"
-              className="text-xs text-slate-400 hover:text-[#c00015] dark:hover:text-[#ff6b6b] transition-colors font-medium"
+              className="text-xs text-slate-400 hover:text-primary transition-colors font-medium cursor-pointer"
             >
               ← Kembali ke Beranda Hallo Jurnal
             </Link>
@@ -354,35 +359,35 @@ function LaporForm() {
   }
 
   return (
-    <div className="max-w-container-max mx-auto px-4 sm:px-6 md:px-6 pt-6 sm:pt-12 md:pt-16 pb-16">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-16">
       {/* Header Info */}
-      <div className="text-left max-w-3xl mb-8">
+      <div className="text-left mb-6 sm:mb-8">
         <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-on-surface tracking-tight mb-2">
           Salurkan Aduan Anda di Hallo Jurnal
         </h1>
         <p className="text-secondary text-xs sm:text-sm leading-relaxed">
-          Wadah aduan online dan komunikasi warga, Anda secara langsung di sini.
+          Wadah aduan online dan komunikasi warga Sukabumi secara langsung dan transparan.
         </p>
       </div>
 
-      {/* Main Grid: Form + Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Form Column */}
-        <div className="lg:col-span-2">
-          <form
-            onSubmit={handleSubmit}
-            className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs space-y-5 sm:space-y-6"
-          >
+      {/* Form Pengaduan Utama */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xs space-y-5 sm:space-y-6"
+      >
             {/* Title */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                Judul Pengaduan <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">
+                Judul Aduan <span className="text-rose-500">*</span>
               </label>
+              <p className="text-[11px] text-secondary mb-2">
+                Tuliskan inti kejadian atau topik yang ingin Anda sampaikan secara singkat.
+              </p>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Contoh: Jalan rusak berlubang di depan RT 05 Cisaat"
+                placeholder="Contoh: Lampu PJU padam di Lingkar Selatan / Genangan air di Cisaat"
                 className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
                 required
               />
@@ -390,14 +395,17 @@ function LaporForm() {
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-2">
-                Deskripsi Pengaduan <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold uppercase tracking-wider text-on-surface mb-1">
+                Isi Cerita &amp; Rincian Kejadian <span className="text-rose-500">*</span>
               </label>
+              <p className="text-[11px] text-secondary mb-2">
+                Ceritakan apa yang terjadi, lokasi tepatnya, atau situasi di lapangan secara santai dan jelas.
+              </p>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                rows={6}
-                placeholder="Tuliskan kronologi dan rincian masalah yang Anda alami secara mendalam dan detail..."
+                rows={5}
+                placeholder="Ceritakan kejadian yang Anda lihat atau temui, lokasi tepatnya, dan info pendukung lainnya..."
                 className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary resize-y"
                 required
               />
@@ -488,64 +496,68 @@ function LaporForm() {
               <div className="p-4 bg-surface-container-low flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-bold text-on-surface">Identitas Pelapor Terdaftar</span>
+                  <span className="text-xs font-bold text-on-surface">Identitas Pelapor</span>
                 </div>
-                <span className="text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  Warga Terverifikasi
-                </span>
               </div>
 
               {/* Data Akun Warga Terisi */}
               <div className="p-4 bg-surface-container-lowest grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-[10px] text-secondary uppercase font-semibold block">Nama Warga</span>
+                  <span className="text-[10px] text-secondary uppercase font-semibold block">Nama Pelapor</span>
                   <span className="font-semibold text-on-surface block mt-0.5">
-                    {user?.user_metadata?.full_name || user?.full_name || user?.name || user?.email?.split('@')[0] || 'Warga Sukabumi'}
+                    {user?.user_metadata?.full_name || user?.full_name || user?.name || 'Warga Sukabumi'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-secondary uppercase font-semibold block">Kontak Warga</span>
-                  <span className="font-semibold text-on-surface block mt-0.5">
-                    {user?.phone || user?.phone_number || user?.email || '-'}
+                  <span className="text-[10px] text-secondary uppercase font-semibold block">Nomor WhatsApp</span>
+                  <span className="font-semibold text-on-surface block mt-0.5 font-mono">
+                    {user?.phone || user?.phone_number || '-'}
                   </span>
                 </div>
               </div>
 
-              {/* Ketentuan Privasi & Checkbox Legal */}
+              {/* Ketentuan Privasi & Checkbox */}
               <div className="p-4 space-y-3 bg-surface-container-lowest">
                 {/* Jaminan Perlindungan Privasi Pelapor (Otomatis Anonim di Publik) */}
                 <div className="flex items-start gap-2.5 p-3 rounded-xl bg-surface-container-low/80 border border-outline-variant/60">
                   <ShieldCheck className="w-4 h-4 text-secondary/80 shrink-0 mt-0.5" />
                   <div className="text-xs">
                     <span className="font-bold text-on-surface block">
-                      Identitas Anda Otomatis Dilindungi (Anonim di Publik)
+                      Identitas Terlindungi (Anonim di Publik)
                     </span>
                     <span className="text-[11px] text-secondary block mt-0.5 leading-relaxed">
-                      Sesuai standar perlindungan pelapor (UU PDP), data akun dan kontak Anda hanya disimpan secara privat oleh Tim Redaksi untuk verifikasi. Di publik, identitas Anda otomatis dirahasiakan.
+                      Data akun dan kontak Anda disimpan secara aman hanya untuk kebutuhan konfirmasi redaksi. Di ruang publik, identitas Anda otomatis dirahasiakan.
                     </span>
                   </div>
                 </div>
 
-                {/* Checkbox Wajib: Pernyataan Pertanggungjawaban Hukum */}
+                {/* Checkbox Wajib: Pernyataan Kebenaran Informasi */}
                 <label className="flex items-start gap-2.5 text-xs text-on-surface cursor-pointer select-none pt-2.5 border-t border-outline-variant/40">
                   <input
                     type="checkbox"
                     checked={legalAgreed}
                     onChange={(e) => setLegalAgreed(e.target.checked)}
-                    className="mt-0.5 rounded border-outline-variant text-primary focus:ring-primary shrink-0"
+                    className="mt-0.5 w-4 h-4 rounded border-outline-variant text-[#c00015] accent-[#c00015] focus:ring-[#c00015] cursor-pointer shrink-0"
                     required
                   />
                   <div>
                     <span className="font-bold text-on-surface">
-                      Pernyataan Pertanggungjawaban Hukum <span className="text-primary">*</span>
+                      Pernyataan Kebenaran Informasi <span className="text-[#c00015]">*</span>
                     </span>
                     <span className="text-[11px] text-secondary block mt-0.5 leading-relaxed">
-                      Saya menyatakan identitas, informasi, dan bukti yang saya lampirkan adalah benar. Saya bersedia dihubungi tim redaksi serta siap hadir memberikan keterangan dan pertanggungjawaban apabila laporan ini ditindaklanjuti.
+                      Saya menyatakan bahwa informasi dan bukti yang saya kirimkan adalah benar sesuai kejadian yang saya ketahui. Saya bersedia dihubungi oleh tim redaksi jika diperlukan konfirmasi lebih lanjut.
                     </span>
                   </div>
                 </label>
               </div>
+            </div>
+
+            {/* Info Penanganan Ringkas (Tanpa Janji Berlebih) */}
+            <div className="p-3.5 bg-surface-container-low/70 rounded-2xl text-[11px] text-secondary leading-relaxed border border-outline-variant/50 flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <span>
+                Laporan yang masuk akan ditinjau dan dikurasi oleh tim Redaksi Hallo Jurnal sesuai kelayakan serta urgensi informasi di lapangan.
+              </span>
             </div>
 
             {/* Submit Button */}
@@ -558,101 +570,14 @@ function LaporForm() {
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Mengirimkan Laporan Resmi...</span>
+                    <span>Mengirimkan Pengaduan...</span>
                   </>
                 ) : (
-                  <>
-                    <Send className="w-5 h-5" />
-                    <span>Kirim Pengaduan Sekarang</span>
-                  </>
+                  <span>Kirim Pengaduan</span>
                 )}
               </button>
             </div>
           </form>
-        </div>
-
-        {/* Preview Column (Sisi Kanan) */}
-        <div className="lg:col-span-1">
-          <div className="bg-surface border border-outline-variant/80 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 sticky top-24">
-            <div className="flex items-center gap-2 pb-3 border-b border-outline-variant">
-              <FileText className="w-4 h-4 text-primary" />
-              <h2 className="font-heading font-bold text-xs uppercase tracking-wider text-on-surface">
-                Pratinjau Aduan
-              </h2>
-            </div>
-
-            {/* Pratinjau Foto/Video */}
-            <div className="w-full h-44 rounded-2xl bg-surface-container-low border border-outline-variant overflow-hidden flex items-center justify-center relative">
-              {previewUrl ? (
-                file?.type.startsWith('video/') || previewUrl.startsWith('data:video') ? (
-                  <video
-                    src={previewUrl}
-                    controls
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                )
-              ) : (
-                <div className="flex flex-col items-center justify-center text-secondary/40 space-y-1">
-                  <ImageIcon className="w-8 h-8 stroke-1" />
-                  <span className="text-[11px]">Foto/video bukti akan tampil di sini</span>
-                </div>
-              )}
-            </div>
-
-            {/* Info Teks Preview */}
-            <div className="space-y-3 pt-1">
-              <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-primary">
-                Pengaduan Warga
-              </span>
-
-              {/* Judul Laporan */}
-              <h3
-                className={`font-heading font-bold text-base sm:text-lg leading-snug line-clamp-2 ${
-                  title.trim() ? 'text-on-surface' : 'text-secondary/50 italic font-normal'
-                }`}
-              >
-                {title.trim() || 'Judul pengaduan Anda...'}
-              </h3>
-
-              {/* Deskripsi Laporan */}
-              <div
-                className={`text-xs sm:text-sm leading-relaxed text-justify [text-align-last:left] space-y-2 ${
-                  description.trim() ? 'text-secondary' : 'text-secondary/40 italic'
-                }`}
-              >
-                {description.trim() ? (
-                  description
-                    .split(/\n+/)
-                    .map((p: string) => p.trim())
-                    .filter(Boolean)
-                    .map((paragraf: string, idx: number) => (
-                      <p key={idx} className="leading-relaxed">
-                        {paragraf}
-                      </p>
-                    ))
-                ) : (
-                  <p>Kronologi dan rincian aduan yang Anda tulis akan ditampilkan di sini.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Info Penanganan Ringkas */}
-            <div className="p-3 bg-surface-container-low/70 rounded-2xl text-[11px] text-secondary leading-relaxed border border-outline-variant/50 flex items-start gap-2.5 mt-5">
-              <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <span>
-                Laporan aduan Anda akan ditinjau dan ditindaklanjuti secara langsung oleh tim Redaksi Jurnal Wave dalam waktu 2x24 jam.
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

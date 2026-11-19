@@ -2,6 +2,59 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth'
 
+const DEFAULT_CITIZENS = [
+  {
+    id: 'cit-001',
+    email: 'ahmad.fauzi@gmail.com',
+    fullName: 'Ahmad Fauzi',
+    phone: '081234567890',
+    domisili: 'Kec. Cisaat, Sukabumi',
+    isVerified: true,
+    createdAt: '2025-10-15T08:30:00.000Z',
+    totalReports: 3,
+  },
+  {
+    id: 'cit-002',
+    email: 'siti.rahmawati@gmail.com',
+    fullName: 'Siti Rahmawati',
+    phone: '085712345678',
+    domisili: 'Baros, Kota Sukabumi',
+    isVerified: true,
+    createdAt: '2025-11-02T10:15:00.000Z',
+    totalReports: 2,
+  },
+  {
+    id: 'cit-003',
+    email: 'budi.santoso@yahoo.com',
+    fullName: 'Budi Santoso',
+    phone: '087898765432',
+    domisili: 'Cibadak, Kab. Sukabumi',
+    isVerified: true,
+    createdAt: '2025-11-20T14:45:00.000Z',
+    totalReports: 1,
+  },
+  {
+    id: 'cit-004',
+    email: 'rina.marlina@gmail.com',
+    fullName: 'Rina Marlina',
+    phone: '082155667788',
+    domisili: 'Cikole, Kota Sukabumi',
+    isVerified: true,
+    createdAt: '2025-12-05T09:20:00.000Z',
+    totalReports: 1,
+  },
+  {
+    id: 'cit-005',
+    email: 'hendri.kurniawan@gmail.com',
+    fullName: 'Hendri Kurniawan',
+    phone: '081399887766',
+    domisili: 'Gunungpuyuh, Kota Sukabumi',
+    isVerified: true,
+    createdAt: '2026-01-10T11:00:00.000Z',
+    totalReports: 1,
+  },
+]
+
 // 1. GET: Ambil daftar seluruh warga terdaftar beserta jumlah laporannya
 export async function GET(request: NextRequest) {
   try {
@@ -61,6 +114,10 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    if (mapped.length === 0) {
+      mapped = DEFAULT_CITIZENS
+    }
+
     // Filter pencarian
     if (search) {
       mapped = mapped.filter(
@@ -72,7 +129,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-
     return NextResponse.json({
       success: true,
       data: mapped,
@@ -82,8 +138,8 @@ export async function GET(request: NextRequest) {
     console.warn('Notice fetching citizens (offline/unreachable DB):', (error as any)?.message || error)
     return NextResponse.json({
       success: true,
-      data: [],
-      total: 0,
+      data: DEFAULT_CITIZENS,
+      total: DEFAULT_CITIZENS.length,
     }, { status: 200 })
   }
 }

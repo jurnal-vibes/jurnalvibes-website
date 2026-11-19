@@ -5,11 +5,11 @@ import { fetchArticles } from '@/lib/wordpress';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Sport & E-Sport',
-  description: 'Kabar seputar olahraga, kompetisi lokal, dan turnamen E-Sport Sukabumi.',
+  title: 'Sport',
+  description: 'Kabar sepak bola Persib, Timnas Indonesia, liga top dunia, dan olahraga anak muda.',
   openGraph: {
-    title: 'Sport & E-Sport | Jurnal Wave',
-    description: 'Kabar seputar olahraga, kompetisi lokal, dan turnamen E-Sport Sukabumi.',
+    title: 'Sport | Jurnal Wave',
+    description: 'Kabar sepak bola Persib, Timnas Indonesia, liga top dunia, dan olahraga anak muda.',
   },
 };
 
@@ -21,8 +21,8 @@ export default async function SportPage() {
 
   return (
     <CategoryTemplate
-      title="Sport & E-Sport"
-      description="Kabar seputar olahraga, kompetisi lokal, dan turnamen E-Sport Sukabumi"
+      title="Sport"
+      description="Kabar seputar sepak bola Persib, Timnas Indonesia, kompetisi lokal, dan olahraga anak muda"
       articles={sportArticles}
       categoryName="Sport"
       allArticles={allArticles}

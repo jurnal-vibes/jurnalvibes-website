@@ -5,11 +5,11 @@ import { fetchArticles } from '@/lib/wordpress';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Technology & Innovation',
-  description: 'Kabar dunia teknologi, AI, gadget terbaru, dan lanskap startup digital Sukabumi.',
+  title: 'Tech & Game',
+  description: 'Kabar dunia teknologi, game, E-Sport, AI, gadget terbaru, dan tren digital anak muda.',
   openGraph: {
-    title: 'Technology & Innovation | Jurnal Wave',
-    description: 'Kabar dunia teknologi, AI, gadget terbaru, dan lanskap startup digital Sukabumi.',
+    title: 'Tech & Game | Jurnal Wave',
+    description: 'Kabar dunia teknologi, game, E-Sport, AI, gadget terbaru, dan tren digital anak muda.',
   },
 };
 
@@ -18,16 +18,21 @@ export default async function TechPage() {
   const techArticles = allArticles.filter(
     a =>
       a.category === 'tech' ||
-      (a.categoryLabel && a.categoryLabel.toUpperCase() === 'TECH') ||
+      a.category === 'game' ||
+      (a.categoryLabel && (
+        a.categoryLabel.toUpperCase() === 'TECH' ||
+        a.categoryLabel.toUpperCase() === 'TEKNOLOGI' ||
+        a.categoryLabel.toUpperCase() === 'GAME'
+      )) ||
       ((a.subCategory || '').toUpperCase() === 'TECH')
   );
 
   return (
     <CategoryTemplate
-      title="Technology & Innovation"
-      description="Kabar dunia teknologi, AI, gadget terbaru, dan lanskap startup digital Sukabumi"
+      title="Tech & Game"
+      description="Kabar seputar teknologi, gadget, game, E-Sport, dan tren digital anak muda"
       articles={techArticles}
-      categoryName="Tech"
+      categoryName="Tech & Game"
       allArticles={allArticles}
     />
   );

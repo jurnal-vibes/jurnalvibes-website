@@ -372,7 +372,7 @@ export function CuacaView({ initialData }: CuacaViewProps) {
 
         {/* HERO WEATHER DISPLAY */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          {/* Sisi Kiri: Ikon Besar + Suhu + Presipitasi/Kelembapan/Angin */}
+          {/* Sisi Kiri: Ikon Besar + Suhu + Keterangan Konteks Suhu */}
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="shrink-0">
               {renderGoogleWeatherIcon(
@@ -381,31 +381,36 @@ export function CuacaView({ initialData }: CuacaViewProps) {
               )}
             </div>
 
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-6xl sm:text-7xl font-normal tracking-tight text-[#e8eaed]">
-                {formatTemp(selectedDayIdx === 0 ? data.temperature : selectedDay.tempMax)}
-              </span>
-              <div className="flex items-center text-sm font-medium text-[#9aa0a6] select-none ml-1">
-                <button
-                  type="button"
-                  onClick={() => setUnit('C')}
-                  className={`hover:text-white transition-colors cursor-pointer ${
-                    unit === 'C' ? 'text-[#e8eaed] font-bold' : 'text-[#9aa0a6]'
-                  }`}
-                >
-                  °C
-                </button>
-                <span className="mx-1 text-[#5f6368]">|</span>
-                <button
-                  type="button"
-                  onClick={() => setUnit('F')}
-                  className={`hover:text-white transition-colors cursor-pointer ${
-                    unit === 'F' ? 'text-[#e8eaed] font-bold' : 'text-[#9aa0a6]'
-                  }`}
-                >
-                  °F
-                </button>
+            <div className="flex flex-col">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-6xl sm:text-7xl font-normal tracking-tight text-[#e8eaed]">
+                  {formatTemp(selectedDayIdx === 0 ? data.temperature : selectedDay.tempMax)}
+                </span>
+                <div className="flex items-center text-sm font-medium text-[#9aa0a6] select-none ml-1">
+                  <button
+                    type="button"
+                    onClick={() => setUnit('C')}
+                    className={`hover:text-white transition-colors cursor-pointer ${
+                      unit === 'C' ? 'text-[#e8eaed] font-bold' : 'text-[#9aa0a6]'
+                    }`}
+                  >
+                    °C
+                  </button>
+                  <span className="mx-1 text-[#5f6368]">|</span>
+                  <button
+                    type="button"
+                    onClick={() => setUnit('F')}
+                    className={`hover:text-white transition-colors cursor-pointer ${
+                      unit === 'F' ? 'text-[#e8eaed] font-bold' : 'text-[#9aa0a6]'
+                    }`}
+                  >
+                    °F
+                  </button>
+                </div>
               </div>
+              <span className="text-xs text-[#9aa0a6] font-medium mt-0.5">
+                {selectedDayIdx === 0 ? 'Suhu saat ini' : `Suhu maksimum ${selectedDay.dayFullName}`}
+              </span>
             </div>
 
             <div className="hidden sm:flex flex-col text-xs sm:text-[13px] text-[#9aa0a6] leading-relaxed ml-2 border-l border-[#3c4043] pl-4">
@@ -415,16 +420,16 @@ export function CuacaView({ initialData }: CuacaViewProps) {
             </div>
           </div>
 
-          {/* Sisi Kanan: Cuaca, Hari, Kondisi (Jam Dihapus Sesuai Permintaan) */}
+          {/* Sisi Kanan: Cuaca, Hari, Kondisi, Rentang Maks / Min */}
           <div className="text-left sm:text-right flex flex-col justify-center">
             <h2 className="text-2xl sm:text-3xl font-normal text-[#e8eaed] tracking-tight">
               Cuaca
             </h2>
             <div className="text-sm text-[#9aa0a6] mt-0.5">
-              {selectedDayIdx === 0 ? data.dayName : selectedDay.dayFullName}
+              {selectedDayIdx === 0 ? data.dayName : selectedDay.dayFullName} • {selectedDayIdx === 0 ? data.condition : selectedDay.condition}
             </div>
-            <div className="text-sm text-[#9aa0a6]">
-              {selectedDayIdx === 0 ? data.condition : selectedDay.condition}
+            <div className="text-xs text-[#8ab4f8] font-medium mt-1">
+              Maks {formatTemp(selectedDay.tempMax)}° • Min {formatTemp(selectedDay.tempMin)}°
             </div>
           </div>
         </div>
@@ -573,18 +578,26 @@ export function CuacaView({ initialData }: CuacaViewProps) {
                     isSelected ? 'text-[#e8eaed]' : 'text-[#9aa0a6]'
                   }`}
                 >
-                  {day.dayName}
+                  {idx === 0 ? 'Hari ini' : day.dayName}
                 </span>
 
                 <div className="my-2">
                   {renderGoogleWeatherIcon(day.iconName, 'w-8 h-8')}
                 </div>
 
-                <div className="flex items-center gap-1 text-xs">
-                  <span className="font-bold text-[#e8eaed]">
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs">
+                  <span
+                    className="font-bold text-[#e8eaed] flex items-center"
+                    title={`Maksimum: ${formatTemp(day.tempMax)}°`}
+                  >
+                    <span className="text-[10px] text-amber-400/90 mr-0.5">↑</span>
                     {formatTemp(day.tempMax)}°
                   </span>
-                  <span className="text-[#9aa0a6]">
+                  <span
+                    className="text-[#9aa0a6] flex items-center"
+                    title={`Minimum: ${formatTemp(day.tempMin)}°`}
+                  >
+                    <span className="text-[10px] text-blue-400/90 mr-0.5">↓</span>
                     {formatTemp(day.tempMin)}°
                   </span>
                 </div>

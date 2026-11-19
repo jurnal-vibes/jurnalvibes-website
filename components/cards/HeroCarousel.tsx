@@ -234,7 +234,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
                 </Badge>
               </div>
               <Link href={`/artikel/${article.slug || article.id}`} onClick={handleLinkClick}>
-                <h2 className="text-white text-sm sm:text-lg md:text-xl font-bold hover:text-red-200 transition-colors cursor-pointer line-clamp-2 leading-snug">
+                <h2 className="text-white text-sm sm:text-lg md:text-xl font-bold hover:underline underline-offset-4 decoration-white/80 cursor-pointer line-clamp-2 leading-snug">
                   {article.title}
                 </h2>
               </Link>
@@ -276,15 +276,17 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
         </>
       )}
 
-      {/* Navigation Indicators (Dots) */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+      {/* Navigation Indicators (Dots - Slim & Minimalist) */}
+      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
         {heroArticles.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
             aria-label={`Pindah ke slide ${index + 1}`}
-            className={`w-2.5 h-2.5 rounded-full bg-white transition-all duration-300 cursor-pointer ${
-              currentSlide === index ? 'opacity-100 scale-125 bg-primary' : 'opacity-50 hover:opacity-100'
+            className={`rounded-full transition-all duration-300 cursor-pointer ${
+              currentSlide === index
+                ? 'w-3.5 h-1.5 bg-white shadow-xs'
+                : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/80'
             }`}
           />
         ))}

@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import AdminWargaPage from '../warga/page'
+import AdminToast from '@/components/admin/AdminToast'
+import { useConfirm } from '@/components/admin/AdminConfirmDialog'
 import {
   Users,
   UserPlus,
@@ -25,13 +28,57 @@ interface TeamMember {
   joinedAt: string
 }
 
-const DEFAULT_TEAM: TeamMember[] = []
+const DEFAULT_TEAM: TeamMember[] = [
+  {
+    id: 'team-01',
+    name: 'Dimas Prasetyo',
+    email: 'dimas.prasetyo@jurnalwave.com',
+    role: 'Pemimpin Redaksi',
+    status: 'aktif',
+    joinedAt: '12 Jan 2025',
+  },
+  {
+    id: 'team-02',
+    name: 'Siti Nurhaliza',
+    email: 'siti.nurhaliza@jurnalwave.com',
+    role: 'Redaktur Pelaksana',
+    status: 'aktif',
+    joinedAt: '15 Feb 2025',
+  },
+  {
+    id: 'team-03',
+    name: 'Rangga Maulana',
+    email: 'rangga.maulana@jurnalwave.com',
+    role: 'Reporter / Jurnalis',
+    status: 'aktif',
+    joinedAt: '01 Mar 2025',
+  },
+  {
+    id: 'team-04',
+    name: 'Nadia Safitri',
+    email: 'nadia.safitri@jurnalwave.com',
+    role: 'Admin Verifikasi',
+    status: 'aktif',
+    joinedAt: '20 Mar 2025',
+  },
+]
 
 export default function AdminTimRedaksiPage() {
+  const confirmDialog = useConfirm()
+  const [activeTab, setActiveTab] = useState<'redaksi' | 'warga'>('redaksi')
   const [members, setMembers] = useState<TeamMember[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('tab') === 'warga') {
+        setActiveTab('warga')
+      }
+    }
+  }, [])
 
   // Form State
   const [formName, setFormName] = useState('')
@@ -45,25 +92,18 @@ export default function AdminTimRedaksiPage() {
         const saved = localStorage.getItem('jurnal_wave_team_members')
         if (saved) {
           const parsed = JSON.parse(saved)
-          if (Array.isArray(parsed)) {
-            const clean = parsed.filter(
-              (m: any) =>
-                !String(m.id || '').startsWith('usr-') &&
-                !String(m.name || '').toLowerCase().includes('rahmat') &&
-                !String(m.name || '').toLowerCase().includes('dewi') &&
-                !String(m.name || '').toLowerCase().includes('rian') &&
-                !String(m.name || '').toLowerCase().includes('budi')
-            )
-            if (clean.length !== parsed.length) {
-              localStorage.setItem('jurnal_wave_team_members', JSON.stringify(clean))
-            }
-            setMembers(clean)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMembers(parsed)
             return
           }
         }
       } catch (err) {
         console.error('Error loading team members:', err)
       }
+      setMembers(DEFAULT_TEAM)
+      try {
+        localStorage.setItem('jurnal_wave_team_members', JSON.stringify(DEFAULT_TEAM))
+      } catch {}
     }
   }, [])
 
@@ -116,8 +156,15 @@ export default function AdminTimRedaksiPage() {
   }
 
   // Hapus Anggota
-  const handleDeleteMember = (id: string, name: string) => {
-    if (confirm(`Hapus anggota tim: "${name}"?`)) {
+  const handleDeleteMember = async (id: string, name: string) => {
+    const isConfirmed = await confirmDialog({
+      title: 'Hapus Anggota?',
+      message: `Yakin ingin menghapus "${name}" dari tim redaksi?`,
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      variant: 'danger',
+    })
+    if (isConfirmed) {
       const updated = members.filter((m) => m.id !== id)
       persistMembers(updated)
       setToastMessage('Anggota tim redaksi dihapus.')
@@ -143,39 +190,66 @@ export default function AdminTimRedaksiPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h1 className="text-xl font-heading font-bold text-slate-900 tracking-tight">
-            Manajemen Tim Redaksi &amp; Penulis
+            Kelola Pengguna Sistem
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Daftar jurnalis, editor, dan staf verifikator Hallo Jurnal yang memiliki akses sistem.
+            Pusat manajemen akun tim redaksi portal media dan akun warga terdaftar Hallo Jurnal.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>Tambah Anggota</span>
-          </button>
-        </div>
+        {activeTab === 'redaksi' && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#c00015] hover:bg-[#a00012] text-white text-xs font-semibold transition shadow-2xs cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Tambah Anggota Redaksi</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Toast Alert */}
-      {toastMessage && (
-        <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center justify-between shadow-2xs">
-          <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{toastMessage}</span>
-          </div>
-          <button
-            onClick={() => setToastMessage(null)}
-            className="text-slate-400 hover:text-white font-bold cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      )}
+      {/* Tab Switcher: Tim Redaksi vs Warga Terdaftar */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('redaksi')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer ${
+            activeTab === 'redaksi'
+              ? 'bg-[#c00015] text-white shadow-2xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>Tim Redaksi &amp; Penulis</span>
+          <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${activeTab === 'redaksi' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
+            {members.length}
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('warga')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition cursor-pointer ${
+            activeTab === 'warga'
+              ? 'bg-[#c00015] text-white shadow-2xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Warga Terdaftar</span>
+        </button>
+      </div>
+
+      {activeTab === 'warga' ? (
+        <AdminWargaPage />
+      ) : (
+        <>
+          {/* Toast Alert */}
+          <AdminToast
+            message={toastMessage}
+            onClose={() => setToastMessage(null)}
+          />
 
       {/* 2. Kartu Metrik */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -359,6 +433,8 @@ export default function AdminTimRedaksiPage() {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   )

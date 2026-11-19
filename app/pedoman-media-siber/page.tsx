@@ -15,7 +15,7 @@ export default function PedomanMediaSiberPage() {
   return (
     <div className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-24 flex flex-col min-w-0">
       <main className="w-full flex flex-col gap-6">
-        {/* Breadcrumb */}
+        {/* Breadcrumb Ringkas */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-on-surface-variant dark:text-gray-400">
           <Link href="/" className="hover:text-primary transition-colors">
             Home
@@ -25,144 +25,107 @@ export default function PedomanMediaSiberPage() {
         </nav>
 
         {/* Header Dokumen */}
-        <header className="border-b border-outline-variant dark:border-slate-800 pb-5">
-          <h1 className="font-headline-xl text-3xl md:text-4xl font-bold text-on-surface dark:text-white leading-tight">
+        <header className="border-b border-outline-variant dark:border-slate-800 pb-3 sm:pb-4">
+          <h1 className="font-headline-xl text-lg sm:text-xl md:text-2xl font-bold text-on-surface dark:text-white leading-tight">
             Pedoman Pemberitaan Media Siber
           </h1>
-          <p className="text-xs text-on-surface-variant dark:text-gray-400 mt-2">
-            Disahkan oleh Dewan Pers bersama Komunitas Pers Indonesia di Jakarta, 3 Februari 2012
+          <p className="text-xs text-on-surface-variant dark:text-gray-400 mt-1.5">
+            Disahkan oleh Dewan Pers bersama Komunitas Pers Indonesia di Jakarta, 3 Februari 2012.
           </p>
         </header>
 
         {/* Konten Dokumen Regulasi Pers */}
         <article className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-on-surface/90 dark:text-gray-300 leading-relaxed space-y-6">
-          <div className="bg-surface-container-low dark:bg-slate-900 p-4 rounded-lg border-l-4 border-primary text-sm space-y-2">
+          <div className="bg-surface-container-low dark:bg-slate-900 p-4 rounded-xl border-l-4 border-primary text-xs sm:text-sm space-y-2">
             <p>
-              Kemerdekaan berpendapat, kemerdekaan berekspresi, dan kemerdekaan pers adalah hak asasi manusia yang dilindungi Pancasila, Undang-Undang Dasar 1945, dan Deklarasi Universal Hak Asasi Manusia PBB. Keberadaan media siber di Indonesia juga merupakan bagian dari kemerdekaan berpendapat, kemerdekaan berekspresi, dan kemerdekaan pers.
-            </p>
-            <p>
-              Media siber memiliki karakter khusus sehingga memerlukan pedoman agar pengelolaannya dapat dilaksanakan secara profesional, memenuhi fungsi, hak, dan kewajibannya sesuai Undang-Undang Nomor 40 Tahun 1999 tentang Pers dan Kode Etik Jurnalistik. Untuk itu Dewan Pers bersama organisasi pers, pengelola media siber, dan masyarakat menyusun Pedoman Pemberitaan Media Siber sebagai berikut:
+              Kemerdekaan berpendapat, berekspresi, dan kemerdekaan pers adalah hak asasi manusia yang dilindungi Pancasila, Undang-Undang Dasar 1945, dan Deklarasi Universal Hak Asasi Manusia PBB. Media siber memiliki karakter khusus sehingga memerlukan pedoman agar pengelolaannya terlaksana secara profesional sesuai Undang-Undang Nomor 40 Tahun 1999 tentang Pers dan Kode Etik Jurnalistik.
             </p>
           </div>
 
-          <div className="space-y-6 pt-2">
-            <section>
-              <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
+          <div className="space-y-6 divide-y divide-outline-variant/40 dark:divide-slate-800">
+            <section className="pt-2">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
                 1. Ruang Lingkup
               </h2>
-              <ol className="list-decimal pl-5 space-y-1.5 text-sm">
+              <ol className="list-decimal pl-5 space-y-1.5 text-xs sm:text-sm text-on-surface-variant dark:text-gray-400">
                 <li>
-                  <strong>Media Siber</strong> adalah segala bentuk media yang menggunakan wahana internet dan melaksanakan kegiatan jurnalistik, serta memenuhi persyaratan Undang-Undang Pers dan Standar Perusahaan Pers yang ditetapkan Dewan Pers.
+                  <strong className="text-on-surface dark:text-white">Media Siber</strong> adalah segala bentuk media yang menggunakan wahana internet dan melaksanakan kegiatan jurnalistik, serta memenuhi persyaratan Undang-Undang Pers dan Standar Perusahaan Pers yang ditetapkan Dewan Pers.
                 </li>
                 <li>
-                  <strong>Isi Buatan Pengguna (User Generated Content)</strong> adalah segala isi yang dibuat dan atau dipublikasikan oleh pengguna media siber, antara lain, artikel, gambar, komentar, suara, video dan berbagai bentuk unggahan yang melekat pada media siber, seperti blog, forum, komentar pembaca atau pemirsa, dan bentuk lain.
+                  <strong className="text-on-surface dark:text-white">Isi Buatan Pengguna (User Generated Content)</strong> adalah segala isi yang dibuat dan atau dipublikasikan oleh pengguna media siber, antara lain artikel, gambar, komentar, suara, video, dan berbagai bentuk unggahan yang melekat pada media siber.
                 </li>
               </ol>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
+            <section className="pt-5">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
                 2. Verifikasi dan Keberimbangan Berita
               </h2>
-              <ol className="list-decimal pl-5 space-y-1.5 text-sm">
-                <li>Pada prinsipnya setiap berita harus melalui verifikasi.</li>
+              <ol className="list-decimal pl-5 space-y-1.5 text-xs sm:text-sm text-on-surface-variant dark:text-gray-400">
+                <li>Pada prinsipnya setiap berita harus melalui proses verifikasi.</li>
                 <li>Berita yang dapat merugikan pihak lain memerlukan verifikasi pada berita yang sama untuk memenuhi prinsip akurasi dan keberimbangan.</li>
                 <li>
-                  Ketentuan dalam butir (1) di atas dikecualikan, dengan syarat:
-                  <ul className="list-disc pl-5 mt-1 space-y-1 text-on-surface-variant dark:text-gray-400">
-                    <li>Berita benar-benar mengandung kepentingan publik yang bersifat mendesak;</li>
-                    <li>Sumber berita yang pertama adalah sumber yang jelas disebutkan identitasnya, kredibel dan kompeten;</li>
-                    <li>Subyek berita yang harus dikonfirmasi tidak diketahui keberadaannya dan atau tidak dapat diwawancarai;</li>
-                    <li>Media memberikan penjelasan kepada pembaca bahwa berita tersebut masih memerlukan verifikasi lebih lanjut yang diupayakan dalam waktu secepatnya. Penjelasan dimuat pada bagian akhir dari berita yang sama, di dalam kurung dan menggunakan huruf miring.</li>
-                  </ul>
+                  Ketentuan verifikasi serentak dapat dikecualikan apabila mengandung kepentingan publik mendesak, sumber berita kredibel dan kompeten, subjek konfirmasi belum diketahui keberadaannya, serta diberi keterangan bahwa berita masih memerlukan verifikasi lanjutan.
                 </li>
-                <li>Setelah memuat berita sesuai dengan butir (3), media wajib meneruskan upaya verifikasi, dan setelah verifikasi didapatkan, hasil verifikasi dicantumkan pada berita pemutakhiran (update) dengan tautan pada berita yang belum terverifikasi.</li>
               </ol>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
+            <section className="pt-5">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
                 3. Isi Buatan Pengguna (User Generated Content)
               </h2>
-              <ol className="list-decimal pl-5 space-y-1.5 text-sm">
-                <li>Media siber wajib mencantumkan syarat dan ketentuan mengenai Isi Buatan Pengguna yang tidak bertentangan dengan Undang-Undang No. 40 tahun 1999 tentang Pers dan Kode Etik Jurnalistik, yang ditempatkan secara terang dan jelas.</li>
-                <li>Media siber mewajibkan setiap pengguna untuk melakukan registrasi keanggotaan dan melakukan proses log-in terlebih dahulu untuk dapat mempublikasikan semua bentuk Isi Buatan Pengguna.</li>
-                <li>Dalam registrasi tersebut, media siber mewajibkan pengguna memberi persetujuan tertulis bahwa Isi Buatan Pengguna yang dipublikasikan tidak memuat fitnah, hoaks, sadis, pornografi, ujaran kebencian SARA, maupun diskriminasi.</li>
-                <li>Media siber memiliki kewenangan mutlak untuk mengedit atau menghapus Isi Buatan Pengguna yang melanggar ketentuan.</li>
-                <li>Media siber wajib menyediakan mekanisme pengaduan Isi Buatan Pengguna yang mudah diakses pengguna.</li>
-                <li>Media siber wajib menyunting, menghapus, dan melakukan tindakan koreksi setiap Isi Buatan Pengguna yang dilaporkan dan melanggar ketentuan sesegera mungkin selambat-lambatnya 2 x 24 jam setelah pengaduan diterima.</li>
-                <li>Media siber yang telah memenuhi ketentuan di atas tidak dibebani tanggung jawab atas masalah yang ditimbulkan akibat pemuatan isi yang melanggar ketentuan.</li>
-                <li>Media siber bertanggung jawab atas Isi Buatan Pengguna yang dilaporkan bila tidak mengambil tindakan koreksi setelah batas waktu 2 x 24 jam.</li>
+              <ol className="list-decimal pl-5 space-y-1.5 text-xs sm:text-sm text-on-surface-variant dark:text-gray-400">
+                <li>Media siber wajib mencantumkan syarat dan ketentuan mengenai Isi Buatan Pengguna yang tidak bertentangan dengan UU Pers dan Kode Etik Jurnalistik.</li>
+                <li>Pengguna wajib memberi persetujuan bahwa isi yang diunggah bebas dari fitnah, hoaks, pornografi, dan ujaran kebencian SARA.</li>
+                <li>Media siber berhak mengedit atau menghapus isi yang melanggar ketentuan, serta menyediakan mekanisme pengaduan yang mudah diakses.</li>
               </ol>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
+            <section className="pt-5">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
                 4. Ralat, Koreksi, dan Hak Jawab
               </h2>
-              <ol className="list-decimal pl-5 space-y-1.5 text-sm">
-                <li>Ralat, koreksi, dan hak jawab mengacu pada Undang-Undang Pers, Kode Etik Jurnalistik, dan Pedoman Hak Jawab yang ditetapkan Dewan Pers.</li>
-                <li>Ralat, koreksi dan atau hak jawab wajib ditautkan pada berita yang diralat, dikoreksi atau yang diberi hak jawab.</li>
-                <li>Di setiap berita ralat, koreksi, dan hak jawab wajib dicantumkan waktu pemuatan ralat, koreksi, dan atau hak jawab tersebut.</li>
-                <li>Bila suatu berita media siber tertentu disebarluaskan media siber lain, maka koreksi berita yang dilakukan oleh sebuah media siber juga harus dilakukan oleh media siber lain yang mengutip berita tersebut.</li>
-                <li>Media yang menyebarluaskan berita dari sebuah media siber dan tidak melakukan koreksi bertanggung jawab penuh atas semua akibat hukum dari berita yang tidak dikoreksinya itu.</li>
-                <li>Sesuai dengan Undang-Undang Pers, media siber yang tidak melayani hak jawab dapat dijatuhi sanksi hukum pidana denda paling banyak Rp500.000.000 (Lima ratus juta rupiah).</li>
+              <ol className="list-decimal pl-5 space-y-1.5 text-xs sm:text-sm text-on-surface-variant dark:text-gray-400">
+                <li>Ralat, koreksi, dan hak jawab mengacu pada UU Pers, Kode Etik Jurnalistik, dan Pedoman Hak Jawab Dewan Pers.</li>
+                <li>Ralat, koreksi, dan atau hak jawab wajib ditautkan pada berita yang diralat, dikoreksi, atau yang diberi hak jawab.</li>
+                <li>Di setiap berita ralat dicantumkan waktu pemuatan ralat atau hak jawab tersebut secara transparan.</li>
               </ol>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
+            <section className="pt-5">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
                 5. Pencabutan Berita
               </h2>
-              <ol className="list-decimal pl-5 space-y-1.5 text-sm">
-                <li>Berita yang sudah dipublikasikan tidak dapat dicabut karena alasan penyensoran dari pihak luar redaksi, kecuali terkait masalah SARA, kesusilaan, masa depan anak, pengalaman traumatik korban atau berdasarkan pertimbangan khusus lain yang ditetapkan Dewan Pers.</li>
-                <li>Media siber lain wajib mengikuti pencabutan kutipan berita dari media asal yang telah dicabut.</li>
-                <li>Pencabutan berita wajib disertai dengan alasan pencabutan dan diumumkan kepada publik.</li>
+              <ol className="list-decimal pl-5 space-y-1.5 text-xs sm:text-sm text-on-surface-variant dark:text-gray-400">
+                <li>Berita yang sudah dipublikasikan tidak dapat dicabut karena sensor pihak luar, kecuali terkait masalah SARA, kesusilaan, masa depan anak, traumatik korban, atau pertimbangan khusus Dewan Pers.</li>
+                <li>Pencabutan berita wajib disertai alasan resmi dan diumumkan secara terbuka kepada publik.</li>
               </ol>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-                6. Iklan
+            <section className="pt-5">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
+                6. Iklan dan Advertorial
               </h2>
-              <ol className="list-decimal pl-5 space-y-1.5 text-sm">
-                <li>Media siber wajib membedakan dengan tegas antara produk berita dan iklan.</li>
-                <li>Setiap berita/artikel/isi yang merupakan iklan dan atau isi berbayar wajib mencantumkan keterangan &quot;advertorial&quot;, &quot;iklan&quot;, &quot;ads&quot;, &quot;sponsored&quot;, atau kata lain yang menjelaskan bahwa berita/artikel/isi tersebut adalah iklan.</li>
+              <ol className="list-decimal pl-5 space-y-1.5 text-xs sm:text-sm text-on-surface-variant dark:text-gray-400">
+                <li>Media siber wajib membedakan dengan tegas antara produk berita jurnalistik dan konten iklan/promosi.</li>
+                <li>Setiap konten berbayar wajib mencantumkan keterangan jelas seperti &quot;advertorial&quot;, &quot;iklan&quot;, &quot;ads&quot;, atau &quot;sponsored&quot;.</li>
               </ol>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-                7. Hak Cipta
+            <section className="pt-5">
+              <h2 className="text-base font-bold text-on-surface dark:text-white mb-2">
+                7. Hak Cipta &amp; Sengketa
               </h2>
-              <p className="text-sm">
-                Media siber wajib menghormati hak cipta sebagaimana diatur dalam peraturan perundang-undangan yang berlaku.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-                8. Pencantuman Pedoman
-              </h2>
-              <p className="text-sm">
-                Media siber wajib mencantumkan Pedoman Pemberitaan Media Siber ini di medianya secara terang dan jelas.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-bold text-on-surface dark:text-white mb-2">
-                9. Sengketa
-              </h2>
-              <p className="text-sm">
-                Penilaian akhir atas sengketa mengenai pelaksanaan Pedoman Pemberitaan Media Siber ini diselesaikan oleh Dewan Pers.
+              <p className="text-xs sm:text-sm text-on-surface-variant dark:text-gray-400 leading-relaxed">
+                Media siber wajib menghormati hak cipta sebagaimana diatur dalam peraturan perundang-undangan. Penilaian akhir atas sengketa mengenai pelaksanaan Pedoman Pemberitaan Media Siber diselesaikan oleh <strong>Dewan Pers</strong>.
               </p>
             </section>
           </div>
 
-          <div className="border-t border-outline-variant dark:border-slate-800 pt-6 mt-8 text-xs text-on-surface-variant dark:text-gray-400">
-            <p className="font-semibold text-on-surface dark:text-white">Jakarta, 3 Februari 2012</p>
-            <p className="italic mt-1">
-              (Pedoman ini ditandatangani oleh Dewan Pers dan komunitas pers di Jakarta, 3 Februari 2012).
+          <div className="border-t border-outline-variant/60 dark:border-slate-800 pt-5 text-xs text-on-surface-variant dark:text-gray-400">
+            <p className="font-semibold text-on-surface dark:text-white">Dewan Pers Indonesia</p>
+            <p className="mt-0.5">
+              Pedoman ini ditandatangani oleh Dewan Pers dan komunitas pers di Jakarta, 3 Februari 2012.
             </p>
           </div>
         </article>

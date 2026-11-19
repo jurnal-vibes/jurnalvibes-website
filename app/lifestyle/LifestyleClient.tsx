@@ -138,9 +138,9 @@ export function LifestyleClient({ initialArticles = [] }: { initialArticles?: Ar
   }
 
   return (
-    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 flex flex-col min-w-0">
+    <div className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-6 pb-12 flex flex-col min-w-0">
       {/* Header dengan Sub-Kategori Aktif */}
-      <header className="flex flex-col gap-2.5 mb-8 pb-4 border-b border-outline-variant/50">
+      <header className="flex flex-col gap-2 mb-6 pb-3 border-b border-outline-variant/40">
         {sub && (
           <Link
             href="/lifestyle"
@@ -152,9 +152,14 @@ export function LifestyleClient({ initialArticles = [] }: { initialArticles?: Ar
         )}
 
         <div>
-          <h1 className="text-2xl md:text-4xl font-bold font-headline-xl text-on-surface tracking-tight">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold font-headline-xl text-on-surface tracking-tight">
             {pageTitle}
           </h1>
+          {pageSubtitle && (
+            <p className="mt-1 text-xs sm:text-sm text-on-surface-variant font-normal">
+              {pageSubtitle}
+            </p>
+          )}
         </div>
       </header>
 

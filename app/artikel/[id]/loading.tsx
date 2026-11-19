@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function ArticleLoading() {
   return (
-    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative animate-pulse">
+    <div className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-12 flex flex-col relative animate-pulse">
       {/* Breadcrumb Skeleton */}
       <div className="flex items-center gap-2 mb-3.5">
         <div className="h-3 w-12 bg-surface-variant/60 dark:bg-neutral-800 rounded" />
