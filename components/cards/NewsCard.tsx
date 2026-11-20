@@ -66,7 +66,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ article, variant = 'row' }) 
     <article className="flex flex-row gap-3.5 sm:gap-4 group cursor-pointer border-t border-slate-100 dark:border-zinc-800 py-2.5 sm:py-3.5 w-full items-start sm:items-center">
       <Link
         href={`/artikel/${articleSlug}`}
-        className="relative w-28 sm:w-40 md:w-44 aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden shrink-0 block bg-slate-100 dark:bg-slate-800"
+        className="relative w-28 sm:w-36 md:w-40 aspect-[4/3] rounded-xl overflow-hidden shrink-0 block bg-slate-100 dark:bg-slate-800"
       >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

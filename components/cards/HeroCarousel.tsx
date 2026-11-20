@@ -166,7 +166,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ articles }) => {
 
   return (
     <div
-      className="relative w-full aspect-[16/10] sm:aspect-[2/1] md:aspect-[2.3/1] max-h-[350px] rounded-2xl overflow-hidden mb-4 group shadow-xs border border-slate-200 dark:border-zinc-800 select-none touch-pan-y"
+      className="relative w-full aspect-[16/10] sm:aspect-video max-h-[500px] rounded-2xl overflow-hidden mb-4 group shadow-xs border border-slate-200 dark:border-zinc-800 select-none touch-pan-y"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
